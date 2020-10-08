@@ -1,9 +1,10 @@
 @echo off
-cd ..\ext
+cd ..\vendor\source
 git submodule sync
 
 git submodule add --force https://github.com/Gurman8r/assimp.git
 git submodule add --force https://github.com/python/cpython.git
+git submodule add --force https://github.com/skypjack/entt.git
 git submodule add --force https://github.com/aseprite/freetype2.git
 git submodule add --force https://github.com/kthohr/gcem.git
 git submodule add --force https://github.com/nigels-com/glew.git

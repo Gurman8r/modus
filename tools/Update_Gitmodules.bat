@@ -15,7 +15,6 @@ git submodule add --force https://github.com/ocornut/imgui_club.git
 git submodule add --force https://github.com/Gurman8r/ImGuiColorTextEdit.git
 git submodule add --force https://github.com/Gurman8r/imgui-node-editor.git
 git submodule add --force https://github.com/CedricGuillemet/ImGuizmo.git
-git submodule add --force https://github.com/epezent/implot
 git submodule add --force https://github.com/nlohmann/json
 git submodule add --force https://github.com/nothings/stb.git
 git submodule add --force https://github.com/pybind/pybind11.git

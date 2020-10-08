@@ -1,0 +1,14 @@
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+
+uniform vec3	u_cam.pos	{ 0, 0, 3 }
+uniform vec3	u_cam.dir	{ 0, 0, -1 }
+uniform float	u_cam.fov	{ 45.0 }
+uniform float	u_cam.near	{ 0.001 }
+uniform float	u_cam.far	{ 1000.0 }
+uniform vec2	u_cam.view	{ 1920.0, 1080.0 }
+
+uniform color	u_color			{ 1, 1, 1, 1 }
+uniform sampler	u_texture0		{ tex/sky/starfield } 
+uniform vec4	u_rotation		{ 0, 1, 0, 0.01 }
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #

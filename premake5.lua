@@ -3,7 +3,7 @@
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * --
 
 workspace "modus_%{_ACTION}"
-	startproject "launcher"
+	startproject "modus_launcher"
 	configurations{ "Debug", "Release" }
 	platforms{ "x86", "x64" }
 	filter{ "platforms:*64" }
@@ -36,8 +36,9 @@ filter{ "system:Windows" }
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * --
 
 dofile "./vendor/config/glfw.lua"
-dofile "./config/core.lua"
-dofile "./config/launcher.lua"
+dofile "./vendor/config/imgui.lua"
+dofile "./config/modus_core.lua"
+dofile "./config/modus_launcher.lua"
 dofile "./plugins/sandbox/config/sandbox.lua"
 		
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * --

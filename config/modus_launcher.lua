@@ -57,6 +57,7 @@ includedirs{
 	"%{wks.location}/vendor/source/pybind11/include",
 	"%{wks.location}/vendor/source/cpython/Include",
 	"%{wks.location}/vendor/source/cpython/Include/internal",
+	"%{wks.location}/vendor/source/cpython/PC",
 	"%{wks.location}/vendor/source/entt/src",
 	"%{wks.location}/vendor/source/imgui",
 	"%{wks.location}/vendor/source/imgui-node-editor/NodeEditor/Include",
@@ -84,15 +85,6 @@ filter{ "configurations:Release" }
 	links{
 		"glew32",
 		"python39",
-	}
-
--- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * --
-
--- WINDOWS
-
-filter{ "system:Windows" }
-	includedirs{
-		"%{wks.location}/vendor/source/cpython/PC",
 	}
 
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * --

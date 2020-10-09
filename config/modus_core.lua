@@ -59,14 +59,15 @@ includedirs{
 	"%{wks.location}/source",
 	"%{wks.location}/source/modus_core",
 	"%{wks.location}/vendor/source",
-	"%{wks.location}/vendor/source/glfw/include",
 	"%{wks.location}/vendor/source/assimp/include",
+	"%{wks.location}/vendor/source/glfw/include",
 	"%{wks.location}/vendor/source/freetype2/include",
 	"%{wks.location}/vendor/source/freetype2/include/freetype",
 	"%{wks.location}/vendor/source/json/include",
 	"%{wks.location}/vendor/source/pybind11/include",
 	"%{wks.location}/vendor/source/cpython/Include",
 	"%{wks.location}/vendor/source/cpython/Include/internal",
+	"%{wks.location}/vendor/source/cpython/PC",
 	"%{wks.location}/vendor/source/entt/src",
 	"%{wks.location}/vendor/source/imgui",
 	"%{wks.location}/vendor/source/imgui-node-editor",
@@ -109,9 +110,7 @@ filter{ "configurations:Debug" }
 		"python39_d",
 	}
 	prebuildcommands{
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python3_d%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python39_d%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python310_d%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 	}
 
 filter{ "configurations:Release" }
@@ -121,17 +120,12 @@ filter{ "configurations:Release" }
 		"python39",
 	}
 	prebuildcommands{
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python3%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python39%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python310%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 	}
 
 -- WINDOWS
 
 filter{ "system:Windows" }
-	includedirs{
-		"%{wks.location}/vendor/source/cpython/PC",
-	}
 	buildoptions{
 		"/bigobj"
 	}

@@ -1,0 +1,34 @@
+[submodule "vendor/source/entt"]
+	path = vendor/source/entt
+	url = https://github.com/skypjack/entt.git
+[submodule "vendor/source/freetype2"]
+	path = vendor/source/freetype2
+	url = https://github.com/aseprite/freetype2.git
+[submodule "vendor/source/gcem"]
+	path = vendor/source/gcem
+	url = https://github.com/kthohr/gcem.git
+[submodule "vendor/source/glew"]
+	path = vendor/source/glew
+	url = https://github.com/nigels-com/glew.git
+[submodule "vendor/source/glfw"]
+	path = vendor/source/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "vendor/source/glm"]
+	path = vendor/source/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "vendor/source/json"]
+	path = vendor/source/json
+	url = https://github.com/nlohmann/json
+[submodule "vendor/source/stb"]
+	path = vendor/source/stb
+	url = https://github.com/nothings/stb.git
+[submodule "vendor/source/pybind11"]
+	path = vendor/source/pybind11
+	url = https://github.com/pybind/pybind11.git
+[submodule "vendor/source/zlib"]
+	path = vendor/source/zlib
+	url = https://github.com/madler/zlib
+[submodule "vendor/source/imgui"]
+	path = vendor/source/imgui
+	url = https://github.com/ocornut/imgui.git
+	branch = docking

@@ -5,9 +5,9 @@ project			"glfw"
 targetname 		"%{prj.name}"
 targetdir		"%{wks.location}/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/"
 objdir			"%{wks.location}/bin-obj/%{cfg.platform}/%{cfg.buildcfg}/"
-location		"%{wks.location}/project/%{_ACTION}/%{prj.name}/vendor/%{prj.name}/"
+location		"%{wks.location}/project/%{_ACTION}/vendor/%{prj.name}/"
 debugdir 		"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/"
-kind			"StaticLib"
+kind			"SharedLib"
 language		"C++"
 cppdialect 		"C++17"
 staticruntime	"Off"
@@ -15,11 +15,24 @@ systemversion	"latest"
 
 defines{
 	"_CRT_SECURE_NO_WARNINGS", "NOMINMAX",
+
+	"_GLFW_BUILD_DLL",
 }
 
 undefines{
 	"NDEBUG",
 	"__NULL_IMPORT_DESCRIPTOR",
+}
+
+libdirs{
+	"%{wks.location}/vendor/bin-lib/",
+	"%{wks.location}/vendor/bin-lib/",
+	"%{wks.location}/vendor/bin-lib/%{cfg.platform}/",
+	"%{wks.location}/vendor/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/",
+}
+
+links{
+	"opengl32",
 }
 
 includedirs{
@@ -47,15 +60,8 @@ files{
 	"%{wks.location}/vendor/source/glfw/src/window.c",
 }
 
-libdirs{
-	"%{wks.location}/vendor/bin-lib/",
-	"%{wks.location}/vendor/bin-lib/",
-	"%{wks.location}/vendor/bin-lib/%{cfg.platform}/",
-	"%{wks.location}/vendor/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/",
-}
-
-links{
-	"opengl32",
+postbuildcommands{
+	"%{ml_copy} %{wks.location}\\bin-lib\\%{cfg.platform}\\%{cfg.buildcfg}\\%{prj.name}%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 }
 	
 filter{ "configurations:Debug" }

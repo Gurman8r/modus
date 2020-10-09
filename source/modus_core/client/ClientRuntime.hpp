@@ -15,17 +15,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_event(event &&) override;
+		ML_NODISCARD int32_t idle();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD int32_t process(std::function<void()> const & fn = {});
-
-		template <class Fn, class Arg0, class ... Args
-		> ML_NODISCARD int32_t process(Fn && fn, Arg0 && arg0, Args && ... args) noexcept
-		{
-			return this->process(std::bind(ML_forward(fn), ML_forward(arg0), ML_forward(args)...));
-		}
+		void on_event(event &&) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

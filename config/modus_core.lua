@@ -34,6 +34,10 @@ undefines{
 	"NDEBUG",
 }
 
+debugenvs{
+	"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/",
+}
+
 libdirs{
 	"%{wks.location}/bin-lib/",
 	"%{wks.location}/bin-lib/",

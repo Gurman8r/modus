@@ -12,34 +12,29 @@ namespace ml
 
 	client_runtime::client_runtime(client_context * context)
 		: client_object	{ context }
-		, m_running		{}
 		, m_plugins		{ context }
+		, m_running		{}
 	{
+		// events
 		subscribe<client_enter_event>();
 		subscribe<client_exit_event>();
 		subscribe<client_update_event>();
-
 		subscribe<imgui_dockspace_event>();
 		subscribe<imgui_menubar_event>();
 		subscribe<imgui_render_event>();
-
 		subscribe<window_key_event>();
 		subscribe<window_mouse_event>();
 		subscribe<window_cursor_position_event>();
 
-		PyObject_SetArenaAllocator(std::invoke([mm = get_memory()]() noexcept
+		// python
+		PyObject_SetArenaAllocator(std::invoke([&, &temp = PyObjectArenaAllocator{}]()
 		{
-			static PyObjectArenaAllocator temp
-			{
-				mm->get_resource(),
-				[](auto mres, size_t size) noexcept
-				{
-					return ((pmr::memory_resource *)mres)->allocate(size);
-				},
-				[](auto mres, void * addr, size_t size) noexcept
-				{
-					return ((pmr::memory_resource *)mres)->deallocate(addr, size);
-				}
+			temp.ctx = get_memory()->get_resource();
+			temp.alloc = [](auto mres, size_t size) noexcept {
+				return ((pmr::memory_resource *)mres)->allocate(size);
+			};
+			temp.free = [](auto mres, void * addr, size_t size) noexcept {
+				return ((pmr::memory_resource *)mres)->deallocate(addr, size);
 			};
 			return &temp;
 		}));
@@ -47,11 +42,77 @@ namespace ml
 		Py_SetPythonHome(get_io()->content_path.c_str());
 		Py_InitializeEx(1);
 		ML_assert(Py_IsInitialized());
+
+		// window
+		ML_assert(get_window()->open(get_io()->prefs["window"]));
+		if (static event_bus * bus{}; bus = get_bus())
+		{
+			get_window()->set_char_callback([](auto, auto ... x) { bus->fire<window_char_event>(x...); });
+			get_window()->set_char_mods_callback([](auto, auto ... x) { bus->fire<window_char_mods_event>(x...); });
+			get_window()->set_close_callback([](auto, auto ... x) { bus->fire<window_close_event>(x...); });
+			get_window()->set_cursor_enter_callback([](auto, auto ... x) { bus->fire<window_cursor_enter_event>(x...); });
+			get_window()->set_cursor_position_callback([](auto, auto ... x) { bus->fire<window_cursor_position_event>(x...); });
+			get_window()->set_content_scale_callback([](auto, auto ... x) { bus->fire<window_content_scale_event>(x...); });
+			get_window()->set_drop_callback([](auto, auto ... x) { bus->fire<window_drop_event>(x...); });
+			get_window()->set_error_callback([](auto ... x) { bus->fire<window_error_event>(x...); });
+			get_window()->set_focus_callback([](auto, auto ... x) { bus->fire<window_focus_event>(x...); });
+			get_window()->set_framebuffer_resize_callback([](auto, auto ... x) { bus->fire<window_framebuffer_resize_event>(x...); });
+			get_window()->set_iconify_callback([](auto, auto ... x) { bus->fire<window_iconify_event>(x...); });
+			get_window()->set_key_callback([](auto, auto ... x) { bus->fire<window_key_event>(x...); });
+			get_window()->set_maximize_callback([](auto, auto ... x) { bus->fire<window_maximize_event>(x...); });
+			get_window()->set_mouse_callback([](auto, auto ... x) { bus->fire<window_mouse_event>(x...); });
+			get_window()->set_position_callback([](auto, auto ... x) { bus->fire<window_pos_event>(x...); });
+			get_window()->set_refresh_callback([](auto, auto ... x) { bus->fire<window_refresh_event>(x...); });
+			get_window()->set_resize_callback([](auto, auto ... x) { bus->fire<window_resize_event>(x...); });
+			get_window()->set_scroll_callback([](auto, auto ... x) { bus->fire<window_scroll_event>(x...); });
+		}
+
+		// imgui
+		ML_assert(get_imgui()->startup(get_io()->prefs["imgui"]));
 	}
 
 	client_runtime::~client_runtime()
 	{
 		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	int32_t client_runtime::idle()
+	{
+		if (m_running) { return EXIT_FAILURE; }
+		else { m_running = true; } ML_defer(&) { m_running = false; };
+
+		get_bus()->fire<client_enter_event>(get_context());
+		ML_defer(&) { get_bus()->fire<client_exit_event>(get_context()); };
+		if (!get_window()->is_open()) { return EXIT_FAILURE; }
+		do
+		{
+			auto ML_anon{ std::invoke([&io = *get_io()]() noexcept
+			{
+				io.loop_timer.restart();
+				auto const dt{ (float_t)io.frame_time.count() };
+				io.fps_accum += dt - io.fps_times[io.fps_index];
+				io.fps_times[io.fps_index] = dt;
+				io.fps_index = (io.fps_index + 1) % io.fps_times.size();
+				io.fps_rate = (0.f < io.fps_accum) ? 1.f / (io.fps_accum / (float_t)io.fps_times.size()) : FLT_MAX;
+				return ML_defer_ex(&) {
+					++io.frame_count;
+					io.frame_time = io.loop_timer.elapsed();
+				};
+			}) };
+
+			window::poll_events();
+
+			get_imgui()->do_frame();
+
+			if (get_window()->has_hints(window_hints_doublebuffer))
+			{
+				window::swap_buffers(get_window()->get_handle());
+			}
+		}
+		while (get_window()->is_open());
+		return EXIT_SUCCESS;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -103,47 +164,6 @@ namespace ml
 			get_io()->cursor = { ev.x, ev.y };
 		} break;
 		}
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	int32_t client_runtime::process(std::function<void()> const & fn)
-	{
-		if (m_running) { return EXIT_FAILURE; }
-		else { m_running = true; } ML_defer(&) { m_running = false; };
-
-		get_bus()->fire<client_enter_event>(get_context());
-		ML_defer(&) { get_bus()->fire<client_exit_event>(get_context()); };
-		if (!get_window()->is_open()) { return EXIT_FAILURE; }
-		do
-		{
-			auto ML_anon{ std::invoke([&io = *get_io()]() noexcept
-			{
-				io.loop_timer.restart();
-				auto const dt{ (float_t)io.frame_time.count() };
-				io.fps_accum += dt - io.fps_times[io.fps_index];
-				io.fps_times[io.fps_index] = dt;
-				io.fps_index = (io.fps_index + 1) % io.fps_times.size();
-				io.fps_rate = (0.f < io.fps_accum) ? 1.f / (io.fps_accum / (float_t)io.fps_times.size()) : FLT_MAX;
-				return ML_defer_ex(&) {
-					++io.frame_count;
-					io.frame_time = io.loop_timer.elapsed();
-				};
-			}) };
-
-			window::poll_events();
-
-			if (fn) { std::invoke(fn); }
-
-			get_imgui()->do_frame();
-
-			if (get_window()->has_hints(window_hints_doublebuffer))
-			{
-				window::swap_buffers(get_window()->get_handle());
-			}
-		}
-		while (get_window()->is_open());
-		return EXIT_SUCCESS;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

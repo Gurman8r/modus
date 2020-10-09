@@ -14,32 +14,35 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // static string class
-#ifndef ML_STATIC_STRING
-#define ML_STATIC_STRING std::basic_string_view<char,struct std::char_traits<char> >
+#ifndef ML_STATIC_STRING_CLASS
+#define ML_STATIC_STRING_CLASS std::basic_string_view<char,struct std::char_traits<char> >
 #endif
+
+// static string string
+#define ML_STATIC_STRING_STRING ML_stringify(ML_STATIC_STRING_CLASS)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // pretty function
 #if defined(ML_cc_msvc)
 #	define ML_PRETTY_FUNCTION		__FUNCSIG__
-#	define ML_PRETTY_TYPE_PREFIX	"class " ML_stringify(ML_STATIC_STRING) " __cdecl ml::pretty_function::type<"
+#	define ML_PRETTY_TYPE_PREFIX	"class " ML_STATIC_STRING_STRING " __cdecl ml::pretty_function::type<"
 #	define ML_PRETTY_TYPE_SUFFIX	">(void)"
-#	define ML_PRETTY_VALUE_PREFIX	"class " ML_stringify(ML_STATIC_STRING) " __cdecl ml::pretty_function::value<"
+#	define ML_PRETTY_VALUE_PREFIX	"class " ML_STATIC_STRING_STRING " __cdecl ml::pretty_function::value<"
 #	define ML_PRETTY_VALUE_DELIM	"; T Value = "
 #	define ML_PRETTY_VALUE_SUFFIX	">(void)"
 #elif defined(ML_cc_clang)
 #	define ML_PRETTY_FUNCTION		__PRETTY_FUNCTION__
-#	define ML_PRETTY_TYPE_PREFIX	ML_stringify(ML_STATIC_STRING) " ml::pretty_function::type() [T = "
+#	define ML_PRETTY_TYPE_PREFIX	ML_STATIC_STRING_STRING " ml::pretty_function::type() [T = "
 #	define ML_PRETTY_TYPE_SUFFIX	"]"
-#	define ML_PRETTY_VALUE_PREFIX	ML_stringify(ML_STATIC_STRING) " ml::pretty_function::value() [T = "
+#	define ML_PRETTY_VALUE_PREFIX	ML_STATIC_STRING_STRING " ml::pretty_function::value() [T = "
 #	define ML_PRETTY_VALUE_DELIM	"; Value = "
 #	define ML_PRETTY_VALUE_SUFFIX	"]"
 #elif defined(ML_cc_gcc)
 #	define ML_PRETTY_FUNCTION		__PRETTY_FUNCTION__
-#	define ML_PRETTY_TYPE_PREFIX	"constexpr " ML_stringify(ML_STATIC_STRING) " ml::pretty_function::type() [with T = "
+#	define ML_PRETTY_TYPE_PREFIX	"constexpr " ML_STATIC_STRING_STRING " ml::pretty_function::type() [with T = "
 #	define ML_PRETTY_TYPE_SUFFIX	"]"
-#	define ML_PRETTY_VALUE_PREFIX	"constexpr " ML_stringify(ML_STATIC_STRING) " ml::pretty_function::value() [with T = "
+#	define ML_PRETTY_VALUE_PREFIX	"constexpr " ML_STATIC_STRING_STRING " ml::pretty_function::value() [with T = "
 #	define ML_PRETTY_VALUE_DELIM	"; Value = "
 #	define ML_PRETTY_VALUE_SUFFIX	"]"
 #else
@@ -52,7 +55,7 @@ namespace ml::pretty_function
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_alias string = typename ML_STATIC_STRING;
+	ML_alias string = typename ML_STATIC_STRING_CLASS;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -77,17 +80,17 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class ...> struct nameof;
+	template <class ...> struct nameof_t;
 	template <class ...> struct typeof;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// name filters
-	template <> struct ML_NODISCARD nameof<> final
+	template <> struct ML_NODISCARD nameof_t<> final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		nameof() = delete;
+		nameof_t() = delete;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -129,58 +132,22 @@ namespace ml
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static constexpr auto filter_template(pretty_function::string s) noexcept
-		{
-			size_t const i{ s.find_first_of('<') };
-			return (i != s.npos) ? s.substr(0, i) : s;
-		}
-
-		static constexpr auto filter_namespace(pretty_function::string s) noexcept
-		{
-			size_t const i{ s.find_first_of('<') }; // check for template
-			return (i != s.npos)
-				? s.substr(s.substr(0, i).find_last_of(':') + 1)
-				: s.substr(s.find_last_of(':') + 1);
-		}
-
-		static constexpr auto filter_struct(pretty_function::string s) noexcept
-		{
-			return filter_prefix(s, "struct ");
-		}
-
-		static constexpr auto filter_class(pretty_function::string s) noexcept
-		{
-			return filter_prefix(s, "class ");
-		}
-
-		static constexpr auto filter_union(pretty_function::string s) noexcept
-		{
-			return filter_prefix(s, "union ");
-		}
-
-		static constexpr auto filter_all(pretty_function::string s) noexcept
-		{
-			return filter_class(filter_struct(filter_union(filter_namespace(filter_template(s)))));
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class T> struct nameof<T> final
+	template <class T> struct nameof_t<T> final
 	{
-		static constexpr auto value{ nameof<>::filter_type(pretty_function::type<T>()) };
+		static constexpr auto value{ nameof_t<>::filter_type(pretty_function::type<T>()) };
 	};
 
 #ifdef ML_cc_msvc
-	template <> struct nameof<int64_t> final
+	template <> struct nameof_t<int64_t> final
 	{
 		static constexpr auto value{ "long long" }; // __int64
 	};
 
-	template <> struct nameof<uint64_t> final
+	template <> struct nameof_t<uint64_t> final
 	{
 		static constexpr auto value{ "unsigned long long" }; // unsigned __int64
 	};
@@ -191,14 +158,27 @@ namespace ml
 	// name of type
 	template <class T> constexpr auto nameof_v
 	{
-		pretty_function::string{ nameof<T>::value }
+		pretty_function::string{ nameof_t<T>::value }
 	};
+
+	template <class T> constexpr auto nameof() noexcept
+	{
+		return nameof_v<T>;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// hash of type
 	template <class T> constexpr auto hashof_v
 	{
-		util::hash(pretty_function::string{ nameof<T>::value })
+		hashof(pretty_function::string{ nameof_t<T>::value })
 	};
+
+	// hash of type
+	template <class T> constexpr auto hashof() noexcept
+	{
+		return hashof_v<T>;
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

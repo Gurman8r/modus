@@ -154,7 +154,7 @@ namespace ml
 		> void render(Fn && fn, Args && ... args) noexcept
 		{
 			if (!open) { return; }
-			ML_ImGui_ScopeID(this);
+			ML_ImGui_ScopeID(ImGui::GetID(title));
 			ML_defer() { ImGui::End(); };
 			if (ImGui::Begin(title, &open, flags))
 			{

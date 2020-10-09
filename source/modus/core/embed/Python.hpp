@@ -5,17 +5,28 @@
 
 #include <core/Export.hpp>
 #include <core/detail/Matrix.hpp>
-#include <core/system/Memory.hpp>
+#include <core/system/Events.hpp>
 
-// python
-#define HAVE_SNPRINTF
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// PYTHON
+
+#ifndef HAVE_SNPRINTF
+#define HAVE_SNPRINTF 1
+#endif
+
 #include <Python.h>
 
-// pybind11
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// PYBIND11
+
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 #include <pybind11/functional.h>
 #include <pybind11/iostream.h>
+
+namespace ml { namespace py = pybind11; };
 
 namespace pybind11
 {
@@ -41,20 +52,6 @@ namespace pybind11
 	{
 		v = module::import("json").attr("loads")(j.dump());
 	}
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-namespace ml
-{
-	namespace py = pybind11;
-
-	struct ML_CORE_API python_context final : trackable, non_copyable
-	{
-		python_context(pmr::memory_resource * mres, fs::path const & name, fs::path const & home);
-
-		~python_context() noexcept override;
-	};
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

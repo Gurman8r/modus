@@ -10,7 +10,7 @@ git submodule add --force https://github.com/kthohr/gcem.git
 git submodule add --force https://github.com/nigels-com/glew.git
 git submodule add --force https://github.com/glfw/glfw.git
 git submodule add --force https://github.com/g-truc/glm.git
-git submodule add --force -b docking https://github.com/Gurman8r/imgui.git
+git submodule add --force -b docking https://github.com/ocornut/imgui.git
 git submodule add --force https://github.com/ocornut/imgui_club.git
 git submodule add --force https://github.com/Gurman8r/ImGuiColorTextEdit.git
 git submodule add --force https://github.com/Gurman8r/imgui-node-editor.git

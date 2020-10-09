@@ -81,22 +81,27 @@ namespace ml
 		bool close();
 
 		void * get_proc_address(cstring name);
+		
+		void * get_proc_address(pmr::string const & name) noexcept
+		{
+			return this->get_proc_address(name.c_str());
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Ret, class ... Args
-		> auto proc(cstring name) noexcept
+		template <class Ret, class ... Args, class ID
+		> auto proc(ID && name) noexcept
 		{
-			return reinterpret_cast<Ret(*)(Args...)>(this->get_proc_address(name));
+			return reinterpret_cast<Ret(*)(Args...)>(this->get_proc_address(ML_forward(name)));
 		}
 
-		template <class Ret, class ... Args
-		> auto call(cstring name, Args && ... args) noexcept -> std::conditional_t
+		template <class Ret, class ... Args, class ID
+		> auto call(ID && name, Args && ... args) noexcept -> std::conditional_t
 		<
 			!std::is_same_v<Ret, void>, std::optional<Ret>, void
 		>
 		{
-			if (auto const fn{ this->proc<Ret, Args...>(name) })
+			if (auto const fn{ this->proc<Ret, Args...>(ML_forward(name)) })
 			{
 				return std::invoke(fn, ML_forward(args)...);
 			}
@@ -131,7 +136,7 @@ namespace ml
 			}
 			else if constexpr (std::is_same_v<U, fs::path>)
 			{
-				return compare(util::hash(value.string()));
+				return compare(hashof(value.string()));
 			}
 			else
 			{

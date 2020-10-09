@@ -55,7 +55,7 @@ namespace ml
 		set_user_pointer(this);
 
 		// centered
-		set_position((video_mode::get_desktop_mode().resolution - settings.video.resolution) / 2);
+		set_position((video_mode::desktop_mode().resolution - settings.video.resolution) / 2);
 
 		// maximized
 		if (has_hints(window_hints_maximized)) { maximize(); }

@@ -752,47 +752,47 @@ namespace ml::gfx
 
 	shared<render_context> opengl_render_device::create_context(context_settings const & cs) noexcept
 	{
-		return memory::alloc_ref<opengl_render_context>(m_alloc, this, cs);
+		return memory_manager::alloc_ref<opengl_render_context>(m_alloc, this, cs);
 	}
 
 	shared<vertexarray> opengl_render_device::create_vertexarray(uint32_t prim) noexcept
 	{
-		return memory::alloc_ref<opengl_vertexarray>(m_alloc, this, prim);
+		return memory_manager::alloc_ref<opengl_vertexarray>(m_alloc, this, prim);
 	}
 
 	shared<vertexbuffer> opengl_render_device::create_vertexbuffer(uint32_t usage, size_t count, addr_t data) noexcept
 	{
-		return memory::alloc_ref<opengl_vertexbuffer>(m_alloc, this, usage, count, data);
+		return memory_manager::alloc_ref<opengl_vertexbuffer>(m_alloc, this, usage, count, data);
 	}
 
 	shared<indexbuffer> opengl_render_device::create_indexbuffer(uint32_t usage, size_t count, addr_t data) noexcept
 	{
-		return memory::alloc_ref<opengl_indexbuffer>(m_alloc, this, usage, count, data);
+		return memory_manager::alloc_ref<opengl_indexbuffer>(m_alloc, this, usage, count, data);
 	}
 
 	shared<texture2d> opengl_render_device::create_texture2d(desc_<texture2d> const & value, addr_t data) noexcept
 	{
-		return memory::alloc_ref<opengl_texture2d>(m_alloc, this, value, data);
+		return memory_manager::alloc_ref<opengl_texture2d>(m_alloc, this, value, data);
 	}
 
 	shared<texturecube> opengl_render_device::create_texturecube(desc_<texturecube> const & value) noexcept
 	{
-		return memory::alloc_ref<opengl_texturecube>(m_alloc, this, value);
+		return memory_manager::alloc_ref<opengl_texturecube>(m_alloc, this, value);
 	}
 
 	shared<framebuffer> opengl_render_device::create_framebuffer(desc_<framebuffer> const & value) noexcept
 	{
-		return memory::alloc_ref<opengl_framebuffer>(m_alloc, this, value);
+		return memory_manager::alloc_ref<opengl_framebuffer>(m_alloc, this, value);
 	}
 
 	shared<program> opengl_render_device::create_program() noexcept
 	{
-		return memory::alloc_ref<opengl_program>(m_alloc, this);
+		return memory_manager::alloc_ref<opengl_program>(m_alloc, this);
 	}
 
 	shared<shader> opengl_render_device::create_shader(desc_<shader> const & value) noexcept
 	{
-		return memory::alloc_ref<opengl_shader>(m_alloc, this, value);
+		return memory_manager::alloc_ref<opengl_shader>(m_alloc, this, value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1718,7 +1718,7 @@ namespace ml::gfx
 
 		if (self != last) { ML_glCheck(ML_glUseProgram(self)); }
 
-		location = p.m_uniforms.find_or_add_fn(util::hash(name, util::strlen(name)), [&
+		location = p.m_uniforms.find_or_add_fn(hashof(name, util::strlen(name)), [&
 		]() noexcept
 		{
 			int32_t temp{};
@@ -1840,7 +1840,7 @@ namespace ml::gfx
 
 		if (self != last) { ML_glCheck(ML_glUseProgram(self)); }
 
-		loc = s.m_uniforms.find_or_add_fn(util::hash(name, util::strlen(name)), [&
+		loc = s.m_uniforms.find_or_add_fn(hashof(name, util::strlen(name)), [&
 		]() noexcept
 		{
 			int32_t temp{};

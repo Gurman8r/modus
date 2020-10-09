@@ -83,6 +83,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	protected:
 		template <class Ev
 		> bool subscribe() noexcept
 		{

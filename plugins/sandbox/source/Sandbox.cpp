@@ -30,6 +30,8 @@ namespace ml
 		blackboard::var< ds::map<pmr::string, shared<gfx::shader>>	> m_shaders		; // 
 		blackboard::var< ds::map<pmr::string, shared<gfx::texture>>	> m_textures	; // 
 
+		gui_form m_viewport{ "viewport", true };
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		~sandbox() noexcept override {}
@@ -116,6 +118,10 @@ namespace ml
 
 		void on_imgui_render(imgui_render_event && ev)
 		{
+			m_viewport.render([&]()
+			{
+
+			});
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -127,12 +133,10 @@ namespace ml
 
 		void on_window_mouse(window_mouse_event && ev)
 		{
-			get_io()->mouse[ev.button] = ev.action;
 		}
 
 		void on_window_cursor_position(window_cursor_position_event && ev)
 		{
-			get_io()->cursor = { ev.x, ev.y };
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

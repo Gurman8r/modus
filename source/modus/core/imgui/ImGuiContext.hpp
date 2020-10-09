@@ -2,6 +2,7 @@
 #define _ML_IMGUI_CONTEXT_HPP_
 
 #include <core/Export.hpp>
+#include <core/system/Events.hpp>
 #include <core/imgui/ImGui.hpp>
 
 namespace ml
@@ -9,21 +10,25 @@ namespace ml
 	struct event_bus;
 	struct render_window;
 
-	struct ML_CORE_API imgui_context final : trackable, non_copyable
+	struct ML_CORE_API imgui_context final : trackable, non_copyable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		imgui_context(event_bus * bus, render_window * win, allocator_type alloc);
+		imgui_context(event_bus * bus, render_window * win, allocator_type alloc = {});
 
 		~imgui_context();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool startup(bool install_callbacks = true);
+		void on_event(event && value) override;
 
-		void shutdown();
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		bool startup(json const & j);
+
+		bool shutdown();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -55,16 +60,13 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		// main menu bar
-		struct ML_CORE_API menubar final : trackable, non_copyable
+		struct ML_CORE_API main_menu_bar final : trackable, non_copyable
 		{
 			bool enabled{ true };
 
-			explicit menubar(allocator_type alloc) noexcept {}
+			explicit main_menu_bar(allocator_type alloc) noexcept {}
 
-			void configure(json const & j)
-			{
-				j["enabled"].get_to(enabled);
-			}
+			void configure(json const & j);
 		};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -84,17 +86,7 @@ namespace ml
 
 			explicit dockspace(allocator_type alloc) noexcept : nodes{ alloc } {}
 
-			void configure(json const & j)
-			{
-				j["enabled"	].get_to(enabled);
-				j["title"	].get_to(title);
-				j["border"	].get_to(border);
-				j["rounding"].get_to(rounding);
-				j["alpha"	].get_to(alpha);
-				j["padding"	].get_to(padding);
-				j["size"	].get_to(size);
-				j["nodes"	].get_to(nodes);
-			}
+			void configure(json const & j);
 
 			ML_NODISCARD auto & operator[](size_t i) noexcept { return nodes[i]; }
 
@@ -123,16 +115,16 @@ namespace ml
 
 		ML_NODISCARD auto get_dockspace() noexcept -> dockspace & { return m_dockspace; }
 
-		ML_NODISCARD auto get_main_menu_bar() noexcept -> menubar & { return m_menubar; }
+		ML_NODISCARD auto get_main_menu_bar() noexcept -> main_menu_bar & { return m_menubar; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		render_window * const	m_win			; // 
-		event_bus * const		m_bus			; // 
 		ImGuiContext *			m_ctx			; // 
-		menubar					m_menubar		; // 
+		main_menu_bar			m_menubar		; // 
 		dockspace				m_dockspace		; // 
+		bool					m_running		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

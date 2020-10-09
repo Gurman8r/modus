@@ -382,16 +382,16 @@ namespace ml::util
 	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str)
 	> ML_NODISCARD bool is_bool(Str const & value) noexcept
 	{
-		switch (hash(to_lower(value)))
+		switch (hashof(to_lower(value)))
 		{
-		case hash("1"):
-		case hash("true"):
-		case hash("on"):
-		case hash("yes"):
-		case hash("0"):
-		case hash("false"):
-		case hash("off"):
-		case hash("no"):
+		case hashof("1"):
+		case hashof("true"):
+		case hashof("on"):
+		case hashof("yes"):
+		case hashof("0"):
+		case hashof("false"):
+		case hashof("off"):
+		case hashof("no"):
 			return true;
 		default:
 			return false;
@@ -439,17 +439,17 @@ namespace ml::util
 	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str)
 	> ML_NODISCARD std::optional<bool> to_bool(Str && str) noexcept
 	{
-		switch (hash(to_lower(ML_forward(str))))
+		switch (hashof(to_lower(ML_forward(str))))
 		{
-		case hash("1"):
-		case hash("true"):
-		case hash("on"):
-		case hash("yes"):
+		case hashof("1"):
+		case hashof("true"):
+		case hashof("on"):
+		case hashof("yes"):
 			return std::make_optional(true);
-		case hash("0"):
-		case hash("false"):
-		case hash("off"):
-		case hash("no"):
+		case hashof("0"):
+		case hashof("false"):
+		case hashof("off"):
+		case hashof("no"):
 			return std::make_optional(false);
 		default:
 			return std::nullopt;

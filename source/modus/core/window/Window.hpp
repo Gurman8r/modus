@@ -151,14 +151,6 @@ namespace ml
 
 		static void swap_buffers(window_handle value) noexcept;
 
-		static void swap_buffers(window const & value) noexcept
-		{
-			if (value.has_hints(window_hints_doublebuffer))
-			{
-				swap_buffers(value.get_handle());
-			}
-		}
-
 		static void swap_interval(int32_t value) noexcept;
 
 		ML_NODISCARD static cursor_handle create_custom_cursor(size_t w, size_t h, byte_t const * p) noexcept;

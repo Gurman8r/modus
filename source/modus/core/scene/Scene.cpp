@@ -21,7 +21,7 @@ namespace ml
 	shared<entity> & scene::create_entity(pmr::string const & name, allocator_type alloc) noexcept
 	{
 		auto & temp{ m_entities.emplace_back(
-			memory::alloc_ref<entity>(alloc, this, m_registry.create())
+			memory_manager::alloc_ref<entity>(alloc, this, m_registry.create())
 		) };
 		temp->add_component<tag_component>(!name.empty() ? name : "New Entity");
 		temp->add_component<transform_component>();

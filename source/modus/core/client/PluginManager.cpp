@@ -1,5 +1,4 @@
 #include <core/client/PluginManager.hpp>
-#include <core/client/ClientEvents.hpp>
 
 namespace ml
 {
@@ -7,10 +6,8 @@ namespace ml
 
 	plugin_manager::plugin_manager(client_context * context)
 		: client_object	{ context }
-		, m_data		{ context->mem->get_allocator() }
+		, m_data		{ get_memory()->get_allocator() }
 	{
-		subscribe<	client_enter_event	>();
-		subscribe<	client_exit_event	>();
 	}
 
 	plugin_manager::~plugin_manager() noexcept
@@ -26,16 +23,6 @@ namespace ml
 
 	void plugin_manager::on_event(event && value)
 	{
-		switch (value)
-		{
-		case client_enter_event::ID: {
-			auto && ev{ (client_enter_event &&)value };
-		} break;
-
-		case client_exit_event::ID: {
-			auto && ev{ (client_exit_event &&)value };
-		} break;
-		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -43,7 +30,7 @@ namespace ml
 	plugin_id plugin_manager::install(fs::path const & path, void * user)
 	{
 		// check exists
-		if (has_plugin(path))
+		if (this->has_plugin(path))
 		{
 			return nullptr;
 		}

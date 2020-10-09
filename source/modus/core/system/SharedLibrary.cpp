@@ -27,7 +27,7 @@ namespace ml
 
 		format_path(m_path = path);
 
-		m_hash = util::hash(m_path.string());
+		m_hash = hashof(m_path.string());
 
 		return m_handle = (library_handle)std::invoke([&]() noexcept
 		{
@@ -70,7 +70,7 @@ namespace ml
 		if (!m_handle) { return nullptr; }
 
 		// load symbol
-		return m_proc.find_or_add_fn(util::hash(name, util::strlen(name)), [&]() noexcept
+		return m_proc.find_or_add_fn(hashof(name, util::strlen(name)), [&]() noexcept
 		{
 #if defined(ML_os_windows)
 			return ::GetProcAddress((HINSTANCE)m_handle, name);

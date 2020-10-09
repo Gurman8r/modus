@@ -4,11 +4,11 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	memory * memory::g_mem{};
+	memory_manager * memory_manager::g_mem{};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	memory::memory(passthrough_resource & res)
+	memory_manager::memory_manager(passthrough_resource & res)
 		: m_resource{ std::addressof(res) }
 		, m_alloc	{ m_resource }
 		, m_records	{ m_alloc }
@@ -21,7 +21,7 @@ namespace ml
 		ML_assert(m_resource == pmr::get_default_resource());
 	}
 
-	memory::~memory() noexcept
+	memory_manager::~memory_manager() noexcept
 	{
 		// singleton
 		ML_assert(g_mem == this && !(g_mem = nullptr));

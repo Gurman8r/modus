@@ -8,7 +8,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	struct imgui_context;
-	struct imgui_context::menubar;
+	struct imgui_context::main_menu_bar;
 	struct imgui_context::dockspace;
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -25,10 +25,10 @@ namespace ml
 	// IMGUI MAIN MENU BAR
 	ML_decl_event(imgui_menubar_event)
 	{
-		imgui_context::menubar * const ptr;
+		imgui_context::main_menu_bar * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr imgui_menubar_event(imgui_context::menubar * const ptr) noexcept : ptr{ ptr } {}
+		constexpr imgui_menubar_event(imgui_context::main_menu_bar * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	// IMGUI RENDER

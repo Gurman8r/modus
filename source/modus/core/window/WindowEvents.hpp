@@ -10,11 +10,10 @@ namespace ml
 
 	ML_decl_event(window_char_event)
 	{
-		window_handle const hwnd;
 		uint32_t const value;
 
-		constexpr window_char_event(window_handle hwnd, uint32_t value) noexcept
-			: hwnd{ hwnd }, value{ value }
+		constexpr window_char_event(uint32_t value) noexcept
+			: value{ value }
 		{
 		}
 	};
@@ -23,12 +22,11 @@ namespace ml
 
 	ML_decl_event(window_char_mods_event)
 	{
-		window_handle const hwnd;
 		uint32_t const value;
 		int32_t const mods;
 
-		constexpr window_char_mods_event(window_handle hwnd, uint32_t value, int32_t mods) noexcept
-			: hwnd{ hwnd }, value{ value }, mods{ mods }
+		constexpr window_char_mods_event(uint32_t value, int32_t mods) noexcept
+			: value{ value }, mods{ mods }
 		{
 		}
 	};
@@ -37,10 +35,8 @@ namespace ml
 
 	ML_decl_event(window_close_event)
 	{
-		window_handle const hwnd;
 
-		constexpr window_close_event(window_handle hwnd) noexcept
-			: hwnd{ hwnd }
+		constexpr window_close_event() noexcept
 		{
 		}
 	};
@@ -49,11 +45,10 @@ namespace ml
 
 	ML_decl_event(window_content_scale_event)
 	{
-		window_handle const hwnd;
 		float_t const x, y;
 
-		constexpr window_content_scale_event(window_handle hwnd, float_t x, float_t y) noexcept
-			: hwnd{ hwnd }, x{ x }, y{ y }
+		constexpr window_content_scale_event(float_t x, float_t y) noexcept
+			: x{ x }, y{ y }
 		{
 		}
 	};
@@ -62,12 +57,11 @@ namespace ml
 
 	ML_decl_event(window_drop_event)
 	{
-		window_handle const hwnd;
 		int32_t const count;
 		cstring const * const paths;
 
-		constexpr window_drop_event(window_handle hwnd, int32_t count, cstring const * paths) noexcept
-			: hwnd{ hwnd }, count{ count }, paths{ paths }
+		constexpr window_drop_event(int32_t count, cstring const * paths) noexcept
+			: count{ count }, paths{ paths }
 		{
 		}
 	};
@@ -76,11 +70,10 @@ namespace ml
 
 	ML_decl_event(window_cursor_enter_event)
 	{
-		window_handle const hwnd;
 		int32_t const entered;
 
-		constexpr window_cursor_enter_event(window_handle hwnd, int32_t entered) noexcept
-			: hwnd{ hwnd }, entered{ entered }
+		constexpr window_cursor_enter_event(int32_t entered) noexcept
+			: entered{ entered }
 		{
 		}
 	};
@@ -89,11 +82,10 @@ namespace ml
 
 	ML_decl_event(window_cursor_position_event)
 	{
-		window_handle const hwnd;
 		float64_t const x, y;
 
-		constexpr window_cursor_position_event(window_handle hwnd, float64_t x, float64_t y) noexcept
-			: hwnd{ hwnd }, x{ x }, y{ y }
+		constexpr window_cursor_position_event(float64_t x, float64_t y) noexcept
+			: x{ x }, y{ y }
 		{
 		}
 	};
@@ -115,11 +107,10 @@ namespace ml
 
 	ML_decl_event(window_focus_event)
 	{
-		window_handle const hwnd;
 		int32_t const focused;
 
-		constexpr window_focus_event(window_handle hwnd, int32_t focused) noexcept
-			: hwnd{ hwnd }, focused{ focused }
+		constexpr window_focus_event(int32_t focused) noexcept
+			: focused{ focused }
 		{
 		}
 	};
@@ -128,11 +119,10 @@ namespace ml
 
 	ML_decl_event(window_framebuffer_resize_event)
 	{
-		window_handle const hwnd;
 		int32_t const width, height;
 
-		constexpr window_framebuffer_resize_event(window_handle hwnd, int32_t width, int32_t height) noexcept
-			: hwnd{ hwnd }, width{ width }, height{ height }
+		constexpr window_framebuffer_resize_event(int32_t width, int32_t height) noexcept
+			: width{ width }, height{ height }
 		{
 		}
 	};
@@ -141,11 +131,10 @@ namespace ml
 
 	ML_decl_event(window_iconify_event)
 	{
-		window_handle const hwnd;
 		int32_t const iconified;
 
-		constexpr window_iconify_event(window_handle hwnd, int32_t iconified) noexcept
-			: hwnd{ hwnd }, iconified{ iconified }
+		constexpr window_iconify_event(int32_t iconified) noexcept
+			: iconified{ iconified }
 		{
 		}
 	};
@@ -154,11 +143,10 @@ namespace ml
 
 	ML_decl_event(window_key_event)
 	{
-		window_handle const hwnd;
 		int32_t const key, scan, action, mods;
 
-		constexpr window_key_event(window_handle hwnd, int32_t key, int32_t scan, int32_t action, int32_t mods) noexcept
-			: hwnd{ hwnd }, key{ key }, scan{ scan }, action{ action }, mods{ mods }
+		constexpr window_key_event(int32_t key, int32_t scan, int32_t action, int32_t mods) noexcept
+			: key{ key }, scan{ scan }, action{ action }, mods{ mods }
 		{
 		}
 
@@ -203,11 +191,10 @@ namespace ml
 
 	ML_decl_event(window_maximize_event)
 	{
-		window_handle const hwnd;
 		int32_t const maximized;
 
-		constexpr window_maximize_event(window_handle hwnd, int32_t maximized) noexcept
-			: hwnd{ hwnd }, maximized{ maximized }
+		constexpr window_maximize_event(int32_t maximized) noexcept
+			: maximized{ maximized }
 		{
 		}
 	};
@@ -216,11 +203,10 @@ namespace ml
 
 	ML_decl_event(window_mouse_event)
 	{
-		window_handle const hwnd;
 		int32_t const button, action, mods;
 
-		constexpr window_mouse_event(window_handle hwnd, int32_t button, int32_t action, int32_t mods) noexcept
-			: hwnd{ hwnd }, button{ button }, action{ action }, mods{ mods }
+		constexpr window_mouse_event(int32_t button, int32_t action, int32_t mods) noexcept
+			: button{ button }, action{ action }, mods{ mods }
 		{
 		}
 
@@ -242,11 +228,10 @@ namespace ml
 
 	ML_decl_event(window_pos_event)
 	{
-		window_handle const hwnd;
 		int32_t const x, y;
 
-		constexpr window_pos_event(window_handle hwnd, int32_t x, int32_t y) noexcept
-			: hwnd{ hwnd }, x{ x }, y{ y }
+		constexpr window_pos_event(int32_t x, int32_t y) noexcept
+			: x{ x }, y{ y }
 		{
 		}
 	};
@@ -255,10 +240,7 @@ namespace ml
 
 	ML_decl_event(window_refresh_event)
 	{
-		window_handle const hwnd;
-
-		constexpr window_refresh_event(window_handle hwnd) noexcept
-			: hwnd{ hwnd }
+		constexpr window_refresh_event() noexcept
 		{
 		}
 	};
@@ -267,11 +249,10 @@ namespace ml
 
 	ML_decl_event(window_scroll_event)
 	{
-		window_handle const hwnd;
 		float64_t const x, y;
 
-		constexpr window_scroll_event(window_handle hwnd, float64_t x, float64_t y) noexcept
-			: hwnd{ hwnd }, x{ x }, y{ y }
+		constexpr window_scroll_event(float64_t x, float64_t y) noexcept
+			: x{ x }, y{ y }
 		{
 		}
 	};
@@ -280,11 +261,10 @@ namespace ml
 
 	ML_decl_event(window_resize_event)
 	{
-		window_handle const hwnd;
 		int32_t const width, height;
 
-		constexpr window_resize_event(window_handle hwnd, int32_t width, int32_t height) noexcept
-			: hwnd{ hwnd }, width{ width }, height{ height }
+		constexpr window_resize_event(int32_t width, int32_t height) noexcept
+			: width{ width }, height{ height }
 		{
 		}
 	};

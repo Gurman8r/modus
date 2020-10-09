@@ -1,50 +1,6 @@
 #include <core/embed/Python.hpp>
 #include <core/graphics/RenderWindow.hpp>
 
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	python_context::python_context(pmr::memory_resource * mres, fs::path const & name, fs::path const & home)
-	{
-		if (Py_IsInitialized()) { return; }
-
-		PyObject_SetArenaAllocator(std::invoke([&mres]() noexcept
-		{
-			static PyObjectArenaAllocator temp
-			{
-				mres,
-				[](auto mres, size_t size) noexcept
-				{
-					return ((pmr::memory_resource *)mres)->allocate(size);
-				},
-				[](auto mres, void * addr, size_t size) noexcept
-				{
-					return ((pmr::memory_resource *)mres)->deallocate(addr, size);
-				}
-			};
-			return &temp;
-		}));
-
-		Py_SetProgramName(name.c_str());
-
-		Py_SetPythonHome(home.c_str());
-		
-		Py_InitializeEx(1);
-		
-		ML_assert(Py_IsInitialized());
-	}
-
-	python_context::~python_context() noexcept
-	{
-		if (!Py_IsInitialized()) { return; }
-
-		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
 PYBIND11_EMBEDDED_MODULE(modus, m)
 {
 	using namespace ml;
@@ -86,13 +42,11 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	struct stdio
+	struct py_stdio
 	{
 		struct output
 		{
-			std::reference_wrapper<std::ostream> m_os;
-
-			output(std::ostream & os = std::cout) noexcept : m_os{ os } {}
+			std::reference_wrapper<std::ostream> m_os{ std::cout };
 
 			int32_t fileno() const noexcept
 			{
@@ -109,26 +63,34 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 			void writelines(py::list l) noexcept { for (auto const & e : l) { m_os << e; } }
 		};
 
-		static auto & cerr(py::object) noexcept { static output temp{ std::cerr }; return temp; }
+		static auto cerr(py::object) noexcept
+		{
+			//static output temp{ std::cerr }; return temp;
+			return output{ std::cerr };
+		}
 
-		static auto & cout(py::object) noexcept { static output temp{ std::cout }; return temp; }
+		static auto cout(py::object) noexcept
+		{
+			//static output temp{ std::cout }; return temp;
+			return output{ std::cout };
+		}
 	};
-	py::class_<stdio::output>(m, "output")
+	py::class_<py_stdio::output>(m, "output")
 		.def(py::init<>())
 		.def("closed"		, []() { return false; })
 		.def("isatty"		, []() { return false; })
 		.def("readable"		, []() { return false; })
 		.def("seekable"		, []() { return false; })
 		.def("writable"		, []() { return true; })
-		.def("fileno"		, &stdio::output::fileno)
-		.def("flush"		, &stdio::output::flush)
-		.def("write"		, &stdio::output::write)
-		.def("writelines"	, &stdio::output::writelines)
+		.def("fileno"		, &py_stdio::output::fileno)
+		.def("flush"		, &py_stdio::output::flush)
+		.def("write"		, &py_stdio::output::write)
+		.def("writelines"	, &py_stdio::output::writelines)
 		;
-	py::class_<stdio>(m, "stdio")
+	py::class_<py_stdio>(m, "stdio")
 		.def(py::init<>())
-		.def_property_readonly_static("cerr", &stdio::cerr)
-		.def_property_readonly_static("cout", &stdio::cout)
+		.def_property_readonly_static("cerr", &py_stdio::cerr)
+		.def_property_readonly_static("cout", &py_stdio::cout)
 		;
 	{
 		auto sys{ py::module::import("sys") };
@@ -184,10 +146,10 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	py::class_<memory_record>(py_mem, "record")
 		.def(py::init<>())
 		.def(py::init<memory_record const &>())
-		.def(py::init([&rec = memory::get_records()](intptr_t p)
+		.def(py::init([&rec = memory_manager::get_records()](intptr_t p)
 		{
-			if (auto const i{ rec.lookup<memory::id_addr>((byte_t *)p) }; i != rec.npos) {
-				return memory::get_record(i);
+			if (auto const i{ rec.lookup<memory_manager::id_addr>((byte_t *)p) }; i != rec.npos) {
+				return memory_manager::get_record(i);
 			} else {
 				return memory_record{};
 			}
@@ -218,18 +180,18 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def("set_default_resource", [](intptr_t p) { return (intptr_t)pmr::set_default_resource((pmr::memory_resource *)p); })
 
 		// test resource
-		.def("arena_base"	, []() { return memory::get_resource()->base(); })
-		.def("arena_count"	, []() { return memory::get_resource()->count(); })
-		.def("arena_free"	, []() { return memory::get_resource()->free(); })
-		.def("arena_size"	, []() { return memory::get_resource()->capacity(); })
-		.def("arena_used"	, []() { return memory::get_resource()->used(); })
+		.def("arena_base"	, []() { return memory_manager::get_resource()->base(); })
+		.def("arena_count"	, []() { return memory_manager::get_resource()->count(); })
+		.def("arena_free"	, []() { return memory_manager::get_resource()->free(); })
+		.def("arena_size"	, []() { return memory_manager::get_resource()->capacity(); })
+		.def("arena_used"	, []() { return memory_manager::get_resource()->used(); })
 
 		// allocation
-		.def("malloc"	, [](size_t s) { return (intptr_t)memory::allocate(s); })
-		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)memory::allocate(c, s); })
-		.def("free"		, [](intptr_t p) { memory::deallocate((void *)p); })
-		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)memory::reallocate((void *)p, s); })
-		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)memory::reallocate((void *)p, o, n); })
+		.def("malloc"	, [](size_t s) { return (intptr_t)memory_manager::allocate(s); })
+		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)memory_manager::allocate(c, s); })
+		.def("free"		, [](intptr_t p) { memory_manager::deallocate((void *)p); })
+		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)memory_manager::reallocate((void *)p, s); })
+		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)memory_manager::reallocate((void *)p, o, n); })
 
 		// getters
 		.def("memget"	, [&memget](intptr_t p) { return memget(p, 1); })
@@ -512,8 +474,8 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def_readwrite("resolution"			, &video_mode::resolution)
 		.def_readwrite("bits_per_pixel"		, &video_mode::bits_per_pixel)
 		.def_readwrite("refresh_rate"		, &video_mode::refresh_rate)
-		.def_static("get_desktop_mode"		, &video_mode::get_desktop_mode)
-		.def_static("get_fullscreen_modes"	, &video_mode::get_fullscreen_modes)
+		.def_static("desktop_mode"			, &video_mode::desktop_mode)
+		.def_static("fullscreen_modes"		, &video_mode::fullscreen_modes)
 		;
 
 	// WINDOW SETTINGS

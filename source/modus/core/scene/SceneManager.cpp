@@ -17,7 +17,7 @@ namespace ml
 
 	shared<scene> & scene_manager::create_scene(allocator_type alloc) noexcept
 	{
-		auto & temp{ m_scenes.emplace_back(memory::alloc_ref<scene>(alloc, this)) };
+		auto & temp{ m_scenes.emplace_back(memory_manager::alloc_ref<scene>(alloc, this)) };
 		// ...
 		return temp;
 	}

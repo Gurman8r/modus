@@ -48,7 +48,7 @@ namespace ml
 		{
 			return m_data.contains<plugin_id>
 			(
-				ML_handle(plugin_id, util::hash(shared_library::format_path(path).string()))
+				ML_handle(plugin_id, hashof(shared_library::format_path(path).string()))
 			);
 		}
 

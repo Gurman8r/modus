@@ -15,13 +15,13 @@
 namespace ml
 {
 	imgui_context::imgui_context(event_bus * bus, render_window * win, allocator_type alloc)
-		: m_win			{ win }
-		, m_bus			{ bus }
+		: event_listener{ bus }
+		, m_win			{ win }
 		, m_ctx			{}
 		, m_menubar		{ alloc }
 		, m_dockspace	{ alloc }
 	{
-		ML_assert(m_bus && m_win);
+		ML_assert(get_bus() && m_win);
 
 		// check version
 		ML_assert("failed validating imgui version" && IMGUI_CHECKVERSION());
@@ -29,8 +29,8 @@ namespace ml
 		// set allocators
 		ImGui::SetAllocatorFunctions
 		(
-			[](size_t s, auto) noexcept { return memory::allocate(s); },
-			[](void * p, auto) noexcept { return memory::deallocate(p); },
+			[](size_t s, auto) noexcept { return memory_manager::allocate(s); },
+			[](void * p, auto) noexcept { return memory_manager::deallocate(p); },
 			nullptr
 		);
 
@@ -55,25 +55,47 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool imgui_context::startup(bool install_callbacks)
+	void imgui_context::on_event(event && value)
 	{
-		return
-#if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
-			(ImGui_ImplGlfw_InitForOpenGL((GLFWwindow *)m_win->get_handle(), install_callbacks)
-				|| debug::error("failed initializing imgui platform")) &&
-			
-			(ImGui_ImplOpenGL3_Init("#version 130")
-				|| debug::error("failed initializing imgui renderer"))
-#endif
-			;
 	}
 
-	void imgui_context::shutdown()
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool imgui_context::startup(json const & j)
 	{
+		if (m_running) { return false; }
+		else { m_running = true; }
+
+		if (!([&, inst_clbk = (j.contains("inst_clbk") && j["inst_clbk"])]() noexcept
+		{
+#if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
+			return ImGui_ImplGlfw_InitForOpenGL((GLFWwindow *)m_win->get_handle(), inst_clbk)
+				&& ImGui_ImplOpenGL3_Init("#version 130");
+#endif
+		})()) { return debug::error("failed starting imgui"); }
+		else
+		{
+			m_menubar.configure(j["main_menu_bar"]);
+			
+			m_dockspace.configure(j["dockspace"]);
+			
+			this->load_style(j["style_path"]);
+
+			return true;
+		}
+	}
+
+	bool imgui_context::shutdown()
+	{
+		if (!m_running) { return false; }
+		else { m_running = false; }
+
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 #endif
+
+		return true;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -84,8 +106,8 @@ namespace ml
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 #endif
-		ImGui::NewFrame();
 
+		ImGui::NewFrame();
 		ML_ImGui_ScopeID(this);
 
 		// DOCKSPACE
@@ -121,7 +143,7 @@ namespace ml
 				// fire docking event if nodes are empty
 				if (m_dockspace.nodes.empty())
 				{
-					m_bus->fire<imgui_dockspace_event>(&m_dockspace);
+					get_bus()->fire<imgui_dockspace_event>(&m_dockspace);
 				}
 
 				ImGui::DockSpace(
@@ -137,13 +159,13 @@ namespace ml
 		// MENUBAR
 		if (m_menubar.enabled && ImGui::BeginMainMenuBar())
 		{
-			m_bus->fire<imgui_menubar_event>(&m_menubar);
+			get_bus()->fire<imgui_menubar_event>(&m_menubar);
 
 			ImGui::EndMainMenuBar();
 		}
 
 		// RENDER
-		m_bus->fire<imgui_render_event>(this);
+		get_bus()->fire<imgui_render_event>(this);
 	}
 
 	void imgui_context::render_frame()
@@ -192,6 +214,25 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void imgui_context::main_menu_bar::configure(json const & j)
+	{
+		j["enabled"].get_to(enabled);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void imgui_context::dockspace::configure(json const & j)
+	{
+		j["enabled"	].get_to(enabled);
+		j["title"	].get_to(title);
+		j["border"	].get_to(border);
+		j["rounding"].get_to(rounding);
+		j["alpha"	].get_to(alpha);
+		j["padding"	].get_to(padding);
+		j["size"	].get_to(size);
+		j["nodes"	].get_to(nodes);
+	}
 
 	uint32_t imgui_context::dockspace::begin_builder()
 	{
@@ -251,11 +292,11 @@ namespace ml
 		if (path.empty()) return false;
 
 		// builtin
-		switch (hash(to_lower(path.string())))
+		switch (hashof(to_lower(path.string())))
 		{
-		case hash("classic"): ImGui::StyleColorsClassic()	; return true;
-		case hash("dark")	: ImGui::StyleColorsDark()		; return true;
-		case hash("light")	: ImGui::StyleColorsLight()		; return true;
+		case hashof("classic"): ImGui::StyleColorsClassic()	; return true;
+		case hashof("dark")	: ImGui::StyleColorsDark()		; return true;
+		case hashof("light")	: ImGui::StyleColorsLight()		; return true;
 		}
 	
 		// open file
@@ -273,97 +314,97 @@ namespace ml
 	
 			// scan line
 			pmr::stringstream ss{}; ss << line;
-			switch (hash(parse<pmr::string>(ss)))
+			switch (hashof(parse<pmr::string>(ss)))
 			{
 			/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-			case hash("ImGuiStyle"): { switch (hash(parse<pmr::string>(ss)))
+			case hashof("ImGuiStyle"): { switch (hashof(parse<pmr::string>(ss)))
 			{
-			case hash("Alpha")					: style.Alpha = parse<float_t>(ss); break;
-			case hash("WindowPadding")			: style.WindowPadding = parse<vec2>(ss); break;
-			case hash("WindowRounding")			: style.WindowRounding = parse<float_t>(ss); break;
-			case hash("WindowBorderSize")		: style.WindowBorderSize = parse<float_t>(ss); break;
-			case hash("WindowMinSize")			: style.WindowMinSize = parse<vec2>(ss); break;
-			case hash("WindowTitleAlign")		: style.WindowTitleAlign = parse<vec2>(ss); break;
-			case hash("ChildRounding")			: style.ChildRounding = parse<float_t>(ss); break;
-			case hash("ChildBorderSize")		: style.ChildBorderSize = parse<float_t>(ss); break;
-			case hash("PopupRounding")			: style.PopupRounding = parse<float_t>(ss); break;
-			case hash("PopupBorderSize")		: style.PopupBorderSize = parse<float_t>(ss); break;
-			case hash("FramePadding")			: style.FramePadding = parse<vec2>(ss); break;
-			case hash("FrameRounding")			: style.FrameRounding = parse<float_t>(ss); break;
-			case hash("FrameBorderSize")		: style.FrameBorderSize = parse<float_t>(ss); break;
-			case hash("ItemSpacing")			: style.ItemInnerSpacing = parse<vec2>(ss); break;
-			case hash("ItemInnerSpacing")		: style.ItemInnerSpacing = parse<vec2>(ss); break;
-			case hash("TouchExtraPadding")		: style.TouchExtraPadding = parse<vec2>(ss); break;
-			case hash("IndentSpacing")			: style.IndentSpacing = parse<float_t>(ss); break;
-			case hash("ColumnsMinSpacing")		: style.ColumnsMinSpacing = parse<float_t>(ss); break;
-			case hash("ScrollbarSize")			: style.ScrollbarSize = parse<float_t>(ss); break;
-			case hash("ScrollbarRounding")		: style.ScrollbarRounding = parse<float_t>(ss); break;
-			case hash("GrabMinSize")			: style.GrabMinSize = parse<float_t>(ss); break;
-			case hash("GrabRounding")			: style.GrabRounding = parse<float_t>(ss); break;
-			case hash("TabRounding")			: style.TabRounding = parse<float_t>(ss); break;
-			case hash("TabBorderSize")			: style.TabBorderSize = parse<float_t>(ss); break;
-			case hash("ButtonTextAlign")		: style.ButtonTextAlign = parse<vec2>(ss); break;
-			case hash("SelectableTextAlign")	: style.SelectableTextAlign = parse<vec2>(ss); break;
-			case hash("DisplayWindowPadding")	: style.DisplayWindowPadding = parse<vec2>(ss); break;
-			case hash("DisplaySafeAreaPadding")	: style.DisplaySafeAreaPadding = parse<vec2>(ss); break;
-			case hash("MouseCursorScale")		: style.MouseCursorScale = parse<float_t>(ss); break;
-			case hash("AntiAliasedLines")		: style.AntiAliasedLines = parse<bool>(ss); break;
-			case hash("AntiAliasedFill")		: style.AntiAliasedFill = parse<bool>(ss); break;
-			case hash("CurveTessellationTol")	: style.CurveTessellationTol = parse<float_t>(ss); break;
+			case hashof("Alpha")					: style.Alpha = parse<float_t>(ss); break;
+			case hashof("WindowPadding")			: style.WindowPadding = parse<vec2>(ss); break;
+			case hashof("WindowRounding")			: style.WindowRounding = parse<float_t>(ss); break;
+			case hashof("WindowBorderSize")			: style.WindowBorderSize = parse<float_t>(ss); break;
+			case hashof("WindowMinSize")			: style.WindowMinSize = parse<vec2>(ss); break;
+			case hashof("WindowTitleAlign")			: style.WindowTitleAlign = parse<vec2>(ss); break;
+			case hashof("ChildRounding")			: style.ChildRounding = parse<float_t>(ss); break;
+			case hashof("ChildBorderSize")			: style.ChildBorderSize = parse<float_t>(ss); break;
+			case hashof("PopupRounding")			: style.PopupRounding = parse<float_t>(ss); break;
+			case hashof("PopupBorderSize")			: style.PopupBorderSize = parse<float_t>(ss); break;
+			case hashof("FramePadding")				: style.FramePadding = parse<vec2>(ss); break;
+			case hashof("FrameRounding")			: style.FrameRounding = parse<float_t>(ss); break;
+			case hashof("FrameBorderSize")			: style.FrameBorderSize = parse<float_t>(ss); break;
+			case hashof("ItemSpacing")				: style.ItemInnerSpacing = parse<vec2>(ss); break;
+			case hashof("ItemInnerSpacing")			: style.ItemInnerSpacing = parse<vec2>(ss); break;
+			case hashof("TouchExtraPadding")		: style.TouchExtraPadding = parse<vec2>(ss); break;
+			case hashof("IndentSpacing")			: style.IndentSpacing = parse<float_t>(ss); break;
+			case hashof("ColumnsMinSpacing")		: style.ColumnsMinSpacing = parse<float_t>(ss); break;
+			case hashof("ScrollbarSize")			: style.ScrollbarSize = parse<float_t>(ss); break;
+			case hashof("ScrollbarRounding")		: style.ScrollbarRounding = parse<float_t>(ss); break;
+			case hashof("GrabMinSize")				: style.GrabMinSize = parse<float_t>(ss); break;
+			case hashof("GrabRounding")				: style.GrabRounding = parse<float_t>(ss); break;
+			case hashof("TabRounding")				: style.TabRounding = parse<float_t>(ss); break;
+			case hashof("TabBorderSize")			: style.TabBorderSize = parse<float_t>(ss); break;
+			case hashof("ButtonTextAlign")			: style.ButtonTextAlign = parse<vec2>(ss); break;
+			case hashof("SelectableTextAlign")		: style.SelectableTextAlign = parse<vec2>(ss); break;
+			case hashof("DisplayWindowPadding")		: style.DisplayWindowPadding = parse<vec2>(ss); break;
+			case hashof("DisplaySafeAreaPadding")	: style.DisplaySafeAreaPadding = parse<vec2>(ss); break;
+			case hashof("MouseCursorScale")			: style.MouseCursorScale = parse<float_t>(ss); break;
+			case hashof("AntiAliasedLines")			: style.AntiAliasedLines = parse<bool>(ss); break;
+			case hashof("AntiAliasedFill")			: style.AntiAliasedFill = parse<bool>(ss); break;
+			case hashof("CurveTessellationTol")		: style.CurveTessellationTol = parse<float_t>(ss); break;
 			} } break;
 			/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-			case hash("ImGuiCol"): { switch (hash(parse<pmr::string>(ss)))
+			case hashof("ImGuiCol"): { switch (hashof(parse<pmr::string>(ss)))
 			{
-			case hash("Text")					: style.Colors[ImGuiCol_Text] = parse<vec4>(ss); break;
-			case hash("TextDisabled")			: style.Colors[ImGuiCol_TextDisabled] = parse<vec4>(ss); break;
-			case hash("WindowBg")				: style.Colors[ImGuiCol_WindowBg] = parse<vec4>(ss); break;
-			case hash("ChildBg")				: style.Colors[ImGuiCol_ChildBg] = parse<vec4>(ss); break;
-			case hash("PopupBg")				: style.Colors[ImGuiCol_PopupBg] = parse<vec4>(ss); break;
-			case hash("Border")					: style.Colors[ImGuiCol_Border] = parse<vec4>(ss); break;
-			case hash("BorderShadow")			: style.Colors[ImGuiCol_BorderShadow] = parse<vec4>(ss); break;
-			case hash("FrameBg")				: style.Colors[ImGuiCol_FrameBg] = parse<vec4>(ss); break;
-			case hash("FrameBgHovered")			: style.Colors[ImGuiCol_FrameBgHovered] = parse<vec4>(ss); break;
-			case hash("FrameBgActive")			: style.Colors[ImGuiCol_FrameBgActive] = parse<vec4>(ss); break;
-			case hash("TitleBg")				: style.Colors[ImGuiCol_TitleBg] = parse<vec4>(ss); break;
-			case hash("TitleBgActive")			: style.Colors[ImGuiCol_TitleBgActive] = parse<vec4>(ss); break;
-			case hash("TitleBgCollapsed")		: style.Colors[ImGuiCol_TitleBgCollapsed] = parse<vec4>(ss); break;
-			case hash("MenuBarBg")				: style.Colors[ImGuiCol_MenuBarBg] = parse<vec4>(ss); break;
-			case hash("ScrollbarBg")			: style.Colors[ImGuiCol_ScrollbarBg] = parse<vec4>(ss); break;
-			case hash("ScrollbarGrab")			: style.Colors[ImGuiCol_ScrollbarGrab] = parse<vec4>(ss); break;
-			case hash("ScrollbarGrabHovered")	: style.Colors[ImGuiCol_ScrollbarGrabHovered] = parse<vec4>(ss); break;
-			case hash("ScrollbarGrabActive")	: style.Colors[ImGuiCol_ScrollbarGrabActive] = parse<vec4>(ss); break;
-			case hash("CheckMark")				: style.Colors[ImGuiCol_CheckMark] = parse<vec4>(ss); break;
-			case hash("SliderGrab")				: style.Colors[ImGuiCol_SliderGrab] = parse<vec4>(ss); break;
-			case hash("SliderGrabActive")		: style.Colors[ImGuiCol_SliderGrabActive] = parse<vec4>(ss); break;
-			case hash("Button")					: style.Colors[ImGuiCol_Button] = parse<vec4>(ss); break;
-			case hash("ButtonHovered")			: style.Colors[ImGuiCol_ButtonHovered] = parse<vec4>(ss); break;
-			case hash("ButtonActive")			: style.Colors[ImGuiCol_ButtonActive] = parse<vec4>(ss); break;
-			case hash("Header")					: style.Colors[ImGuiCol_Header] = parse<vec4>(ss); break;
-			case hash("HeaderHovered")			: style.Colors[ImGuiCol_HeaderHovered] = parse<vec4>(ss); break;
-			case hash("HeaderActive")			: style.Colors[ImGuiCol_HeaderActive] = parse<vec4>(ss); break;
-			case hash("Separator")				: style.Colors[ImGuiCol_Separator] = parse<vec4>(ss); break;
-			case hash("SeparatorHovered")		: style.Colors[ImGuiCol_SeparatorHovered] = parse<vec4>(ss); break;
-			case hash("SeparatorActive")		: style.Colors[ImGuiCol_SeparatorActive] = parse<vec4>(ss); break;
-			case hash("ResizeGrip")				: style.Colors[ImGuiCol_ResizeGrip] = parse<vec4>(ss); break;
-			case hash("ResizeGripHovered")		: style.Colors[ImGuiCol_ResizeGripHovered] = parse<vec4>(ss); break;
-			case hash("ResizeGripActive")		: style.Colors[ImGuiCol_ResizeGripActive] = parse<vec4>(ss); break;
-			case hash("Tab")					: style.Colors[ImGuiCol_Tab] = parse<vec4>(ss); break;
-			case hash("TabHovered")				: style.Colors[ImGuiCol_TabHovered] = parse<vec4>(ss); break;
-			case hash("TabActive")				: style.Colors[ImGuiCol_TabActive] = parse<vec4>(ss); break;
-			case hash("TabUnfocused")			: style.Colors[ImGuiCol_TabUnfocused] = parse<vec4>(ss); break;
-			case hash("TabUnfocusedActive")		: style.Colors[ImGuiCol_TabUnfocusedActive] = parse<vec4>(ss); break;
-			case hash("DockingPreview")			: style.Colors[ImGuiCol_DockingPreview] = parse<vec4>(ss); break;
-			case hash("DockingEmptyBg")			: style.Colors[ImGuiCol_DockingEmptyBg] = parse<vec4>(ss); break;
-			case hash("PlotLines")				: style.Colors[ImGuiCol_PlotLines] = parse<vec4>(ss); break;
-			case hash("PlotLinesHovered")		: style.Colors[ImGuiCol_PlotLinesHovered] = parse<vec4>(ss); break;
-			case hash("PlotHistogram")			: style.Colors[ImGuiCol_PlotHistogram] = parse<vec4>(ss); break;
-			case hash("PlotHistogramHovered")	: style.Colors[ImGuiCol_PlotHistogramHovered] = parse<vec4>(ss); break;
-			case hash("TextSelectedBg")			: style.Colors[ImGuiCol_TextSelectedBg] = parse<vec4>(ss); break;
-			case hash("DragDropTarget")			: style.Colors[ImGuiCol_DragDropTarget] = parse<vec4>(ss); break;
-			case hash("NavHighlight")			: style.Colors[ImGuiCol_NavHighlight] = parse<vec4>(ss); break;
-			case hash("NavWindowingHighlight")	: style.Colors[ImGuiCol_NavWindowingHighlight] = parse<vec4>(ss); break;
-			case hash("NavWindowingDimBg")		: style.Colors[ImGuiCol_NavWindowingDimBg] = parse<vec4>(ss); break;
-			case hash("ModalWindowDimBg")		: style.Colors[ImGuiCol_ModalWindowDimBg] = parse<vec4>(ss); break;
+			case hashof("Text")					: style.Colors[ImGuiCol_Text] = parse<vec4>(ss); break;
+			case hashof("TextDisabled")			: style.Colors[ImGuiCol_TextDisabled] = parse<vec4>(ss); break;
+			case hashof("WindowBg")				: style.Colors[ImGuiCol_WindowBg] = parse<vec4>(ss); break;
+			case hashof("ChildBg")				: style.Colors[ImGuiCol_ChildBg] = parse<vec4>(ss); break;
+			case hashof("PopupBg")				: style.Colors[ImGuiCol_PopupBg] = parse<vec4>(ss); break;
+			case hashof("Border")					: style.Colors[ImGuiCol_Border] = parse<vec4>(ss); break;
+			case hashof("BorderShadow")			: style.Colors[ImGuiCol_BorderShadow] = parse<vec4>(ss); break;
+			case hashof("FrameBg")				: style.Colors[ImGuiCol_FrameBg] = parse<vec4>(ss); break;
+			case hashof("FrameBgHovered")			: style.Colors[ImGuiCol_FrameBgHovered] = parse<vec4>(ss); break;
+			case hashof("FrameBgActive")			: style.Colors[ImGuiCol_FrameBgActive] = parse<vec4>(ss); break;
+			case hashof("TitleBg")				: style.Colors[ImGuiCol_TitleBg] = parse<vec4>(ss); break;
+			case hashof("TitleBgActive")			: style.Colors[ImGuiCol_TitleBgActive] = parse<vec4>(ss); break;
+			case hashof("TitleBgCollapsed")		: style.Colors[ImGuiCol_TitleBgCollapsed] = parse<vec4>(ss); break;
+			case hashof("MenuBarBg")				: style.Colors[ImGuiCol_MenuBarBg] = parse<vec4>(ss); break;
+			case hashof("ScrollbarBg")			: style.Colors[ImGuiCol_ScrollbarBg] = parse<vec4>(ss); break;
+			case hashof("ScrollbarGrab")			: style.Colors[ImGuiCol_ScrollbarGrab] = parse<vec4>(ss); break;
+			case hashof("ScrollbarGrabHovered")	: style.Colors[ImGuiCol_ScrollbarGrabHovered] = parse<vec4>(ss); break;
+			case hashof("ScrollbarGrabActive")	: style.Colors[ImGuiCol_ScrollbarGrabActive] = parse<vec4>(ss); break;
+			case hashof("CheckMark")				: style.Colors[ImGuiCol_CheckMark] = parse<vec4>(ss); break;
+			case hashof("SliderGrab")				: style.Colors[ImGuiCol_SliderGrab] = parse<vec4>(ss); break;
+			case hashof("SliderGrabActive")		: style.Colors[ImGuiCol_SliderGrabActive] = parse<vec4>(ss); break;
+			case hashof("Button")					: style.Colors[ImGuiCol_Button] = parse<vec4>(ss); break;
+			case hashof("ButtonHovered")			: style.Colors[ImGuiCol_ButtonHovered] = parse<vec4>(ss); break;
+			case hashof("ButtonActive")			: style.Colors[ImGuiCol_ButtonActive] = parse<vec4>(ss); break;
+			case hashof("Header")					: style.Colors[ImGuiCol_Header] = parse<vec4>(ss); break;
+			case hashof("HeaderHovered")			: style.Colors[ImGuiCol_HeaderHovered] = parse<vec4>(ss); break;
+			case hashof("HeaderActive")			: style.Colors[ImGuiCol_HeaderActive] = parse<vec4>(ss); break;
+			case hashof("Separator")				: style.Colors[ImGuiCol_Separator] = parse<vec4>(ss); break;
+			case hashof("SeparatorHovered")		: style.Colors[ImGuiCol_SeparatorHovered] = parse<vec4>(ss); break;
+			case hashof("SeparatorActive")		: style.Colors[ImGuiCol_SeparatorActive] = parse<vec4>(ss); break;
+			case hashof("ResizeGrip")				: style.Colors[ImGuiCol_ResizeGrip] = parse<vec4>(ss); break;
+			case hashof("ResizeGripHovered")		: style.Colors[ImGuiCol_ResizeGripHovered] = parse<vec4>(ss); break;
+			case hashof("ResizeGripActive")		: style.Colors[ImGuiCol_ResizeGripActive] = parse<vec4>(ss); break;
+			case hashof("Tab")					: style.Colors[ImGuiCol_Tab] = parse<vec4>(ss); break;
+			case hashof("TabHovered")				: style.Colors[ImGuiCol_TabHovered] = parse<vec4>(ss); break;
+			case hashof("TabActive")				: style.Colors[ImGuiCol_TabActive] = parse<vec4>(ss); break;
+			case hashof("TabUnfocused")			: style.Colors[ImGuiCol_TabUnfocused] = parse<vec4>(ss); break;
+			case hashof("TabUnfocusedActive")		: style.Colors[ImGuiCol_TabUnfocusedActive] = parse<vec4>(ss); break;
+			case hashof("DockingPreview")			: style.Colors[ImGuiCol_DockingPreview] = parse<vec4>(ss); break;
+			case hashof("DockingEmptyBg")			: style.Colors[ImGuiCol_DockingEmptyBg] = parse<vec4>(ss); break;
+			case hashof("PlotLines")				: style.Colors[ImGuiCol_PlotLines] = parse<vec4>(ss); break;
+			case hashof("PlotLinesHovered")		: style.Colors[ImGuiCol_PlotLinesHovered] = parse<vec4>(ss); break;
+			case hashof("PlotHistogram")			: style.Colors[ImGuiCol_PlotHistogram] = parse<vec4>(ss); break;
+			case hashof("PlotHistogramHovered")	: style.Colors[ImGuiCol_PlotHistogramHovered] = parse<vec4>(ss); break;
+			case hashof("TextSelectedBg")			: style.Colors[ImGuiCol_TextSelectedBg] = parse<vec4>(ss); break;
+			case hashof("DragDropTarget")			: style.Colors[ImGuiCol_DragDropTarget] = parse<vec4>(ss); break;
+			case hashof("NavHighlight")			: style.Colors[ImGuiCol_NavHighlight] = parse<vec4>(ss); break;
+			case hashof("NavWindowingHighlight")	: style.Colors[ImGuiCol_NavWindowingHighlight] = parse<vec4>(ss); break;
+			case hashof("NavWindowingDimBg")		: style.Colors[ImGuiCol_NavWindowingDimBg] = parse<vec4>(ss); break;
+			case hashof("ModalWindowDimBg")		: style.Colors[ImGuiCol_ModalWindowDimBg] = parse<vec4>(ss); break;
 			} } break;
 			/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 			}

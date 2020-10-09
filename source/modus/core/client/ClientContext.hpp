@@ -3,7 +3,7 @@
 
 #include <core/Export.hpp>
 #include <core/system/Events.hpp>
-#include <core/system/Timer.hpp>
+#include <core/detail/Timer.hpp>
 #include <core/detail/Matrix.hpp>
 #include <core/window/Input.hpp>
 
@@ -41,11 +41,6 @@ namespace ml
 			program_path{ fs::current_path() }				, // 
 			content_path{ prefs["path"].get<fs::path>() }	; // 
 
-		ML_NODISCARD fs::path path2(fs::path const & path) const noexcept
-		{
-			return content_path.native() + path.native();
-		}
-
 		timer const				main_timer	{}				; // 
 		timer					loop_timer	{ false }		; // 
 		duration				frame_time	{}				; // 
@@ -59,28 +54,10 @@ namespace ml
 		mouse_state				mouse		{}				; // 
 		keyboard_state			keyboard	{}				; // 
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto do_step() noexcept
+		ML_NODISCARD fs::path path2(fs::path const & path) const noexcept
 		{
-			ML_assert_msg(!m_lock_step, "STEP ALREADY IN PROGRESS");
-			m_lock_step = true;
-			loop_timer.restart();
-			auto const dt{ (float_t)frame_time.count() };
-			fps_accum += dt - fps_times[fps_index];
-			fps_times[fps_index] = dt;
-			fps_index = (fps_index + 1) % fps_times.size();
-			fps_rate = (0.f < fps_accum) ? 1.f / (fps_accum / (float_t)fps_times.size()) : FLT_MAX;
-			return ML_defer_ex(&)
-			{
-				++frame_count;
-				frame_time = loop_timer.elapsed();
-				m_lock_step = false;
-			};
+			return content_path.native() + path.native();
 		}
-
-	private:
-		bool m_lock_step;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -90,7 +67,7 @@ namespace ml
 	// client context
 	struct ML_NODISCARD client_context final
 	{
-		memory			* const mem		; // memory
+		memory_manager			* const mem		; // memory
 		client_io		* const io		; // io
 		blackboard		* const vars	; // vars
 		event_bus		* const bus		; // bus
@@ -126,7 +103,7 @@ namespace ml
 		ML_NODISCARD auto get_context	() const noexcept -> client_context	* { return m_context; }
 		ML_NODISCARD auto get_imgui		() const noexcept -> imgui_context	* { return m_context->imgui; }
 		ML_NODISCARD auto get_io		() const noexcept -> client_io		* { return m_context->io; }
-		ML_NODISCARD auto get_memory	() const noexcept -> memory			* { return m_context->mem; }
+		ML_NODISCARD auto get_memory	() const noexcept -> memory_manager			* { return m_context->mem; }
 		ML_NODISCARD auto get_window	() const noexcept -> render_window	* { return m_context->window; }
 		ML_NODISCARD auto get_vars		() const noexcept -> blackboard		* { return m_context->vars; }
 

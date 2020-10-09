@@ -29,7 +29,7 @@ namespace ml
 			}
 			else
 			{
-				return util::hash(ML_forward(value));
+				return util::fnv1a_hash(ML_forward(value));
 			}
 		}
 
@@ -64,7 +64,7 @@ namespace ml
 			template <class ID
 			> var(std::allocator_arg_t, allocator_type alloc, blackboard * bb, ID && id)
 				: m_bb	{ bb }
-				, m_id	{ make_id(ML_forward(id)) }
+				, m_id	{ hashof(ML_forward(id)) }
 				, m_ptr	{ m_bb->load<value_type>(m_id, alloc) }
 			{
 			}
@@ -253,38 +253,38 @@ namespace ml
 		template <class T
 		> ML_NODISCARD auto find() noexcept -> catagories_type::optl_iterator_pair
 		{
-			return this->find(make_id<T>());
+			return this->find(hashof<T>());
 		}
 
 		template <class T
 		> ML_NODISCARD auto find() const noexcept -> catagories_type::optl_const_iterator_pair
 		{
-			return this->find(make_id<T>());
+			return this->find(hashof<T>());
 		}
 
 		template <class ID
 		> ML_NODISCARD auto find(hash_t type, ID && id) noexcept -> category_type::optl_iterator_pair
 		{
-			return m_vars[type].find(make_id(ML_forward(id)));
+			return m_vars[type].find(hashof(ML_forward(id)));
 		}
 
 		template <class ID
 		> ML_NODISCARD auto find(hash_t type, ID && id) const noexcept -> category_type::optl_const_iterator_pair
 		{
 			if (auto const it{ this->find(type) }; !it) { return std::nullopt; }
-			else { return it->second->find(make_id(ML_forward(id))); }
+			else { return it->second->find(hashof(ML_forward(id))); }
 		}
 
 		template <class T, class ID
 		> ML_NODISCARD auto find(ID && id) noexcept -> category_type::optl_iterator_pair
 		{
-			return this->find(make_id<T>(), ML_forward(id));
+			return this->find(hashof<T>(), ML_forward(id));
 		}
 
 		template <class T, class ID
 		> ML_NODISCARD auto find(ID && id) const noexcept -> category_type::optl_const_iterator_pair
 		{
-			return this->find(make_id<T>(), ML_forward(id));
+			return this->find(hashof<T>(), ML_forward(id));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -296,20 +296,20 @@ namespace ml
 
 		template <class T> ML_NODISCARD bool contains() const noexcept
 		{
-			return this->contains(make_id<T>());
+			return this->contains(hashof<T>());
 		}
 
 		template <class ID
 		> ML_NODISCARD bool contains(hash_t type, ID && id) const noexcept
 		{
 			if (auto const it{ this->find(type) }; !it) { return false; }
-			else { return it->second->contains(make_id(ML_forward(id))); }
+			else { return it->second->contains(hashof(ML_forward(id))); }
 		}
 
 		template <class T, class ID
 		> ML_NODISCARD bool contains(ID && id) const noexcept
 		{
-			return this->contains(make_id<T>(), ML_forward(id));
+			return this->contains(hashof<T>(), ML_forward(id));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -325,7 +325,7 @@ namespace ml
 		template <class T
 		> void erase() noexcept
 		{
-			this->erase(make_id<T>());
+			this->erase(hashof<T>());
 		}
 
 		template <class ID
@@ -333,7 +333,7 @@ namespace ml
 		{
 			if (auto const cat{ this->find(type) })
 			{
-				if (auto const var{ cat->second->find(make_id(ML_forward(id))) })
+				if (auto const var{ cat->second->find(hashof(ML_forward(id))) })
 				{
 					cat->second->erase(var->first);
 				}
@@ -343,7 +343,7 @@ namespace ml
 		template <class T, class ID
 		> void erase(ID && id) noexcept
 		{
-			this->erase(make_id<T>(), ML_forward(id));
+			this->erase(hashof<T>(), ML_forward(id));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -351,16 +351,16 @@ namespace ml
 		template <class ID
 		> ML_NODISCARD shared<std::any> & load(hash_t type, ID && id, allocator_type alloc = {}) noexcept
 		{
-			return m_vars[type].find_or_add_fn(make_id(ML_forward(id)), [&]() noexcept
+			return m_vars[type].find_or_add_fn(hashof(ML_forward(id)), [&]() noexcept
 			{
-				return memory::alloc_ref<std::any>(alloc);
+				return memory_manager::alloc_ref<std::any>(alloc);
 			});
 		}
 
 		template <class T, class ID
 		> ML_NODISCARD shared<std::any> & load(ID && id, allocator_type alloc = {}) noexcept
 		{
-			return this->load(make_id<T>(), ML_forward(id), alloc);
+			return this->load(hashof<T>(), ML_forward(id), alloc);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -396,7 +396,7 @@ namespace ml
 		template <class T, class ID
 		> void reset(ID && id, allocator_type alloc = {}) noexcept
 		{
-			this->reset(make_id<T>(), ML_forward(id), alloc);
+			this->reset(hashof<T>(), ML_forward(id), alloc);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -419,7 +419,7 @@ namespace ml
 		template <class T, class LHS, class RHS = LHS
 		> void swap(LHS && lhs, RHS && rhs, allocator_type alloc = {}) noexcept
 		{
-			this->swap(make_id<T>(), ML_forward(lhs), ML_forward(rhs), alloc);
+			this->swap(hashof<T>(), ML_forward(lhs), ML_forward(rhs), alloc);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -429,7 +429,7 @@ namespace ml
 		void clear(hash_t type) noexcept { m_vars[type].clear(); }
 
 		template <class T
-		> void clear() { this->clear(make_id<T>()); }
+		> void clear() { this->clear(hashof<T>()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -438,7 +438,7 @@ namespace ml
 		void resize(hash_t type, size_t const count) { m_vars[type].resize(count); }
 
 		template <class T
-		> void resize(size_t const count) { this->resize(make_id<T>(), count); }
+		> void resize(size_t const count) { this->resize(hashof<T>(), count); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -447,7 +447,7 @@ namespace ml
 		void reserve(hash_t type, size_t const count) { m_vars[type].reserve(count); }
 		
 		template <class T
-		> void reserve(size_t const count) { this->reserve(make_id<T>(), count); }
+		> void reserve(size_t const count) { this->reserve(hashof<T>(), count); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -456,7 +456,7 @@ namespace ml
 		void shrink_to_fit(hash_t type) noexcept { m_vars[type].shrink_to_fit(); }
 
 		template <class T
-		> void shrink_to_fit() { this->shrink_to_fit(make_id<T>()); }
+		> void shrink_to_fit() { this->shrink_to_fit(hashof<T>()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

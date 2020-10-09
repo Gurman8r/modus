@@ -3,10 +3,10 @@
 group			"modus"
 project			"launcher"
 targetname 		"%{prj.name}"
-targetdir		"%{wks.location}/bin-lib/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/"
-objdir			"%{wks.location}/bin-obj/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/"
+targetdir		"%{wks.location}/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/"
+objdir			"%{wks.location}/bin-obj/%{cfg.platform}/%{cfg.buildcfg}/"
 location		"%{wks.location}/project/%{_ACTION}/%{prj.name}/"
-debugdir 		"%{wks.location}/bin/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/"
+debugdir 		"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/"
 kind			"ConsoleApp"
 language		"C++"
 cppdialect 		"C++17"
@@ -28,13 +28,13 @@ undefines{
 
 libdirs{
 	"%{wks.location}/bin-lib/",
-	"%{wks.location}/bin-lib/%{_ACTION}/",
-	"%{wks.location}/bin-lib/%{_ACTION}/%{cfg.platform}/",
-	"%{wks.location}/bin-lib/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/",
+	"%{wks.location}/bin-lib/",
+	"%{wks.location}/bin-lib/%{cfg.platform}/",
+	"%{wks.location}/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/",
 	"%{wks.location}/vendor/bin-lib/",
-	"%{wks.location}/vendor/bin-lib/%{_ACTION}/",
-	"%{wks.location}/vendor/bin-lib/%{_ACTION}/%{cfg.platform}/",
-	"%{wks.location}/vendor/bin-lib/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/",
+	"%{wks.location}/vendor/bin-lib/",
+	"%{wks.location}/vendor/bin-lib/%{cfg.platform}/",
+	"%{wks.location}/vendor/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/",
 }
 
 links{
@@ -65,7 +65,7 @@ files{
 }
 
 postbuildcommands{
-	"%{ml_copy} %{wks.location}\\bin-lib\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\%{prj.name}%{ml_exe} %{wks.location}\\bin\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\",
+	"%{ml_copy} %{wks.location}\\bin-lib\\%{cfg.platform}\\%{cfg.buildcfg}\\%{prj.name}%{ml_exe} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 }
 
 filter{ "configurations:Debug" }

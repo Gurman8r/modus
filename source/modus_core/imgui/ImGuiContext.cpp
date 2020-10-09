@@ -193,28 +193,6 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void imgui_context::imgui_demo(bool * p_open)
-	{
-		ImGui::ShowDemoWindow(p_open);
-	}
-
-	void imgui_context::imgui_metrics(bool * p_open)
-	{
-		ImGui::ShowMetricsWindow(p_open);
-	}
-
-	void imgui_context::imgui_about(bool * p_open)
-	{
-		ImGui::ShowAboutWindow(p_open);
-	}
-
-	void imgui_context::imgui_style_editor(ImGuiStyle * ref)
-	{
-		ImGui::ShowStyleEditor(ref);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	void imgui_context::main_menu_bar::configure(json const & j)
 	{
 		j["enabled"].get_to(enabled);

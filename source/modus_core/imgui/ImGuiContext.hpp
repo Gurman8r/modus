@@ -49,16 +49,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static void imgui_demo(bool * p_open = {});
-
-		static void imgui_metrics(bool * p_open = {});
-
-		static void imgui_about(bool * p_open = {});
-
-		static void imgui_style_editor(ImGuiStyle * ref = {});
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		// main menu bar
 		struct ML_CORE_API main_menu_bar final : trackable, non_copyable
 		{

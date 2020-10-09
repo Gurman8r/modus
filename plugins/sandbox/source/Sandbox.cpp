@@ -118,7 +118,7 @@ namespace ml
 
 		void on_imgui_render(imgui_render_event && ev)
 		{
-			get_imgui()->imgui_demo();
+			ImGui::ShowDemoWindow();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

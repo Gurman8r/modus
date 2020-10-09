@@ -3,10 +3,10 @@
 group			"vendor"
 project			"glfw"
 targetname 		"%{prj.name}"
-targetdir		"%{wks.location}/bin-lib/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/"
-objdir			"%{wks.location}/bin-obj/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/"
+targetdir		"%{wks.location}/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/"
+objdir			"%{wks.location}/bin-obj/%{cfg.platform}/%{cfg.buildcfg}/"
 location		"%{wks.location}/project/%{_ACTION}/%{prj.name}/vendor/%{prj.name}/"
-debugdir 		"%{wks.location}/bin/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/"
+debugdir 		"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/"
 kind			"StaticLib"
 language		"C++"
 cppdialect 		"C++17"
@@ -34,7 +34,6 @@ files{
 	"%{wks.location}/vendor/source/glfw/src/context.c", 
 	"%{wks.location}/vendor/source/glfw/src/egl_context.c",
 	"%{wks.location}/vendor/source/glfw/src/egl_context.h",
-	"%{wks.location}/vendor/source/glfw/src/glfw_config.h",  
 	"%{wks.location}/vendor/source/glfw/src/init.c", 
 	"%{wks.location}/vendor/source/glfw/src/input.c", 
 	"%{wks.location}/vendor/source/glfw/src/internal.h", 
@@ -50,9 +49,9 @@ files{
 
 libdirs{
 	"%{wks.location}/vendor/bin-lib/",
-	"%{wks.location}/vendor/bin-lib/%{_ACTION}/",
-	"%{wks.location}/vendor/bin-lib/%{_ACTION}/%{cfg.platform}/",
-	"%{wks.location}/vendor/bin-lib/%{_ACTION}/%{cfg.platform}/%{cfg.buildcfg}/",
+	"%{wks.location}/vendor/bin-lib/",
+	"%{wks.location}/vendor/bin-lib/%{cfg.platform}/",
+	"%{wks.location}/vendor/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/",
 }
 
 links{
@@ -62,8 +61,8 @@ links{
 filter{ "configurations:Debug" }
 	symbols "On" 
 	prebuildcommands{
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\glew32d%{ml_dll} %{wks.location}\\bin\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\",
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\python39_d%{ml_dll} %{wks.location}\\bin\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\",
+		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\glew32d%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
+		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python39_d%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 	}
 	links{
 		"glew32d",
@@ -73,8 +72,8 @@ filter{ "configurations:Debug" }
 filter{ "configurations:Release" }
 	optimize "Speed"
 	prebuildcommands{
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\glew32%{ml_dll} %{wks.location}\\bin\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\",
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\python39%{ml_dll} %{wks.location}\\bin\\%{_ACTION}\\%{cfg.platform}\\%{cfg.buildcfg}\\",
+		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\glew32%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
+		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python39%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 	}
 	links{
 		"glew32",

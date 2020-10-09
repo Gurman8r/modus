@@ -1,20 +1,20 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <core/client/Blackboard.hpp>
-#include <core/detail/StreamSniper.hpp>
-#include <core/client/PluginManager.hpp>
-#include <core/client/ClientEvents.hpp>
-#include <core/embed/Python.hpp>
-#include <core/graphics/Font.hpp>
-#include <core/graphics/Mesh.hpp>
-#include <core/graphics/Shader.hpp>
-#include <core/graphics/Renderer.hpp>
-#include <core/graphics/RenderWindow.hpp>
-#include <core/imgui/ImGuiContext.hpp>
-#include <core/imgui/ImGuiEvents.hpp>
-#include <core/imgui/ImGui.hpp>
-#include <core/scene/SceneManager.hpp>
-#include <core/window/WindowEvents.hpp>
+#include <client/Blackboard.hpp>
+#include <detail/StreamSniper.hpp>
+#include <client/PluginManager.hpp>
+#include <client/ClientEvents.hpp>
+#include <embed/Python.hpp>
+#include <graphics/Font.hpp>
+#include <graphics/Mesh.hpp>
+#include <graphics/Shader.hpp>
+#include <graphics/Renderer.hpp>
+#include <graphics/RenderWindow.hpp>
+#include <imgui/ImGuiContext.hpp>
+#include <imgui/ImGuiEvents.hpp>
+#include <imgui/ImGui.hpp>
+#include <scene/SceneManager.hpp>
+#include <window/WindowEvents.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -118,10 +118,7 @@ namespace ml
 
 		void on_imgui_render(imgui_render_event && ev)
 		{
-			m_viewport.render([&]()
-			{
-
-			});
+			get_imgui()->imgui_demo();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

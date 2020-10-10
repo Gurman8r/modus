@@ -50,11 +50,11 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		// main menu bar
-		struct ML_CORE_API main_menu_bar final : trackable, non_copyable
+		struct ML_CORE_API menubar final : trackable, non_copyable
 		{
 			bool enabled{ true };
 
-			explicit main_menu_bar(allocator_type alloc) noexcept {}
+			explicit menubar(allocator_type alloc) noexcept {}
 
 			void configure(json const & j);
 		};
@@ -88,8 +88,6 @@ namespace ml
 
 			uint32_t dock(cstring name, uint32_t id);
 
-			uint32_t dock(gui_form const & w, uint32_t id);
-
 			uint32_t split(uint32_t i, uint32_t id, int32_t dir, float_t ratio, uint32_t * value);
 
 			uint32_t split(uint32_t id, int32_t dir, float_t ratio, uint32_t * value);
@@ -105,14 +103,14 @@ namespace ml
 
 		ML_NODISCARD auto get_dockspace() noexcept -> dockspace & { return m_dockspace; }
 
-		ML_NODISCARD auto get_main_menu_bar() noexcept -> main_menu_bar & { return m_menubar; }
+		ML_NODISCARD auto get_menubar() noexcept -> menubar & { return m_menubar; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		render_window * const	m_win			; // 
 		ImGuiContext *			m_ctx			; // 
-		main_menu_bar			m_menubar		; // 
+		menubar					m_menubar		; // 
 		dockspace				m_dockspace		; // 
 		bool					m_running		; // 
 

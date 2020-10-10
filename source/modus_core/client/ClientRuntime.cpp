@@ -18,13 +18,13 @@ namespace ml
 		// events
 		subscribe<client_enter_event>();
 		subscribe<client_exit_event>();
-		subscribe<client_update_event>();
+		subscribe<client_idle_event>();
 		subscribe<imgui_dockspace_event>();
 		subscribe<imgui_menubar_event>();
 		subscribe<imgui_render_event>();
 		subscribe<window_key_event>();
 		subscribe<window_mouse_event>();
-		subscribe<window_cursor_position_event>();
+		subscribe<window_cursor_pos_event>();
 
 		// python
 		PyObject_SetArenaAllocator(std::invoke([&, &temp = PyObjectArenaAllocator{}]()
@@ -45,13 +45,13 @@ namespace ml
 
 		// window
 		ML_assert(get_window()->open(get_io()->prefs["window"]));
-		if (static event_bus * bus{}; bus = get_bus())
 		{
+			static event_bus * bus{}; bus = get_bus();
 			get_window()->set_char_callback([](auto, auto ... x) { bus->fire<window_char_event>(x...); });
 			get_window()->set_char_mods_callback([](auto, auto ... x) { bus->fire<window_char_mods_event>(x...); });
 			get_window()->set_close_callback([](auto, auto ... x) { bus->fire<window_close_event>(x...); });
 			get_window()->set_cursor_enter_callback([](auto, auto ... x) { bus->fire<window_cursor_enter_event>(x...); });
-			get_window()->set_cursor_position_callback([](auto, auto ... x) { bus->fire<window_cursor_position_event>(x...); });
+			get_window()->set_cursor_pos_callback([](auto, auto ... x) { bus->fire<window_cursor_pos_event>(x...); });
 			get_window()->set_content_scale_callback([](auto, auto ... x) { bus->fire<window_content_scale_event>(x...); });
 			get_window()->set_drop_callback([](auto, auto ... x) { bus->fire<window_drop_event>(x...); });
 			get_window()->set_error_callback([](auto ... x) { bus->fire<window_error_event>(x...); });
@@ -61,7 +61,7 @@ namespace ml
 			get_window()->set_key_callback([](auto, auto ... x) { bus->fire<window_key_event>(x...); });
 			get_window()->set_maximize_callback([](auto, auto ... x) { bus->fire<window_maximize_event>(x...); });
 			get_window()->set_mouse_callback([](auto, auto ... x) { bus->fire<window_mouse_event>(x...); });
-			get_window()->set_position_callback([](auto, auto ... x) { bus->fire<window_pos_event>(x...); });
+			get_window()->set_position_callback([](auto, auto ... x) { bus->fire<window_position_event>(x...); });
 			get_window()->set_refresh_callback([](auto, auto ... x) { bus->fire<window_refresh_event>(x...); });
 			get_window()->set_resize_callback([](auto, auto ... x) { bus->fire<window_resize_event>(x...); });
 			get_window()->set_scroll_callback([](auto, auto ... x) { bus->fire<window_scroll_event>(x...); });
@@ -80,16 +80,14 @@ namespace ml
 
 	int32_t client_runtime::idle()
 	{
-		if (m_running) { return EXIT_FAILURE; }
+		if (m_running || !get_window()->is_open()) { return EXIT_FAILURE; }
 		else { m_running = true; } ML_defer(&) { m_running = false; };
-
+		
 		get_bus()->fire<client_enter_event>(get_context());
 		ML_defer(&) { get_bus()->fire<client_exit_event>(get_context()); };
-		if (!get_window()->is_open()) { return EXIT_FAILURE; }
-		do
+		while (get_window()->is_open())
 		{
-			auto ML_anon{ std::invoke([&io = *get_io()]() noexcept
-			{
+			auto ML_anon{ std::invoke([&io = *get_io()]() noexcept {
 				io.loop_timer.restart();
 				auto const dt{ (float_t)io.frame_time.count() };
 				io.fps_accum += dt - io.fps_times[io.fps_index];
@@ -104,14 +102,15 @@ namespace ml
 
 			window::poll_events();
 
-			get_imgui()->do_frame();
+			get_bus()->fire<client_idle_event>(get_context());
+
+			get_imgui()->do_frame([&]() {});
 
 			if (get_window()->has_hints(window_hints_doublebuffer))
 			{
 				window::swap_buffers(get_window()->get_handle());
 			}
 		}
-		while (get_window()->is_open());
 		return EXIT_SUCCESS;
 	}
 
@@ -130,25 +129,26 @@ namespace ml
 			auto && ev{ (client_exit_event &&)value };
 		} break;
 
-		case client_update_event::ID: {
-			auto && ev{ (client_update_event &&)value };
+		case client_idle_event::ID: {
+			auto && ev{ (client_idle_event &&)value };
 		} break;
 
 
 		// imgui
 		case imgui_dockspace_event::ID: {
-
+			auto && ev{ (imgui_dockspace_event &&)value };
 		} break;
 
 		case imgui_menubar_event::ID: {
-
+			auto && ev{ (imgui_menubar_event &&)value };
 		} break;
 
 		case imgui_render_event::ID: {
+			auto && ev{ (imgui_render_event &&)value };
 		} break;
 
 
-		// window
+		// input
 		case window_key_event::ID: {
 			auto && ev{ (window_key_event &&)value };
 			get_io()->keyboard[ev.key] = ev.action;
@@ -159,8 +159,8 @@ namespace ml
 			get_io()->mouse[ev.button] = ev.action;
 		} break;
 
-		case window_cursor_position_event::ID: {
-			auto && ev{ (window_cursor_position_event &&)value };
+		case window_cursor_pos_event::ID: {
+			auto && ev{ (window_cursor_pos_event &&)value };
 			get_io()->cursor = { ev.x, ev.y };
 		} break;
 		}

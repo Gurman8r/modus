@@ -75,7 +75,7 @@ namespace ml
 		})()) { return debug::error("failed starting imgui"); }
 		else
 		{
-			m_menubar.configure(j["main_menu_bar"]);
+			m_menubar.configure(j["menubar"]);
 			
 			m_dockspace.configure(j["dockspace"]);
 			
@@ -193,7 +193,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void imgui_context::main_menu_bar::configure(json const & j)
+	void imgui_context::menubar::configure(json const & j)
 	{
 		j["enabled"].get_to(enabled);
 	}
@@ -238,11 +238,6 @@ namespace ml
 			ImGui::DockBuilderDockWindow(name, id);
 			return id;
 		}
-	}
-
-	uint32_t imgui_context::dockspace::dock(gui_form const & w, uint32_t id)
-	{
-		return this->dock(w.title, id);
 	}
 
 	uint32_t imgui_context::dockspace::split(uint32_t i, uint32_t id, int32_t dir, float_t ratio, uint32_t * value)

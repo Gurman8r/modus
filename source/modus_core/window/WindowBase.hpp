@@ -42,7 +42,7 @@ namespace ml
 
 		virtual int32_t get_cursor_mode() const = 0;
 
-		virtual vec2 get_cursor_position() const = 0;
+		virtual vec2 get_cursor_pos() const = 0;
 
 		virtual vec2i get_framebuffer_size() const = 0;
 
@@ -109,7 +109,7 @@ namespace ml
 
 		virtual void set_cursor_mode(int32_t) = 0;
 
-		virtual void set_cursor_position(vec2d const &) = 0;
+		virtual void set_cursor_pos(vec2d const &) = 0;
 
 		virtual void set_decorated(bool) = 0;
 
@@ -172,7 +172,7 @@ namespace ml
 		virtual window_close_callback				set_close_callback				(window_close_callback) = 0;
 		virtual window_content_scale_callback		set_content_scale_callback		(window_content_scale_callback) = 0;
 		virtual window_cursor_enter_callback		set_cursor_enter_callback		(window_cursor_enter_callback) = 0;
-		virtual window_cursor_position_callback		set_cursor_position_callback	(window_cursor_position_callback) = 0;
+		virtual window_cursor_pos_callback			set_cursor_pos_callback	(window_cursor_pos_callback) = 0;
 		virtual window_drop_callback				set_drop_callback				(window_drop_callback) = 0;
 		virtual window_error_callback				set_error_callback				(window_error_callback) = 0;
 		virtual window_focus_callback				set_focus_callback				(window_focus_callback) = 0;
@@ -193,7 +193,7 @@ namespace ml
 			set_close_callback				(nullptr);
 			set_content_scale_callback		(nullptr);
 			set_cursor_enter_callback		(nullptr);
-			set_cursor_position_callback	(nullptr);
+			set_cursor_pos_callback			(nullptr);
 			set_drop_callback				(nullptr);
 			set_error_callback				(nullptr);
 			set_focus_callback				(nullptr);

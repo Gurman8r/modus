@@ -108,9 +108,9 @@ namespace ml
 		return m_impl->get_content_scale();
 	}
 
-	vec2 window::get_cursor_position() const noexcept
+	vec2 window::get_cursor_pos() const noexcept
 	{
-		return m_impl->get_cursor_position();
+		return m_impl->get_cursor_pos();
 	}
 
 	int32_t window::get_cursor_mode() const noexcept
@@ -262,9 +262,9 @@ namespace ml
 		m_impl->set_cursor_mode(value);
 	}
 
-	void window::set_cursor_position(vec2d const & value) noexcept
+	void window::set_cursor_pos(vec2d const & value) noexcept
 	{
-		m_impl->set_cursor_position(value);
+		m_impl->set_cursor_pos(value);
 	}
 
 	void window::set_decorated(bool value) noexcept
@@ -426,9 +426,9 @@ namespace ml
 		return m_impl->set_cursor_enter_callback(fn);
 	}
 
-	window_cursor_position_callback window::set_cursor_position_callback(window_cursor_position_callback fn) noexcept
+	window_cursor_pos_callback window::set_cursor_pos_callback(window_cursor_pos_callback fn) noexcept
 	{
-		return m_impl->set_cursor_position_callback(fn);
+		return m_impl->set_cursor_pos_callback(fn);
 	}
 
 	window_drop_callback window::set_drop_callback(window_drop_callback fn) noexcept

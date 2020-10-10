@@ -32,13 +32,13 @@ static class memcfg final : public singleton<memcfg>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define SETTINGS_PATH "../../../libmeme.json"
+#define SETTINGS_PATH "../../../resource/modus_launcher.json"
 
 static auto const default_settings{ R"(
 {
 	"path": "../../../",
 	"window": {
-		"title": "modus",
+		"title": "modus client",
 		"video": {
 			"resolution"	: [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
@@ -70,7 +70,7 @@ static auto const default_settings{ R"(
 	"imgui": {
 		"inst_clbk"		: true,
 		"style_path"	: "assets/styles/obsidian.style",
-		"main_menu_bar"	: { "enabled": true },
+		"menubar"		: { "enabled": true },
 		"dockspace"		: {
 			"enabled"	: true,
 			"title"		: "dockspace##libmeme",
@@ -106,7 +106,7 @@ static auto load_settings(fs::path const & path = SETTINGS_PATH)
 
 ml::int32_t main()
 {
-	// context
+	// client
 	static memory_manager	mem		{ pmr::get_default_resource() };
 	static client_io		io		{ __argc, __argv, mem.get_allocator(), load_settings() };
 	static blackboard		vars	{ io.alloc };

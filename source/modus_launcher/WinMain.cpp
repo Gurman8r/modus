@@ -8,7 +8,7 @@
 
 extern INT main();
 
-INT WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, INT)
+INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, INT nCmdShow)
 {
 	return main();
 }

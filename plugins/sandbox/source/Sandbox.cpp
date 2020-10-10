@@ -30,8 +30,6 @@ namespace ml
 		blackboard::var< ds::map<pmr::string, shared<gfx::shader>>	> m_shaders		; // 
 		blackboard::var< ds::map<pmr::string, shared<gfx::texture>>	> m_textures	; // 
 
-		gui_form m_viewport{ "viewport", true };
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		~sandbox() noexcept override {}
@@ -45,7 +43,7 @@ namespace ml
 		{
 			subscribe<client_enter_event>();
 			subscribe<client_exit_event>();
-			subscribe<client_update_event>();
+			subscribe<client_idle_event>();
 
 			subscribe<imgui_dockspace_event>();
 			subscribe<imgui_menubar_event>();
@@ -53,7 +51,7 @@ namespace ml
 
 			subscribe<window_key_event>();
 			subscribe<window_mouse_event>();
-			subscribe<window_cursor_position_event>();
+			subscribe<window_cursor_pos_event>();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -62,17 +60,17 @@ namespace ml
 		{
 			switch (value)
 			{
-			case client_enter_event				::ID: return on_client_enter((client_enter_event &&)value);
-			case client_exit_event				::ID: return on_client_exit((client_exit_event &&)value);
-			case client_update_event			::ID: return on_client_update((client_update_event &&)value);
+			case client_enter_event		::ID: return on_client_enter((client_enter_event &&)value);
+			case client_exit_event		::ID: return on_client_exit((client_exit_event &&)value);
+			case client_idle_event	::ID: return on_client_idle((client_idle_event &&)value);
 			
-			case imgui_dockspace_event			::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
-			case imgui_menubar_event			::ID: return on_imgui_menubar((imgui_menubar_event &&)value);
-			case imgui_render_event				::ID: return on_imgui_render((imgui_render_event &&)value);
+			case imgui_dockspace_event	::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
+			case imgui_menubar_event	::ID: return on_imgui_menubar((imgui_menubar_event &&)value);
+			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event &&)value);
 			
-			case window_key_event				::ID: return on_window_key((window_key_event &&)value);
-			case window_mouse_event				::ID: return on_window_mouse((window_mouse_event &&)value);
-			case window_cursor_position_event	::ID: return on_window_cursor_position((window_cursor_position_event &&)value);
+			case window_key_event		::ID: return on_window_key((window_key_event &&)value);
+			case window_mouse_event		::ID: return on_window_mouse((window_mouse_event &&)value);
+			case window_cursor_pos_event::ID: return on_window_cursor_pos((window_cursor_pos_event &&)value);
 			}
 		}
 
@@ -81,11 +79,9 @@ namespace ml
 		void on_client_enter(client_enter_event && ev)
 		{
 			// set icon
-			if (auto & i = m_images["icon"] = get_memory()->make_ref<bitmap>
-			(
+			if (auto & i = m_images["icon"] = get_memory()->make_ref<bitmap>(
 				get_io()->path2("resource/icon.png")
-			))
-			{
+			)) {
 				get_window()->set_icons(i->width(), i->height(), 1, i->data());
 			}
 		}
@@ -94,7 +90,7 @@ namespace ml
 		{
 		}
 
-		void on_client_update(client_update_event && ev)
+		void on_client_idle(client_idle_event && ev)
 		{
 		}
 
@@ -118,21 +114,24 @@ namespace ml
 
 		void on_imgui_render(imgui_render_event && ev)
 		{
-			ImGui::ShowDemoWindow();
+			ImGui::SetNextWindowSize({ 540, 480 }, ImGuiCond_Once);
+			ImGuiExt::DoWindow("sandbox", 0, 0, [fps = get_io()->fps_rate]()
+			{
+				ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+			});
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void on_window_key(window_key_event && ev)
 		{
-			get_io()->keyboard[ev.key] = ev.action;
 		}
 
 		void on_window_mouse(window_mouse_event && ev)
 		{
 		}
 
-		void on_window_cursor_position(window_cursor_position_event && ev)
+		void on_window_cursor_pos(window_cursor_pos_event && ev)
 		{
 		}
 

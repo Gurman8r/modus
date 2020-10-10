@@ -80,11 +80,11 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_cursor_position_event)
+	ML_decl_event(window_cursor_pos_event)
 	{
 		float64_t const x, y;
 
-		constexpr window_cursor_position_event(float64_t x, float64_t y) noexcept
+		constexpr window_cursor_pos_event(float64_t x, float64_t y) noexcept
 			: x{ x }, y{ y }
 		{
 		}
@@ -226,11 +226,11 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_pos_event)
+	ML_decl_event(window_position_event)
 	{
 		int32_t const x, y;
 
-		constexpr window_pos_event(int32_t x, int32_t y) noexcept
+		constexpr window_position_event(int32_t x, int32_t y) noexcept
 			: x{ x }, y{ y }
 		{
 		}

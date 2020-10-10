@@ -161,7 +161,8 @@ namespace ml
 		pretty_function::string{ nameof_t<T>::value }
 	};
 
-	template <class T> constexpr auto nameof() noexcept
+	template <class T
+	> ML_NODISCARD constexpr auto nameof() noexcept
 	{
 		return nameof_v<T>;
 	}
@@ -169,13 +170,14 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// hash of type
-	template <class T> constexpr auto hashof_v
+	template <class T> constexpr hash_t hashof_v
 	{
 		hashof(pretty_function::string{ nameof_t<T>::value })
 	};
 
 	// hash of type
-	template <class T> constexpr auto hashof() noexcept
+	template <class T
+	> ML_NODISCARD constexpr hash_t hashof() noexcept
 	{
 		return hashof_v<T>;
 	}

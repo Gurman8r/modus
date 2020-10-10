@@ -16,25 +16,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class T> ML_NODISCARD static constexpr hash_t make_id() noexcept
-		{
-			return hashof_v<T>;
-		}
-
-		template <class T> ML_NODISCARD static constexpr hash_t make_id(T && value) noexcept
-		{
-			if constexpr (std::is_integral_v<std::decay_t<decltype(value)>>)
-			{
-				return static_cast<hash_t>(value);
-			}
-			else
-			{
-				return util::fnv1a_hash(ML_forward(value));
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		template <class T
 		> struct var final : trackable, non_copyable
 		{

@@ -30,12 +30,12 @@ namespace ml
 	};
 
 	// UPDATE
-	ML_decl_event(client_update_event)
+	ML_decl_event(client_idle_event)
 	{
 		client_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_update_event(client_context * ptr) noexcept : ptr{ ptr } {}
+		constexpr client_idle_event(client_context * ptr) noexcept : ptr{ ptr } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

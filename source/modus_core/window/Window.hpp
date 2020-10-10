@@ -39,7 +39,7 @@ namespace ml
 
 		ML_NODISCARD vec2 get_content_scale() const noexcept final;
 
-		ML_NODISCARD vec2 get_cursor_position() const noexcept final;
+		ML_NODISCARD vec2 get_cursor_pos() const noexcept final;
 
 		ML_NODISCARD int32_t get_cursor_mode() const noexcept final;
 
@@ -103,7 +103,7 @@ namespace ml
 		
 		void set_cursor_mode(int32_t value) noexcept final;
 		
-		void set_cursor_position(vec2d const & value) noexcept final;
+		void set_cursor_pos(vec2d const & value) noexcept final;
 
 		void set_decorated(bool value) noexcept final;
 
@@ -166,7 +166,7 @@ namespace ml
 		window_close_callback				set_close_callback				(window_close_callback				fn) noexcept final;
 		window_content_scale_callback		set_content_scale_callback		(window_content_scale_callback		fn) noexcept final;
 		window_cursor_enter_callback		set_cursor_enter_callback		(window_cursor_enter_callback		fn) noexcept final;
-		window_cursor_position_callback		set_cursor_position_callback	(window_cursor_position_callback	fn) noexcept final;
+		window_cursor_pos_callback			set_cursor_pos_callback	(window_cursor_pos_callback	fn) noexcept final;
 		window_drop_callback				set_drop_callback				(window_drop_callback				fn) noexcept final;
 		window_error_callback				set_error_callback				(window_error_callback				fn) noexcept final;
 		window_focus_callback				set_focus_callback				(window_focus_callback				fn) noexcept final;

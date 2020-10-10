@@ -79,6 +79,7 @@ includedirs{
 
 files{
 	"%{wks.location}/config/%{prj.name}.**",
+	"%{wks.location}/resource/%{prj.name}.**",
 	"%{wks.location}/resource/%{prj.name}/**.**",
 	"%{wks.location}/source/%{prj.name}/**.**",
 	

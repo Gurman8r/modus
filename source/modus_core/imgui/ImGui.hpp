@@ -78,6 +78,7 @@ namespace ml::impl
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// TOOLTIPS
 namespace ml::ImGuiExt
 {
 	// tooltip ex
@@ -141,191 +142,20 @@ namespace ml::ImGuiExt
 	}
 }
 
-namespace ml
+// WINDOWS
+namespace ml::ImGuiExt
 {
-	// form
-	struct ML_NODISCARD gui_form final
+	template <class Fn, class ... Args
+	> static void DoWindow(cstring title, bool * open, int32_t flags, Fn && fn, Args && ... args)
 	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		cstring		title	{ "New Form" };
-		bool		open	{ true };
-		int32_t		flags	{ ImGuiWindowFlags_None };
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		template <class Fn, class ... Args
-		> void render(Fn && fn, Args && ... args) noexcept
-		{
-			if (!open) { return; }
-			ML_ImGui_ScopeID(ImGui::GetID(title));
-			ML_defer() { ImGui::End(); };
-			if (ImGui::Begin(title, &open, flags))
-			{
-				std::invoke(ML_forward(fn), ML_forward(args)...);
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		gui_form & focus() noexcept
-		{
-			open = true;
-			ImGui::SetWindowFocus(title);
-			return (*this);
-		}
-
-		uint32_t getid() const noexcept
-		{
-			return ImGui::GetID(title);
-		}
-
-		bool menu_item(cstring shortcut = "") noexcept
-		{
-			return ImGui::MenuItem(title, shortcut, &open);
-		}
-
-		bool selectable(int32_t f = ImGuiSelectableFlags_None, vec2 const & size = {}) noexcept
-		{
-			return ImGui::Selectable(title, &open, f, size);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
+		if (open && !*open) { return; }
+		ML_defer() { ImGui::End(); };
+		if (!ImGui::Begin(title, open, flags)) { return; }
+		std::invoke(ML_forward(fn), ML_forward(args)...);
+	}
 }
 
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// plot
-	struct ML_NODISCARD gui_plot final
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		enum : int32_t { lines, histogram };
-
-		using buffer_t	= typename pmr::vector<float_t>;
-		using overtxt_t	= typename ds::array<char, 32>;
-		using get_str_t = typename std::function<cstring()>;
-		using get_fn_t	= typename std::function<float_t()>;
-
-		buffer_t	buffer		{};
-		int32_t		mode		{};
-		cstring		label		{};
-		get_str_t	get_fmt		{ []() noexcept { return "%f"; } };
-		get_fn_t	get_value	{ []() noexcept { return 0.f; } };
-		vec2		size		{};
-		vec2		scale		{ FLT_MAX, FLT_MAX };
-		int32_t		offset		{};
-		char		overtxt[32]	{};
-		bool		animate		{ true };
-		
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		// make gui_plot
-		template <class ... Args
-		> static auto create(size_t const cap, Args && ... args) noexcept
-		{
-			return gui_plot{ buffer_t{ cap, buffer_t::allocator_type{} }, ML_forward(args)... };
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void update() noexcept
-		{
-			ML_assert(get_value);
-			update(std::invoke(get_value));
-		}
-
-		template <class Delta = float_t
-		> void update(Delta const v) noexcept
-		{
-			static_assert(std::is_floating_point_v<Delta>);
-			if (!animate || buffer.empty()) { return; }
-			std::sprintf(overtxt, get_fmt(), v);
-			buffer[offset] = static_cast<float_t>(v);
-			offset = (offset + 1) % buffer.size();
-		}
-
-		void render() const noexcept
-		{
-			ML_ImGui_ScopeID(this);
-
-			// expand to available width
-			float_t width{ size[0] };
-			if ((width == 0.f) && (label && label[0] == '#' && label[1] == '#'))
-			{
-				width = ImGui::GetContentRegionAvailWidth();
-			}
-
-			// draw
-			switch (mode)
-			{
-			case lines:
-				return ImGui::PlotLines(label
-					, buffer.data(), (int32_t)buffer.size(), offset
-					, overtxt
-					, scale[0], scale[1], { width, size[1] }
-					, sizeof(float_t)
-				);
-			case histogram:
-				return ImGui::PlotHistogram(label
-					, buffer.data(), (int32_t)buffer.size(), offset
-					, overtxt
-					, scale[0], scale[1], { width, size[1] }
-					, sizeof(float_t)
-				);
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// plot controller
-	struct ML_NODISCARD gui_plot_controller final
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		pmr::vector<gui_plot> plots{};
-		
-		float_t ref_time{};
-
-		gui_plot_controller(std::initializer_list<gui_plot> init) noexcept
-			: plots{ init.begin(), init.end() }, ref_time{}
-		{
-		}
-
-		template <class Delta = float_t
-		> void update(Delta const tt, Delta const dt = (Delta)(1.f / 60.f)) noexcept
-		{
-			if (ref_time == 0.f)
-			{
-				ref_time = static_cast<float_t>(tt);
-				return;
-			}
-			while (ref_time < static_cast<float_t>(tt))
-			{
-				for (auto & p : plots) { p.update(); }
-
-				ref_time += static_cast<float_t>(dt);
-			}
-		}
-
-		auto begin() noexcept { return plots.begin(); }
-		auto begin() const noexcept { return plots.begin(); }
-		auto cbegin() const noexcept { return plots.cbegin(); }
-		auto end() noexcept { return plots.end(); }
-		auto end() const noexcept { return plots.end(); }
-		auto cend() const noexcept { return plots.cend(); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // TEXTURE PREVIEW
 namespace ml

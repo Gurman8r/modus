@@ -193,7 +193,7 @@ namespace ml
 		return glfwGetInputMode(m_window, GLFW_CURSOR);
 	}
 
-	vec2 glfw_window::get_cursor_position() const
+	vec2 glfw_window::get_cursor_pos() const
 	{
 		vec2d temp{};
 		glfwGetCursorPos(m_window, &temp[0], &temp[1]);
@@ -363,7 +363,7 @@ namespace ml
 		}));
 	}
 
-	void glfw_window::set_cursor_position(vec2d const & value)
+	void glfw_window::set_cursor_pos(vec2d const & value)
 	{
 		glfwSetCursorPos(m_window, value[0], value[1]);
 	}
@@ -592,11 +592,11 @@ namespace ml
 				reinterpret_cast<GLFWcursorenterfun>(m_clbk.on_cursor_enter = fn)));
 	}
 
-	window_cursor_position_callback glfw_window::set_cursor_position_callback(window_cursor_position_callback fn)
+	window_cursor_pos_callback glfw_window::set_cursor_pos_callback(window_cursor_pos_callback fn)
 	{
-		return reinterpret_cast<window_cursor_position_callback>(
+		return reinterpret_cast<window_cursor_pos_callback>(
 			glfwSetCursorPosCallback(m_window,
-				reinterpret_cast<GLFWcursorposfun>(m_clbk.on_cursor_position = fn)));
+				reinterpret_cast<GLFWcursorposfun>(m_clbk.on_cursor_pos = fn)));
 	}
 
 	window_drop_callback glfw_window::set_drop_callback(window_drop_callback fn)

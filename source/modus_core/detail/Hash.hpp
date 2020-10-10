@@ -60,7 +60,7 @@ namespace ml
 {
 	// hash of data
 	template <class Arg0, class ... Args
-	> constexpr auto hashof(Arg0 && arg0, Args && ... args)
+	> ML_NODISCARD constexpr hash_t hashof(Arg0 && arg0, Args && ... args)
 	{
 		if constexpr (0 == sizeof...(args))
 		{

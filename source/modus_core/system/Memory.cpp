@@ -1,4 +1,4 @@
-#include <system/Memory.hpp>
+#include <modus_core/system/Memory.hpp>
 
 namespace ml
 {
@@ -27,7 +27,7 @@ namespace ml
 		ML_assert(g_mem == this && !(g_mem = nullptr));
 
 		// check for leaks
-		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty<0>());
+		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty<>());
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

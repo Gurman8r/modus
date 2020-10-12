@@ -1,5 +1,5 @@
-#include <embed/Python.hpp>
-#include <graphics/RenderWindow.hpp>
+#include <modus_core/embed/Python.hpp>
+#include <modus_core/graphics/RenderWindow.hpp>
 
 PYBIND11_EMBEDDED_MODULE(modus, m)
 {

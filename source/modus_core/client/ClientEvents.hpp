@@ -1,7 +1,7 @@
 #ifndef _ML_CLIENT_EVENTS_HPP_
 #define _ML_CLIENT_EVENTS_HPP_
 
-#include <system/Events.hpp>
+#include <modus_core/system/Events.hpp>
 
 namespace ml
 {
@@ -12,12 +12,12 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// LOAD
-	ML_decl_event(client_enter_event)
+	ML_decl_event(client_init_event)
 	{
 		client_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_enter_event(client_context * ptr) noexcept : ptr{ ptr } {}
+		constexpr client_init_event(client_context * ptr) noexcept : ptr{ ptr } {}
 	};
 
 	// UNLOAD

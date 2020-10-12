@@ -1,7 +1,7 @@
 #ifndef _ML_CLIENT_RUNTIME_HPP_
 #define _ML_CLIENT_RUNTIME_HPP_
 
-#include <client/PluginManager.hpp>
+#include <modus_core/client/PluginManager.hpp>
 
 namespace ml
 {
@@ -10,6 +10,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		explicit client_runtime(client_context * context);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		~client_runtime() override;
 

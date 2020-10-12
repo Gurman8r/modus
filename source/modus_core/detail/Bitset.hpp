@@ -1,7 +1,7 @@
 #ifndef _ML_BITSET_HPP_
 #define _ML_BITSET_HPP_
 
-#include <detail/Array.hpp>
+#include <modus_core/detail/Array.hpp>
 
 namespace ml::ds
 {

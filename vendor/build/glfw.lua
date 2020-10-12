@@ -42,7 +42,7 @@ includedirs{
 }
 
 files{
-	"%{wks.location}/vendor/config/%{prj.name}.**",
+	"%{wks.location}/vendor/build/%{prj.name}.**",
 	"%{wks.location}/vendor/source/glfw/include/glfw/**.h",
 	"%{wks.location}/vendor/source/glfw/src/context.c", 
 	"%{wks.location}/vendor/source/glfw/src/egl_context.c",

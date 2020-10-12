@@ -1,7 +1,7 @@
 #ifndef _ML_WINDOW_HPP_
 #define _ML_WINDOW_HPP_
 
-#include <window/WindowBase.hpp>
+#include <modus_core/window/WindowBase.hpp>
 
 namespace ml
 {

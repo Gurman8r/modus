@@ -1,9 +1,9 @@
 #ifndef _ML_MEMORY_HPP_
 #define _ML_MEMORY_HPP_
 
-#include <detail/Debug.hpp>
-#include <detail/Singleton.hpp>
-#include <detail/BatchVector.hpp>
+#include <modus_core/detail/Debug.hpp>
+#include <modus_core/detail/Singleton.hpp>
+#include <modus_core/detail/BatchVector.hpp>
 
 // passthrough
 namespace ml
@@ -378,7 +378,8 @@ namespace ml
 			{
 				m_alloc.deallocate(
 					(byte_t *)addr,
-					m_records.at<id_count>(i) * m_records.at<id_size>(i));
+					m_records.at<id_count>(i) *
+					m_records.at<id_size>(i));
 
 				m_records.erase(i);
 			}

@@ -1,7 +1,7 @@
 #ifndef _ML_FLAT_SET_HPP_
 #define _ML_FLAT_SET_HPP_
 
-#include <detail/Utility.hpp>
+#include <modus_core/detail/Utility.hpp>
 
 namespace ml::ds
 {

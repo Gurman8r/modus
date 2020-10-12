@@ -1,16 +1,22 @@
-#include <graphics/RenderAPI.hpp>
+#include <modus_core/graphics/RenderAPI.hpp>
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifdef ML_IMPL_RENDERER_OPENGL
-#include <platform/opengl/Impl_RenderAPI_OpenGL.hpp>
+#include "../platform/opengl/Impl_RenderAPI_OpenGL.hpp"
 #endif
 
 #ifdef ML_IMPL_RENDERER_DIRECTX
-#include <platform/directx/Impl_RenderAPI_DirectX.hpp>
+#include "../platform/directx/Impl_RenderAPI_DirectX.hpp"
 #endif
 
 #ifdef ML_IMPL_RENDERER_VULKAN
-#include <platform/vulkan/Impl_RenderAPI_Vulkan.hpp>
+#include "../platform/vulkan/Impl_RenderAPI_Vulkan.hpp"
 #endif
+
+// etc...
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 namespace ml::gfx
 {

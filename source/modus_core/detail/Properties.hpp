@@ -3,7 +3,7 @@
 
 // WIP
 
-#include <detail/Debug.hpp>
+#include <modus_core/detail/Debug.hpp>
 
 namespace ml
 {

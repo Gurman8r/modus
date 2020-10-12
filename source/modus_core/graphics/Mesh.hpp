@@ -1,8 +1,8 @@
 #ifndef _ML_MESH_HPP_
 #define _ML_MESH_HPP_
 
-#include <graphics/RenderAPI.hpp>
-#include <graphics/Vertex.hpp>
+#include <modus_core/graphics/RenderAPI.hpp>
+#include <modus_core/graphics/Vertex.hpp>
 
 namespace ml
 {

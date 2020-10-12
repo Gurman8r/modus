@@ -5,9 +5,9 @@
 // https://github.com/SuperV1234/cppcon2015
 // https://www.youtube.com/watch?v=NTWSeQtHZ9M
 
-#include <detail/BatchVector.hpp>
-#include <detail/BitSet.hpp>
-#include <detail/Debug.hpp>
+#include <modus_core/detail/BatchVector.hpp>
+#include <modus_core/detail/BitSet.hpp>
+#include <modus_core/detail/Debug.hpp>
 
 // system declarator helper
 #define ML_decl_ecs_sx(S, X, ...)									\

@@ -2,11 +2,11 @@
 #define _ML_UTILITY_HPP_
 
 #include <gcem/include/gcem.hpp>
-#include <detail/Flow.hpp>
-#include <detail/JSON.hpp>
-#include <detail/Meta.hpp>
-#include <detail/TypeInfo.hpp>
-#include <detail/Wrapper.hpp>
+#include <modus_core/detail/Flow.hpp>
+#include <modus_core/detail/JSON.hpp>
+#include <modus_core/detail/Meta.hpp>
+#include <modus_core/detail/TypeInfo.hpp>
+#include <modus_core/detail/Wrapper.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

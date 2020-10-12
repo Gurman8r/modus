@@ -1,7 +1,7 @@
 #ifndef _ML_COLOR_HPP_
 #define _ML_COLOR_HPP_
 
-#include <detail/Matrix.hpp>
+#include <modus_core/detail/Matrix.hpp>
 
 namespace ml
 {

@@ -1,7 +1,7 @@
 #ifndef _ML_PARSER_UTIL_HPP_
 #define _ML_PARSER_UTIL_HPP_
 
-#include <detail/StringUtility.hpp>
+#include <modus_core/detail/StringUtility.hpp>
 
 namespace ml::impl
 {

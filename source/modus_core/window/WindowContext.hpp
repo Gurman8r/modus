@@ -1,10 +1,10 @@
 #ifndef _ML_WINDOW_CONTEXT_HPP_
 #define _ML_WINDOW_CONTEXT_HPP_
 
-#include <detail/Timer.hpp>
-#include <system/Memory.hpp>
-#include <window/Cursor.hpp>
-#include <window/Monitor.hpp>
+#include <modus_core/detail/Timer.hpp>
+#include <modus_core/system/Memory.hpp>
+#include <modus_core/window/Cursor.hpp>
+#include <modus_core/window/Monitor.hpp>
 
 namespace ml
 {

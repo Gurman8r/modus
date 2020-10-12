@@ -3,9 +3,9 @@
 
 // kind of a mess (WIP)
 
-#include <detail/FileUtility.hpp>
-#include <graphics/Uniform.hpp>
-#include <graphics/RenderAPI.hpp>
+#include <modus_core/detail/FileUtility.hpp>
+#include <modus_core/graphics/Uniform.hpp>
+#include <modus_core/graphics/RenderAPI.hpp>
 
 // SHADER ASSET
 namespace ml

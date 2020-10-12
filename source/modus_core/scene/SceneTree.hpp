@@ -1,17 +1,17 @@
-#ifndef _ML_SCENE_HPP_
-#define _ML_SCENE_HPP_
+#ifndef _ML_SCENE_TREE_HPP_
+#define _ML_SCENE_TREE_HPP_
 
-#include <Export.hpp>
-#include <system/Memory.hpp>
-#include <detail/Matrix.hpp>
+#include <modus_core/Export.hpp>
+#include <modus_core/scene/Node.hpp>
+#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/Matrix.hpp>
 #include <entt/entt.hpp>
 
 namespace ml
 {
 	struct entity;
-	struct scene_manager;
 
-	struct ML_CORE_API scene final : trackable, non_copyable
+	struct ML_CORE_API scene_tree : trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -21,9 +21,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		scene(scene_manager * manager, allocator_type alloc) noexcept;
+		scene_tree(allocator_type alloc = {}) noexcept;
 
-		~scene() noexcept override;
+		~scene_tree() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -41,14 +41,11 @@ namespace ml
 
 		ML_NODISCARD auto get_entities() noexcept -> entity_list & { return m_entities; }
 
-		ML_NODISCARD auto get_manager() const noexcept -> scene_manager * { return m_manager; }
-
 		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return m_registry; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		scene_manager * const	m_manager	; // manager
 		entity_list				m_entities	; // entities
 		entt::registry			m_registry	; // registry
 
@@ -56,4 +53,4 @@ namespace ml
 	};
 }
 
-#endif // !_ML_SCENE_HPP_
+#endif // !_ML_SCENE_TREE_HPP_

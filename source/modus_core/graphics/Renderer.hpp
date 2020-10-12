@@ -3,7 +3,7 @@
 
 // WIP
 
-#include <graphics/RenderCommand.hpp>
+#include <modus_core/graphics/RenderCommand.hpp>
 
 namespace ml
 {

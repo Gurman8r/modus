@@ -1,4 +1,4 @@
-#include <graphics/Bitmap.hpp>
+#include <modus_core/graphics/Bitmap.hpp>
 
 #define STBI_MALLOC(s)				_ML memory_manager::allocate(s)
 #define STBI_FREE(p)				_ML memory_manager::deallocate(p)

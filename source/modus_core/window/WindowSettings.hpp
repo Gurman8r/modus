@@ -1,60 +1,13 @@
-#ifndef _ML_WINDOW_API_HPP_
-#define _ML_WINDOW_API_HPP_
+#ifndef _ML_WINDOW_SETTINGS_HPP_
+#define _ML_WINDOW_SETTINGS_HPP_
 
-#include <detail/Duration.hpp>
-#include <window/Input.hpp>
-#include <window/VideoMode.hpp>
-#include <window/WindowContext.hpp>
+#include <modus_core/detail/Duration.hpp>
+#include <modus_core/window/Input.hpp>
+#include <modus_core/window/VideoMode.hpp>
+#include <modus_core/window/WindowContext.hpp>
 
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// callback types
-	ML_alias window_char_callback				= void(*)(window_handle, uint32_t);
-	ML_alias window_char_mods_callback			= void(*)(window_handle, uint32_t, int32_t);
-	ML_alias window_close_callback				= void(*)(window_handle);
-	ML_alias window_content_scale_callback		= void(*)(window_handle, float_t, float_t);
-	ML_alias window_cursor_enter_callback		= void(*)(window_handle, int32_t);
-	ML_alias window_cursor_pos_callback	= void(*)(window_handle, float64_t, float64_t);
-	ML_alias window_drop_callback				= void(*)(window_handle, int32_t, cstring[]);
-	ML_alias window_error_callback				= void(*)(int32_t, cstring);
-	ML_alias window_focus_callback				= void(*)(window_handle, int32_t);
-	ML_alias window_framebuffer_resize_callback	= void(*)(window_handle, int32_t, int32_t);
-	ML_alias window_iconify_callback			= void(*)(window_handle, int32_t);
-	ML_alias window_key_callback				= void(*)(window_handle, int32_t, int32_t, int32_t, int32_t);
-	ML_alias window_maximize_callback			= void(*)(window_handle, int32_t);
-	ML_alias window_mouse_callback				= void(*)(window_handle, int32_t, int32_t, int32_t);
-	ML_alias window_position_callback			= void(*)(window_handle, int32_t, int32_t);
-	ML_alias window_refresh_callback			= void(*)(window_handle);
-	ML_alias window_resize_callback				= void(*)(window_handle, int32_t, int32_t);
-	ML_alias window_scroll_callback				= void(*)(window_handle, float64_t, float64_t);
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// callback container
-	struct ML_NODISCARD window_callbacks final
-	{
-		window_char_callback				on_char					; // 
-		window_char_mods_callback			on_char_mods			; // 
-		window_close_callback				on_close				; // 
-		window_content_scale_callback		on_content_scale		; // 
-		window_cursor_enter_callback		on_cursor_enter			; // 
-		window_cursor_pos_callback			on_cursor_pos			; // 
-		window_drop_callback				on_drop					; // 
-		window_error_callback				on_error				; // 
-		window_focus_callback				on_focus				; // 
-		window_framebuffer_resize_callback	on_framebuffer_resize	; // 
-		window_iconify_callback				on_iconify				; // 
-		window_key_callback					on_key					; // 
-		window_maximize_callback			on_maximize				; // 
-		window_mouse_callback				on_mouse				; // 
-		window_position_callback			on_position				; // 
-		window_refresh_callback				on_refresh				; // 
-		window_resize_callback				on_resize				; // 
-		window_scroll_callback				on_scroll				; // 
-	};
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// window hints
@@ -149,4 +102,4 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-#endif // !_ML_WINDOW_API_HPP_
+#endif // !_ML_WINDOW_SETTINGS_HPP_

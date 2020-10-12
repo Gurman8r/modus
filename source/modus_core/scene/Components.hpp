@@ -1,7 +1,7 @@
 #ifndef _COMPONENTS_HPP_
 #define _COMPONENTS_HPP_
 
-#include <scene/SceneCamera.hpp>
+#include <modus_core/scene/Entity.hpp>
 
 namespace ml
 {
@@ -17,7 +17,6 @@ namespace ml
 
 	struct ML_NODISCARD camera_component final
 	{
-		camera camera;
 	};
 }
 

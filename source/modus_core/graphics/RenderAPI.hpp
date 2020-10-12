@@ -1,10 +1,10 @@
 #ifndef _ML_RENDER_API_HPP_
 #define _ML_RENDER_API_HPP_
 
-#include <detail/FlatMap.hpp>
-#include <Export.hpp>
-#include <graphics/Bitmap.hpp>
-#include <window/WindowAPI.hpp>
+#include <modus_core/detail/FlatMap.hpp>
+#include <modus_core/Export.hpp>
+#include <modus_core/graphics/Bitmap.hpp>
+#include <modus_core/window/WindowContext.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

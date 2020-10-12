@@ -1,4 +1,4 @@
-#include <system/SharedLibrary.hpp>
+#include <modus_core/system/SharedLibrary.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

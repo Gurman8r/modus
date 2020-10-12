@@ -1,4 +1,4 @@
-#include <graphics/Mesh.hpp>
+#include <modus_core/graphics/Mesh.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

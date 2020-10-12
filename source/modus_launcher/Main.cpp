@@ -1,12 +1,11 @@
-#include <client/Blackboard.hpp>
-#include <client/ClientRuntime.hpp>
-#include <client/ClientEvents.hpp>
-#include <embed/Python.hpp>
-#include <graphics/RenderWindow.hpp>
-#include <imgui/ImGuiContext.hpp>
-#include <scene/Node.hpp>
-#include <scene/SceneManager.hpp>
-#include <window/WindowEvents.hpp>
+#include <modus_core/client/Blackboard.hpp>
+#include <modus_core/client/ClientRuntime.hpp>
+#include <modus_core/client/ClientEvents.hpp>
+#include <modus_core/embed/Python.hpp>
+#include <modus_core/graphics/RenderWindow.hpp>
+#include <modus_core/imgui/ImGuiRuntime.hpp>
+#include <modus_core/window/WindowEvents.hpp>
+#include <modus_core/scene/Node.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -38,7 +37,7 @@ static auto const default_settings{ R"(
 {
 	"path": "../../../",
 	"window": {
-		"title": "modus client",
+		"title": "modus",
 		"video": {
 			"resolution"	: [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
@@ -112,23 +111,34 @@ ml::int32_t main()
 	static blackboard		vars	{ io.alloc };
 	static event_bus		bus		{ io.alloc };
 	static render_window	win		{ io.alloc };
-	static imgui_context	imgui	{ &bus, &win, io.alloc };
-	static client_context	context	{ &mem, &io, &vars, &bus, &win, &imgui };
+	static imgui_runtime	gui		{ &bus, &win, io.alloc };
+	static client_context	context	{ &mem, &io, &vars, &bus, &win, &gui };
 	static client_runtime	runtime	{ &context };
 
-	// plugins
+	node root{
+		new node{
+		},
+		new node{
+		},
+		new node{
+		},
+		new node{
+		},
+	};
+
+	// install plugins
 	for (auto const & path : io.prefs["plugins"]["files"])
 	{
 		runtime.get_plugins().install(path);
 	}
 	
-	// scripts
+	// execute scripts
 	for (auto const & path : io.prefs["scripts"]["files"])
 	{
 		py::eval_file(io.path2(path).string());
 	}
 
-	// main loop
+	// idle
 	return runtime.idle();
 }
 

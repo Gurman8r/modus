@@ -1,10 +1,10 @@
-#include <imgui/ImGuiContext.hpp>
-#include <imgui/ImGuiEvents.hpp>
-#include <system/Events.hpp>
-#include <detail/FileUtility.hpp>
-#include <detail/ParserUtil.hpp>
-#include <graphics/RenderCommand.hpp>
-#include <graphics/RenderWindow.hpp>
+#include <modus_core/imgui/ImGuiRuntime.hpp>
+#include <modus_core/imgui/ImGuiEvents.hpp>
+#include <modus_core/system/Events.hpp>
+#include <modus_core/detail/FileUtility.hpp>
+#include <modus_core/detail/ParserUtil.hpp>
+#include <modus_core/graphics/RenderCommand.hpp>
+#include <modus_core/graphics/RenderWindow.hpp>
 
 // GLFW / OpenGL3
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
@@ -14,7 +14,7 @@
 
 namespace ml
 {
-	imgui_context::imgui_context(event_bus * bus, render_window * win, allocator_type alloc)
+	imgui_runtime::imgui_runtime(event_bus * bus, render_window * win, allocator_type alloc)
 		: event_listener{ bus }
 		, m_win			{ win }
 		, m_ctx			{}
@@ -46,22 +46,20 @@ namespace ml
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	}
 	
-	imgui_context::~imgui_context()
+	imgui_runtime::~imgui_runtime()
 	{
 		shutdown();
-
-		ImGui::DestroyContext(m_ctx);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void imgui_context::on_event(event && value)
+	void imgui_runtime::on_event(event && value)
 	{
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool imgui_context::startup(json const & j)
+	bool imgui_runtime::startup(json const & j)
 	{
 		if (m_running) { return false; }
 		else { m_running = true; }
@@ -85,7 +83,7 @@ namespace ml
 		}
 	}
 
-	bool imgui_context::shutdown()
+	bool imgui_runtime::shutdown()
 	{
 		if (!m_running) { return false; }
 		else { m_running = false; }
@@ -95,12 +93,14 @@ namespace ml
 		ImGui_ImplGlfw_Shutdown();
 #endif
 
+		ImGui::DestroyContext(m_ctx);
+
 		return true;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void imgui_context::new_frame()
+	void imgui_runtime::new_frame()
 	{
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
 		ImGui_ImplOpenGL3_NewFrame();
@@ -168,7 +168,7 @@ namespace ml
 		get_bus()->fire<imgui_render_event>(this);
 	}
 
-	void imgui_context::render_frame()
+	void imgui_runtime::render_frame()
 	{
 		ImGui::Render();
 
@@ -193,14 +193,14 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void imgui_context::menubar::configure(json const & j)
+	void imgui_runtime::menubar::configure(json const & j)
 	{
 		j["enabled"].get_to(enabled);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void imgui_context::dockspace::configure(json const & j)
+	void imgui_runtime::dockspace::configure(json const & j)
 	{
 		j["enabled"	].get_to(enabled);
 		j["title"	].get_to(title);
@@ -212,7 +212,7 @@ namespace ml
 		j["nodes"	].get_to(nodes);
 	}
 
-	uint32_t imgui_context::dockspace::begin_builder()
+	uint32_t imgui_runtime::dockspace::begin_builder()
 	{
 		if (uint32_t root{ ImGui::GetID(title.c_str()) }
 		; ImGui::DockBuilderGetNode(root)) { return NULL; }
@@ -224,13 +224,13 @@ namespace ml
 		}
 	}
 
-	uint32_t imgui_context::dockspace::end_builder(uint32_t root)
+	uint32_t imgui_runtime::dockspace::end_builder(uint32_t root)
 	{
 		if (root) { ImGui::DockBuilderFinish(root); }
 		return root;
 	}
 
-	uint32_t imgui_context::dockspace::dock(cstring name, uint32_t id)
+	uint32_t imgui_runtime::dockspace::dock(cstring name, uint32_t id)
 	{
 		if (!name || !id) { return NULL; }
 		else
@@ -240,24 +240,24 @@ namespace ml
 		}
 	}
 
-	uint32_t imgui_context::dockspace::split(uint32_t i, uint32_t id, int32_t dir, float_t ratio, uint32_t * value)
+	uint32_t imgui_runtime::dockspace::split(uint32_t i, uint32_t id, int32_t dir, float_t ratio, uint32_t * value)
 	{
 		return nodes[(size_t)i] = split(id, dir, ratio, value);
 	}
 
-	uint32_t imgui_context::dockspace::split(uint32_t id, int32_t dir, float_t ratio, uint32_t * value)
+	uint32_t imgui_runtime::dockspace::split(uint32_t id, int32_t dir, float_t ratio, uint32_t * value)
 	{
 		return this->split(id, dir, ratio, nullptr, value);
 	}
 
-	uint32_t imgui_context::dockspace::split(uint32_t id, int32_t dir, float_t ratio, uint32_t * out, uint32_t * value)
+	uint32_t imgui_runtime::dockspace::split(uint32_t id, int32_t dir, float_t ratio, uint32_t * out, uint32_t * value)
 	{
 		return ImGui::DockBuilderSplitNode(id, dir, ratio, out, value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool imgui_context::load_style(fs::path const & path)
+	bool imgui_runtime::load_style(fs::path const & path)
 	{
 		using namespace util;
 	

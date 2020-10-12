@@ -1,7 +1,7 @@
 #ifndef _ML_VERTEX_HPP_
 #define _ML_VERTEX_HPP_
 
-#include <detail/Matrix.hpp>
+#include <modus_core/detail/Matrix.hpp>
 
 namespace ml
 {

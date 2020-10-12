@@ -3,7 +3,7 @@
 
 // FIXME: not great, needs some TLC <3
 
-#include <graphics/RenderAPI.hpp>
+#include <modus_core/graphics/RenderAPI.hpp>
 
 namespace ml
 {

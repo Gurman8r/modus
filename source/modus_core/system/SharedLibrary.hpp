@@ -1,8 +1,8 @@
 #ifndef _ML_SHARED_LIBRARY_HPP_
 #define _ML_SHARED_LIBRARY_HPP_
 
-#include <detail/FlatMap.hpp>
-#include <system/Memory.hpp>
+#include <modus_core/detail/FlatMap.hpp>
+#include <modus_core/system/Memory.hpp>
 
 namespace ml
 {

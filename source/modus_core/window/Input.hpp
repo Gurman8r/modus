@@ -1,7 +1,7 @@
 #ifndef _ML_INPUT_HPP_
 #define _ML_INPUT_HPP_
 
-#include <detail/Array.hpp>
+#include <modus_core/detail/Array.hpp>
 
 namespace ml
 {

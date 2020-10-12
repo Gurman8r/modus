@@ -1,19 +1,13 @@
-#include <window/Window.hpp>
+#include <modus_core/window/Window.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#if defined(ML_IMPL_WINDOW_GLFW)
-#include <platform/glfw/Impl_Window_GLFW.hpp>
+#ifdef ML_IMPL_WINDOW_GLFW
+#include "../platform/glfw/Impl_Window_GLFW.hpp"
 using impl_window = _ML glfw_window;
-
-#elif defined(ML_IMPL_WINDOW_WIN32)
-#elif defined(ML_IMPL_WINDOW_SDL)
-#elif defined(ML_IMPL_WINDOW_SFML)
-// etc...
-
-#else
-#	error "window implementation not defined"
 #endif
+
+// etc...
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

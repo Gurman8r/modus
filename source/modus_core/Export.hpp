@@ -3,7 +3,7 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <Config.hpp>
+#include <modus_core/Config.hpp>
 
 #if defined(ML_API)
 #	define ML_CORE_API ML_API

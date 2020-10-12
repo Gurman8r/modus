@@ -1,7 +1,7 @@
 #ifndef _ML_RENDER_COMMAND_HPP_
 #define _ML_RENDER_COMMAND_HPP_
 
-#include <graphics/RenderAPI.hpp>
+#include <modus_core/graphics/RenderAPI.hpp>
 
 namespace ml::gfx
 {

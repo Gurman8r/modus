@@ -1,4 +1,4 @@
-#include <window/VideoMode.hpp>
+#include <modus_core/window/VideoMode.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

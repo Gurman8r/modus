@@ -1,8 +1,8 @@
 #ifndef _ML_TIMER_HPP_
 #define _ML_TIMER_HPP_
 
-#include <detail/Duration.hpp>
-#include <detail/NonCopyable.hpp>
+#include <modus_core/detail/Duration.hpp>
+#include <modus_core/detail/NonCopyable.hpp>
 
 namespace ml
 {

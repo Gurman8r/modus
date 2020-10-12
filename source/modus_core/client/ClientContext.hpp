@@ -1,18 +1,18 @@
 #ifndef _ML_CLIENT_CONTEXT_HPP_
 #define _ML_CLIENT_CONTEXT_HPP_
 
-#include <Export.hpp>
-#include <system/Events.hpp>
-#include <detail/Timer.hpp>
-#include <detail/Matrix.hpp>
-#include <window/Input.hpp>
+#include <modus_core/Export.hpp>
+#include <modus_core/system/Events.hpp>
+#include <modus_core/detail/Timer.hpp>
+#include <modus_core/detail/Matrix.hpp>
+#include <modus_core/window/Input.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	struct blackboard;
-	struct imgui_context;
+	struct imgui_runtime;
 	struct render_window;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -43,7 +43,7 @@ namespace ml
 
 		timer const				main_timer	{}				; // 
 		timer					loop_timer	{ false }		; // 
-		duration				frame_time	{}				; // 
+		duration				delta_time	{}				; // 
 		uint64_t				frame_count	{}				; // 
 		float_t					fps_rate	{}				; // 
 		float_t					fps_accum	{}				; // 
@@ -67,12 +67,12 @@ namespace ml
 	// client context
 	struct ML_NODISCARD client_context final
 	{
-		memory_manager			* const mem		; // memory
-		client_io		* const io		; // io
-		blackboard		* const vars	; // vars
-		event_bus		* const bus		; // bus
-		render_window	* const window	; // window
-		imgui_context	* const imgui	; // imgui
+		memory_manager	* const mem		; // memory manager
+		client_io		* const io		; // client io
+		blackboard		* const vars	; // blackboard
+		event_bus		* const bus		; // event bus
+		render_window	* const win		; // render window
+		imgui_runtime	* const gui		; // imgui runtime
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -101,10 +101,10 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_context	() const noexcept -> client_context	* { return m_context; }
-		ML_NODISCARD auto get_imgui		() const noexcept -> imgui_context	* { return m_context->imgui; }
+		ML_NODISCARD auto get_gui		() const noexcept -> imgui_runtime	* { return m_context->gui; }
 		ML_NODISCARD auto get_io		() const noexcept -> client_io		* { return m_context->io; }
 		ML_NODISCARD auto get_memory	() const noexcept -> memory_manager	* { return m_context->mem; }
-		ML_NODISCARD auto get_window	() const noexcept -> render_window	* { return m_context->window; }
+		ML_NODISCARD auto get_window	() const noexcept -> render_window	* { return m_context->win; }
 		ML_NODISCARD auto get_vars		() const noexcept -> blackboard		* { return m_context->vars; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

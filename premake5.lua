@@ -35,10 +35,10 @@ filter{ "system:Windows" }
 -- Projects
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * --
 
-dofile "./vendor/config/glfw.lua"
-dofile "./vendor/config/imgui.lua"
-dofile "./config/modus_core.lua"
-dofile "./config/modus_launcher.lua"
-dofile "./plugins/sandbox/config/sandbox.lua"
+dofile "./vendor/build/glfw.lua"
+dofile "./vendor/build/imgui.lua"
+dofile "./build/modus_core.lua"
+dofile "./build/modus_launcher.lua"
+dofile "./plugins/sandbox/build/sandbox.lua"
 		
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * --

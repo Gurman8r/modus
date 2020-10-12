@@ -1,12 +1,12 @@
-#include <client/PluginManager.hpp>
+#include <modus_core/client/PluginManager.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(client_context * context)
+	plugin_manager::plugin_manager(client_context * context, allocator_type alloc)
 		: client_object	{ context }
-		, m_data		{ get_memory()->get_allocator() }
+		, m_data		{ alloc }
 	{
 	}
 
@@ -37,8 +37,8 @@ namespace ml
 		// load library
 		else if (auto const id{ std::invoke([&, &lib = shared_library{ path }]() -> plugin_id
 		{
-			return (!lib || m_data.contains<shared_library>(lib)) ? nullptr :
-				std::get<plugin_id &>(m_data.push_back
+			return (!lib || m_data.contains<shared_library>(lib)) ? nullptr
+				: std::get<plugin_id &>(m_data.push_back
 				(
 					ML_handle(plugin_id, lib.hash()), lib.path(), std::move(lib), nullptr,
 					plugin_iface

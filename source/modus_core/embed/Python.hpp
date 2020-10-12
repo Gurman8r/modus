@@ -3,9 +3,9 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <Export.hpp>
-#include <detail/Matrix.hpp>
-#include <system/Events.hpp>
+#include <modus_core/Export.hpp>
+#include <modus_core/detail/Matrix.hpp>
+#include <modus_core/system/Events.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

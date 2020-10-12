@@ -1,7 +1,7 @@
 #ifndef _ML_WRAPPER_HPP_
 #define _ML_WRAPPER_HPP_
 
-#include <Config.hpp>
+#include <modus_core/Config.hpp>
 
 namespace ml::ds
 {

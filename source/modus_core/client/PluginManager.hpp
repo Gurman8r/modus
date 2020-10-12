@@ -1,14 +1,16 @@
 #ifndef _ML_PLUGIN_MANAGER_HPP_
 #define _ML_PLUGIN_MANAGER_HPP_
 
-#include <system/SharedLibrary.hpp>
-#include <client/Plugin.hpp>
+#include <modus_core/system/SharedLibrary.hpp>
+#include <modus_core/client/Plugin.hpp>
 
 namespace ml
 {
 	struct ML_CORE_API plugin_manager final : client_object<plugin_manager>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
 		struct ML_NODISCARD plugin_iface final
 		{
@@ -28,7 +30,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit plugin_manager(client_context * context);
+		explicit plugin_manager(client_context * context, allocator_type alloc = {});
 
 		~plugin_manager() noexcept override;
 

@@ -1,9 +1,9 @@
 #ifndef _ML_VIDEO_MODE_HPP_
 #define _ML_VIDEO_MODE_HPP_
 
-#include <Export.hpp>
-#include <detail/Rect.hpp>
-#include <detail/FlatSet.hpp>
+#include <modus_core/Export.hpp>
+#include <modus_core/detail/Rect.hpp>
+#include <modus_core/detail/FlatSet.hpp>
 
 namespace ml
 {

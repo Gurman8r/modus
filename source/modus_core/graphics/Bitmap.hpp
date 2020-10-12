@@ -1,10 +1,10 @@
 #ifndef _ML_BITMAP_HPP_
 #define _ML_BITMAP_HPP_
 
-#include <Export.hpp>
-#include <system/Memory.hpp>
-#include <detail/Color.hpp>
-#include <detail/Rect.hpp>
+#include <modus_core/Export.hpp>
+#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/Color.hpp>
+#include <modus_core/detail/Rect.hpp>
 
 namespace ml
 {

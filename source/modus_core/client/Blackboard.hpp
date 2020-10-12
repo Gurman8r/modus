@@ -1,8 +1,8 @@
 #ifndef _ML_BLACKBOARD_HPP_
 #define _ML_BLACKBOARD_HPP_
 
-#include <system/Memory.hpp>
-#include <detail/FlatMap.hpp>
+#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/FlatMap.hpp>
 
 namespace ml
 {

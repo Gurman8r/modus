@@ -1,7 +1,7 @@
 #ifndef _ML_BATCH_VECTOR_HPP_
 #define _ML_BATCH_VECTOR_HPP_
 
-#include <detail/Utility.hpp>
+#include <modus_core/detail/Utility.hpp>
 
 namespace ml::ds
 {
@@ -623,7 +623,7 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <size_t I> ML_NODISCARD size_t capacity() const noexcept
+		template <size_t I = 0> ML_NODISCARD size_t capacity() const noexcept
 		{
 			return this->get<I>().capacity();
 		}
@@ -635,7 +635,7 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <size_t I> ML_NODISCARD bool empty() const noexcept
+		template <size_t I = 0> ML_NODISCARD bool empty() const noexcept
 		{
 			return this->get<I>().empty();
 		}
@@ -647,7 +647,7 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <size_t I> ML_NODISCARD size_t max_size() const noexcept
+		template <size_t I = 0> ML_NODISCARD size_t max_size() const noexcept
 		{
 			return this->get<I>().max_size();
 		}
@@ -659,7 +659,7 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <size_t I> ML_NODISCARD size_t size() const noexcept
+		template <size_t I = 0> ML_NODISCARD size_t size() const noexcept
 		{
 			return this->get<I>().size();
 		}

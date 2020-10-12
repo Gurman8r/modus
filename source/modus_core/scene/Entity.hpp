@@ -1,7 +1,7 @@
 #ifndef _ML_ENTITY_HPP_
 #define _ML_ENTITY_HPP_
 
-#include <scene/Scene.hpp>
+#include <modus_core/scene/SceneTree.hpp>
 
 namespace ml
 {
@@ -9,7 +9,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		entity(scene * scene, entt::entity handle) noexcept
+		entity(scene_tree * scene, entt::entity handle) noexcept
 			: m_scene	{ scene }
 			, m_handle	{ handle }
 		{
@@ -91,7 +91,7 @@ namespace ml
 
 		ML_NODISCARD auto get_handle() const noexcept -> entt::entity { return m_handle; }
 
-		ML_NODISCARD auto get_scene() const noexcept -> scene * { return m_scene; }
+		ML_NODISCARD auto get_scene() const noexcept -> scene_tree * { return m_scene; }
 
 		ML_NODISCARD auto get_registry() const noexcept -> entt::registry & { return ML_check(m_scene)->get_registry(); }
 
@@ -146,7 +146,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		scene *			m_scene		; // scene
+		scene_tree *	m_scene		; // scene
 		entt::entity	m_handle	; // handle
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

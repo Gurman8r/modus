@@ -1,5 +1,5 @@
-#include <graphics/Font.hpp>
-#include <graphics/RenderAPI.hpp>
+#include <modus_core/graphics/Font.hpp>
+#include <modus_core/graphics/RenderAPI.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

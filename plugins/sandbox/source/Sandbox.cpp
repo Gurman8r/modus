@@ -1,20 +1,21 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <client/Blackboard.hpp>
-#include <detail/StreamSniper.hpp>
-#include <client/PluginManager.hpp>
-#include <client/ClientEvents.hpp>
-#include <embed/Python.hpp>
-#include <graphics/Font.hpp>
-#include <graphics/Mesh.hpp>
-#include <graphics/Shader.hpp>
-#include <graphics/Renderer.hpp>
-#include <graphics/RenderWindow.hpp>
-#include <imgui/ImGuiContext.hpp>
-#include <imgui/ImGuiEvents.hpp>
-#include <imgui/ImGui.hpp>
-#include <scene/SceneManager.hpp>
-#include <window/WindowEvents.hpp>
+#include <modus_core/client/Blackboard.hpp>
+#include <modus_core/detail/StreamSniper.hpp>
+#include <modus_core/client/PluginManager.hpp>
+#include <modus_core/client/ClientEvents.hpp>
+#include <modus_core/embed/Python.hpp>
+#include <modus_core/graphics/Font.hpp>
+#include <modus_core/graphics/Mesh.hpp>
+#include <modus_core/graphics/Shader.hpp>
+#include <modus_core/graphics/Renderer.hpp>
+#include <modus_core/graphics/RenderWindow.hpp>
+#include <modus_core/imgui/ImGuiRuntime.hpp>
+#include <modus_core/imgui/ImGuiEvents.hpp>
+#include <modus_core/imgui/ImGuiExt.hpp>
+#include <modus_core/scene/SceneTree.hpp>
+#include <modus_core/scene/Viewport.hpp>
+#include <modus_core/window/WindowEvents.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -41,7 +42,7 @@ namespace ml
 			, m_shaders	{ get_vars(), "shaders" }
 			, m_textures{ get_vars(), "textures" }
 		{
-			subscribe<client_enter_event>();
+			subscribe<client_init_event>();
 			subscribe<client_exit_event>();
 			subscribe<client_idle_event>();
 
@@ -60,9 +61,9 @@ namespace ml
 		{
 			switch (value)
 			{
-			case client_enter_event		::ID: return on_client_enter((client_enter_event &&)value);
+			case client_init_event		::ID: return on_client_init((client_init_event &&)value);
 			case client_exit_event		::ID: return on_client_exit((client_exit_event &&)value);
-			case client_idle_event	::ID: return on_client_idle((client_idle_event &&)value);
+			case client_idle_event		::ID: return on_client_idle((client_idle_event &&)value);
 			
 			case imgui_dockspace_event	::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
 			case imgui_menubar_event	::ID: return on_imgui_menubar((imgui_menubar_event &&)value);
@@ -76,12 +77,14 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_client_enter(client_enter_event && ev)
+		void on_client_init(client_init_event && ev)
 		{
 			// set icon
-			if (auto & i = m_images["icon"] = get_memory()->make_ref<bitmap>(
+			if (auto & i = m_images["icon"] = get_memory()->make_ref<bitmap>
+			(
 				get_io()->path2("resource/icon.png")
-			)) {
+			))
+			{
 				get_window()->set_icons(i->width(), i->height(), 1, i->data());
 			}
 		}
@@ -115,9 +118,15 @@ namespace ml
 		void on_imgui_render(imgui_render_event && ev)
 		{
 			ImGui::SetNextWindowSize({ 540, 480 }, ImGuiCond_Once);
-			ImGuiExt::DoWindow("sandbox", 0, 0, [fps = get_io()->fps_rate]()
+			ImGuiExt::DoWindow("sandbox", 0, ImGuiWindowFlags_MenuBar, [
+				fps = get_io()->fps_rate
+			]()
 			{
-				ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+				if (ImGui::BeginMenuBar())
+				{
+					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+					ImGui::EndMenuBar();
+				}
 			});
 		}
 

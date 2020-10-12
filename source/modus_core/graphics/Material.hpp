@@ -1,7 +1,7 @@
 #ifndef _ML_MATERIAL_HPP_
 #define _ML_MATERIAL_HPP_
 
-#include <graphics/Shader.hpp>
+#include <modus_core/graphics/Shader.hpp>
 
 
 

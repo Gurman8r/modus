@@ -1,7 +1,7 @@
 #ifndef _ML_STREAM_SNIPER_HPP_
 #define _ML_STREAM_SNIPER_HPP_
 
-#include <detail/NonCopyable.hpp>
+#include <modus_core/detail/NonCopyable.hpp>
 
 namespace ml
 {

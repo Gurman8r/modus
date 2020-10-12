@@ -1,24 +1,24 @@
-#ifndef _ML_IMGUI_CONTEXT_HPP_
-#define _ML_IMGUI_CONTEXT_HPP_
+#ifndef _ML_IMGUI_RUNTIME_HPP_
+#define _ML_IMGUI_RUNTIME_HPP_
 
-#include <Export.hpp>
-#include <system/Events.hpp>
-#include <imgui/ImGui.hpp>
+#include <modus_core/Export.hpp>
+#include <modus_core/system/Events.hpp>
+#include <modus_core/imgui/ImGui.hpp>
 
 namespace ml
 {
 	struct event_bus;
 	struct render_window;
 
-	struct ML_CORE_API imgui_context final : trackable, non_copyable, event_listener
+	struct ML_CORE_API imgui_runtime final : trackable, non_copyable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		imgui_context(event_bus * bus, render_window * win, allocator_type alloc = {});
+		imgui_runtime(event_bus * bus, render_window * win, allocator_type alloc = {});
 
-		~imgui_context();
+		~imgui_runtime();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -49,7 +49,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// main menu bar
+		// menubar
 		struct ML_CORE_API menubar final : trackable, non_copyable
 		{
 			bool enabled{ true };
@@ -118,4 +118,4 @@ namespace ml
 	};
 }
 
-#endif // !_ML_IMGUI_CONTEXT_HPP_
+#endif // !_ML_IMGUI_RUNTIME_HPP_

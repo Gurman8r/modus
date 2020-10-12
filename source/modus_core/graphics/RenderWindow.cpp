@@ -1,5 +1,5 @@
-#include <graphics/RenderWindow.hpp>
-#include <graphics/RenderCommand.hpp>
+#include <modus_core/graphics/RenderWindow.hpp>
+#include <modus_core/graphics/RenderCommand.hpp>
 
 namespace ml
 {

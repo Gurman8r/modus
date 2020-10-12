@@ -1,8 +1,8 @@
 #ifndef _ML_EVENTS_HPP_
 #define _ML_EVENTS_HPP_
 
-#include <detail/FlatMap.hpp>
-#include <system/Memory.hpp>
+#include <modus_core/detail/FlatMap.hpp>
+#include <modus_core/system/Memory.hpp>
 
 // event declarator helper
 #define ML_decl_event(Type) \

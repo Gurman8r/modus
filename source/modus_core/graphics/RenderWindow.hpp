@@ -1,8 +1,8 @@
 #ifndef _ML_RENDER_WINDOW_HPP_
 #define _ML_RENDER_WINDOW_HPP_
 
-#include <window/Window.hpp>
-#include <graphics/RenderAPI.hpp>
+#include <modus_core/window/Window.hpp>
+#include <modus_core/graphics/RenderAPI.hpp>
 
 namespace ml
 {

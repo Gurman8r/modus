@@ -1,7 +1,7 @@
 #ifndef _ML_PLUGIN_HPP_
 #define _ML_PLUGIN_HPP_
 
-#include <client/ClientContext.hpp>
+#include <modus_core/client/ClientContext.hpp>
 
 #ifndef ML_PLUGIN_API
 #define ML_PLUGIN_API ML_API_EXPORT

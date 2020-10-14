@@ -347,13 +347,13 @@
 
 // inlining
 #ifdef ML_cc_msvc
-#   define ML_ALWAYS_INLINE     __forceinline
+#   define ML_FORCE_INLINE      __forceinline
 #   define ML_NEVER_INLINE      __declspec(noinline)
 #elif defined(ML_cc_clang) || defined(ML_cc_gcc)
-#   define ML_ALWAYS_INLINE     inline __attribute__((always_inline))
+#   define ML_FORCE_INLINE      inline __attribute__((always_inline))
 #   define ML_NEVER_INLINE      __attribute__((noinline))
 #else
-#   define ML_ALWAYS_INLINE     inline
+#   define ML_FORCE_INLINE      inline
 #   define ML_NEVER_INLINE
 #endif
 

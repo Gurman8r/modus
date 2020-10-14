@@ -61,16 +61,6 @@ namespace ml
 			}
 
 			template <class ID, class ... Args
-			> var(blackboard * bb, ID && id, allocator_type alloc, Args && ... args) noexcept
-				: self_type{ std::allocator_arg, alloc, bb, ML_forward(id) }
-			{
-				if (auto const v{ lock() }; v && !v->has_value())
-				{
-					v->emplace<value_type>(ML_forward(args)..., alloc);
-				}
-			}
-
-			template <class ID, class ... Args
 			> var(blackboard * bb, ID && id, Args && ... args) noexcept
 				: self_type{ std::allocator_arg, {}, bb, ML_forward(id) }
 			{
@@ -334,7 +324,7 @@ namespace ml
 		{
 			return m_vars[type].find_or_add_fn(hashof(ML_forward(id)), [&]() noexcept
 			{
-				return memory_manager::alloc_ref<std::any>(alloc);
+				return std::allocate_shared<std::any>(alloc);
 			});
 		}
 

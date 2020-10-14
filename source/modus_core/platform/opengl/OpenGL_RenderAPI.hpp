@@ -1,6 +1,6 @@
 #if defined(ML_IMPL_RENDERER_OPENGL)
-#ifndef _ML_IMPL_RENDERER_OPENGL_HPP_
-#define _ML_IMPL_RENDERER_OPENGL_HPP_
+#ifndef _ML_OPENGL_RENDER_API_HPP_
+#define _ML_OPENGL_RENDER_API_HPP_
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -619,4 +619,4 @@ namespace ml::gfx
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #endif // !_ML_IMPL_RENDERER_OPENGL_HPP_
-#endif // ML_IMPL_RENDERER_OPENGL
+#endif // _ML_OPENGL_RENDER_API_HPP_

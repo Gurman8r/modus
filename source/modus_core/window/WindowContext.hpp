@@ -131,7 +131,7 @@ namespace ml
 	// window context
 	struct ML_NODISCARD window_context final
 	{
-		int32_t (*is_extension_supported)(cstring);
+		int32_t (*extension_supported)(cstring);
 
 		window_handle (*get_context_current)();
 

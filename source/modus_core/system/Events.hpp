@@ -73,8 +73,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual void on_event(event &&) = 0;
-
 		ML_NODISCARD event_bus * get_bus() const noexcept { return m_bus; }
 
 		ML_NODISCARD bool is_listening() const noexcept { return m_enabled; }
@@ -84,6 +82,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
+		friend event_bus;
+
+		virtual void on_event(event &&) = 0;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		template <class Ev
 		> bool subscribe() noexcept
 		{

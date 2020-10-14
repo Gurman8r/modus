@@ -74,11 +74,17 @@ namespace ml
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		virtual void focus() = 0;
+
+		virtual void hide() = 0;
+
 		virtual void iconify() = 0;
 
 		virtual void maximize() = 0;
 
 		virtual void restore() = 0;
+
+		virtual void request_attention() = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -201,7 +207,7 @@ namespace ml
 
 		static duration get_time() = delete;
 
-		static int32_t is_extension_supported(cstring) = delete;
+		static int32_t extension_supported(cstring) = delete;
 
 		static void make_context_current(window_handle) = delete;
 
@@ -224,7 +230,7 @@ namespace ml
 		virtual window_close_callback				set_close_callback				(window_close_callback) = 0;
 		virtual window_content_scale_callback		set_content_scale_callback		(window_content_scale_callback) = 0;
 		virtual window_cursor_enter_callback		set_cursor_enter_callback		(window_cursor_enter_callback) = 0;
-		virtual window_cursor_pos_callback			set_cursor_pos_callback	(window_cursor_pos_callback) = 0;
+		virtual window_cursor_pos_callback			set_cursor_pos_callback			(window_cursor_pos_callback) = 0;
 		virtual window_drop_callback				set_drop_callback				(window_drop_callback) = 0;
 		virtual window_error_callback				set_error_callback				(window_error_callback) = 0;
 		virtual window_focus_callback				set_focus_callback				(window_focus_callback) = 0;

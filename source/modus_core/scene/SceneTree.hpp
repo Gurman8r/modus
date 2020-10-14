@@ -2,7 +2,6 @@
 #define _ML_SCENE_TREE_HPP_
 
 #include <modus_core/Export.hpp>
-#include <modus_core/scene/Node.hpp>
 #include <modus_core/system/Memory.hpp>
 #include <modus_core/detail/Matrix.hpp>
 #include <entt/entt.hpp>
@@ -46,8 +45,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		entity_list				m_entities	; // entities
-		entt::registry			m_registry	; // registry
+		entity_list		m_entities	; // entities
+		entt::registry	m_registry	; // registry
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

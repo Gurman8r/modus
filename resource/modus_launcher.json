@@ -31,12 +31,14 @@
 		}
 	},
 	"imgui": {
-		"inst_clbk"		: true,
-		"style_path"	: "assets/styles/obsidian.style",
+		"callbacks"		: true,
+		"style_path"	: "assets/styles/obsidian.style"
+	},
+	"client": {
 		"menubar"		: { "enabled": true },
 		"dockspace"		: {
 			"enabled"	: true,
-			"title"		: "dockspace##libmeme",
+			"title"		: "dockspace",
 			"border"	: 0,
 			"rounding"	: 0,
 			"alpha"		: 0,
@@ -45,14 +47,10 @@
 			"nodes"		: []
 		}
 	},
-	"plugins": {
-		"files": [
-			"plugins/sandbox"
-		]
-	},
-	"scripts": {
-		"files": [
-			"assets/scripts/setup.py"
-		]
-	}
+	"plugins": [
+		{ "path": "plugins/sandbox" }
+	],
+	"scripts": [
+		{ "path": "assets/scripts/setup.py" }
+	]
 }

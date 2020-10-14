@@ -1,8 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <modus_core/client/Blackboard.hpp>
 #include <modus_core/detail/StreamSniper.hpp>
-#include <modus_core/client/PluginManager.hpp>
+#include <modus_core/client/ClientRuntime.hpp>
 #include <modus_core/client/ClientEvents.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/Font.hpp>
@@ -11,9 +10,8 @@
 #include <modus_core/graphics/Renderer.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/imgui/ImGuiRuntime.hpp>
-#include <modus_core/imgui/ImGuiEvents.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/scene/SceneTree.hpp>
+#include <modus_core/scene/SceneManager.hpp>
 #include <modus_core/scene/Viewport.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 
@@ -25,37 +23,23 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		blackboard::var< ds::map<pmr::string, shared<font>>			> m_fonts		; // 
-		blackboard::var< ds::map<pmr::string, shared<bitmap>>		> m_images		; // 
-		blackboard::var< ds::map<pmr::string, shared<mesh>>			> m_meshes		; // 
-		blackboard::var< ds::map<pmr::string, shared<gfx::shader>>	> m_shaders		; // 
-		blackboard::var< ds::map<pmr::string, shared<gfx::texture>>	> m_textures	; // 
+		vec2 m_resolution{ 1280, 720 };
+
+		pmr::vector<shared<gfx::framebuffer>> m_fbo{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		~sandbox() noexcept override {}
 
 		sandbox(plugin_manager * manager, void * user) noexcept : plugin{ manager, user }
-			, m_fonts	{ get_vars(), "fonts" }
-			, m_images	{ get_vars(), "images" }
-			, m_meshes	{ get_vars(), "meshes" }
-			, m_shaders	{ get_vars(), "shaders" }
-			, m_textures{ get_vars(), "textures" }
 		{
 			subscribe<client_init_event>();
 			subscribe<client_exit_event>();
 			subscribe<client_idle_event>();
-
-			subscribe<imgui_dockspace_event>();
-			subscribe<imgui_menubar_event>();
-			subscribe<imgui_render_event>();
-
-			subscribe<window_key_event>();
-			subscribe<window_mouse_event>();
-			subscribe<window_cursor_pos_event>();
+			subscribe<client_dockspace_event>();
+			subscribe<client_menubar_event>();
+			subscribe<client_gui_event>();
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void on_event(event && value) override
 		{
@@ -64,14 +48,9 @@ namespace ml
 			case client_init_event		::ID: return on_client_init((client_init_event &&)value);
 			case client_exit_event		::ID: return on_client_exit((client_exit_event &&)value);
 			case client_idle_event		::ID: return on_client_idle((client_idle_event &&)value);
-			
-			case imgui_dockspace_event	::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
-			case imgui_menubar_event	::ID: return on_imgui_menubar((imgui_menubar_event &&)value);
-			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event &&)value);
-			
-			case window_key_event		::ID: return on_window_key((window_key_event &&)value);
-			case window_mouse_event		::ID: return on_window_mouse((window_mouse_event &&)value);
-			case window_cursor_pos_event::ID: return on_window_cursor_pos((window_cursor_pos_event &&)value);
+			case client_dockspace_event	::ID: return on_client_dockspace((client_dockspace_event &&)value);
+			case client_menubar_event	::ID: return on_client_menubar((client_menubar_event &&)value);
+			case client_gui_event		::ID: return on_client_gui((client_gui_event &&)value);
 			}
 		}
 
@@ -79,14 +58,12 @@ namespace ml
 
 		void on_client_init(client_init_event && ev)
 		{
-			// set icon
-			if (auto & i = m_images["icon"] = get_memory()->make_ref<bitmap>
-			(
-				get_io()->path2("resource/icon.png")
-			))
+			if (bitmap const icon{ get_io()->path2("resource/icon.png") })
 			{
-				get_window()->set_icons(i->width(), i->height(), 1, i->data());
+				get_window()->set_icons(icon.width(), icon.height(), 1, icon.data());
 			}
+
+			m_fbo.push_back(gfx::framebuffer::create({ "0", m_resolution }));
 		}
 
 		void on_client_exit(client_exit_event && ev)
@@ -95,15 +72,29 @@ namespace ml
 
 		void on_client_idle(client_idle_event && ev)
 		{
+			for (auto & fbo : m_fbo) { fbo->resize(m_resolution); }
+
+			get_window()->execute(
+				gfx::command::bind_framebuffer(m_fbo[0]),
+				gfx::command::set_clear_color(colors::magenta),
+				gfx::command::clear(gfx::clear_color | gfx::clear_depth),
+				gfx::command([&](gfx::render_context * ctx) noexcept
+				{
+					// custom rendering...
+				}),
+				gfx::command::bind_framebuffer(nullptr));
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void on_imgui_dockspace(imgui_dockspace_event && ev)
+		void on_client_dockspace(client_dockspace_event && ev)
 		{
+			if (auto const root{ ev->begin_builder() })
+			{
+				ev->dock("viewport", root);
+				ev->end_builder(root);
+			}
 		}
 
-		void on_imgui_menubar(imgui_menubar_event && ev)
+		void on_client_menubar(client_menubar_event && ev)
 		{
 			if (ImGui::BeginMenu("file"))
 			{
@@ -115,33 +106,80 @@ namespace ml
 			}
 		}
 
-		void on_imgui_render(imgui_render_event && ev)
+		void on_client_gui(client_gui_event && ev)
 		{
 			ImGui::SetNextWindowSize({ 540, 480 }, ImGuiCond_Once);
-			ImGuiExt::DoWindow("sandbox", 0, ImGuiWindowFlags_MenuBar, [
-				fps = get_io()->fps_rate
-			]()
-			{
-				if (ImGui::BeginMenuBar())
-				{
-					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
-					ImGui::EndMenuBar();
-				}
-			});
+			ImGuiExt::DrawWindow("viewport", nullptr,
+				ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar,
+				&sandbox::draw_viewport, this);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_window_key(window_key_event && ev)
+		void draw_viewport()
 		{
-		}
+			static gui_texture_preview tpv{};
+			auto const & tex{ m_fbo.back()->get_color_attachments().front() };
+			tpv.tex_addr = tex->get_handle();
 
-		void on_window_mouse(window_mouse_event && ev)
-		{
-		}
+			static auto const & modes{ video_mode::fullscreen_modes() };
+			static size_t		index{};
+			static bool			fixed{};
+			auto const & video{ modes[index] };
 
-		void on_window_cursor_pos(window_cursor_pos_event && ev)
-		{
+			if (ImGui::BeginMenuBar())
+			{
+				ML_defer(&) { ImGui::EndMenuBar(); };
+
+				char res_label[128]{};
+				constexpr auto
+					fmt_fa{ "free aspect" },
+					fmt_vm{ "%i x %i @ %dhz" };
+				if (!fixed) std::sprintf(res_label, fmt_fa);
+				else std::sprintf(res_label, fmt_vm,
+					video.resolution[0],
+					video.resolution[1],
+					video.refresh_rate);
+				ImGui::SetNextItemWidth(256);
+				if (ImGui::BeginCombo("##resolution", res_label))
+				{
+					ML_defer(&) { ImGui::EndCombo(); };
+
+					if (ImGui::Selectable(fmt_fa, !fixed)) { fixed = false; }
+					ImGui::Separator();
+
+					for (size_t i = 0; i < modes.size(); ++i)
+					{
+						std::sprintf(res_label, fmt_vm,
+							modes[i].resolution[0],
+							modes[i].resolution[1],
+							modes[i].refresh_rate);
+						if (ImGui::Selectable(res_label, fixed && (i == index)))
+						{
+							index = i; fixed = true;
+						}
+					}
+				}
+				ImGui::Separator();
+
+				// FPS
+				auto const fps{ get_io()->fps };
+				ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+				ImGui::Separator();
+			}
+
+			if (!fixed)
+			{
+				m_resolution = ImGui::GetContentRegionAvail();
+				tpv.tex_size = m_resolution;
+			}
+			else
+			{
+				m_resolution = util::scale_to_fit((vec2)modes[index].resolution, (vec2)ImGui::GetContentRegionAvail());
+				tpv.tex_size = tex->get_data().size;
+			}
+
+			tpv.render();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

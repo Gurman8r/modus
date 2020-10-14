@@ -6,16 +6,30 @@
 namespace ml::gfx
 {
 	// command executor helper
-	template <class Cmd, class Ctx
-	> static auto execute(Cmd && cmd, Ctx && ctx) noexcept
+	template <class Ctx, class Arg0, class ... Args
+	> static void execute(Ctx && ctx, Arg0 && arg0, Args && ... args) noexcept
 	{
-		if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
+		auto do_execute = [](auto && ctx, auto && cmd) noexcept
 		{
-			return std::invoke(ML_forward(cmd), ML_forward(ctx));
-		}
-		else
+			if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
+			{
+				std::invoke(ML_forward(cmd), ML_forward(ctx));
+			}
+			else
+			{
+				std::invoke(ML_forward(cmd), ML_forward(ctx).get());
+			}
+		};
+
+		do_execute(ML_forward(ctx), ML_forward(arg0));
+
+		if constexpr (0 < sizeof...(args))
 		{
-			return execute(ML_forward(cmd), ML_forward(ctx).get());
+			meta::for_args([&](auto && cmd) noexcept
+			{
+				do_execute(ML_forward(ctx), ML_forward(cmd));
+			}
+			, ML_forward(args)...);
 		}
 	}
 

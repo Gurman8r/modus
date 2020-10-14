@@ -1,6 +1,6 @@
 #if defined(ML_IMPL_WINDOW_GLFW)
-#ifndef _ML_IMPL_WINDOW_GLFW_HPP_
-#define _ML_IMPL_WINDOW_GLFW_HPP_
+#ifndef _ML_GLFW_WINDOW_HPP_
+#define _ML_GLFW_WINDOW_HPP_
 
 #include <modus_core/window/WindowBase.hpp>
 
@@ -26,11 +26,17 @@ namespace ml
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		void focus() override;
+
+		void hide() override;
+
 		void iconify() override;
 
 		void maximize() override;
 
 		void restore() override;
+
+		void request_attention() override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -148,7 +154,7 @@ namespace ml
 
 		static duration get_time();
 
-		static int32_t is_extension_supported(cstring value);
+		static int32_t extension_supported(cstring value);
 
 		static void make_context_current(window_handle value);
 
@@ -171,7 +177,7 @@ namespace ml
 		window_close_callback				set_close_callback				(window_close_callback				fn) override;
 		window_content_scale_callback		set_content_scale_callback		(window_content_scale_callback		fn) override;
 		window_cursor_enter_callback		set_cursor_enter_callback		(window_cursor_enter_callback		fn) override;
-		window_cursor_pos_callback			set_cursor_pos_callback	(window_cursor_pos_callback	fn) override;
+		window_cursor_pos_callback			set_cursor_pos_callback			(window_cursor_pos_callback			fn) override;
 		window_drop_callback				set_drop_callback				(window_drop_callback				fn) override;
 		window_error_callback				set_error_callback				(window_error_callback				fn) override;
 		window_focus_callback				set_focus_callback				(window_focus_callback				fn) override;
@@ -200,4 +206,4 @@ namespace ml
 }
 
 #endif // !_ML_IMPL_WINDOW_GLFW_HPP_
-#endif // ML_IMPL_WINDOW_GLFW
+#endif // _ML_GLFW_WINDOW_HPP_

@@ -1,19 +1,19 @@
-#ifndef _ML_WINDOW_HPP_
-#define _ML_WINDOW_HPP_
+#ifndef _ML_NATIVE_WINDOW_HPP_
+#define _ML_NATIVE_WINDOW_HPP_
 
 #include <modus_core/window/WindowBase.hpp>
 
 namespace ml
 {
-	struct ML_CORE_API window : window_base
+	struct ML_CORE_API native_window : window_base
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		window(allocator_type alloc = {}) noexcept;
+		native_window(allocator_type alloc = {}) noexcept;
 
-		window(window_settings const & settings, allocator_type alloc = {}) noexcept;
+		native_window(window_settings const & settings, allocator_type alloc = {}) noexcept;
 		
-		virtual ~window() noexcept override;
+		virtual ~native_window() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -21,11 +21,17 @@ namespace ml
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		void focus() noexcept final;
+
+		void hide() noexcept final;
+
 		void iconify() noexcept final;
 
 		void maximize() noexcept final;
 
 		void restore() noexcept final;
+
+		void request_attention() noexcept final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -143,7 +149,7 @@ namespace ml
 
 		ML_NODISCARD static duration get_time() noexcept;
 
-		ML_NODISCARD static int32_t is_extension_supported(cstring value) noexcept;
+		ML_NODISCARD static int32_t extension_supported(cstring value) noexcept;
 
 		static void make_context_current(window_handle value) noexcept;
 
@@ -166,7 +172,7 @@ namespace ml
 		window_close_callback				set_close_callback				(window_close_callback				fn) noexcept final;
 		window_content_scale_callback		set_content_scale_callback		(window_content_scale_callback		fn) noexcept final;
 		window_cursor_enter_callback		set_cursor_enter_callback		(window_cursor_enter_callback		fn) noexcept final;
-		window_cursor_pos_callback			set_cursor_pos_callback	(window_cursor_pos_callback	fn) noexcept final;
+		window_cursor_pos_callback			set_cursor_pos_callback			(window_cursor_pos_callback			fn) noexcept final;
 		window_drop_callback				set_drop_callback				(window_drop_callback				fn) noexcept final;
 		window_error_callback				set_error_callback				(window_error_callback				fn) noexcept final;
 		window_focus_callback				set_focus_callback				(window_focus_callback				fn) noexcept final;
@@ -183,10 +189,10 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		unique<	window_base	> m_impl; // window implementation
+		unique<	window_base	> m_impl; // native_window implementation
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
-#endif // !_ML_WINDOW_HPP_
+#endif // !_ML_NATIVE_WINDOW_HPP_

@@ -12,10 +12,10 @@ namespace ml
 
 		using self_type = typename Derived;
 
-		ML_NODISCARD static self_type * get_singleton() noexcept
+		ML_NODISCARD static self_type & get_singleton() noexcept
 		{
 			static self_type self{};
-			return std::addressof(self);
+			return self;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

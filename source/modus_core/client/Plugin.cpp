@@ -1,5 +1,4 @@
 #include <modus_core/client/PluginManager.hpp>
-#include <modus_core/client/ClientEvents.hpp>
 
 namespace ml
 {

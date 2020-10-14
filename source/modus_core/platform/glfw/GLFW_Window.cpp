@@ -2,7 +2,7 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "Impl_Window_Glfw.hpp"
+#include "GLFW_Window.hpp"
 
 #include <glfw/glfw3.h>
 
@@ -142,6 +142,16 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	void glfw_window::focus()
+	{
+		glfwFocusWindow(m_window);
+	}
+
+	void glfw_window::hide()
+	{
+		glfwHideWindow(m_window);
+	}
+
 	void glfw_window::iconify()
 	{
 		glfwIconifyWindow(m_window);
@@ -155,6 +165,11 @@ namespace ml
 	void glfw_window::restore()
 	{
 		glfwRestoreWindow(m_window);
+	}
+
+	void glfw_window::request_attention()
+	{
+		glfwRequestWindowAttention(m_window);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -494,7 +509,7 @@ namespace ml
 		return duration{ glfwGetTime() };
 	}
 
-	int32_t glfw_window::is_extension_supported(cstring value)
+	int32_t glfw_window::extension_supported(cstring value)
 	{
 		return glfwExtensionSupported(value);
 	}

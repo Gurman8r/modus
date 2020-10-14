@@ -6,7 +6,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	render_window::render_window(allocator_type alloc) noexcept
-		: window{ alloc }
+		: native_window{ alloc }
 		, m_dev	{}
 		, m_ctx	{}
 	{
@@ -31,7 +31,7 @@ namespace ml
 		if (is_open()) { return debug::error("render_window is already open"); }
 
 		// open render_window
-		if (!window::open(settings)) { return debug::error("failed opening render_window"); }
+		if (!native_window::open(settings)) { return debug::error("failed opening render_window"); }
 
 		// create device
 		if (m_dev.reset(gfx::render_device::create(settings.context.api)); !m_dev)
@@ -43,8 +43,8 @@ namespace ml
 		m_dev->set_context(m_ctx = m_dev->create_context(settings.context));
 
 		// setup states
-		for (auto const & cmd :
-		{
+		execute(
+
 			// alpha state
 			gfx::command::set_alpha_state
 			({
@@ -86,9 +86,8 @@ namespace ml
 				gfx::predicate_always,
 				0,
 				0xffffffff
-			}),
-
-		})	gfx::execute(cmd, m_ctx);
+			})
+		);
 
 		return true;
 	}

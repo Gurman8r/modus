@@ -4,9 +4,9 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(client_context * context, allocator_type alloc)
+	plugin_manager::plugin_manager(client_context * context)
 		: client_object	{ context }
-		, m_data		{ alloc }
+		, m_data		{ get_memory()->get_allocator() }
 	{
 	}
 
@@ -17,12 +17,6 @@ namespace ml
 		{
 			uninstall(m_data.get<plugin_id>().back());
 		}
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void plugin_manager::on_event(event && value)
-	{
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -78,6 +72,12 @@ namespace ml
 
 			return true;
 		}
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void plugin_manager::on_event(event && value)
+	{
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

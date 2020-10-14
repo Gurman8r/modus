@@ -16,9 +16,9 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	py::class_<non_copyable, manual<non_copyable>>(m, "non_copyable");
+	py::class_<non_copyable, std::unique_ptr<non_copyable, no_delete>>(m, "non_copyable");
 
-	py::class_<trackable, manual<trackable>>(m, "trackable");
+	py::class_<trackable, std::unique_ptr<trackable, no_delete>>(m, "trackable");
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -146,10 +146,10 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	py::class_<memory_record>(py_mem, "record")
 		.def(py::init<>())
 		.def(py::init<memory_record const &>())
-		.def(py::init([&rec = memory_manager::get_records()](intptr_t p)
+		.def(py::init([&rec = memory_manager::get()->get_records()](intptr_t p)
 		{
 			if (auto const i{ rec.lookup<memory_manager::id_addr>((byte_t *)p) }; i != rec.npos) {
-				return memory_manager::get_record(i);
+				return memory_manager::get()->get_record_at(i);
 			} else {
 				return memory_record{};
 			}
@@ -180,18 +180,18 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def("set_default_resource", [](intptr_t p) { return (intptr_t)pmr::set_default_resource((pmr::memory_resource *)p); })
 
 		// test resource
-		.def("arena_base"	, []() { return memory_manager::get_resource()->base(); })
-		.def("arena_count"	, []() { return memory_manager::get_resource()->count(); })
-		.def("arena_free"	, []() { return memory_manager::get_resource()->free(); })
-		.def("arena_size"	, []() { return memory_manager::get_resource()->capacity(); })
-		.def("arena_used"	, []() { return memory_manager::get_resource()->used(); })
+		.def("arena_base"	, []() { return memory_manager::get()->get_resource()->base(); })
+		.def("arena_count"	, []() { return memory_manager::get()->get_resource()->count(); })
+		.def("arena_free"	, []() { return memory_manager::get()->get_resource()->free(); })
+		.def("arena_size"	, []() { return memory_manager::get()->get_resource()->capacity(); })
+		.def("arena_used"	, []() { return memory_manager::get()->get_resource()->used(); })
 
 		// allocation
-		.def("malloc"	, [](size_t s) { return (intptr_t)memory_manager::allocate(s); })
-		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)memory_manager::allocate(c, s); })
-		.def("free"		, [](intptr_t p) { memory_manager::deallocate((void *)p); })
-		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)memory_manager::reallocate((void *)p, s); })
-		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)memory_manager::reallocate((void *)p, o, n); })
+		.def("malloc"	, [](size_t s) { return (intptr_t)memory_manager::get()->allocate(s); })
+		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)memory_manager::get()->allocate(c, s); })
+		.def("free"		, [](intptr_t p) { memory_manager::get()->deallocate((void *)p); })
+		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)memory_manager::get()->reallocate((void *)p, s); })
+		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)memory_manager::get()->reallocate((void *)p, o, n); })
 
 		// getters
 		.def("memget"	, [&memget](intptr_t p) { return memget(p, 1); })

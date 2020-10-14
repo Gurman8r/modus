@@ -23,11 +23,11 @@ namespace ml
 
 	memory_manager::~memory_manager() noexcept
 	{
-		// singleton
-		ML_assert(g_mem == this && !(g_mem = nullptr));
-
 		// check for leaks
 		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty<>());
+
+		// singleton
+		ML_assert(g_mem == this && !(g_mem = nullptr));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

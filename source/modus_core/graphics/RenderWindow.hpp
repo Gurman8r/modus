@@ -1,12 +1,12 @@
 #ifndef _ML_RENDER_WINDOW_HPP_
 #define _ML_RENDER_WINDOW_HPP_
 
-#include <modus_core/window/Window.hpp>
-#include <modus_core/graphics/RenderAPI.hpp>
+#include <modus_core/window/NativeWindow.hpp>
+#include <modus_core/graphics/RenderCommand.hpp>
 
 namespace ml
 {
-	struct ML_CORE_API render_window : window
+	struct ML_CORE_API render_window : native_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -19,6 +19,14 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		virtual bool open(window_settings const & settings) override;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Arg0, class ... Args
+		> void execute(Arg0 && arg0, Args && ... args) const noexcept
+		{
+			gfx::execute(m_ctx, ML_forward(arg0), ML_forward(args)...);
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

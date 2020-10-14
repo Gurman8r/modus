@@ -12,56 +12,58 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
-		using child = typename unique<node>;
+		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
+		using iterator			= typename pmr::vector<node *>::iterator;
+		using const_iterator	= typename pmr::vector<node *>::const_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual ~node() override
+		virtual ~node() noexcept override
 		{
-			this->clear_children();
+			clear_children();
 		}
 
 		node(allocator_type alloc = {}) noexcept
-			: m_parent	{}
+			: m_name	{ alloc }
+			, m_parent	{}
 			, m_children{ alloc }
 		{
 		}
 
-		node(std::initializer_list<node *> const & c, allocator_type alloc = {})
-			: m_parent	{}
-			, m_children{ c, alloc }
-		{
-			this->set_children(c);
-		}
-
-		explicit node(node * p, pmr::vector<node *> const & c, allocator_type alloc = {})
-			: m_parent	{ p }
+		node(pmr::string const & n, allocator_type alloc = {})
+			: m_name	{ alloc }
+			, m_parent	{}
 			, m_children{ alloc }
 		{
-			this->set_children(c);
 		}
 
-		explicit node(node * p, pmr::vector<node *> && c, allocator_type alloc = {}) noexcept
-			: m_parent	{ p }
+		node(pmr::string const & n, std::initializer_list<node *> const & c, allocator_type alloc = {})
+			: m_name	{ n, alloc }
+			, m_parent	{}
 			, m_children{ alloc }
 		{
-			this->set_children(std::move(c));
+			set_children(c);
+		}
+
+		node(node * p, pmr::string const & n, pmr::vector<node *> const & c, allocator_type alloc = {}) noexcept
+			: m_name	{ alloc }
+			, m_parent	{ p }
+			, m_children{ alloc }
+		{
+			set_children(c);
 		}
 
 		node(node && other, allocator_type alloc = {}) noexcept
-			: m_parent	{ other.m_parent }
-			, m_children{ std::move(other.m_children), alloc }
+			: m_name	{ alloc }
+			, m_parent	{}
+			, m_children{ alloc }
 		{
-			this->swap(std::move(other));
+			swap(std::move(other));
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		node & operator=(node && other) noexcept
 		{
-			this->swap(std::move(other));
+			swap(std::move(other));
 			return (*this);
 		}
 
@@ -69,23 +71,84 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
+				m_name.swap(other.m_name);
 				std::swap(m_parent, other.m_parent);
-
 				m_children.swap(other.m_children);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_parent() const noexcept -> node * { return m_parent; }
+		ML_NODISCARD auto child_count() const noexcept -> size_t { return m_children.size(); }
 
-		void set_parent(node * value) noexcept { m_parent = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		ML_NODISCARD auto get_child(size_t i) noexcept -> node * { return m_children[i]; }
+		
+		ML_NODISCARD auto get_child(size_t i) const noexcept -> node const * { return m_children[i]; }
 
 		ML_NODISCARD auto get_children() noexcept -> pmr::vector<node *> & { return m_children; }
 
 		ML_NODISCARD auto get_children() const noexcept -> pmr::vector<node *> const & { return m_children; }
+
+		ML_NODISCARD auto get_name() const noexcept -> pmr::string { return m_name; }
+
+		ML_NODISCARD auto get_parent() const noexcept -> node * { return m_parent; }
+
+		ML_NODISCARD bool is_child_of(node const * value) const noexcept
+		{
+			return m_parent == value;
+		}
+
+		ML_NODISCARD bool is_parent_of(node const * value) const noexcept
+		{
+			return value && value->is_child_of(this);
+		}
+
+		node * add_child(node * value) noexcept
+		{
+			return !is_parent_of(value) ? m_children.emplace_back(value) : nullptr;
+		}
+
+		void clear_children() noexcept
+		{
+			for (node * c : m_children)
+			{
+				delete c;
+				c = nullptr;
+			}
+			m_children.clear();
+		}
+
+		void detach_children()
+		{
+			for (node * c : m_children)
+			{
+				c->set_parent(m_parent);
+			}
+		}
+
+		node * find(pmr::string const & name) noexcept
+		{
+			if (auto const it{ std::find_if(begin(), end(), [&name
+			](auto c) { return c && c->m_name == name; }) }
+			; it != end())
+			{
+				return (*it);
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+
+		void remove_child(node * value) noexcept
+		{
+			if (auto const it{ std::find(begin(), end(), value) }; it != end())
+			{
+				delete (*it);
+				(*it) = nullptr;
+				m_children.erase(it);
+			}
+		}
 
 		void set_children(pmr::vector<node *> const & value) noexcept
 		{
@@ -95,48 +158,40 @@ namespace ml
 			}
 		}
 
-		ML_NODISCARD bool has_child(node * value) const noexcept
+		void set_name(pmr::string const & value) noexcept
 		{
-			return end() != std::find(begin(), end(), value);
+			m_name = value;
 		}
 
-		void add_child(node * value) noexcept
+		void set_parent(node * value) noexcept
 		{
-			if (!has_child(value)) { m_children.push_back(value); }
-		}
-
-		void remove_child(node * value) noexcept
-		{
-			if (auto const it{ std::find(begin(), end(), value) }; it != end())
-			{
-				delete *it;
-				m_children.erase(it);
-			}
-		}
-
-		void clear_children() noexcept
-		{
-			for (node * c : m_children) { delete c; }
-			m_children.clear();
+			m_parent = value;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto begin() noexcept -> pmr::vector<node *>::iterator { return m_children.begin(); }
+		ML_NODISCARD auto operator[](size_t i) noexcept -> node * { return get_child(i); }
+
+		ML_NODISCARD auto operator[](size_t i) const noexcept -> node const * { return get_child(i); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto begin() noexcept -> iterator { return m_children.begin(); }
 		
-		auto begin() const noexcept -> pmr::vector<node *>::const_iterator { return m_children.begin(); }
+		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_children.begin(); }
 		
-		auto cbegin() const noexcept -> pmr::vector<node *>::const_iterator { return m_children.cbegin(); }
+		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return m_children.cbegin(); }
 		
-		auto end() noexcept -> pmr::vector<node *>::iterator { return m_children.end(); }
+		ML_NODISCARD auto end() noexcept -> iterator { return m_children.end(); }
 		
-		auto end() const noexcept -> pmr::vector<node *>::const_iterator { return m_children.end(); }
+		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_children.end(); }
 		
-		auto cend() const noexcept -> pmr::vector<node *>::const_iterator { return m_children.cend(); }
+		ML_NODISCARD auto cend() const noexcept -> const_iterator { return m_children.cend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
+		pmr::string			m_name		; // 
 		node *				m_parent	; // 
 		pmr::vector<node *>	m_children	; // 
 

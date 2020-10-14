@@ -66,11 +66,7 @@ namespace ml
 		{
 			using T = std::decay_t<decltype(arg0)>;
 
-			if constexpr (std::is_same_v<T, hash_t>)
-			{
-				return arg0;
-			}
-			else if constexpr (std::is_scalar_v<T> && !std::is_pointer_v<T>)
+			if constexpr (std::is_scalar_v<T> && !std::is_pointer_v<T>)
 			{
 				return static_cast<hash_t>(arg0);
 			}

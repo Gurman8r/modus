@@ -124,21 +124,29 @@ namespace ml
 	// default delete
 	template <class ...> struct default_delete;
 
-	// scoped pointer ( std::unique_ptr<T, Dx> )
+	// unique pointer
 	template <class T, class Dx = default_delete<T>
-	> ML_alias unique = typename std::unique_ptr<T, Dx>;
+	> struct unique : public std::unique_ptr<T, Dx> {
+		using std::unique_ptr<T, Dx>::unique_ptr;
+	};
 
-	// manual pointer ( std::unique_ptr<T, no_delete> )
+	// manual pointer
 	template <class T
-	> ML_alias manual = typename unique<T, no_delete>;
+	> struct manual : unique<T, no_delete> {
+		using unique<T, no_delete>::unique;
+	};
 
-	// shared pointer ( std::shared_ptr<T> )
+	// shared pointer
 	template <class T
-	> ML_alias shared = typename std::shared_ptr<T>;
+	> struct shared : public std::shared_ptr<T> {
+		using std::shared_ptr<T>::shared_ptr;
+	};
 
-	// unowned pointer ( std::weak_ptr<T> )
+	// weak pointer
 	template <class T
-	> ML_alias unown = typename std::weak_ptr<T>;
+	> struct unown : public std::weak_ptr<T> {
+		using std::weak_ptr<T>::weak_ptr;
+	};
 }
 
 // record
@@ -184,7 +192,7 @@ namespace ml
 
 		enum : size_t { id_addr, id_index, id_count, id_size };
 
-		using record_manager = typename ds::batch_vector
+		using record_storage = typename ds::batch_vector
 		<
 			byte_t *	,	// address
 			size_t		,	// index
@@ -207,34 +215,34 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		// malloc
-		ML_NODISCARD static void * allocate(size_t size) noexcept
+		ML_NODISCARD void * allocate(size_t size) noexcept
 		{
-			return ML_check(g_mem)->do_allocate(1, size);
+			return this->do_allocate(1, size);
 		}
 
 		// calloc
-		ML_NODISCARD static void * allocate(size_t count, size_t size) noexcept
+		ML_NODISCARD void * allocate(size_t count, size_t size) noexcept
 		{
-			return ML_check(g_mem)->do_allocate(count, size);
+			return this->do_allocate(count, size);
 		}
 
 		// free
-		static void deallocate(void * addr) noexcept
+		void deallocate(void * addr) noexcept
 		{
-			ML_check(g_mem)->do_deallocate(addr);
+			this->do_deallocate(addr);
 		}
 
 		// realloc
-		static void * reallocate(void * addr, size_t size) noexcept
+		void * reallocate(void * addr, size_t size) noexcept
 		{
-			return reallocate(addr, size, size);
+			return this->reallocate(addr, size, size);
 		}
 
 		// realloc (sized)
-		static void * reallocate(void * addr, size_t oldsz, size_t newsz) noexcept
+		void * reallocate(void * addr, size_t oldsz, size_t newsz) noexcept
 		{
-			if (newsz == 0)				{ deallocate(addr); return nullptr; }
-			else if (addr == nullptr)	{ return allocate(newsz); }
+			if (newsz == 0)				{ this->deallocate(addr); return nullptr; }
+			else if (addr == nullptr)	{ return this->allocate(newsz); }
 			else if (newsz <= oldsz)	{ return addr; }
 			else
 			{
@@ -242,7 +250,7 @@ namespace ml
 				if (temp)
 				{
 					std::memcpy(temp, addr, oldsz);
-					deallocate(addr);
+					this->deallocate(addr);
 				}
 				return temp;
 			}
@@ -252,111 +260,103 @@ namespace ml
 
 		// allocate object
 		template <class T
-		> ML_NODISCARD static T * allocate_object(size_t count = 1) noexcept
+		> ML_NODISCARD T * allocate_object(size_t count = 1) noexcept
 		{
-			return (T *)allocate(count, sizeof(T));
+			return (T *)this->do_allocate(count, sizeof(T));
 		}
 
 		// deallocate object
 		template <class T
-		> static void deallocate_object(T * addr) noexcept
+		> void deallocate_object(T * addr) noexcept
 		{
-			deallocate(addr);
+			this->do_deallocate(addr);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		// new object
 		template <class T, class ... Args
-		> ML_NODISCARD static T * new_object(Args && ... args) noexcept
+		> ML_NODISCARD T * new_object(Args && ... args) noexcept
 		{
-			return util::construct(allocate_object<T>(), ML_forward(args)...);
+			return util::construct(this->allocate_object<T>(), ML_forward(args)...);
 		}
 
 		// delete object
 		template <class T
-		> static void delete_object(T * addr) noexcept
+		> void delete_object(T * addr) noexcept
 		{
 			util::destruct(addr);
-			deallocate_object(addr);
+			this->deallocate_object(addr);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// allocate shared
-		template <class T, class ... Args
-		> ML_NODISCARD static shared<T> alloc_ref(allocator_type alloc, Args && ... args) noexcept
-		{
-			return std::allocate_shared<T>(alloc, ML_forward(args)...);
-		}
-
 		// make shared
 		template <class T, class ... Args
-		> ML_NODISCARD static shared<T> make_ref(Args && ... args) noexcept
+		> ML_NODISCARD shared<T> make_ref(Args && ... args) noexcept
 		{
-			return alloc_ref<T>(get_allocator(), ML_forward(args)...);
+			return std::allocate_shared<T>(m_alloc, ML_forward(args)...);
 		}
 
 		// make unique
 		template <class T, class Dx = default_delete<T>, class ... Args
-		> ML_NODISCARD static unique<T, Dx> make_scope(Args && ... args) noexcept
+		> ML_NODISCARD unique<T, Dx> make_scope(Args && ... args) noexcept
 		{
-			return { new_object<T>(ML_forward(args)...), Dx{} };
+			return { this->new_object<T>(ML_forward(args)...), Dx{} };
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		// get instance
+		ML_NODISCARD static auto get() noexcept -> memory_manager * { return g_mem; }
+
 		// get allocator
-		ML_NODISCARD static auto get_allocator() noexcept -> allocator_type { return ML_check(g_mem)->m_alloc; }
+		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_alloc; }
 
 		// get counter
-		ML_NODISCARD static auto get_counter() noexcept -> size_t { return ML_check(g_mem)->m_counter; }
+		ML_NODISCARD auto get_counter() const noexcept -> size_t { return m_counter; }
 
 		// get records
-		ML_NODISCARD static auto get_records() noexcept -> record_manager const & { return ML_check(g_mem)->m_records; }
+		ML_NODISCARD auto get_records() const noexcept -> record_storage const & { return m_records; }
 
 		// get resource
-		ML_NODISCARD static auto get_resource() noexcept -> passthrough_resource * { return ML_check(g_mem)->m_resource; }
-
-		// get singleton
-		ML_NODISCARD static auto get_singleton() noexcept -> memory_manager * const { return g_mem; }
+		ML_NODISCARD auto get_resource() const noexcept -> passthrough_resource * { return m_resource; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		// get record
-		ML_NODISCARD static auto get_record(size_t i) noexcept -> memory_record
+		ML_NODISCARD auto get_record_at(size_t i) const noexcept -> memory_record
 		{
-			ML_assert(g_mem);
 			return {
-				g_mem->m_records.at<id_addr>(i),
-				g_mem->m_records.at<id_index>(i),
-				g_mem->m_records.at<id_index>(i),
-				g_mem->m_records.at<id_index>(i)
+				m_records.at<id_addr>(i),
+				m_records.at<id_index>(i),
+				m_records.at<id_index>(i),
+				m_records.at<id_index>(i)
 			};
 		}
 
 		// get record address
-		ML_NODISCARD static auto get_record_addr(size_t i) noexcept -> byte_t *
+		ML_NODISCARD auto get_record_addr_at(size_t i) const noexcept -> byte_t *
 		{
-			return ML_check(g_mem)->m_records.at<id_addr>(i);
+			return m_records.at<id_addr>(i);
 		}
 
 		// get record index
-		ML_NODISCARD static auto get_record_index(size_t i) noexcept -> size_t
+		ML_NODISCARD auto get_record_index_at(size_t i) const noexcept -> size_t
 		{
-			return ML_check(g_mem)->m_records.at<id_index>(i);
+			return m_records.at<id_index>(i);
 		}
 
 		// get record count
-		ML_NODISCARD static auto get_record_count(size_t i) noexcept -> size_t
+		ML_NODISCARD auto get_record_count_at(size_t i) const noexcept -> size_t
 		{
-			return ML_check(g_mem)->m_records.at<id_count>(i);
+			return m_records.at<id_count>(i);
 		}
 
 		// get record size
-		ML_NODISCARD static auto get_record_size(size_t i) noexcept -> size_t
+		ML_NODISCARD auto get_record_size_at(size_t i) const noexcept -> size_t
 		{
-			return ML_check(g_mem)->m_records.at<id_size>(i);
+			return m_records.at<id_size>(i);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -391,7 +391,7 @@ namespace ml
 		static memory_manager *			g_mem		; // singleton
 		passthrough_resource * const	m_resource	; // resource
 		allocator_type					m_alloc		; // allocator
-		record_manager					m_records	; // records
+		record_storage					m_records	; // records
 		size_t							m_counter	; // counter
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -406,13 +406,25 @@ namespace ml
 	{
 		virtual ~trackable() noexcept = default;
 
-		ML_NODISCARD void * operator new(size_t size) noexcept { return memory_manager::allocate(size); }
+		ML_NODISCARD void * operator new(size_t size) noexcept
+		{
+			return memory_manager::get()->allocate(size);
+		}
 
-		ML_NODISCARD void * operator new[](size_t size) noexcept { return memory_manager::allocate(size); }
+		ML_NODISCARD void * operator new[](size_t size) noexcept
+		{
+			return memory_manager::get()->allocate(size);
+		}
 
-		void operator delete(void * addr) noexcept { memory_manager::deallocate(addr); }
+		void operator delete(void * addr) noexcept
+		{
+			memory_manager::get()->deallocate(addr);
+		}
 
-		void operator delete[](void * addr) noexcept { memory_manager::deallocate(addr); }
+		void operator delete[](void * addr) noexcept
+		{
+			memory_manager::get()->deallocate(addr);
+		}
 	};
 }
 
@@ -423,7 +435,7 @@ namespace ml
 	{
 		void operator()(void * addr) const noexcept
 		{
-			memory_manager::deallocate(addr);
+			memory_manager::get()->deallocate(addr);
 		}
 	};
 
@@ -431,7 +443,7 @@ namespace ml
 	{
 		void operator()(void * addr) const noexcept
 		{
-			memory_manager::deallocate(addr);
+			memory_manager::get()->deallocate(addr);
 		}
 	};
 
@@ -439,7 +451,7 @@ namespace ml
 	{
 		void operator()(T * addr) const noexcept
 		{
-			memory_manager::delete_object<T>(addr);
+			memory_manager::get()->delete_object<T>(addr);
 		}
 	};
 }

@@ -1,20 +1,14 @@
-#ifndef _ML_CLIENT_CONTEXT_HPP_
-#define _ML_CLIENT_CONTEXT_HPP_
+#ifndef _ML_CLIENT_HPP_
+#define _ML_CLIENT_HPP_
 
-#include <modus_core/Export.hpp>
-#include <modus_core/system/Events.hpp>
-#include <modus_core/detail/Timer.hpp>
 #include <modus_core/detail/Matrix.hpp>
+#include <modus_core/detail/Timer.hpp>
+#include <modus_core/system/Events.hpp>
 #include <modus_core/window/Input.hpp>
 
+// IO
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	struct blackboard;
-	struct imgui_runtime;
-	struct render_window;
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// client io
@@ -45,7 +39,7 @@ namespace ml
 		timer					loop_timer	{ false }		; // 
 		duration				delta_time	{}				; // 
 		uint64_t				frame_count	{}				; // 
-		float_t					fps_rate	{}				; // 
+		float_t					fps			{}				; // 
 		float_t					fps_accum	{}				; // 
 		size_t					fps_index	{}				; // 
 		pmr::vector<float_t>	fps_times	{ 120, alloc }	; // 
@@ -64,58 +58,75 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+}
+
+// CONTEXT
+namespace ml
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	struct render_window;
+	struct imgui_runtime;
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// client context
 	struct ML_NODISCARD client_context final
 	{
 		memory_manager	* const mem		; // memory manager
 		client_io		* const io		; // client io
-		blackboard		* const vars	; // blackboard
 		event_bus		* const bus		; // event bus
 		render_window	* const win		; // render window
 		imgui_runtime	* const gui		; // imgui runtime
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
 
+// OBJECT
+namespace ml
+{
 	// client object
 	template <class Derived
 	> struct client_object : trackable, non_copyable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit client_object(client_context * context) noexcept
-			: event_listener{ ML_check(context)->bus }
-			, m_context		{ context }
+		explicit client_object(client_context * ctx) noexcept
+			: event_listener{ ML_check(ctx)->bus }
+			, m_ctx			{ ctx }
 		{
-			ML_assert_msg(get_bus() == m_context->bus, "BUS MISMATCH");
+			ML_assert("BUS MISMATCH" && get_bus() == m_ctx->bus);
 		}
 
 		virtual ~client_object() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual void on_event(event &&) override = 0;
-
 		using event_listener::get_bus;
+
+		ML_NODISCARD auto get_context() const noexcept -> client_context * { return m_ctx; }
+
+		ML_NODISCARD auto get_gui() const noexcept -> imgui_runtime * { return m_ctx->gui; }
+
+		ML_NODISCARD auto get_io() const noexcept -> client_io * { return m_ctx->io; }
+
+		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_ctx->mem; }
+
+		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_ctx->win; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_context	() const noexcept -> client_context	* { return m_context; }
-		ML_NODISCARD auto get_gui		() const noexcept -> imgui_runtime	* { return m_context->gui; }
-		ML_NODISCARD auto get_io		() const noexcept -> client_io		* { return m_context->io; }
-		ML_NODISCARD auto get_memory	() const noexcept -> memory_manager	* { return m_context->mem; }
-		ML_NODISCARD auto get_window	() const noexcept -> render_window	* { return m_context->win; }
-		ML_NODISCARD auto get_vars		() const noexcept -> blackboard		* { return m_context->vars; }
+	protected:
+		virtual void on_event(event &&) override = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		client_context * const m_context; // context
+		client_context * const m_ctx; // ctx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-#endif // !_ML_CLIENT_API_HPP_
+#endif // !_ML_CLIENT_HPP_

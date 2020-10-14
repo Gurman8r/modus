@@ -55,18 +55,18 @@ namespace ml::pretty_function
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_alias string = typename ML_STATIC_STRING_CLASS;
+	ML_alias str = typename ML_STATIC_STRING_CLASS;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class T
-	> ML_NODISCARD static constexpr string type()
+	> ML_NODISCARD static constexpr str type()
 	{
 		return { ML_PRETTY_FUNCTION };
 	}
 
 	template <class T, T Value
-	> ML_NODISCARD static constexpr string value()
+	> ML_NODISCARD static constexpr str value()
 	{
 		return { ML_PRETTY_FUNCTION };
 	}
@@ -86,7 +86,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// name filters
-	template <> struct ML_NODISCARD nameof_t<> final
+	template <> struct nameof_t<> final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -94,7 +94,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static constexpr auto filter_prefix(pretty_function::string s, pretty_function::string v)
+		ML_NODISCARD static constexpr auto filter_prefix(pretty_function::str s, pretty_function::str v)
 		{
 			bool const match
 			{
@@ -103,7 +103,7 @@ namespace ml
 			return match ? s.substr(v.size()) : s;
 		}
 
-		static constexpr auto filter_suffix(pretty_function::string s, pretty_function::string v)
+		ML_NODISCARD static constexpr auto filter_suffix(pretty_function::str s, pretty_function::str v)
 		{
 			bool const match
 			{
@@ -114,7 +114,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static constexpr auto filter_type(pretty_function::string s) noexcept
+		ML_NODISCARD static constexpr auto filter_type(pretty_function::str s) noexcept
 		{
 			constexpr auto const
 				pre{ ML_PRETTY_TYPE_PREFIX },
@@ -122,7 +122,7 @@ namespace ml
 			return filter_suffix(filter_prefix(s, pre), suf);
 		}
 
-		static constexpr auto filter_value(pretty_function::string s) noexcept
+		ML_NODISCARD static constexpr auto filter_value(pretty_function::str s) noexcept
 		{
 			constexpr auto const
 				pre{ ML_PRETTY_VALUE_PREFIX },
@@ -158,7 +158,7 @@ namespace ml
 	// name of type
 	template <class T> constexpr auto nameof_v
 	{
-		pretty_function::string{ nameof_t<T>::value }
+		pretty_function::str{ nameof_t<T>::value }
 	};
 
 	template <class T
@@ -172,7 +172,7 @@ namespace ml
 	// hash of type
 	template <class T> constexpr hash_t hashof_v
 	{
-		hashof(pretty_function::string{ nameof_t<T>::value })
+		hashof(pretty_function::str{ nameof_t<T>::value })
 	};
 
 	// hash of type
@@ -265,7 +265,7 @@ namespace ml
 		}
 
 	private:
-		pretty_function::string m_name; hash_t m_hash;
+		pretty_function::str m_name; hash_t m_hash;
 	};
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

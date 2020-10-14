@@ -1,6 +1,6 @@
 #if defined(ML_IMPL_RENDERER_OPENGL)
 
-#include "Impl_RenderAPI_OpenGL.hpp"
+#include "OpenGL_RenderAPI.hpp"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -752,47 +752,47 @@ namespace ml::gfx
 
 	shared<render_context> opengl_render_device::create_context(context_settings const & cs) noexcept
 	{
-		return memory_manager::alloc_ref<opengl_render_context>(m_alloc, this, cs);
+		return std::allocate_shared<opengl_render_context>(m_alloc, this, cs);
 	}
 
 	shared<vertexarray> opengl_render_device::create_vertexarray(uint32_t prim) noexcept
 	{
-		return memory_manager::alloc_ref<opengl_vertexarray>(m_alloc, this, prim);
+		return std::allocate_shared<opengl_vertexarray>(m_alloc, this, prim);
 	}
 
 	shared<vertexbuffer> opengl_render_device::create_vertexbuffer(uint32_t usage, size_t count, addr_t data) noexcept
 	{
-		return memory_manager::alloc_ref<opengl_vertexbuffer>(m_alloc, this, usage, count, data);
+		return std::allocate_shared<opengl_vertexbuffer>(m_alloc, this, usage, count, data);
 	}
 
 	shared<indexbuffer> opengl_render_device::create_indexbuffer(uint32_t usage, size_t count, addr_t data) noexcept
 	{
-		return memory_manager::alloc_ref<opengl_indexbuffer>(m_alloc, this, usage, count, data);
+		return std::allocate_shared<opengl_indexbuffer>(m_alloc, this, usage, count, data);
 	}
 
 	shared<texture2d> opengl_render_device::create_texture2d(desc_<texture2d> const & value, addr_t data) noexcept
 	{
-		return memory_manager::alloc_ref<opengl_texture2d>(m_alloc, this, value, data);
+		return std::allocate_shared<opengl_texture2d>(m_alloc, this, value, data);
 	}
 
 	shared<texturecube> opengl_render_device::create_texturecube(desc_<texturecube> const & value) noexcept
 	{
-		return memory_manager::alloc_ref<opengl_texturecube>(m_alloc, this, value);
+		return std::allocate_shared<opengl_texturecube>(m_alloc, this, value);
 	}
 
 	shared<framebuffer> opengl_render_device::create_framebuffer(desc_<framebuffer> const & value) noexcept
 	{
-		return memory_manager::alloc_ref<opengl_framebuffer>(m_alloc, this, value);
+		return std::allocate_shared<opengl_framebuffer>(m_alloc, this, value);
 	}
 
 	shared<program> opengl_render_device::create_program() noexcept
 	{
-		return memory_manager::alloc_ref<opengl_program>(m_alloc, this);
+		return std::allocate_shared<opengl_program>(m_alloc, this);
 	}
 
 	shared<shader> opengl_render_device::create_shader(desc_<shader> const & value) noexcept
 	{
-		return memory_manager::alloc_ref<opengl_shader>(m_alloc, this, value);
+		return std::allocate_shared<opengl_shader>(m_alloc, this, value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

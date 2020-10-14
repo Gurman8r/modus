@@ -71,7 +71,7 @@ namespace ml::ImGuiExt
 namespace ml::ImGuiExt
 {
 	template <class Fn, class ... Args
-	> static void DoWindow(cstring title, bool * open, int32_t flags, Fn && fn, Args && ... args)
+	> static void DrawWindow(cstring title, bool * open, int32_t flags, Fn && fn, Args && ... args)
 	{
 		if (!(open && !*open) && ImGui::Begin(title, open, flags))
 		{
@@ -330,31 +330,16 @@ namespace ml
 				{ 0, -footer_height }, false, ImGuiWindowFlags_HorizontalScrollbar
 			);
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4, 1 });
-			for (auto const & line : lines)
+			for (pmr::string const & line : lines)
 			{
 				auto const str{ line.c_str() };
 				if (!filter.PassFilter(str)) continue;
 
+				// # (orange)
 				bool pop_color{};
-				if (0 == std::strncmp(str, "# ", 2))
-				{
-					// # (orange)
-					ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 0.8f, 0.6f, 1.0f }); pop_color = true;
-				}
-				else if (std::strstr(str, ML_IMPL_DEBUG_INFO))
-				{
-					// [ info ] (green)
-					ImGui::PushStyleColor(ImGuiCol_Text, { 0.0f, 1.0f, 0.0f, 1.0f }); pop_color = true;
-				}
-				else if (std::strstr(str, ML_IMPL_DEBUG_ERROR))
-				{
-					// [ error ] (red)
-					ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 0.2f, 0.4f, 1.0f }); pop_color = true;
-				}
-				else if (std::strstr(str, ML_IMPL_DEBUG_WARNING))
-				{
-					// [ warning ] (yellow)
-					ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 0.75f, 0.0f, 1.0f }); pop_color = true;
+				if (0 == std::strncmp(str, "# ", 2)) {
+					ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 0.8f, 0.6f, 1.0f });
+					pop_color = true;
 				}
 				ImGui::TextUnformatted(str);
 				if (pop_color) { ImGui::PopStyleColor(); }

@@ -1,7 +1,7 @@
 #ifndef _ML_PLUGIN_HPP_
 #define _ML_PLUGIN_HPP_
 
-#include <modus_core/client/ClientContext.hpp>
+#include <modus_core/client/Client.hpp>
 
 #ifndef ML_PLUGIN_API
 #define ML_PLUGIN_API ML_API_EXPORT
@@ -23,15 +23,16 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual void on_event(event &&) override = 0;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD auto get_manager() const noexcept -> plugin_manager * { return m_manager; }
 
 		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
 
 		void * set_user_pointer(void * value) noexcept { return m_userptr = value; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	protected:
+		virtual void on_event(event &&) override = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

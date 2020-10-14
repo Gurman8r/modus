@@ -30,13 +30,14 @@
 			"visible"		: false
 		}
 	},
-	"imgui": {
-		"callbacks"		: true,
-		"style_path"	: "assets/styles/obsidian.style"
-	},
 	"client": {
-		"menubar"		: { "enabled": true },
-		"dockspace"		: {
+		"callbacks": true,
+		"gui_style": "assets/styles/obsidian.style",
+		"menu": {
+			"enabled"	: true,
+			"title"		: "menubar"
+		},
+		"dock": {
 			"enabled"	: true,
 			"title"		: "dockspace",
 			"border"	: 0,
@@ -45,12 +46,12 @@
 			"padding"	: [ 0, 0 ],
 			"size"		: [ 0, 0 ],
 			"nodes"		: []
-		}
-	},
-	"plugins": [
-		{ "path": "plugins/sandbox" }
-	],
-	"scripts": [
-		{ "path": "assets/scripts/setup.py" }
-	]
+		},
+		"plugins": [
+			{ "path": "plugins/sandbox" }
+		],
+		"scripts": [
+			{ "path": "assets/scripts/setup.py" }
+		]
+	}
 }

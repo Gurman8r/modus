@@ -24,7 +24,7 @@ namespace ml
 	plugin_id plugin_manager::install(fs::path const & path, void * user)
 	{
 		// check exists
-		if (this->has_plugin(path))
+		if (this->is_installed(path))
 		{
 			return nullptr;
 		}
@@ -34,7 +34,7 @@ namespace ml
 			return (!lib || m_data.contains<shared_library>(lib)) ? nullptr
 				: std::get<plugin_id &>(m_data.push_back
 				(
-					ML_handle(plugin_id, lib.hash()), lib.path(), std::move(lib), nullptr,
+					(plugin_id)lib.hash_code(), lib.path(), std::move(lib), nullptr,
 					plugin_iface
 					{
 						lib.proc<plugin *, plugin_manager *, void *>("ml_plugin_attach"),

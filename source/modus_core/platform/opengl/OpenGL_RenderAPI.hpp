@@ -115,7 +115,7 @@ namespace ml::gfx
 
 		stencil_state * get_stencil_state(stencil_state * value = {}) const override;
 
-		int_rect get_viewport() const override;
+		int_rect * get_viewport(int_rect * value = {}) const override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

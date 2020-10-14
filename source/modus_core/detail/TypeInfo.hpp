@@ -228,12 +228,12 @@ namespace ml
 
 		static constexpr auto const & name() noexcept { return nameof_v<T>; }
 
-		static constexpr auto const & hash() noexcept { return hashof_v<T>; }
+		static constexpr auto const & hash_code() noexcept { return hashof_v<T>; }
 
 		template <class ... U
 		> constexpr auto compare(typeof<U...> const & other) const noexcept
 		{
-			return util::compare(m_hash, other.hash());
+			return util::compare(m_hash, other.hash_code());
 		}
 	};
 
@@ -248,20 +248,20 @@ namespace ml
 
 		template <class T
 		> constexpr typeof(typeof<T> const & other) noexcept
-			: m_name{ other.name() }, m_hash{ other.hash() }
+			: m_name{ other.name() }, m_hash{ other.hash_code() }
 		{
 		}
 
 		constexpr auto const & name() const & noexcept { return m_name; }
 
-		constexpr auto const & hash() const & noexcept { return m_hash; }
+		constexpr auto const & hash_code() const & noexcept { return m_hash; }
 
-		constexpr operator hash_t() const noexcept { return this->hash(); }
+		constexpr operator hash_t() const noexcept { return this->hash_code(); }
 
 		template <class ... U
 		> constexpr auto compare(typeof<U...> const & other) const noexcept
 		{
-			return util::compare(m_hash, other.hash());
+			return util::compare(m_hash, other.hash_code());
 		}
 
 	private:

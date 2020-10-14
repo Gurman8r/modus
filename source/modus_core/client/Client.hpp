@@ -6,7 +6,7 @@
 #include <modus_core/system/Events.hpp>
 #include <modus_core/window/Input.hpp>
 
-// IO
+// CLIENT IO
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -19,39 +19,50 @@ namespace ml
 		using allocator_type = pmr::polymorphic_allocator<byte_t>;
 
 		client_io(int32_t argc, char ** argv, allocator_type alloc, json prefs)
-			: argc{ argc }, argv{ argv }, alloc{ alloc }, prefs{ json{ prefs } }
+			: args{ argv, argv + argc }, alloc{ alloc }, prefs{ json{ prefs } }
 		{
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		int32_t const			argc						; // 
-		char ** const			argv						; // 
-		allocator_type			alloc						; // 
-		json					prefs						; // 
+		using args_type = pmr::vector<pmr::string>;
 
-		fs::path const
-			program_name{ argv[0] }							, // 
-			program_path{ fs::current_path() }				, // 
-			content_path{ prefs["path"].get<fs::path>() }	; // 
+		args_type const	args;
+		allocator_type	alloc;
+		json			prefs;
 
-		timer const				main_timer	{}				; // 
-		timer					loop_timer	{ false }		; // 
-		duration				delta_time	{}				; // 
-		uint64_t				frame_count	{}				; // 
-		float_t					fps			{}				; // 
-		float_t					fps_accum	{}				; // 
-		size_t					fps_index	{}				; // 
-		pmr::vector<float_t>	fps_times	{ 120, alloc }	; // 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		vec2d					cursor		{}				; // 
-		mouse_state				mouse		{}				; // 
-		keyboard_state			keyboard	{}				; // 
+		fs::path const	program_name{ args[0] },
+						program_path{ fs::current_path() },
+						content_path{ prefs["path"].get<fs::path>() };
 
 		ML_NODISCARD fs::path path2(fs::path const & path) const noexcept
 		{
 			return content_path.native() + path.native();
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		timer const		main_timer	{};
+		timer			loop_timer	{ false };
+		duration		delta_time	{};
+		uint64_t		frame_count	{};
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		using fps_times_type = pmr::vector<float_t>;
+
+		float_t			fps			{};
+		float_t			fps_accum	{};
+		size_t			fps_index	{};
+		fps_times_type	fps_times	{ 120, alloc };
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		vec2d			cursor	{};
+		mouse_state		mouse	{};
+		keyboard_state	keyboard{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -60,13 +71,13 @@ namespace ml
 
 }
 
-// CONTEXT
+// CLIENT CONTEXT
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	struct render_window;
-	struct imgui_runtime;
+	struct content_manager;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -77,13 +88,12 @@ namespace ml
 		client_io		* const io		; // client io
 		event_bus		* const bus		; // event bus
 		render_window	* const win		; // render window
-		imgui_runtime	* const gui		; // imgui runtime
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-// OBJECT
+// CLIENT OBJECT
 namespace ml
 {
 	// client object
@@ -106,16 +116,12 @@ namespace ml
 		using event_listener::get_bus;
 
 		ML_NODISCARD auto get_context() const noexcept -> client_context * { return m_ctx; }
-
-		ML_NODISCARD auto get_gui() const noexcept -> imgui_runtime * { return m_ctx->gui; }
-
+		
 		ML_NODISCARD auto get_io() const noexcept -> client_io * { return m_ctx->io; }
 
 		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_ctx->mem; }
 
 		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_ctx->win; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
 		virtual void on_event(event &&) override = 0;
@@ -123,7 +129,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		client_context * const m_ctx; // ctx
+		client_context * const m_ctx;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

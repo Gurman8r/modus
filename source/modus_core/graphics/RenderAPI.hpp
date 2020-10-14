@@ -918,7 +918,7 @@ namespace ml::gfx
 
 		virtual stencil_state * get_stencil_state(stencil_state * value = {}) const = 0;
 
-		virtual int_rect get_viewport() const = 0;
+		virtual int_rect * get_viewport(int_rect * value = {}) const = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

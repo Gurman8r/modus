@@ -9,8 +9,7 @@
 #include <modus_core/graphics/Shader.hpp>
 #include <modus_core/graphics/Renderer.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/imgui/ImGuiRuntime.hpp>
-#include <modus_core/imgui/ImGuiExt.hpp>
+#include <modus_core/client/ImGuiExt.hpp>
 #include <modus_core/scene/SceneManager.hpp>
 #include <modus_core/scene/Viewport.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -33,7 +32,7 @@ namespace ml
 
 		sandbox(plugin_manager * manager, void * user) noexcept : plugin{ manager, user }
 		{
-			subscribe<client_init_event>();
+			subscribe<client_enter_event>();
 			subscribe<client_exit_event>();
 			subscribe<client_idle_event>();
 			subscribe<client_dockspace_event>();
@@ -45,7 +44,7 @@ namespace ml
 		{
 			switch (value)
 			{
-			case client_init_event		::ID: return on_client_init((client_init_event &&)value);
+			case client_enter_event		::ID: return on_client_init((client_enter_event &&)value);
 			case client_exit_event		::ID: return on_client_exit((client_exit_event &&)value);
 			case client_idle_event		::ID: return on_client_idle((client_idle_event &&)value);
 			case client_dockspace_event	::ID: return on_client_dockspace((client_dockspace_event &&)value);
@@ -56,7 +55,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_client_init(client_init_event && ev)
+		void on_client_init(client_enter_event && ev)
 		{
 			if (bitmap const icon{ get_io()->path2("resource/icon.png") })
 			{
@@ -85,6 +84,8 @@ namespace ml
 				gfx::command::bind_framebuffer(nullptr));
 		}
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		void on_client_dockspace(client_dockspace_event && ev)
 		{
 			if (auto const root{ ev->begin_builder() })
@@ -111,12 +112,12 @@ namespace ml
 			ImGui::SetNextWindowSize({ 540, 480 }, ImGuiCond_Once);
 			ImGuiExt::DrawWindow("viewport", nullptr,
 				ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar,
-				&sandbox::draw_viewport, this);
+				&sandbox::draw_viewport, this, *get_io());
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void draw_viewport()
+		void draw_viewport(client_io & io)
 		{
 			static gui_texture_preview tpv{};
 			auto const & tex{ m_fbo.back()->get_color_attachments().front() };
@@ -140,6 +141,7 @@ namespace ml
 					video.resolution[0],
 					video.resolution[1],
 					video.refresh_rate);
+
 				ImGui::SetNextItemWidth(256);
 				if (ImGui::BeginCombo("##resolution", res_label))
 				{
@@ -163,8 +165,7 @@ namespace ml
 				ImGui::Separator();
 
 				// FPS
-				auto const fps{ get_io()->fps };
-				ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+				ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / io.fps, io.fps);
 				ImGui::Separator();
 			}
 

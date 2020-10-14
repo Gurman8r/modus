@@ -2,7 +2,6 @@
 #include <modus_core/client/ClientEvents.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/imgui/ImGuiRuntime.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/scene/Node.hpp>
 #include <modus_core/scene/SceneManager.hpp>
@@ -66,27 +65,30 @@ static auto const default_settings{ R"(
 			"visible"		: false
 		}
 	},
-	"imgui": {
-		"inst_clbk"		: true,
-		"style_path"	: "assets/styles/obsidian.style",
-		"menubar"		: { "enabled": true },
-		"dockspace"		: {
+	"client": {
+		"callbacks": true,
+		"gui_style": "assets/styles/obsidian.style",
+		"menu": {
 			"enabled"	: true,
-			"title"		: "dockspace##libmeme",
+			"title"		: "menubar"
+		},
+		"dock": {
+			"enabled"	: true,
+			"title"		: "dockspace",
 			"border"	: 0,
 			"rounding"	: 0,
 			"alpha"		: 0,
 			"padding"	: [ 0, 0 ],
 			"size"		: [ 0, 0 ],
 			"nodes"		: []
-		}
-	},
-	"plugins": [
-		{ "path": "plugins/sandbox" }
-	],
-	"scripts": [
-		{ "path": "assets/scripts/setup.py" }
-	]
+		},
+		"plugins": [
+			{ "path": "plugins/sandbox" }
+		],
+		"scripts": [
+			{ "path": "assets/scripts/setup.py" }
+		]
+	}
 }
 )"_json };
 
@@ -101,29 +103,14 @@ static auto load_settings(fs::path const & path = SETTINGS_PATH)
 
 ml::int32_t main()
 {
-	// client
 	static memory_manager	mem		{ pmr::get_default_resource() };
 	static client_io		io		{ __argc, __argv, mem.get_allocator(), load_settings() };
-	static event_bus		bus		{ mem.get_allocator() };
-	static render_window	win		{ mem.get_allocator() };
-	static imgui_runtime	gui		{ &mem, &win };
-	static client_context	ctx		{ &mem, &io, &bus, &win, &gui };
+	static event_bus		bus		{ io.alloc };
+	static render_window	win		{ io.alloc };
+	static client_context	ctx		{ &mem, &io, &bus, &win };
 	static client_runtime	runtime	{ &ctx };
 
-	// install plugins
-	for (json const & j : io.prefs["plugins"])
-	{
-		runtime.get_plugins()->install(j["path"]);
-	}
-	
-	// execute scripts
-	for (json const & j : io.prefs["scripts"])
-	{
-		py::eval_file(io.path2(j["path"]).string());
-	}
-
-	// idle
-	return runtime();
+	return runtime(); // idle
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

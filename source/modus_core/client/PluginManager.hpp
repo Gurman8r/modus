@@ -40,11 +40,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool has_plugin(fs::path const & path) const noexcept
+		ML_NODISCARD bool is_installed(fs::path const & path) const noexcept
 		{
 			return m_data.contains<plugin_id>
 			(
-				ML_handle(plugin_id, hashof(shared_library::format_path(path).string()))
+				(plugin_id)hashof(shared_library::format_path(path).string())
 			);
 		}
 

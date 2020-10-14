@@ -2,39 +2,24 @@
 #include <modus_core/client/ClientEvents.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/embed/Python.hpp>
-#include <modus_core/imgui/ImGuiRuntime.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 
-// MENUBAR
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	client_menubar::client_menubar(client_context * ctx) noexcept
-		: client_object{ ctx }
-	{
-	}
-
-	void client_menubar::configure(json const & j)
-	{
-		j["enabled"].get_to(enabled);
-	}
-
-	void client_menubar::on_event(event && value)
-	{
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-// DOCKSPACE
+// CLIENT DOCKSPACE
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	client_dockspace::client_dockspace(client_context * ctx) noexcept
-		: client_object{ ctx }
-		, nodes{ ctx->mem->get_allocator() }
+		: client_object	{ ctx }
+		, enabled		{}
+		, title			{ ctx->mem->get_allocator() }
+		, border		{}
+		, rounding		{}
+		, alpha			{}
+		, padding		{}
+		, size			{}
+		, flags			{ ImGuiDockNodeFlags_AutoHideTabBar }
+		, nodes			{ ctx->mem->get_allocator() }
 	{
 	}
 
@@ -100,7 +85,32 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-// RUNTIME
+// CLIENT MENUBAR
+namespace ml
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	client_menubar::client_menubar(client_context * ctx) noexcept
+		: client_object	{ ctx }
+		, enabled		{}
+		, title			{ ctx->mem->get_allocator() }
+	{
+	}
+
+	void client_menubar::configure(json const & j)
+	{
+		j["enabled"	].get_to(enabled);
+		j["title"	].get_to(title);
+	}
+
+	void client_menubar::on_event(event && value)
+	{
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// CLIENT RUNTIME
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -108,22 +118,72 @@ namespace ml
 	client_runtime::client_runtime(client_context * ctx)
 		: client_object	{ ctx }
 		, m_running		{}
-		, m_menu		{ ctx->mem->new_object<client_menubar>(ctx) }
+		, m_imgui		{ nullptr }
 		, m_dock		{ ctx->mem->new_object<client_dockspace>(ctx) }
+		, m_menu		{ ctx->mem->new_object<client_menubar>(ctx) }
 		, m_plugins		{ ctx->mem->new_object<plugin_manager>(ctx) }
 	{
-		// events
 		subscribe<window_key_event>();
 		subscribe<window_mouse_event>();
 		subscribe<window_cursor_pos_event>();
 
-		// io
-		auto & io{ *get_io() };
-		auto & prefs{ io.prefs };
+		internal_startup(ctx->io->prefs);
+	}
+
+	client_runtime::~client_runtime() noexcept
+	{
+		internal_shutdown();
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	int32_t client_runtime::idle()
+	{
+		// run check
+		if (m_running || !get_window()->is_open()) { return EXIT_FAILURE; }
+		else { m_running = true; } ML_defer(&) { m_running = false; };
+		
+		// enter / exit
+		get_bus()->fire<client_enter_event>(this);
+		ML_defer(&) { get_bus()->fire<client_exit_event>(this); };
+		if (!get_window()->is_open()) { return EXIT_FAILURE; }
+
+		// idle
+		do { internal_idle(*get_io()); }
+		while (get_window()->is_open());
+		return EXIT_SUCCESS;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void client_runtime::on_event(event && value)
+	{
+		switch (value)
+		{
+		case window_key_event::ID: {
+			auto && ev{ (window_key_event &&)value };
+			get_io()->keyboard[ev.key] = ev.action;
+		} break;
+
+		case window_mouse_event::ID: {
+			auto && ev{ (window_mouse_event &&)value };
+			get_io()->mouse[ev.button] = ev.action;
+		} break;
+
+		case window_cursor_pos_event::ID: {
+			auto && ev{ (window_cursor_pos_event &&)value };
+			get_io()->cursor = { ev.x, ev.y };
+		} break;
+		}
+	}
+
+	void client_runtime::internal_startup(json const & j)
+	{
+		ML_assert(j.contains("window"));
+		ML_assert(j.contains("client"));
 
 		// python
-		PyObject_SetArenaAllocator(std::invoke([mres = get_memory()->get_resource()]()
-		{
+		PyObject_SetArenaAllocator(([](auto mres) noexcept {
 			static PyObjectArenaAllocator temp{
 				mres,
 				[](auto mres, size_t size) noexcept {
@@ -133,15 +193,15 @@ namespace ml
 					return ((pmr::memory_resource *)mres)->deallocate(addr, size);
 				}
 			}; return &temp;
-		}));
-		Py_SetProgramName(io.program_name.c_str());
-		Py_SetPythonHome(io.content_path.c_str());
+		})(get_memory()->get_resource()));
+		Py_SetProgramName(get_io()->program_name.c_str());
+		Py_SetPythonHome(get_io()->content_path.c_str());
 		Py_InitializeEx(1);
 		ML_assert(Py_IsInitialized());
 
 		// window
 		if (auto const win{ get_window() }
-		; prefs.contains("window") && win->open(prefs["window"]))
+		; win->open(j["window"]) && j["client"]["callbacks"])
 		{
 			static event_bus * bus{}; bus = get_bus();
 			win->set_char_callback([](auto, auto ... x) { bus->fire<window_char_event>(x...); });
@@ -162,116 +222,78 @@ namespace ml
 			win->set_refresh_callback([](auto, auto ... x) { bus->fire<window_refresh_event>(x...); });
 			win->set_resize_callback([](auto, auto ... x) { bus->fire<window_resize_event>(x...); });
 			win->set_scroll_callback([](auto, auto ... x) { bus->fire<window_scroll_event>(x...); });
+		}
 
-			// imgui
-			get_gui()->configure(prefs["imgui"]);
-			m_menu->configure(prefs["client"]["menubar"]);
-			m_dock->configure(prefs["client"]["dockspace"]);
+		// imgui
+		ImGui::SetAllocatorFunctions(
+			[](size_t s, void * x) { return ((memory_manager *)x)->allocate(s); },
+			[](void * p, void * x) { return ((memory_manager *)x)->deallocate(p); },
+			get_memory());
+		m_imgui.reset(ImGui::CreateContext());
+		m_imgui->IO.LogFilename = nullptr;
+		m_imgui->IO.IniFilename = nullptr;
+		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		ImGui_Startup(get_window(), j["client"]["callbacks"]);
+		m_menu->configure(j["client"]["menu"]);
+		m_dock->configure(j["client"]["dock"]);
+		if (j["client"].contains("gui_style"))
+		{
+			ImGui_LoadStyle(j["client"]["gui_style"]);
+		}
+
+		// install plugins
+		if (j["client"].contains("plugins"))
+		{
+			for (json const & j : j["client"]["plugins"])
+			{
+				get_plugins()->install(j["path"]);
+			}
+		}
+
+		// execute scripts
+		if (j["client"].contains("scripts"))
+		{
+			for (json const & j : j["client"]["scripts"])
+			{
+				py::eval_file(get_io()->path2(j["path"]).string());
+			}
 		}
 	}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	client_runtime::~client_runtime()
+	void client_runtime::internal_shutdown()
 	{
+		ImGui_Shutdown();
+
+		ImGui::DestroyContext(m_imgui.release());
+
 		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
 	}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	int32_t client_runtime::idle()
+	void client_runtime::internal_idle(client_io & io)
 	{
-		if (m_running || !get_window()->is_open()) { return EXIT_FAILURE; }
-		else { m_running = true; } ML_defer(&) { m_running = false; };
-		
-		get_bus()->fire<client_init_event>(this);
-		ML_defer(&) { get_bus()->fire<client_exit_event>(this); };
-		do
-		{
-			auto & io{ *get_io() };
-
-			begin_frame(io); ML_defer(&) { end_frame(io); };
-
-			get_bus()->fire<client_idle_event>(this);
-
-			get_gui()->do_frame([&]() noexcept
-			{
-				// client dockspace
-				if (m_dock->enabled && (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable))
-				{
-					ImGuiViewport const * v{ ImGui::GetMainViewport() };
-					ImGui::SetNextWindowPos(v->Pos);
-					ImGui::SetNextWindowSize(v->Size);
-					ImGui::SetNextWindowViewport(v->ID);
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_dock->rounding);
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock->border);
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock->padding);
-					ImGui::SetNextWindowBgAlpha(m_dock->alpha);
-					if (ImGui::Begin(m_dock->title.c_str(), &m_dock->enabled,
-						ImGuiWindowFlags_NoTitleBar |
-						ImGuiWindowFlags_NoCollapse |
-						ImGuiWindowFlags_NoResize |
-						ImGuiWindowFlags_NoMove |
-						ImGuiWindowFlags_NoBringToFrontOnFocus |
-						ImGuiWindowFlags_NoNavFocus |
-						ImGuiWindowFlags_NoDocking |
-						ImGuiWindowFlags_NoBackground |
-						(m_menu->enabled ? ImGuiWindowFlags_MenuBar : 0)
-					))
-					{
-						ImGui::PopStyleVar(3);
-						if (m_dock->nodes.empty()) { // fire docking event if nodes are empty
-							get_bus()->fire<client_dockspace_event>(m_dock.get());
-						}
-						ImGui::DockSpace(
-							ImGui::GetID(m_dock->title.c_str()),
-							m_dock->size,
-							ImGuiDockNodeFlags_PassthruCentralNode |
-							m_dock->flags);
-						ImGui::End();
-					}
-				}
-
-				// client menubar
-				if (m_menu->enabled && ImGui::BeginMainMenuBar())
-				{
-					get_bus()->fire<client_menubar_event>(m_menu.get());
-
-					ImGui::EndMainMenuBar();
-				}
-
-				// client gui
-				get_bus()->fire<client_gui_event>(this);
-			});
-		}
-		while (get_window()->is_open());
-		return EXIT_SUCCESS;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void client_runtime::begin_frame(client_io & io) noexcept
-	{
-		io.loop_timer.restart();
-		
-		auto const dt{ (float_t)io.delta_time.count() };
-		
-		io.fps_accum += dt - io.fps_times[io.fps_index];
-		
-		io.fps_times[io.fps_index] = dt;
-		
-		io.fps_index = (io.fps_index + 1) % io.fps_times.size();
-		
-		io.fps = (0.f < io.fps_accum) ? 1.f / (io.fps_accum / (float_t)io.fps_times.size()) : FLT_MAX;
+		auto ML_anon{ ([&io]() noexcept { // timers
+			io.loop_timer.restart();
+			auto const dt{ (float_t)io.delta_time.count() };
+			io.fps_accum += dt - io.fps_times[io.fps_index];
+			io.fps_times[io.fps_index] = dt;
+			io.fps_index = (io.fps_index + 1) % io.fps_times.size();
+			io.fps = (0.f < io.fps_accum) ? 1.f / (io.fps_accum / (float_t)io.fps_times.size()) : FLT_MAX;
+			return ML_defer_ex(&io) {
+				++io.frame_count;
+				io.delta_time = io.loop_timer.elapsed();
+			};
+		})() };
 
 		native_window::poll_events();
-	}
 
-	void client_runtime::end_frame(client_io & io) noexcept
-	{
-		++io.frame_count;
-		
-		io.delta_time = io.loop_timer.elapsed();
+		get_bus()->fire<client_idle_event>(this);
+
+		ImGui_DoFrame(get_window(), ImGui::GetDrawData(), [&]()
+		{
+			internal_gui(io);
+		});
 
 		if (get_window()->has_hints(window_hints_doublebuffer))
 		{
@@ -279,30 +301,56 @@ namespace ml
 		}
 	}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void client_runtime::on_event(event && value)
+	void client_runtime::internal_gui(client_io & io)
 	{
-		switch (value)
+		ML_ImGui_ScopeID(this);
+
+		// CLIENT DOCKSPACE
+		if (m_dock->enabled && (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable))
 		{
-		// keyboard
-		case window_key_event::ID: {
-			auto && ev{ (window_key_event &&)value };
-			get_io()->keyboard[ev.key] = ev.action;
-		} break;
-
-		// mouse
-		case window_mouse_event::ID: {
-			auto && ev{ (window_mouse_event &&)value };
-			get_io()->mouse[ev.button] = ev.action;
-		} break;
-
-		// cursor pos
-		case window_cursor_pos_event::ID: {
-			auto && ev{ (window_cursor_pos_event &&)value };
-			get_io()->cursor = { ev.x, ev.y };
-		} break;
+			ImGuiViewport const * v{ ImGui::GetMainViewport() };
+			ImGui::SetNextWindowPos(v->Pos);
+			ImGui::SetNextWindowSize(v->Size);
+			ImGui::SetNextWindowViewport(v->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_dock->rounding);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock->border);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock->padding);
+			ImGui::SetNextWindowBgAlpha(m_dock->alpha);
+			if (ImGui::Begin(m_dock->title.c_str(), &m_dock->enabled,
+				ImGuiWindowFlags_NoTitleBar |
+				ImGuiWindowFlags_NoCollapse |
+				ImGuiWindowFlags_NoResize |
+				ImGuiWindowFlags_NoMove |
+				ImGuiWindowFlags_NoBringToFrontOnFocus |
+				ImGuiWindowFlags_NoNavFocus |
+				ImGuiWindowFlags_NoDocking |
+				ImGuiWindowFlags_NoBackground |
+				(m_menu->enabled ? ImGuiWindowFlags_MenuBar : 0)
+			))
+			{
+				ImGui::PopStyleVar(3);
+				if (m_dock->nodes.empty()) { // fire docking event if nodes are empty
+					get_bus()->fire<client_dockspace_event>(m_dock.get());
+				}
+				ImGui::DockSpace(
+					ImGui::GetID(m_dock->title.c_str()),
+					m_dock->size,
+					ImGuiDockNodeFlags_PassthruCentralNode |
+					m_dock->flags);
+				ImGui::End();
+			}
 		}
+
+		// CLIENT MENUBAR
+		if (m_menu->enabled && ImGui::BeginMainMenuBar())
+		{
+			get_bus()->fire<client_menubar_event>(m_menu.get());
+
+			ImGui::EndMainMenuBar();
+		}
+
+		// CLIENT GUI
+		get_bus()->fire<client_gui_event>(this);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

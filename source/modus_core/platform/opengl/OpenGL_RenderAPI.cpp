@@ -930,13 +930,14 @@ namespace ml::gfx
 		return value;
 	}
 
-	int_rect opengl_render_context::get_viewport() const
+	int_rect * opengl_render_context::get_viewport(int_rect * value) const
 	{
-		int_rect temp{};
+		static int_rect temp{
+		}; if (!value) { value = &temp; }
 
 		ML_glCheck(glGetIntegerv(GL_VIEWPORT, temp));
 
-		return temp;
+		return value;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

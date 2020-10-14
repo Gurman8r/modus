@@ -1,7 +1,7 @@
 #ifndef _ML_IMGUI_EXT_HPP_
 #define _ML_IMGUI_EXT_HPP_
 
-#include <modus_core/imgui/ImGui.hpp>
+#include <modus_core/client/ImGui.hpp>
 
 // TOOLTIPS
 namespace ml::ImGuiExt

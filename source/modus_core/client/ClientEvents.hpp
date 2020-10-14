@@ -14,12 +14,12 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// CLIENT INIT
-	ML_decl_event(client_init_event)
+	ML_decl_event(client_enter_event)
 	{
 		client_runtime * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_init_event(client_runtime * ptr) noexcept : ptr{ ptr } {}
+		constexpr client_enter_event(client_runtime * ptr) noexcept : ptr{ ptr } {}
 	};
 
 	// CLIENT EXIT

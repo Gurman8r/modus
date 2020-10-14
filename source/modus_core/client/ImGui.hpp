@@ -3,8 +3,10 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <modus_core/system/Memory.hpp>
 #include <modus_core/detail/Color.hpp>
+#include <modus_core/system/Memory.hpp>
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef IM_VEC2_CLASS_EXTRA
 #define IM_VEC2_CLASS_EXTRA								\
@@ -38,7 +40,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifdef ML_IMPL_IMGUI_EXTRAS
-
 #include <ImGuizmo/ImGuizmo.h>
 #include <ImGuizmo/ImSequencer.h>
 #include <ImGuizmo/ImCurveEdit.h>
@@ -56,24 +57,58 @@ namespace ml
 		}
 	};
 }
-
 #endif
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // ImGui::PushID(...); ML_defer() { ImGui::PopID(); };
 #define ML_ImGui_ScopeID(...) \
-	auto ML_anon = _ML impl::imgui_scope_id{ ##__VA_ARGS__ }
+	auto ML_anon = _ML impl::imgui_scoped_id{ ##__VA_ARGS__ }
 
 namespace ml::impl
 {
-	struct ML_NODISCARD imgui_scope_id final
+	struct ML_NODISCARD imgui_scoped_id final
 	{
 		template <class ... Args
-		> imgui_scope_id(Args && ... args) noexcept { ImGui::PushID(ML_forward(args)...); }
+		> imgui_scoped_id(Args && ... args) noexcept {
+			ImGui::PushID(ML_forward(args)...);
+		}
 
-		~imgui_scope_id() noexcept { ImGui::PopID(); }
+		~imgui_scoped_id() noexcept {
+			ImGui::PopID();
+		}
 	};
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+namespace ml
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	struct render_window;
+
+	ML_CORE_API bool ImGui_Startup(render_window * win, bool clbk = true);
+
+	ML_CORE_API void ImGui_Shutdown();
+
+	ML_CORE_API void ImGui_NewFrame();
+
+	ML_CORE_API void ImGui_RenderDrawData(render_window * win, ImDrawData * data);
+
+	template <class Fn, class ... Args
+	> void ImGui_DoFrame(render_window * win, ImDrawData * data, Fn && fn, Args && ... args) noexcept
+	{
+		ImGui_NewFrame();
+		std::invoke(ML_forward(fn), ML_forward(args)...);
+		ImGui_RenderDrawData(win, data);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	ML_CORE_API bool ImGui_LoadStyle(fs::path const & path, ImGuiStyle & ref = ImGui::GetStyle());
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

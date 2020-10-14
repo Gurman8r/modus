@@ -2,9 +2,58 @@
 #define _ML_CLIENT_RUNTIME_HPP_
 
 #include <modus_core/client/PluginManager.hpp>
-#include <modus_core/imgui/ImGui.hpp>
+#include <modus_core/client/ImGui.hpp>
 
-// MENUBAR
+// CLIENT DOCKSPACE
+namespace ml
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// client dockspace
+	struct ML_CORE_API client_dockspace final : client_object<client_dockspace>
+	{
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+
+		bool					enabled;
+		pmr::string				title;
+		float_t					border;
+		float_t					rounding;
+		float_t					alpha;
+		vec2					padding;
+		vec2					size;
+		int32_t					flags;
+		pmr::vector<uint32_t>	nodes;
+
+		client_dockspace(client_context * ctx) noexcept;
+
+		~client_dockspace() noexcept override = default;
+
+		void configure(json const & j);
+
+		uint32_t begin_builder();
+
+		uint32_t end_builder(uint32_t root);
+
+		uint32_t dock(cstring name, uint32_t id);
+
+		uint32_t split(uint32_t i, uint32_t id, int32_t dir, float_t ratio, uint32_t * value);
+
+		uint32_t split(uint32_t id, int32_t dir, float_t ratio, uint32_t * value);
+
+		uint32_t split(uint32_t id, int32_t dir, float_t ratio, uint32_t * out, uint32_t * value);
+
+		ML_NODISCARD auto & operator[](size_t i) noexcept { return nodes[i]; }
+
+		ML_NODISCARD auto const & operator[](size_t i) const noexcept { return nodes[i]; }
+
+	private:
+		void on_event(event && value) override;
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// CLIENT MENUBAR
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -14,7 +63,8 @@ namespace ml
 	{
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		bool enabled{ true };
+		bool		enabled;
+		pmr::string	title;
 
 		client_menubar(client_context * ctx) noexcept;
 
@@ -29,56 +79,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-// DOCKSPACE
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// client dockspace
-	struct ML_CORE_API client_dockspace final : client_object<client_dockspace>
-	{
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
-		bool					enabled		{ true };
-		pmr::string				title		{ "dockspace" };
-		float_t					border		{};
-		float_t					rounding	{};
-		float_t					alpha		{};
-		vec2					padding		{};
-		vec2					size		{};
-		int32_t					flags		{ ImGuiDockNodeFlags_AutoHideTabBar };
-		pmr::vector<uint32_t>	nodes		{};
-
-		client_dockspace(client_context * ctx) noexcept;
-
-		~client_dockspace() noexcept override = default;
-
-		void configure(json const & j);
-
-		ML_NODISCARD auto & operator[](size_t i) noexcept { return nodes[i]; }
-
-		ML_NODISCARD auto const & operator[](size_t i) const noexcept { return nodes[i]; }
-
-		uint32_t begin_builder();
-
-		uint32_t end_builder(uint32_t root);
-
-		uint32_t dock(cstring name, uint32_t id);
-
-		uint32_t split(uint32_t i, uint32_t id, int32_t dir, float_t ratio, uint32_t * value);
-
-		uint32_t split(uint32_t id, int32_t dir, float_t ratio, uint32_t * value);
-
-		uint32_t split(uint32_t id, int32_t dir, float_t ratio, uint32_t * out, uint32_t * value);
-
-	private:
-		void on_event(event && value) override;
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-// RUNTIME
+// CLIENT RUNTIME
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -92,7 +93,7 @@ namespace ml
 
 		explicit client_runtime(client_context * context);
 
-		~client_runtime() override;
+		~client_runtime() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -111,18 +112,23 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		void begin_frame(client_io & io) noexcept;
-
-		void end_frame(client_io & io) noexcept;
-
 		void on_event(event && value) override;
+
+		void internal_startup(json const & j);
+
+		void internal_shutdown();
+
+		void internal_idle(client_io & io);
+
+		void internal_gui(client_io & io);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		bool						m_running	; // 
-		unique<	client_menubar	>	m_menu		; // 
+		manual<	ImGuiContext	>	m_imgui		; // 
 		unique<	client_dockspace>	m_dock		; // 
+		unique<	client_menubar	>	m_menu		; // 
 		unique<	plugin_manager	>	m_plugins	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

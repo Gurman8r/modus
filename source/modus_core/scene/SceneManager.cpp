@@ -2,7 +2,7 @@
 
 namespace ml
 {
-	scene_manager::scene_manager(memory_manager * mem, event_bus * bus, render_window * win, imgui_runtime * gui)
+	scene_manager::scene_manager(memory_manager * mem, event_bus * bus, render_window * win)
 		: event_listener{ bus }
 	{
 	}

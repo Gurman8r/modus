@@ -119,7 +119,7 @@ namespace ml
 
 		ML_NODISCARD auto handle() const noexcept -> library_handle { return m_handle; }
 
-		ML_NODISCARD auto hash() const noexcept -> hash_t { return m_hash; }
+		ML_NODISCARD auto hash_code() const noexcept -> hash_t { return m_hash; }
 
 		ML_NODISCARD auto path() const noexcept -> fs::path const & { return m_path; }
 
@@ -141,7 +141,7 @@ namespace ml
 			else
 			{
 				static_assert(std::is_same_v<U, hash_t>);
-				return util::compare(hash(), value);
+				return util::compare(hash_code(), value);
 			}
 		}
 

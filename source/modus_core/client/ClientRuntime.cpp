@@ -118,9 +118,9 @@ namespace ml
 	client_runtime::client_runtime(client_context * ctx)
 		: client_object	{ ctx }
 		, m_running		{}
-		, m_imgui		{ nullptr }
+		, m_imgui		{}
 		, m_dock		{ ctx->mem->new_object<client_dockspace>(ctx) }
-		, m_menu		{ ctx->mem->new_object<client_menubar>(ctx) }
+		, m_menubar		{ ctx->mem->new_object<client_menubar>(ctx) }
 		, m_plugins		{ ctx->mem->new_object<plugin_manager>(ctx) }
 	{
 		subscribe<window_key_event>();
@@ -143,14 +143,16 @@ namespace ml
 		if (m_running || !get_window()->is_open()) { return EXIT_FAILURE; }
 		else { m_running = true; } ML_defer(&) { m_running = false; };
 		
-		// enter / exit
+		// enter
 		get_bus()->fire<client_enter_event>(this);
-		ML_defer(&) { get_bus()->fire<client_exit_event>(this); };
 		if (!get_window()->is_open()) { return EXIT_FAILURE; }
 
 		// idle
 		do { internal_idle(*get_io()); }
 		while (get_window()->is_open());
+
+		// exit
+		get_bus()->fire<client_exit_event>(this);
 		return EXIT_SUCCESS;
 	}
 
@@ -236,7 +238,7 @@ namespace ml
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		ImGui_Startup(get_window(), j["client"]["callbacks"]);
-		m_menu->configure(j["client"]["menu"]);
+		m_menubar->configure(j["client"]["menu"]);
 		m_dock->configure(j["client"]["dock"]);
 		if (j["client"].contains("gui_style"))
 		{
@@ -273,25 +275,20 @@ namespace ml
 
 	void client_runtime::internal_idle(client_io & io)
 	{
-		auto ML_anon{ ([&io]() noexcept { // timers
-			io.loop_timer.restart();
-			auto const dt{ (float_t)io.delta_time.count() };
-			io.fps_accum += dt - io.fps_times[io.fps_index];
-			io.fps_times[io.fps_index] = dt;
-			io.fps_index = (io.fps_index + 1) % io.fps_times.size();
-			io.fps = (0.f < io.fps_accum) ? 1.f / (io.fps_accum / (float_t)io.fps_times.size()) : FLT_MAX;
-			return ML_defer_ex(&io) {
-				++io.frame_count;
-				io.delta_time = io.loop_timer.elapsed();
-			};
-		})() };
+		++io.frame_count;
+		io.delta_time = io.loop_timer.elapsed();
+		io.loop_timer.restart();
+		auto const dt{ (float_t)io.delta_time.count() };
+		io.fps_accum += dt - io.fps_times[io.fps_index];
+		io.fps_times[io.fps_index] = dt;
+		io.fps_index = (io.fps_index + 1) % io.fps_times.size();
+		io.fps = (0.f < io.fps_accum) ? 1.f / (io.fps_accum / (float_t)io.fps_times.size()) : FLT_MAX;
 
 		native_window::poll_events();
 
 		get_bus()->fire<client_idle_event>(this);
 
-		ImGui_DoFrame(get_window(), ImGui::GetDrawData(), [&]()
-		{
+		ImGui_DoFrame(get_window(), m_imgui.get(), [&]() noexcept {
 			internal_gui(io);
 		});
 
@@ -325,12 +322,12 @@ namespace ml
 				ImGuiWindowFlags_NoNavFocus |
 				ImGuiWindowFlags_NoDocking |
 				ImGuiWindowFlags_NoBackground |
-				(m_menu->enabled ? ImGuiWindowFlags_MenuBar : 0)
+				(m_menubar->enabled ? ImGuiWindowFlags_MenuBar : 0)
 			))
 			{
 				ImGui::PopStyleVar(3);
 				if (m_dock->nodes.empty()) { // fire docking event if nodes are empty
-					get_bus()->fire<client_dockspace_event>(m_dock.get());
+					get_bus()->fire<client_dock_event>(m_dock.get());
 				}
 				ImGui::DockSpace(
 					ImGui::GetID(m_dock->title.c_str()),
@@ -342,9 +339,9 @@ namespace ml
 		}
 
 		// CLIENT MENUBAR
-		if (m_menu->enabled && ImGui::BeginMainMenuBar())
+		if (m_menubar->enabled && ImGui::BeginMainMenuBar())
 		{
-			get_bus()->fire<client_menubar_event>(m_menu.get());
+			get_bus()->fire<client_menubar_event>(m_menubar.get());
 
 			ImGui::EndMainMenuBar();
 		}

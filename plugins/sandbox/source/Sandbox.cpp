@@ -35,7 +35,7 @@ namespace ml
 			subscribe<client_enter_event>();
 			subscribe<client_exit_event>();
 			subscribe<client_idle_event>();
-			subscribe<client_dockspace_event>();
+			subscribe<client_dock_event>();
 			subscribe<client_menubar_event>();
 			subscribe<client_gui_event>();
 		}
@@ -44,18 +44,18 @@ namespace ml
 		{
 			switch (value)
 			{
-			case client_enter_event		::ID: return on_client_init((client_enter_event &&)value);
+			case client_enter_event		::ID: return on_client_enter((client_enter_event &&)value);
 			case client_exit_event		::ID: return on_client_exit((client_exit_event &&)value);
 			case client_idle_event		::ID: return on_client_idle((client_idle_event &&)value);
-			case client_dockspace_event	::ID: return on_client_dockspace((client_dockspace_event &&)value);
-			case client_menubar_event	::ID: return on_client_menubar((client_menubar_event &&)value);
+			case client_dock_event	::ID: return on_client_dock((client_dock_event &&)value);
+			case client_menubar_event	::ID: return on_client_menu((client_menubar_event &&)value);
 			case client_gui_event		::ID: return on_client_gui((client_gui_event &&)value);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_client_init(client_enter_event && ev)
+		void on_client_enter(client_enter_event && ev)
 		{
 			if (bitmap const icon{ get_io()->path2("resource/icon.png") })
 			{
@@ -86,7 +86,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_client_dockspace(client_dockspace_event && ev)
+		void on_client_dock(client_dock_event && ev)
 		{
 			if (auto const root{ ev->begin_builder() })
 			{
@@ -95,7 +95,7 @@ namespace ml
 			}
 		}
 
-		void on_client_menubar(client_menubar_event && ev)
+		void on_client_menu(client_menubar_event && ev)
 		{
 			if (ImGui::BeginMenu("file"))
 			{
@@ -109,47 +109,44 @@ namespace ml
 
 		void on_client_gui(client_gui_event && ev)
 		{
+			// viewport
 			ImGui::SetNextWindowSize({ 540, 480 }, ImGuiCond_Once);
-			ImGuiExt::DrawWindow("viewport", nullptr,
-				ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar,
-				&sandbox::draw_viewport, this, *get_io());
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
+			ImGuiExt::DrawWindow("viewport", 0, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar,
+			[&]()
+			{
+				ImGui::PopStyleVar(1);
+
+				draw_viewport_contents();
+			});
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void draw_viewport(client_io & io)
+		void draw_viewport_contents()
 		{
-			static gui_texture_preview tpv{};
-			auto const & tex{ m_fbo.back()->get_color_attachments().front() };
-			tpv.tex_addr = tex->get_handle();
-
 			static auto const & modes{ video_mode::fullscreen_modes() };
 			static size_t		index{};
 			static bool			fixed{};
-			auto const & video{ modes[index] };
+			video_mode const &	video{ modes[index] };
 
 			if (ImGui::BeginMenuBar())
 			{
-				ML_defer(&) { ImGui::EndMenuBar(); };
-
+				// resolution
 				char res_label[128]{};
 				constexpr auto
-					fmt_fa{ "free aspect" },
+					fmt_fa{ "free" },
 					fmt_vm{ "%i x %i @ %dhz" };
 				if (!fixed) std::sprintf(res_label, fmt_fa);
 				else std::sprintf(res_label, fmt_vm,
 					video.resolution[0],
 					video.resolution[1],
 					video.refresh_rate);
-
-				ImGui::SetNextItemWidth(256);
+				ImGui::SetNextItemWidth(160);
 				if (ImGui::BeginCombo("##resolution", res_label))
 				{
-					ML_defer(&) { ImGui::EndCombo(); };
-
 					if (ImGui::Selectable(fmt_fa, !fixed)) { fixed = false; }
 					ImGui::Separator();
-
 					for (size_t i = 0; i < modes.size(); ++i)
 					{
 						std::sprintf(res_label, fmt_vm,
@@ -161,26 +158,35 @@ namespace ml
 							index = i; fixed = true;
 						}
 					}
+					ImGui::EndCombo();
 				}
 				ImGui::Separator();
 
-				// FPS
-				ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / io.fps, io.fps);
+				// fps
+				auto const fps{ get_io()->fps };
+				ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 				ImGui::Separator();
+
+				ImGui::EndMenuBar();
 			}
 
-			if (!fixed)
-			{
-				m_resolution = ImGui::GetContentRegionAvail();
-				tpv.tex_size = m_resolution;
-			}
-			else
-			{
-				m_resolution = util::scale_to_fit((vec2)modes[index].resolution, (vec2)ImGui::GetContentRegionAvail());
-				tpv.tex_size = tex->get_data().size;
+			auto const & tex{ m_fbo.back()->get_color_attachments().front() };
+			auto const dst_size{ (vec2)ImGui::GetContentRegionAvail() };
+
+			vec2 src_size{};
+			if (!fixed) { src_size = m_resolution = dst_size; }
+			else {
+				src_size = tex->get_data().size;
+				m_resolution = util::scale_to_fit((vec2)modes[index].resolution, dst_size);
 			}
 
-			tpv.render();
+			ImGui::Image(
+				tex->get_handle(),
+				util::scale_to_fit(src_size, dst_size),
+				{ 0, 1 },
+				{ 1, 0 },
+				colors::white,
+				colors::gray);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

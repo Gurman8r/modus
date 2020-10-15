@@ -19,7 +19,7 @@ namespace ml
 		using allocator_type = pmr::polymorphic_allocator<byte_t>;
 
 		client_io(int32_t argc, char ** argv, allocator_type alloc, json prefs)
-			: args{ argv, argv + argc }, alloc{ alloc }, prefs{ json{ prefs } }
+			: args{ argv, argv + argc, alloc }, alloc{ alloc }, prefs{ json{ prefs } }
 		{
 		}
 

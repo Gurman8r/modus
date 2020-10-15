@@ -41,12 +41,12 @@ namespace ml
 	};
 
 	// CLIENT DOCKSPACE
-	ML_decl_event(client_dockspace_event)
+	ML_decl_event(client_dock_event)
 	{
 		client_dockspace * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_dockspace_event(client_dockspace * const ptr) noexcept : ptr{ ptr } {}
+		constexpr client_dock_event(client_dockspace * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	// CLIENT MENUBAR

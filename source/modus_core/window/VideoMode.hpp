@@ -28,24 +28,14 @@ namespace ml
 
 		ML_NODISCARD constexpr bool operator==(video_mode const & other) const noexcept
 		{
-			if (this == std::addressof(other)) { return true; }
-			else
-			{
-				return resolution		== other.resolution
-					&& bits_per_pixel	== other.bits_per_pixel
-					&& refresh_rate		== other.refresh_rate;
-			}
+			return this == std::addressof(other)
+				|| resolution == other.resolution;
 		}
 
 		ML_NODISCARD constexpr bool operator<(video_mode const & other) const noexcept
 		{
-			if (this == std::addressof(other)) { return false; }
-			else
-			{
-				return resolution		< other.resolution
-					|| bits_per_pixel	< other.bits_per_pixel
-					|| refresh_rate		< other.refresh_rate;
-			}
+			return this != std::addressof(other)
+				&& resolution < other.resolution;
 		}
 
 		ML_NODISCARD constexpr bool operator!=(video_mode const & other) const noexcept

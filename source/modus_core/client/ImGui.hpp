@@ -94,14 +94,14 @@ namespace ml
 
 	ML_CORE_API void ImGui_NewFrame();
 
-	ML_CORE_API void ImGui_RenderDrawData(render_window * win, ImDrawData * data);
+	ML_CORE_API void ImGui_RenderFrame(render_window * win, ImGuiContext * ctx);
 
 	template <class Fn, class ... Args
-	> void ImGui_DoFrame(render_window * win, ImDrawData * data, Fn && fn, Args && ... args) noexcept
+	> void ImGui_DoFrame(render_window * win, ImGuiContext * ctx, Fn && fn, Args && ... args) noexcept
 	{
 		ImGui_NewFrame();
 		std::invoke(ML_forward(fn), ML_forward(args)...);
-		ImGui_RenderDrawData(win, data);
+		ImGui_RenderFrame(win, ctx);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -43,7 +43,7 @@ namespace ml
 		ImGui::NewFrame();
 	}
 
-	void ImGui_RenderDrawData(render_window * win, ImDrawData * data)
+	void ImGui_RenderFrame(render_window * win, ImGuiContext * ctx)
 	{
 		ImGui::Render();
 
@@ -53,7 +53,7 @@ namespace ml
 			gfx::command::clear(gfx::clear_color));
 
 #if defined(ML_IMPL_RENDERER_OPENGL)
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplOpenGL3_RenderDrawData(&ctx->Viewports[0]->DrawDataP);
 #else
 #endif
 

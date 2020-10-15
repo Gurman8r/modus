@@ -103,9 +103,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_dockspace() const noexcept -> unique<client_dockspace> const & { return m_dock; }
+		ML_NODISCARD auto get_imgui() const noexcept -> manual<ImGuiContext> const & { return m_imgui; }
 
-		ML_NODISCARD auto get_menubar() const noexcept -> unique<client_menubar> const & { return m_menu; }
+		ML_NODISCARD auto get_dock() const noexcept -> unique<client_dockspace> const & { return m_dock; }
+
+		ML_NODISCARD auto get_menubar() const noexcept -> unique<client_menubar> const & { return m_menubar; }
 
 		ML_NODISCARD auto get_plugins() const noexcept -> unique<plugin_manager> const & { return m_plugins; }
 
@@ -128,7 +130,7 @@ namespace ml
 		bool						m_running	; // 
 		manual<	ImGuiContext	>	m_imgui		; // 
 		unique<	client_dockspace>	m_dock		; // 
-		unique<	client_menubar	>	m_menu		; // 
+		unique<	client_menubar	>	m_menubar	; // 
 		unique<	plugin_manager	>	m_plugins	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

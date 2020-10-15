@@ -60,9 +60,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		vec2d			cursor	{};
-		mouse_state		mouse	{};
-		keyboard_state	keyboard{};
+		vec2d			cursor		{};
+		mouse_state		mouse		{};
+		keyboard_state	keyboard	{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

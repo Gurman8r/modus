@@ -94,6 +94,8 @@ namespace ml
 
 	ML_CORE_API void ImGui_NewFrame();
 
+	ML_CORE_API void ImGui_RenderDrawData(ImDrawData * draw_data);
+
 	ML_CORE_API void ImGui_RenderFrame(render_window * win, ImGuiContext * ctx);
 
 	template <class Fn, class ... Args

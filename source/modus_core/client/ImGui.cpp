@@ -43,6 +43,14 @@ namespace ml
 		ImGui::NewFrame();
 	}
 
+	void ImGui_RenderDrawData(ImDrawData * draw_data)
+	{
+#if defined(ML_IMPL_RENDERER_OPENGL)
+		ImGui_ImplOpenGL3_RenderDrawData(draw_data);
+#else
+#endif
+	}
+
 	void ImGui_RenderFrame(render_window * win, ImGuiContext * ctx)
 	{
 		ImGui::Render();
@@ -52,12 +60,9 @@ namespace ml
 			gfx::command::set_clear_color(colors::black),
 			gfx::command::clear(gfx::clear_color));
 
-#if defined(ML_IMPL_RENDERER_OPENGL)
-		ImGui_ImplOpenGL3_RenderDrawData(&ctx->Viewports[0]->DrawDataP);
-#else
-#endif
+		ImGui_RenderDrawData(&ctx->Viewports[0]->DrawDataP);
 
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		if (ctx->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			auto backup_context{ native_window::get_context_current() };
 			ImGui::UpdatePlatformWindows();

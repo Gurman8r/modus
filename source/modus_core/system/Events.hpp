@@ -22,21 +22,17 @@ namespace ml
 	// EVENT BASE
 	struct event : non_copyable
 	{
-		ML_NODISCARD bool consume() noexcept { return !m_used && (m_used = true); }
-
-		ML_NODISCARD bool used() const noexcept { return m_used; }
-
-		ML_NODISCARD explicit constexpr operator bool() const noexcept { return !m_used; }
-
-		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_id; }
+		ML_NODISCARD constexpr operator hash_t() const noexcept
+		{
+			return m_evid;
+		}
 
 	protected:
-		constexpr explicit event(hash_t id) noexcept : m_id{ id }, m_used{}
+		constexpr explicit event(hash_t id) noexcept : m_evid{ id }
 		{
 		}
 
-		hash_t const	m_id	; // 
-		bool			m_used	; // 
+		hash_t const m_evid; // 
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -44,8 +40,7 @@ namespace ml
 	// EVENT HELPER
 	namespace impl
 	{
-		template <class Derived
-		> struct event_helper : event
+		template <class Derived> struct event_helper : event
 		{
 			enum : hash_t { ID = hashof_v<Derived> };
 
@@ -144,13 +139,11 @@ namespace ml
 
 		void fire(event && ev) noexcept
 		{
-			if (!ev) { return; }
-			else if (auto const cat{ m_categories.find(ev) })
+			if (auto const cat{ m_categories.find(ev) })
 			{
 				for (auto const listener : (*cat->second))
 				{
-					if (!ev) { return; }
-					else if (listener->is_listening())
+					if (listener->is_listening())
 					{
 						listener->on_event(ML_forward(ev));
 					}

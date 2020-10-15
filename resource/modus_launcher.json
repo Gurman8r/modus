@@ -33,10 +33,6 @@
 	"client": {
 		"callbacks": true,
 		"gui_style": "assets/styles/obsidian.style",
-		"menu": {
-			"enabled"	: true,
-			"title"		: "menubar"
-		},
 		"dock": {
 			"enabled"	: true,
 			"title"		: "dockspace",
@@ -46,6 +42,10 @@
 			"padding"	: [ 0, 0 ],
 			"size"		: [ 0, 0 ],
 			"nodes"		: []
+		},
+		"menu": {
+			"enabled"	: true,
+			"title"		: "menubar"
 		},
 		"plugins": [
 			{ "path": "plugins/sandbox" }

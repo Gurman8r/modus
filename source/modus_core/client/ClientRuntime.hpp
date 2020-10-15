@@ -103,34 +103,34 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_imgui() const noexcept -> manual<ImGuiContext> const & { return m_imgui; }
+		ML_NODISCARD auto get_gui() const noexcept -> manual<ImGuiContext> const & { return m_gui; }
 
 		ML_NODISCARD auto get_dock() const noexcept -> unique<client_dockspace> const & { return m_dock; }
 
-		ML_NODISCARD auto get_menubar() const noexcept -> unique<client_menubar> const & { return m_menubar; }
+		ML_NODISCARD auto get_menubar() const noexcept -> unique<client_menubar> const & { return m_menu; }
 
 		ML_NODISCARD auto get_plugins() const noexcept -> unique<plugin_manager> const & { return m_plugins; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
+		void do_startup(json const & j);
+
+		void do_shutdown();
+
+		void do_idle();
+
+		void do_gui();
+
 		void on_event(event && value) override;
-
-		void internal_startup(json const & j);
-
-		void internal_shutdown();
-
-		void internal_idle(client_io & io);
-
-		void internal_gui(client_io & io);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		bool						m_running	; // 
-		manual<	ImGuiContext	>	m_imgui		; // 
+		manual<	ImGuiContext	>	m_gui		; // 
 		unique<	client_dockspace>	m_dock		; // 
-		unique<	client_menubar	>	m_menubar	; // 
+		unique<	client_menubar	>	m_menu		; // 
 		unique<	plugin_manager	>	m_plugins	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

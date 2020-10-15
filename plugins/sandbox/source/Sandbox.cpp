@@ -24,7 +24,7 @@ namespace ml
 
 		vec2 m_resolution{ 1280, 720 };
 
-		pmr::vector<shared<gfx::framebuffer>> m_fbo{};
+		shared<gfx::framebuffer> m_fb{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -35,21 +35,21 @@ namespace ml
 			subscribe<client_enter_event>();
 			subscribe<client_exit_event>();
 			subscribe<client_idle_event>();
-			subscribe<client_dock_event>();
+			subscribe<client_dockspace_event>();
 			subscribe<client_menubar_event>();
 			subscribe<client_gui_event>();
 		}
 
-		void on_event(event && value) override
+		void on_event(event && ev) override
 		{
-			switch (value)
+			switch (ev)
 			{
-			case client_enter_event		::ID: return on_client_enter((client_enter_event &&)value);
-			case client_exit_event		::ID: return on_client_exit((client_exit_event &&)value);
-			case client_idle_event		::ID: return on_client_idle((client_idle_event &&)value);
-			case client_dock_event	::ID: return on_client_dock((client_dock_event &&)value);
-			case client_menubar_event	::ID: return on_client_menu((client_menubar_event &&)value);
-			case client_gui_event		::ID: return on_client_gui((client_gui_event &&)value);
+			case client_enter_event		::ID: return on_client_enter	((client_enter_event &&)ev);
+			case client_exit_event		::ID: return on_client_exit		((client_exit_event &&)ev);
+			case client_idle_event		::ID: return on_client_idle		((client_idle_event &&)ev);
+			case client_dockspace_event	::ID: return on_client_dockspace((client_dockspace_event &&)ev);
+			case client_menubar_event	::ID: return on_client_menubar	((client_menubar_event &&)ev);
+			case client_gui_event		::ID: return on_client_gui		((client_gui_event &&)ev);
 			}
 		}
 
@@ -62,7 +62,7 @@ namespace ml
 				get_window()->set_icons(icon.width(), icon.height(), 1, icon.data());
 			}
 
-			m_fbo.push_back(gfx::framebuffer::create({ "0", m_resolution }));
+			m_fb = gfx::framebuffer::create({ "0", m_resolution });
 		}
 
 		void on_client_exit(client_exit_event && ev)
@@ -71,10 +71,10 @@ namespace ml
 
 		void on_client_idle(client_idle_event && ev)
 		{
-			for (auto & fbo : m_fbo) { fbo->resize(m_resolution); }
+			m_fb->resize(m_resolution);
 
 			get_window()->execute(
-				gfx::command::bind_framebuffer(m_fbo[0]),
+				gfx::command::bind_framebuffer(m_fb),
 				gfx::command::set_clear_color(colors::magenta),
 				gfx::command::clear(gfx::clear_color | gfx::clear_depth),
 				gfx::command([&](gfx::render_context * ctx) noexcept
@@ -86,7 +86,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_client_dock(client_dock_event && ev)
+		void on_client_dockspace(client_dockspace_event && ev)
 		{
 			if (auto const root{ ev->begin_builder() })
 			{
@@ -95,7 +95,7 @@ namespace ml
 			}
 		}
 
-		void on_client_menu(client_menubar_event && ev)
+		void on_client_menubar(client_menubar_event && ev)
 		{
 			if (ImGui::BeginMenu("file"))
 			{
@@ -113,10 +113,8 @@ namespace ml
 			ImGui::SetNextWindowSize({ 540, 480 }, ImGuiCond_Once);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
 			ImGuiExt::DrawWindow("viewport", 0, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar,
-			[&]()
-			{
+			[&]() noexcept {
 				ImGui::PopStyleVar(1);
-
 				draw_viewport_contents();
 			});
 		}
@@ -135,7 +133,7 @@ namespace ml
 				// resolution
 				char res_label[128]{};
 				constexpr auto
-					fmt_fa{ "free" },
+					fmt_fa{ "automatic" },
 					fmt_vm{ "%i x %i @ %dhz" };
 				if (!fixed) std::sprintf(res_label, fmt_fa);
 				else std::sprintf(res_label, fmt_vm,
@@ -170,23 +168,16 @@ namespace ml
 				ImGui::EndMenuBar();
 			}
 
-			auto const & tex{ m_fbo.back()->get_color_attachments().front() };
-			auto const dst_size{ (vec2)ImGui::GetContentRegionAvail() };
-
-			vec2 src_size{};
-			if (!fixed) { src_size = m_resolution = dst_size; }
-			else {
-				src_size = tex->get_data().size;
-				m_resolution = util::scale_to_fit((vec2)modes[index].resolution, dst_size);
+			auto const tex{ m_fb->get_color_attachments().front().get() };
+			vec2 const dst{ (vec2)ImGui::GetContentRegionAvail() };
+			vec2 src{};
+			if (!fixed) {
+				src = m_resolution = dst;
+			} else {
+				src = tex->get_data().size;
+				m_resolution = util::scale_to_fit((vec2)modes[index].resolution, dst);
 			}
-
-			ImGui::Image(
-				tex->get_handle(),
-				util::scale_to_fit(src_size, dst_size),
-				{ 0, 1 },
-				{ 1, 0 },
-				colors::white,
-				colors::gray);
+			ImGui::Image(tex->get_handle(), util::scale_to_fit(src, dst), { 0, 1 }, { 1, 0 });
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

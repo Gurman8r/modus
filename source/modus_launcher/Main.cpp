@@ -67,11 +67,7 @@ static auto const default_settings{ R"(
 	},
 	"client": {
 		"callbacks": true,
-		"gui_style": "assets/styles/obsidian.style",
-		"menu": {
-			"enabled"	: true,
-			"title"		: "menubar"
-		},
+		"style": "assets/styles/obsidian.style",
 		"dock": {
 			"enabled"	: true,
 			"title"		: "dockspace",
@@ -81,6 +77,10 @@ static auto const default_settings{ R"(
 			"padding"	: [ 0, 0 ],
 			"size"		: [ 0, 0 ],
 			"nodes"		: []
+		},
+		"menu": {
+			"enabled"	: true,
+			"title"		: "menubar"
 		},
 		"plugins": [
 			{ "path": "plugins/sandbox" }

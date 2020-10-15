@@ -7,7 +7,6 @@
 #include <modus_core/graphics/Font.hpp>
 #include <modus_core/graphics/Mesh.hpp>
 #include <modus_core/graphics/Shader.hpp>
-#include <modus_core/graphics/Renderer.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/client/ImGuiExt.hpp>
 #include <modus_core/scene/SceneManager.hpp>
@@ -24,7 +23,7 @@ namespace ml
 
 		vec2 m_resolution{ 1280, 720 };
 
-		shared<gfx::framebuffer> m_fb{};
+		pmr::vector<shared<gfx::framebuffer>> m_fb{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -35,8 +34,8 @@ namespace ml
 			subscribe<client_enter_event>();
 			subscribe<client_exit_event>();
 			subscribe<client_idle_event>();
-			subscribe<client_dockspace_event>();
-			subscribe<client_menubar_event>();
+			subscribe<client_dock_event>();
+			subscribe<client_menu_event>();
 			subscribe<client_gui_event>();
 		}
 
@@ -44,12 +43,12 @@ namespace ml
 		{
 			switch (ev)
 			{
-			case client_enter_event		::ID: return on_client_enter	((client_enter_event &&)ev);
-			case client_exit_event		::ID: return on_client_exit		((client_exit_event &&)ev);
-			case client_idle_event		::ID: return on_client_idle		((client_idle_event &&)ev);
-			case client_dockspace_event	::ID: return on_client_dockspace((client_dockspace_event &&)ev);
-			case client_menubar_event	::ID: return on_client_menubar	((client_menubar_event &&)ev);
-			case client_gui_event		::ID: return on_client_gui		((client_gui_event &&)ev);
+			case client_enter_event	::ID: return on_client_enter((client_enter_event &&)ev);
+			case client_exit_event	::ID: return on_client_exit	((client_exit_event &&)ev);
+			case client_idle_event	::ID: return on_client_idle	((client_idle_event &&)ev);
+			case client_dock_event	::ID: return on_client_dock	((client_dock_event &&)ev);
+			case client_menu_event	::ID: return on_client_menu	((client_menu_event &&)ev);
+			case client_gui_event	::ID: return on_client_gui	((client_gui_event &&)ev);
 			}
 		}
 
@@ -62,7 +61,7 @@ namespace ml
 				get_window()->set_icons(icon.width(), icon.height(), 1, icon.data());
 			}
 
-			m_fb = gfx::framebuffer::create({ "0", m_resolution });
+			m_fb.push_back(gfx::framebuffer::create({ "FB0", m_resolution }));
 		}
 
 		void on_client_exit(client_exit_event && ev)
@@ -71,10 +70,10 @@ namespace ml
 
 		void on_client_idle(client_idle_event && ev)
 		{
-			m_fb->resize(m_resolution);
+			for (auto & fb : m_fb) { fb->resize(m_resolution); }
 
 			get_window()->execute(
-				gfx::command::bind_framebuffer(m_fb),
+				gfx::command::bind_framebuffer(m_fb[0]),
 				gfx::command::set_clear_color(colors::magenta),
 				gfx::command::clear(gfx::clear_color | gfx::clear_depth),
 				gfx::command([&](gfx::render_context * ctx) noexcept
@@ -86,16 +85,16 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_client_dockspace(client_dockspace_event && ev)
+		void on_client_dock(client_dock_event && ev)
 		{
 			if (auto const root{ ev->begin_builder() })
 			{
-				ev->dock("viewport", root);
+				//ev->dock("viewport", root);
 				ev->end_builder(root);
 			}
 		}
 
-		void on_client_menubar(client_menubar_event && ev)
+		void on_client_menu(client_menu_event && ev)
 		{
 			if (ImGui::BeginMenu("file"))
 			{
@@ -110,10 +109,11 @@ namespace ml
 		void on_client_gui(client_gui_event && ev)
 		{
 			// viewport
-			ImGui::SetNextWindowSize({ 540, 480 }, ImGuiCond_Once);
+			ImGui::SetNextWindowSize({ 640, 480 }, ImGuiCond_Once);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
-			ImGuiExt::DrawWindow("viewport", 0, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar,
-			[&]() noexcept {
+			ImGuiExt::DrawWindow("viewport", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar,
+			[&]() noexcept
+			{
 				ImGui::PopStyleVar(1);
 				draw_viewport_contents();
 			});
@@ -168,7 +168,7 @@ namespace ml
 				ImGui::EndMenuBar();
 			}
 
-			auto const tex{ m_fb->get_color_attachments().front().get() };
+			auto const tex{ m_fb.back()->get_color_attachments().front().get() };
 			vec2 const dst{ (vec2)ImGui::GetContentRegionAvail() };
 			vec2 src{};
 			if (!fixed) {

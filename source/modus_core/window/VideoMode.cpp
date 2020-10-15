@@ -40,13 +40,13 @@ namespace ml
 
 	pmr::vector<video_mode> const & video_mode::fullscreen_modes()
 	{
-		static auto temp{ std::invoke([&temp = ds::set<video_mode>{}]()
+		static auto temp{ std::invoke([&temp = pmr::vector<video_mode>{}]()
 		{
 #ifdef ML_os_windows
 			DEVMODE dm; dm.dmSize = sizeof(dm);
 			for (int32_t i = 0; ::EnumDisplaySettingsW(nullptr, i, &dm); ++i)
 			{
-				temp.insert
+				temp.push_back
 				({
 					{ (int32_t)dm.dmPelsWidth, (int32_t)dm.dmPelsHeight },
 					vec4b::fill((byte_t)dm.dmBitsPerPel),
@@ -58,7 +58,7 @@ namespace ml
 #endif
 			return temp;
 		}) };
-		return temp.elements();
+		return temp;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

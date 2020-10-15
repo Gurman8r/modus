@@ -202,15 +202,25 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit memory_manager(passthrough_resource & res);
-
 		explicit memory_manager(pmr::memory_resource * res) : memory_manager{
 			*reinterpret_cast<passthrough_resource *>(res)
-		}
+		} {}
+
+		explicit memory_manager(passthrough_resource & res)
+			: m_resource{ std::addressof(res) }
+			, m_alloc	{ m_resource }
+			, m_records	{ m_alloc }
+			, m_counter	{}
 		{
+			ML_assert(!g_mem && (g_mem = this));
+			ML_assert(m_resource == pmr::get_default_resource());
 		}
 
-		~memory_manager() noexcept;
+		~memory_manager() noexcept
+		{
+			ML_assert("MEMORY LEAKS DETECTED" && m_records.empty<>());
+			ML_assert(g_mem == this && !(g_mem = nullptr));
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

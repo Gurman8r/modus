@@ -13,27 +13,28 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool ImGui_Startup(render_window * win, bool clbk)
+	bool ImGui_Startup(render_window * win, bool callbacks)
 	{
 		ML_assert(win && win->is_open());
 
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
-		return ImGui_ImplGlfw_InitForOpenGL((GLFWwindow *)win->get_handle(), clbk)
+		return ImGui_ImplGlfw_InitForOpenGL((GLFWwindow *)win->get_handle(), callbacks)
 			&& ImGui_ImplOpenGL3_Init("#version 130");
 #else
 #endif
 	}
 
-	void ImGui_Shutdown()
+	void ImGui_Shutdown(render_window * win, ImGuiContext * ctx)
 	{
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 #else
 #endif
+		ImGui::DestroyContext(ctx);
 	}
 
-	void ImGui_NewFrame()
+	void ImGui_NewFrame(render_window * win, ImGuiContext * ctx)
 	{
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
 		ImGui_ImplOpenGL3_NewFrame();
@@ -41,14 +42,6 @@ namespace ml
 #else
 #endif
 		ImGui::NewFrame();
-	}
-
-	void ImGui_RenderDrawData(ImDrawData * draw_data)
-	{
-#if defined(ML_IMPL_RENDERER_OPENGL)
-		ImGui_ImplOpenGL3_RenderDrawData(draw_data);
-#else
-#endif
 	}
 
 	void ImGui_RenderFrame(render_window * win, ImGuiContext * ctx)
@@ -60,7 +53,12 @@ namespace ml
 			gfx::command::set_clear_color(colors::black),
 			gfx::command::clear(gfx::clear_color));
 
-		ImGui_RenderDrawData(&ctx->Viewports[0]->DrawDataP);
+
+		ImDrawData * const draw_data{ &ctx->Viewports[0]->DrawDataP };
+#if defined(ML_IMPL_RENDERER_OPENGL)
+		ImGui_ImplOpenGL3_RenderDrawData(draw_data);
+#else
+#endif
 
 		if (ctx->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
@@ -89,8 +87,9 @@ namespace ml
 		}
 	
 		// open file
-		std::ifstream f{ path }; ML_defer(&f) { f.close(); };
-		if (!f) return false;
+		std::ifstream f{ path };
+		ML_defer(&f) { f.close(); };
+		if (!f) { return false; }
 	
 		// scan file
 		pmr::string line;

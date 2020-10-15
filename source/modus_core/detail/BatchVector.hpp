@@ -877,26 +877,22 @@ namespace ml::ds
 		template <size_t I, class U = value_i<I>
 		> ML_NODISCARD size_t lookup(U && value) const noexcept
 		{
-			if (auto const it{ this->find<I>(ML_forward(value)) }; it != this->end<I>())
-			{
-				return this->index_of<I>(it);
-			}
+			if (auto const it{ this->find<I>(ML_forward(value)) }
+			; it == this->end<I>()) { return npos; }
 			else
 			{
-				return npos;
+				return this->index_of<I>(it);
 			}
 		}
 
 		template <class T, class U = value_t<T>
 		> ML_NODISCARD size_t lookup(U && value) const noexcept
 		{
-			if (auto const it{ this->find<T>(ML_forward(value)) }; it != this->end<T>())
-			{
-				return this->index_of<T>(it);
-			}
+			if (auto const it{ this->find<T>(ML_forward(value)) }
+			; it == this->end<T>()) { return npos; }
 			else
 			{
-				return npos;
+				return this->index_of<T>(it);
 			}
 		}
 

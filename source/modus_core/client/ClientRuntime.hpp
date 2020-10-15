@@ -7,8 +7,6 @@
 // CLIENT DOCKSPACE
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	// client dockspace
 	struct ML_CORE_API client_dockspace final : client_object<client_dockspace>
 	{
@@ -49,15 +47,11 @@ namespace ml
 	private:
 		void on_event(event && value) override;
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 // CLIENT MENUBAR
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	// client menubar
 	struct ML_CORE_API client_menubar final : client_object<client_menubar>
 	{
@@ -75,15 +69,11 @@ namespace ml
 	private:
 		void on_event(event && value) override;
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 // CLIENT RUNTIME
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	// client runtime
 	struct ML_CORE_API client_runtime final : client_object<client_runtime>
 	{
@@ -99,22 +89,20 @@ namespace ml
 
 		ML_NODISCARD int32_t idle();
 
-		ML_NODISCARD int32_t operator()() noexcept { return idle(); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_gui() const noexcept -> manual<ImGuiContext> const & { return m_gui; }
 
 		ML_NODISCARD auto get_dock() const noexcept -> unique<client_dockspace> const & { return m_dock; }
 
-		ML_NODISCARD auto get_menubar() const noexcept -> unique<client_menubar> const & { return m_menu; }
+		ML_NODISCARD auto get_imgui() const noexcept -> manual<ImGuiContext> const & { return m_imgui; }
+
+		ML_NODISCARD auto get_menu() const noexcept -> unique<client_menubar> const & { return m_menu; }
 
 		ML_NODISCARD auto get_plugins() const noexcept -> unique<plugin_manager> const & { return m_plugins; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		void do_startup(json const & j);
+		void do_startup(client_context * ctx);
 
 		void do_shutdown();
 
@@ -128,15 +116,13 @@ namespace ml
 
 	private:
 		bool						m_running	; // 
-		manual<	ImGuiContext	>	m_gui		; // 
+		manual<	ImGuiContext	>	m_imgui		; // 
 		unique<	client_dockspace>	m_dock		; // 
 		unique<	client_menubar	>	m_menu		; // 
 		unique<	plugin_manager	>	m_plugins	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_CLIENT_RUNTIME_HPP_

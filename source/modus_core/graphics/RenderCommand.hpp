@@ -9,7 +9,7 @@ namespace ml::gfx
 	template <class Ctx, class Arg0, class ... Args
 	> static void execute(Ctx && ctx, Arg0 && arg0, Args && ... args) noexcept
 	{
-		auto do_execute = [](auto && ctx, auto && cmd) noexcept
+		auto do_execute = [](auto && cmd, auto && ctx) noexcept
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
 			{
@@ -21,13 +21,13 @@ namespace ml::gfx
 			}
 		};
 
-		do_execute(ML_forward(ctx), ML_forward(arg0));
+		do_execute(ML_forward(arg0), ML_forward(ctx));
 
 		if constexpr (0 < sizeof...(args))
 		{
 			meta::for_args([&](auto && cmd) noexcept
 			{
-				do_execute(ML_forward(ctx), ML_forward(cmd));
+				do_execute(ML_forward(cmd), ML_forward(ctx));
 			}
 			, ML_forward(args)...);
 		}
@@ -77,9 +77,9 @@ namespace ml::gfx
 			return command{ &render_context::set_stencil_state, value };
 		}
 
-		ML_NODISCARD static auto set_viewport(int_rect const & bounds) noexcept
+		ML_NODISCARD static auto set_viewport(int_rect const & value) noexcept
 		{
-			return command{ &render_context::set_viewport, bounds };
+			return command{ &render_context::set_viewport, value };
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

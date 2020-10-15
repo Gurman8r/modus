@@ -151,17 +151,6 @@ namespace ml
 		
 		// etc...
 	};
-
-	struct ML_NODISCARD camera : trackable
-	{
-		using camera_data = typename std::variant<perspective_camera, orthographic_camera>;
-
-		camera_data data;
-
-		camera(camera_data const & data) : data{ data } {}
-
-		camera(camera const & other) noexcept : camera{ other.data } {}
-	};
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

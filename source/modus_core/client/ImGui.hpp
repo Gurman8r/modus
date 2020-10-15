@@ -88,20 +88,18 @@ namespace ml
 
 	struct render_window;
 
-	ML_CORE_API bool ImGui_Startup(render_window * win, bool clbk = true);
+	ML_CORE_API bool ImGui_Startup(render_window * win, bool callbacks = true);
 
-	ML_CORE_API void ImGui_Shutdown();
+	ML_CORE_API void ImGui_Shutdown(render_window * win, ImGuiContext * ctx);
 
-	ML_CORE_API void ImGui_NewFrame();
-
-	ML_CORE_API void ImGui_RenderDrawData(ImDrawData * draw_data);
+	ML_CORE_API void ImGui_NewFrame(render_window * win, ImGuiContext * ctx);
 
 	ML_CORE_API void ImGui_RenderFrame(render_window * win, ImGuiContext * ctx);
 
 	template <class Fn, class ... Args
 	> void ImGui_DoFrame(render_window * win, ImGuiContext * ctx, Fn && fn, Args && ... args) noexcept
 	{
-		ImGui_NewFrame();
+		ImGui_NewFrame(win, ctx);
 		std::invoke(ML_forward(fn), ML_forward(args)...);
 		ImGui_RenderFrame(win, ctx);
 	}

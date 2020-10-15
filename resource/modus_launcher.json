@@ -32,7 +32,7 @@
 	},
 	"client": {
 		"callbacks": true,
-		"gui_style": "assets/styles/obsidian.style",
+		"style": "resource/modus_launcher.style",
 		"dock": {
 			"enabled"	: true,
 			"title"		: "dockspace",

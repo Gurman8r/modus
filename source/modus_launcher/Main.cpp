@@ -11,7 +11,9 @@ using namespace ml::byte_literals;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#ifndef RESERVE_MEMORY
 #define RESERVE_MEMORY 128_MiB
+#endif
 
 static class memcfg final : public singleton<memcfg>
 {
@@ -30,7 +32,9 @@ static class memcfg final : public singleton<memcfg>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#ifndef SETTINGS_PATH
 #define SETTINGS_PATH "../../../resource/modus_launcher.json"
+#endif
 
 static auto const default_settings{ R"(
 {
@@ -67,7 +71,7 @@ static auto const default_settings{ R"(
 	},
 	"client": {
 		"callbacks": true,
-		"style": "assets/styles/obsidian.style",
+		"style": "resource/modus_launcher.style",
 		"dock": {
 			"enabled"	: true,
 			"title"		: "dockspace",
@@ -104,13 +108,13 @@ static auto load_settings(fs::path const & path = SETTINGS_PATH)
 ml::int32_t main()
 {
 	static memory_manager	mem		{ pmr::get_default_resource() };
-	static client_io		io		{ __argc, __argv, mem.get_allocator(), load_settings() };
-	static event_bus		bus		{ io.alloc };
-	static render_window	win		{ io.alloc };
+	static client_io		io		{ { __argv, __argv + __argc }, load_settings() };
+	static event_bus		bus		{};
+	static render_window	win		{};
 	static client_context	ctx		{ &mem, &io, &bus, &win };
 	static client_runtime	runtime	{ &ctx };
 
-	return runtime(); // idle
+	return runtime.idle();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

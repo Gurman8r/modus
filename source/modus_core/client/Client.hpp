@@ -12,30 +12,17 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// client io
-	struct ML_NODISCARD client_io final : trackable, non_copyable
+	struct ML_NODISCARD client_io final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = pmr::polymorphic_allocator<byte_t>;
+		pmr::vector<pmr::string> args;
+		
+		json prefs;
 
-		client_io(int32_t argc, char ** argv, allocator_type alloc, json prefs)
-			: args{ argv, argv + argc, alloc }, alloc{ alloc }, prefs{ json{ prefs } }
-		{
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		using args_type = pmr::vector<pmr::string>;
-
-		args_type const	args;
-		allocator_type	alloc;
-		json			prefs;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		fs::path const	program_name{ args[0] },
-						program_path{ fs::current_path() },
-						content_path{ prefs["path"].get<fs::path>() };
+		fs::path	program_name{ args[0] },
+					program_path{ fs::current_path() },
+					content_path{ prefs["path"].get<fs::path>() };
 
 		ML_NODISCARD fs::path path2(fs::path const & path) const noexcept
 		{
@@ -49,16 +36,10 @@ namespace ml
 		duration		delta_time	{};
 		uint64_t		frame_count	{};
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		using fps_times_type = pmr::vector<float_t>;
-
 		float_t			fps			{};
 		float_t			fps_accum	{};
 		size_t			fps_index	{};
-		fps_times_type	fps_times	{ 120, alloc };
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		float_t			fps_times	[120]{};
 
 		vec2d			cursor		{};
 		mouse_state		mouse		{};

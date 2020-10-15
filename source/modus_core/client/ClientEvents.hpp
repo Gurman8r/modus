@@ -3,6 +3,8 @@
 
 #include <modus_core/system/Events.hpp>
 
+struct ImGuiContext;
+
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -41,30 +43,30 @@ namespace ml
 	};
 
 	// CLIENT DOCKSPACE
-	ML_decl_event(client_dockspace_event)
+	ML_decl_event(client_dock_event)
 	{
 		client_dockspace * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_dockspace_event(client_dockspace * const ptr) noexcept : ptr{ ptr } {}
+		constexpr client_dock_event(client_dockspace * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	// CLIENT MENUBAR
-	ML_decl_event(client_menubar_event)
+	ML_decl_event(client_menu_event)
 	{
 		client_menubar * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_menubar_event(client_menubar * const ptr) noexcept : ptr{ ptr } {}
+		constexpr client_menu_event(client_menubar * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	// CLIENT GUI
 	ML_decl_event(client_gui_event)
 	{
-		client_runtime * const ptr;
+		ImGuiContext * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_gui_event(client_runtime * const ptr) noexcept : ptr{ ptr } {}
+		constexpr client_gui_event(ImGuiContext * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

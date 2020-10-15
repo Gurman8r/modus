@@ -40,7 +40,9 @@ namespace ml
 		}
 
 		// create context
-		m_dev->set_context(m_ctx = m_dev->create_context(settings.context));
+		m_dev->set_context(m_ctx = m_dev->create_context(
+			*reinterpret_cast<gfx::spec<gfx::render_context> const *>(&settings.context)
+		));
 
 		// setup states
 		execute(

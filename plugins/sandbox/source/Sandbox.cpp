@@ -61,7 +61,7 @@ namespace ml
 				get_window()->set_icons(icon.width(), icon.height(), 1, icon.data());
 			}
 
-			m_fb.push_back(gfx::framebuffer::create({ "FB0", m_resolution }));
+			m_fb.push_back(gfx::framebuffer::create({ m_resolution }));
 		}
 
 		void on_client_exit(client_exit_event && ev)
@@ -174,7 +174,7 @@ namespace ml
 			if (!fixed) {
 				src = m_resolution = dst;
 			} else {
-				src = tex->get_data().size;
+				src = tex->get_size();
 				m_resolution = util::scale_to_fit((vec2)modes[index].resolution, dst);
 			}
 			ImGui::Image(tex->get_handle(), util::scale_to_fit(src, dst), { 0, 1 }, { 1, 0 });

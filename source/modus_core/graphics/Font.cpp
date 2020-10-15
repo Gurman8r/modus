@@ -30,38 +30,12 @@ namespace ml
 	bool font::load_from_file(fs::path const & path)
 	{
 		if (m_library) { return false; }
+		
+		ML_assert(!FT_Init_FreeType((FT_Library *)&m_library));
+		ML_assert(!FT_New_Face((FT_Library)m_library, path.string().c_str(), 0, (FT_Face *)&m_face));
+		ML_assert(!FT_Stroker_New((FT_Library)m_library, (FT_Stroker *)&m_stroker));
+		ML_assert(!FT_Select_Charmap((FT_Face)m_face, FT_ENCODING_UNICODE));
 
-		// load freetype library instance
-		if (FT_Init_FreeType((FT_Library *)&m_library))
-		{
-			return debug::error("failed creating font library: {0}", path);
-		}
-
-		// load the new fonts face from the specified file
-		if (FT_New_Face((FT_Library)m_library, path.string().c_str(), 0, (FT_Face *)&m_face))
-		{
-			FT_Done_FreeType((FT_Library)m_library);
-			return debug::error("failed creating font face: {0}", path);
-		}
-
-		// load the stroker that will be used to outline the fonts
-		if (FT_Stroker_New((FT_Library)m_library, (FT_Stroker *)&m_stroker))
-		{
-			FT_Done_Face((FT_Face)m_face);
-			FT_Done_FreeType((FT_Library)m_library);
-			return debug::error("failed creating font stroker: {0}", path);
-		}
-
-		// select the unicode character map
-		if (FT_Select_Charmap((FT_Face)m_face, FT_ENCODING_UNICODE))
-		{
-			FT_Stroker_Done((FT_Stroker)m_stroker);
-			FT_Done_Face((FT_Face)m_face);
-			FT_Done_FreeType((FT_Library)m_library);
-			return debug::error("failed selecting font unicode character map: {0}", path);
-		}
-
-		// store the font family
 		m_family = ((FT_Face)m_face)->family_name;
 
 		return true;
@@ -87,10 +61,10 @@ namespace ml
 			return g;
 		}
 
-		// advance
+		// set advance
 		g.advance = (uint32_t)((FT_Face)m_face)->glyph->advance.x;
 
-		// bounds
+		// set bounds
 		g.bounds = float_rect
 		{
 			((FT_Face)m_face)->glyph->bitmap_left,
@@ -99,16 +73,15 @@ namespace ml
 			((FT_Face)m_face)->glyph->bitmap.rows
 		};
 
-		// texture
-		g.graphic = gfx::texture2d::create(
-		{
-			{}, {}, (vec2i)g.size(), { gfx::format_rgba, gfx::format_red }
-		}
 		// only load a texture for characters requiring a graphic
-		, (!std::isspace(c, {}) && std::isgraph(c, {})
+		auto const data{ !std::isspace(c, {}) && std::isgraph(c, {})
 			? ((FT_Face)m_face)->glyph->bitmap.buffer
-			: nullptr)
-		);
+			: nullptr };
+
+		// set texture
+		g.graphic = gfx::texture2d::create(
+			{ (vec2i)g.size(), { gfx::format_rgba, gfx::format_red } },
+			data);
 
 		return g;
 	}

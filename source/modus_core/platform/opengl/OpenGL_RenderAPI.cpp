@@ -498,9 +498,9 @@ namespace ml::gfx
 			switch (value)
 			{
 			default						: return value;
-			case shader_type_vertex		: return GL_VERTEX_SHADER;
-			case shader_type_fragment	: return GL_FRAGMENT_SHADER;
-			case shader_type_geometry	: return GL_GEOMETRY_SHADER;
+			case shader_vertex		: return GL_VERTEX_SHADER;
+			case shader_fragment	: return GL_FRAGMENT_SHADER;
+			case shader_geometry	: return GL_GEOMETRY_SHADER;
 			}
 		}
 		else if constexpr (convt{} == to_user{})
@@ -508,9 +508,9 @@ namespace ml::gfx
 			switch (value)
 			{
 			default					: return value;
-			case GL_VERTEX_SHADER	: return shader_type_vertex;
-			case GL_FRAGMENT_SHADER	: return shader_type_fragment;
-			case GL_GEOMETRY_SHADER	: return shader_type_geometry;
+			case GL_VERTEX_SHADER	: return shader_vertex;
+			case GL_FRAGMENT_SHADER	: return shader_fragment;
+			case GL_GEOMETRY_SHADER	: return shader_geometry;
 			}
 		}
 		else
@@ -670,7 +670,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_render_device::opengl_render_device(allocator_type alloc) : render_device{}, m_alloc{ alloc }
+	opengl_render_device::opengl_render_device(allocator_type alloc) : render_device{}
 	{
 		static bool const opengl_init{ ML_IMPL_OPENGL_INIT() };
 		ML_assert_msg(opengl_init, "failed initializing opengl device");
@@ -750,49 +750,75 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	shared<render_context> opengl_render_device::create_context(context_settings const & cs) noexcept
+	shared<render_context> opengl_render_device::create_context(
+		spec<render_context> const & desc,
+		allocator_type alloc
+	) noexcept
 	{
-		return std::allocate_shared<opengl_render_context>(m_alloc, this, cs);
+		return std::allocate_shared<opengl_render_context>(alloc, this, desc);
 	}
 
-	shared<vertexarray> opengl_render_device::create_vertexarray(uint32_t prim) noexcept
+	shared<vertexarray> opengl_render_device::create_vertexarray(
+		spec<vertexarray> const & desc,
+		allocator_type alloc
+	) noexcept
 	{
-		return std::allocate_shared<opengl_vertexarray>(m_alloc, this, prim);
+		return std::allocate_shared<opengl_vertexarray>(alloc, this, desc);
 	}
 
-	shared<vertexbuffer> opengl_render_device::create_vertexbuffer(uint32_t usage, size_t count, addr_t data) noexcept
+	shared<vertexbuffer> opengl_render_device::create_vertexbuffer(
+		spec<vertexbuffer> const & desc, addr_t data,
+		allocator_type alloc
+	) noexcept
 	{
-		return std::allocate_shared<opengl_vertexbuffer>(m_alloc, this, usage, count, data);
+		return std::allocate_shared<opengl_vertexbuffer>(alloc, this, desc, data);
 	}
 
-	shared<indexbuffer> opengl_render_device::create_indexbuffer(uint32_t usage, size_t count, addr_t data) noexcept
+	shared<indexbuffer> opengl_render_device::create_indexbuffer(
+		spec<indexbuffer> const & desc, addr_t data,
+		allocator_type alloc
+	) noexcept
 	{
-		return std::allocate_shared<opengl_indexbuffer>(m_alloc, this, usage, count, data);
+		return std::allocate_shared<opengl_indexbuffer>(alloc, this, desc, data);
 	}
 
-	shared<texture2d> opengl_render_device::create_texture2d(desc_<texture2d> const & value, addr_t data) noexcept
+	shared<texture2d> opengl_render_device::create_texture2d(
+		spec<texture2d> const & desc, addr_t data,
+		allocator_type alloc
+	) noexcept
 	{
-		return std::allocate_shared<opengl_texture2d>(m_alloc, this, value, data);
+		return std::allocate_shared<opengl_texture2d>(alloc, this, desc, data);
 	}
 
-	shared<texturecube> opengl_render_device::create_texturecube(desc_<texturecube> const & value) noexcept
+	shared<texturecube> opengl_render_device::create_texturecube(
+		spec<texturecube> const & desc,
+		allocator_type alloc
+	) noexcept
 	{
-		return std::allocate_shared<opengl_texturecube>(m_alloc, this, value);
+		return std::allocate_shared<opengl_texturecube>(alloc, this, desc);
 	}
 
-	shared<framebuffer> opengl_render_device::create_framebuffer(desc_<framebuffer> const & value) noexcept
+	shared<framebuffer> opengl_render_device::create_framebuffer(
+		spec<framebuffer> const & desc,
+		allocator_type alloc
+	) noexcept
 	{
-		return std::allocate_shared<opengl_framebuffer>(m_alloc, this, value);
+		return std::allocate_shared<opengl_framebuffer>(alloc, this, desc);
 	}
 
-	shared<program> opengl_render_device::create_program() noexcept
+	shared<program> opengl_render_device::create_program(
+			allocator_type alloc
+	) noexcept
 	{
-		return std::allocate_shared<opengl_program>(m_alloc, this);
+		return std::allocate_shared<opengl_program>(alloc, this);
 	}
 
-	shared<shader> opengl_render_device::create_shader(desc_<shader> const & value) noexcept
+	shared<shader> opengl_render_device::create_shader(
+		spec<shader> const & desc,
+		allocator_type alloc
+	) noexcept
 	{
-		return std::allocate_shared<opengl_shader>(m_alloc, this, value);
+		return std::allocate_shared<opengl_shader>(alloc, this, desc);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -805,12 +831,16 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_render_context::opengl_render_context(render_device * dev, context_settings const & desc)
-		: render_context{ dev }, m_data{ desc }
+	opengl_render_context::opengl_render_context(
+		render_device * parent,
+		spec_type const & desc,
+		allocator_type alloc)
+		: render_context{ parent }
+		, m_data{ desc }
 	{
 		ML_assert("invalid context api" && desc.api == context_api_opengl);
-		ML_assert("major version mismatch" && dev->get_info().major_version >= desc.major);
-		ML_assert("minor version mismatch" && dev->get_info().minor_version >= desc.minor);
+		ML_assert("major version mismatch" && parent->get_info().major_version >= desc.major);
+		ML_assert("minor version mismatch" && parent->get_info().minor_version >= desc.minor);
 
 		ML_glCheck(ML_glEnable(GL_MULTISAMPLE, desc.multisample));
 		ML_glCheck(ML_glEnable(GL_FRAMEBUFFER_SRGB, desc.srgb_capable));
@@ -1034,7 +1064,7 @@ namespace ml::gfx
 
 		bind_vertexarray(value.get());
 
-		if (auto const prim{ value->get_primitive() }
+		if (auto const prim{ value->get_mode() }
 		; auto const & ib{ value->get_indices() })
 		{
 			bind_indexbuffer(ib.get());
@@ -1100,7 +1130,7 @@ namespace ml::gfx
 		{
 			ML_glCheck(glBindFramebuffer(GL_FRAMEBUFFER, ML_handle(uint32_t, value->get_handle())));
 
-			set_viewport({ vec2i::zero(), value->get_data().size });
+			set_viewport({ vec2i::zero(), value->get_size() });
 		}
 		else
 		{
@@ -1178,8 +1208,9 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_vertexarray::opengl_vertexarray(render_device * dev, uint32_t prim)
-		: vertexarray{ dev }, m_prim{ prim }
+	opengl_vertexarray::opengl_vertexarray(render_device * parent, spec<vertexarray> const & desc, allocator_type alloc)
+		: vertexarray{ parent }
+		, m_mode{ desc.prim }
 	{
 		ML_glCheck(glGenVertexArrays(1, &m_handle));
 		ML_glCheck(glBindVertexArray(m_handle));
@@ -1262,8 +1293,10 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_vertexbuffer::opengl_vertexbuffer(render_device * dev, uint32_t usage, size_t count, addr_t data)
-		: vertexbuffer{ dev }, m_usage{ usage }, m_buffer{ bufcpy<float_t>(count, data) }
+	opengl_vertexbuffer::opengl_vertexbuffer(render_device * parent, spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc)
+		: vertexbuffer{ parent }
+		, m_usage{ desc.usage }
+		, m_buffer{ bufcpy<float_t>(desc.count, data), alloc }
 	{
 		ML_glCheck(glGenBuffers(1, &m_handle));
 		ML_glCheck(glBindBuffer(GL_ARRAY_BUFFER, m_handle));
@@ -1310,8 +1343,10 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_indexbuffer::opengl_indexbuffer(render_device * dev, uint32_t usage, size_t count, addr_t data)
-		: indexbuffer{ dev }, m_usage{ usage }, m_buffer{ bufcpy<uint32_t>(count, data) }
+	opengl_indexbuffer::opengl_indexbuffer(render_device * parent, spec<indexbuffer> const & desc, addr_t data, allocator_type alloc)
+		: indexbuffer	{ parent }
+		, m_usage		{ desc.usage }
+		, m_buffer		{ bufcpy<uint32_t>(desc.count, data), alloc }
 	{
 		ML_glCheck(glGenBuffers(1, &m_handle));
 		ML_glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_handle));
@@ -1358,24 +1393,27 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_texture2d::opengl_texture2d(render_device * dev, desc_<texture2d> const & value, addr_t data)
-		: texture2d{ dev }, m_data{ value }
+	opengl_texture2d::opengl_texture2d(render_device * parent, spec<texture2d> const & desc, addr_t data, allocator_type alloc)
+		: texture2d	{ parent }
+		, m_size	{ desc.size }
+		, m_format	{ desc.format }
+		, m_flags	{ desc.flags }
 	{
 		ML_glCheck(glGenTextures(1, &m_handle));
 		ML_glCheck(glBindTexture(GL_TEXTURE_2D, m_handle));
 		ML_glCheck(glTexImage2D(
 			GL_TEXTURE_2D,
 			0,
-			_format<to_impl>(m_data.format.color),
-			m_data.size[0],
-			m_data.size[1],
+			_format<to_impl>(m_format.color),
+			m_size[0],
+			m_size[1],
 			0,
-			_format<to_impl>(m_data.format.pixel),
-			_type<to_impl>(m_data.format.type),
+			_format<to_impl>(m_format.pixel),
+			_type<to_impl>(m_format.type),
 			data));
-		set_repeated(m_data.flags & texture_flags_repeat);
-		set_smooth(m_data.flags & texture_flags_smooth);
-		set_mipmapped(m_data.flags & texture_flags_mipmap);
+		set_repeated(m_flags & texture_flags_repeat);
+		set_smooth(m_flags & texture_flags_smooth);
+		set_mipmapped(m_flags & texture_flags_mipmap);
 	}
 
 	opengl_texture2d::~opengl_texture2d()
@@ -1412,33 +1450,33 @@ namespace ml::gfx
 	{
 		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
 
-		if (m_handle && (m_data.size == size)) { return; }
-		else { m_data.size = size; }
+		if (m_handle && (m_size == size)) { return; }
+		else { m_size = size; }
 
 		revalue(); bind();
 		
 		ML_glCheck(glTexImage2D(
 			GL_TEXTURE_2D,
 			0,
-			_format<to_impl>(m_data.format.color),
-			m_data.size[0],
-			m_data.size[1],
+			_format<to_impl>(m_format.color),
+			m_size[0],
+			m_size[1],
 			0,
-			_format<to_impl>(m_data.format.pixel),
-			_type<to_impl>(m_data.format.type),
+			_format<to_impl>(m_format.pixel),
+			_type<to_impl>(m_format.type),
 			data));
 		
-		set_repeated(m_data.flags & texture_flags_repeat);
-		set_smooth(m_data.flags & texture_flags_smooth);
-		set_mipmapped(m_data.flags & texture_flags_mipmap);
+		set_repeated(m_flags & texture_flags_repeat);
+		set_smooth(m_flags & texture_flags_smooth);
+		set_mipmapped(m_flags & texture_flags_mipmap);
 	}
 
 	void opengl_texture2d::update(vec2i const & pos, vec2i const & size, addr_t data)
 	{
 		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
 
-		if (m_handle && (m_data.size == size)) { return; }
-		else { m_data.size = size; }
+		if (m_handle && (m_size == size)) { return; }
+		else { m_size = size; }
 
 		revalue(); bind();
 
@@ -1447,24 +1485,24 @@ namespace ml::gfx
 			0,
 			pos[0],
 			pos[1],
-			m_data.size[0],
-			m_data.size[1],
-			_format<to_impl>(m_data.format.color),
-			_type<to_impl>(m_data.format.type),
+			m_size[0],
+			m_size[1],
+			_format<to_impl>(m_format.color),
+			_type<to_impl>(m_format.type),
 			data));
 		
-		set_repeated(m_data.flags & texture_flags_repeat);
-		set_smooth(m_data.flags & texture_flags_smooth);
-		set_mipmapped(m_data.flags & texture_flags_mipmap);
+		set_repeated(m_flags & texture_flags_repeat);
+		set_smooth(m_flags & texture_flags_smooth);
+		set_mipmapped(m_flags & texture_flags_mipmap);
 	}
 
 	void opengl_texture2d::set_mipmapped(bool value)
 	{
 		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
 
-		ML_flag_write(m_data.flags, texture_flags_mipmap, value);
+		ML_flag_write(m_flags, texture_flags_mipmap, value);
 
-		bool const smooth{ ML_flag_read(m_data.flags, texture_flags_smooth) };
+		bool const smooth{ ML_flag_read(m_flags, texture_flags_smooth) };
 
 		if (smooth) { ML_glCheck(glGenerateMipmap(GL_TEXTURE_2D)); }
 
@@ -1479,7 +1517,7 @@ namespace ml::gfx
 	{
 		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
 
-		ML_flag_write(m_data.flags, texture_flags_repeat, value);
+		ML_flag_write(m_flags, texture_flags_repeat, value);
 
 		static bool const edge_clamp_available
 		{
@@ -1503,7 +1541,7 @@ namespace ml::gfx
 	{
 		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
 
-		ML_flag_write(m_data.flags, texture_flags_smooth, value);
+		ML_flag_write(m_flags, texture_flags_smooth, value);
 
 		ML_glCheck(glTexParameteri(GL_TEXTURE_2D,
 			GL_TEXTURE_MAG_FILTER,
@@ -1511,7 +1549,7 @@ namespace ml::gfx
 
 		ML_glCheck(glTexParameteri(GL_TEXTURE_2D,
 			GL_TEXTURE_MIN_FILTER,
-			ML_flag_read(m_data.flags, texture_flags_mipmap)
+			ML_flag_read(m_flags, texture_flags_mipmap)
 			? value ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR
 			: value ? GL_LINEAR : GL_NEAREST));
 	}
@@ -1520,14 +1558,14 @@ namespace ml::gfx
 	{
 		if (!m_locked) { debug::error("texture2d is not locked"); return bitmap{}; }
 
-		bitmap temp{ m_data.size, calc_bits_per_pixel(m_data.format.color) };
+		bitmap temp{ m_size, calc_bits_per_pixel(m_format.color) };
 		if (m_handle)
 		{
 			bind();
 
 			ML_glCheck(glGetTexImage(GL_TEXTURE_2D, 0,
-				_format<to_impl>(m_data.format.color),
-				_type<to_impl>(m_data.format.type),
+				_format<to_impl>(m_format.color),
+				_type<to_impl>(m_format.type),
 				temp.data()));
 
 			unbind();
@@ -1545,8 +1583,11 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_texturecube::opengl_texturecube(render_device * dev, desc_<texturecube> const & value)
-		: texturecube{ dev }, m_data{ value }
+	opengl_texturecube::opengl_texturecube(render_device * parent, spec<texturecube> const & desc, allocator_type alloc)
+		: texturecube	{ parent }
+		, m_size		{ desc.size }
+		, m_format		{ desc.format }
+		, m_flags		{ desc.flags }
 	{
 		ML_glCheck(glGenTextures(1, &m_handle));
 	}
@@ -1591,10 +1632,18 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_framebuffer::opengl_framebuffer(render_device * dev, desc_<framebuffer> const & value)
-		: framebuffer{ dev }, m_data{ value }
+	opengl_framebuffer::opengl_framebuffer(render_device * parent, spec<framebuffer> const & desc, allocator_type alloc)
+		: framebuffer	{ parent }
+		, m_size		{ desc.size }
+		, m_format		{ desc.format }
+		, m_flags		{ desc.flags }
+		, m_bpp			{ desc.bits_per_pixel }
+		, m_stencil_bits{ desc.stencil_bits }
+		, m_depth_bits	{ desc.depth_bits }
+		, m_samples		{ desc.samples }
+		, m_stereo		{ desc.stereo }
 	{
-		resize(m_data.size);
+		resize(m_size);
 	}
 
 	opengl_framebuffer::~opengl_framebuffer()
@@ -1644,8 +1693,8 @@ namespace ml::gfx
 
 	void opengl_framebuffer::resize(vec2i const & size)
 	{
-		if (m_handle && (m_data.size == size)) { return; }
-		else { m_data.size = size; }
+		if (m_handle && (m_size == size)) { return; }
+		else { m_size = size; }
 
 		revalue(); bind();
 
@@ -1653,16 +1702,14 @@ namespace ml::gfx
 		if (m_attachments.empty())
 		{
 			m_attachments.push_back(get_device()->create_texture2d({
-				m_data.name,
-				fs::path{},
-				m_data.size,
-				m_data.format,
-				m_data.flags
+				m_size,
+				m_format,
+				m_flags
 				}));
 		}
 		for (size_t i = 0, imax = m_attachments.size(); i < imax; ++i)
 		{
-			m_attachments[i]->update(m_data.size);
+			m_attachments[i]->update(m_size);
 
 			ML_glCheck(glFramebufferTexture2D(
 				GL_FRAMEBUFFER,
@@ -1675,16 +1722,14 @@ namespace ml::gfx
 		// depth attachment
 		if (m_depth)
 		{
-			m_depth->update(m_data.size);
+			m_depth->update(m_size);
 		}
 		else
 		{
 			m_depth = get_device()->create_texture2d({
-				m_data.name,
-				fs::path{},
-				m_data.size,
+				m_size,
 				{ format_depth24_stencil8, format_depth_stencil, type_uint_24_8 },
-				m_data.flags
+				m_flags
 				});
 		}
 		ML_glCheck(glFramebufferTexture2D(
@@ -1711,7 +1756,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_program::opengl_uniform_binder::opengl_uniform_binder(opengl_program & p, cstring name) noexcept
+	opengl_program::program_uniform_binder::program_uniform_binder(opengl_program & p, cstring name) noexcept
 	{
 		if (!name || !*name || !(self = p.m_handle)) { return; }
 		
@@ -1728,7 +1773,7 @@ namespace ml::gfx
 		});
 	}
 
-	opengl_program::opengl_uniform_binder::~opengl_uniform_binder() noexcept
+	opengl_program::program_uniform_binder::~program_uniform_binder() noexcept
 	{
 		if (self && (self != last))
 		{
@@ -1738,8 +1783,8 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_program::opengl_program(render_device * dev)
-		: program{ dev }
+	opengl_program::opengl_program(render_device * parent, allocator_type alloc)
+		: program{ parent }
 	{
 		ML_glCheck(m_handle = ML_glCreateProgram());
 	}
@@ -1833,7 +1878,7 @@ namespace ml::gfx
 // shader
 namespace ml::gfx
 {
-	opengl_shader::uniform_binder::uniform_binder(opengl_shader & s, cstring name) noexcept
+	opengl_shader::shader_uniform_binder::shader_uniform_binder(opengl_shader & s, cstring name) noexcept
 	{
 		if (!name || !*name || !(self = s.m_handle)) { return; }
 
@@ -1850,7 +1895,7 @@ namespace ml::gfx
 		});
 	}
 
-	opengl_shader::uniform_binder::~uniform_binder() noexcept
+	opengl_shader::shader_uniform_binder::~shader_uniform_binder() noexcept
 	{
 		if (self && (self != last))
 		{
@@ -1858,11 +1903,11 @@ namespace ml::gfx
 		}
 	}
 
-	opengl_shader::opengl_shader(render_device * dev, desc_<shader> const & value)
-		: shader{ dev }
+	opengl_shader::opengl_shader(render_device * parent, spec<shader> const & desc, allocator_type alloc)
+		: shader{ parent }
 	{
-		cstring str{ value.code.front().data() };
-		compile(value.type, value.code.size(), &str);
+		cstring str{ desc.code.front().data() };
+		compile(desc.type, desc.code.size(), &str);
 	}
 
 	opengl_shader::~opengl_shader()
@@ -1880,8 +1925,8 @@ namespace ml::gfx
 			m_uniforms.clear(); m_textures.clear();
 		}
 
-		m_data.type = type;
-		m_data.code = { str, str + count };
+		m_type = type;
+		m_code = { str, str + count };
 
 		uint32_t temp{};
 		ML_glCheck(temp = ML_glCreateShader(_shader_type<to_impl>(type)));

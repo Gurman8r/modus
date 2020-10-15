@@ -156,31 +156,28 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// name of type
-	template <class T> constexpr auto nameof_v
-	{
-		pretty_function::str{ nameof_t<T>::value }
-	};
 
 	template <class T
-	> ML_NODISCARD constexpr auto nameof() noexcept
+	> ML_NODISCARD constexpr pretty_function::str nameof() noexcept
 	{
-		return nameof_v<T>;
+		return nameof_t<T>::value;
 	}
+
+	template <class T
+	> constexpr pretty_function::str nameof_v{ nameof<T>() };
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// hash of type
-	template <class T> constexpr hash_t hashof_v
-	{
-		hashof(pretty_function::str{ nameof_t<T>::value })
-	};
 
-	// hash of type
 	template <class T
 	> ML_NODISCARD constexpr hash_t hashof() noexcept
 	{
-		return hashof_v<T>;
+		return hashof(pretty_function::str{ nameof_t<T>::value });
 	}
+
+	template <class T
+	> constexpr hash_t hashof_v{ hashof<T>() };
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

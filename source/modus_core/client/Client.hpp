@@ -15,14 +15,15 @@ namespace ml
 	struct ML_NODISCARD client_io final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		pmr::vector<pmr::string> args;
 		
+		pmr::vector<pmr::string> const args;
+
 		json prefs;
 
-		fs::path	program_name{ args[0] },
-					program_path{ fs::current_path() },
-					content_path{ prefs["path"].get<fs::path>() };
+		fs::path const
+			program_name{ args[0] },
+			program_path{ fs::current_path() },
+			content_path{ prefs["path"].get<fs::path>() };
 
 		ML_NODISCARD fs::path path2(fs::path const & path) const noexcept
 		{

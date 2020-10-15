@@ -13,11 +13,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
 			{
-				std::invoke(ML_forward(cmd), ML_forward(ctx));
+				std::invoke(ML_forward(cmd), ctx);
 			}
 			else
 			{
-				std::invoke(ML_forward(cmd), ML_forward(ctx).get());
+				std::invoke(ML_forward(cmd), ctx.get());
 			}
 		};
 

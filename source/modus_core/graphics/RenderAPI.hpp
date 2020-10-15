@@ -28,7 +28,7 @@ namespace ml::gfx
 	ML_decl_handle(	object_id	)	; // object handle
 	ML_decl_handle(	uniform_id	)	; // register handle
 
-	template <class ...> struct desc_; // object runtime descriptor
+	template <class ...> struct spec; // object descriptor
 
 	ML_alias addr_t		= typename void const *			; // data address
 	ML_alias buffer_t	= typename pmr::vector<byte_t>	; // byte buffer
@@ -316,11 +316,11 @@ namespace ml::gfx
 
 	enum shader_type_ : uint32_t
 	{
-		shader_type_vertex,
-		shader_type_fragment,
-		shader_type_geometry,
+		shader_vertex,
+		shader_fragment,
+		shader_geometry,
 
-		shader_type_MAX,
+		shader_MAX,
 	};
 
 	constexpr cstring shader_type_NAMES[] =
@@ -511,8 +511,8 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// buffer element
-	struct ML_NODISCARD buffer_element final
+	// layout element
+	struct ML_NODISCARD vertex_element final
 	{
 		template <class T
 		> static constexpr bool is_valid_type
@@ -530,14 +530,14 @@ namespace ml::gfx
 		bool		normalized	{};
 		uint32_t	offset		{};
 
-		constexpr buffer_element(cstring name, hash_t type, uint32_t size, bool normalized) noexcept
+		constexpr vertex_element(cstring name, hash_t type, uint32_t size, bool normalized) noexcept
 			: name{ name }, type{ type }, size{ size }, normalized{ normalized }, offset{}
 		{
 		}
 
 		template <class Elem
-		> constexpr buffer_element(Elem, cstring name, bool normalized = false) noexcept
-			: buffer_element{ name, hashof_v<Elem>, sizeof(Elem), normalized }
+		> constexpr vertex_element(Elem, cstring name, bool normalized = false) noexcept
+			: vertex_element{ name, hashof_v<Elem>, sizeof(Elem), normalized }
 		{
 			static_assert(is_valid_type<Elem>);
 		}
@@ -555,17 +555,24 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// buffer layout
-	struct ML_NODISCARD buffer_layout final
+	// vertex layout
+	struct ML_NODISCARD vertex_layout final
 	{
-		using storage_type				= typename pmr::vector<buffer_element>;
+		using storage_type				= typename pmr::vector<vertex_element>;
 		using iterator					= typename storage_type::iterator;
 		using const_iterator			= typename storage_type::const_iterator;
 		using reverse_iterator			= typename storage_type::reverse_iterator;
 		using const_reverse_iterator	= typename storage_type::const_reverse_iterator;
 
+		static constexpr vertex_element default_3d[] =
+		{
+			{ vec3{}, "a_position"	},
+			{ vec3{}, "a_normal"	},
+			{ vec2{}, "a_texcoord"	},
+		};
+
 		template <class It
-		> buffer_layout(It first, It last) noexcept
+		> vertex_layout(It first, It last) noexcept
 			: m_elements{ first, last }
 		{
 			uint32_t offset{};
@@ -577,14 +584,18 @@ namespace ml::gfx
 			}
 		}
 
-		buffer_layout(std::initializer_list<buffer_element> init) noexcept
-			: buffer_layout{ init.begin(), init.end() }
+		vertex_layout(std::initializer_list<vertex_element> init) noexcept
+			: vertex_layout{ init.begin(), init.end() }
 		{
 		}
 
 		template <size_t N
-		> buffer_layout(const buffer_element(&arr)[N]) noexcept
-			: buffer_layout{ &arr[0], &arr[N] }
+		> vertex_layout(const vertex_element(&arr)[N]) noexcept
+			: vertex_layout{ &arr[0], &arr[N] }
+		{
+		}
+
+		vertex_layout() noexcept : vertex_layout{ default_3d }
 		{
 		}
 
@@ -606,7 +617,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// device data_desc settings
-	template <> struct ML_NODISCARD desc_<render_device> final
+	struct ML_NODISCARD device_properties final
 	{
 		// version
 		pmr::string renderer, vendor, version;
@@ -636,15 +647,12 @@ namespace ml::gfx
 
 		static render_device * g_dev; // default device
 
-	protected:
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		virtual ~render_device() override = default;
-
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+
+		virtual ~render_device() override = default;
 
 		ML_NODISCARD static render_device * create(int32_t api, allocator_type alloc = {}) noexcept;
 
@@ -664,33 +672,60 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual allocator_type get_allocator() const noexcept = 0;
-
 		ML_NODISCARD virtual object_id get_handle() const noexcept = 0;
 
-		ML_NODISCARD virtual desc_<render_device> const & get_info() const noexcept = 0;
+		ML_NODISCARD virtual device_properties const & get_info() const noexcept = 0;
 
 		ML_NODISCARD virtual typeof<> const & get_self_type() const noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual shared<render_context> create_context(context_settings const & cs) noexcept = 0;
+		ML_NODISCARD virtual shared<render_context> create_context(
+			spec<render_context> const & desc,
+			allocator_type alloc = {}
+		) noexcept = 0;
 
-		ML_NODISCARD virtual shared<vertexarray> create_vertexarray(uint32_t prim) noexcept = 0;
+		ML_NODISCARD virtual shared<vertexarray> create_vertexarray(
+			spec<vertexarray> const & desc,
+			allocator_type alloc = {}
+		) noexcept = 0;
 
-		ML_NODISCARD virtual shared<vertexbuffer> create_vertexbuffer(uint32_t usage, size_t count, addr_t data) noexcept = 0;
+		ML_NODISCARD virtual shared<vertexbuffer> create_vertexbuffer(
+			spec<vertexbuffer> const & desc,
+			addr_t data,
+			allocator_type alloc = {}
+		) noexcept = 0;
 
-		ML_NODISCARD virtual shared<indexbuffer> create_indexbuffer(uint32_t usage, size_t count, addr_t data) noexcept = 0;
+		ML_NODISCARD virtual shared<indexbuffer> create_indexbuffer(
+			spec<indexbuffer> const & desc,
+			addr_t data,
+			allocator_type alloc = {}
+		) noexcept = 0;
 
-		ML_NODISCARD virtual shared<texture2d> create_texture2d(desc_<texture2d> const & value, addr_t data = {}) noexcept = 0;
+		ML_NODISCARD virtual shared<texture2d> create_texture2d(
+			spec<texture2d> const & desc,
+			addr_t data = {},
+			allocator_type alloc = {}
+		) noexcept = 0;
 
-		ML_NODISCARD virtual shared<texturecube> create_texturecube(desc_<texturecube> const & value) noexcept = 0;
+		ML_NODISCARD virtual shared<texturecube> create_texturecube(
+			spec<texturecube> const & desc,
+			allocator_type alloc = {}
+		) noexcept = 0;
 
-		ML_NODISCARD virtual shared<framebuffer> create_framebuffer(desc_<framebuffer> const & value) noexcept = 0;
+		ML_NODISCARD virtual shared<framebuffer> create_framebuffer(
+			spec<framebuffer> const & desc,
+			allocator_type alloc = {}
+		) noexcept = 0;
 
-		ML_NODISCARD virtual shared<program> create_program() noexcept = 0;
+		ML_NODISCARD virtual shared<program> create_program(
+			allocator_type alloc = {}
+		) noexcept = 0;
 
-		ML_NODISCARD virtual shared<shader> create_shader(desc_<shader> const & value) noexcept = 0;
+		ML_NODISCARD virtual shared<shader> create_shader(
+			spec<shader> const & desc,
+			allocator_type alloc = {}
+		) noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -714,7 +749,9 @@ namespace ml::gfx
 
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
+
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+
 		explicit render_object(render_device * parent) noexcept : m_parent{ parent }
 		{
 			ML_assert_msg(m_parent, "BAD RENDER DEVICE");
@@ -830,49 +867,40 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// render context settings
-	template <> struct ML_NODISCARD desc_<render_context> final
+	template <> struct ML_NODISCARD spec<render_context> final
 	{
-		pmr::string	name		{ "RenderContext" };
-		int32_t		client		{ context_api_unknown };
-		int32_t		source		{};
-		int32_t		major		{},
-					minor		{};
-		bool		forward		{},
-					debug		{},
-					noerror		{};
-		int32_t		profile		{ context_profile_any };
-		int32_t		robustness	{};
-		int32_t		release		{};
+		int32_t		api				{ context_api_unknown };
+		int32_t		major			{},
+					minor			{};
+		int32_t		profile			{ context_profile_any };
+		int32_t		depth_bits		{};
+		int32_t		stencil_bits	{};
+		bool		multisample		{};
+		bool		srgb_capable	{};
 	};
 
-	static void from_json(json const & j, desc_<render_context> & v)
+	static void from_json(json const & j, spec<render_context> & v)
 	{
-		j["name"		].get_to(v.name);
-		j["client"		].get_to(v.client);
-		j["source"		].get_to(v.source);
+		j["api"			].get_to((context_api_ & )v.api);
 		j["major"		].get_to(v.major);
 		j["minor"		].get_to(v.minor);
-		j["forward"		].get_to(v.forward);
-		j["debug"		].get_to(v.debug);
-		j["noerror"		].get_to(v.noerror);
-		j["profile"		].get_to(v.profile);
-		j["robustness"	].get_to(v.robustness);
-		j["release"		].get_to(v.release);
+		j["profile"		].get_to((context_profile_ &)v.profile);
+		j["depth_bits"	].get_to(v.depth_bits);
+		j["stencil_bits"].get_to(v.stencil_bits);
+		j["multisample"	].get_to(v.multisample);
+		j["srgb_capable"].get_to(v.srgb_capable);
 	}
 
-	static void to_json(json & j, desc_<render_context> const & v)
+	static void to_json(json & j, spec<render_context> const & v)
 	{
-		j["name"		] = v.name;
-		j["client"		] = v.client;
-		j["source"		] = v.source;
+		j["api"			] = (context_api_)v.api;
 		j["major"		] = v.major;
 		j["minor"		] = v.minor;
-		j["forward"		] = v.forward;
-		j["debug"		] = v.debug;
-		j["noerror"		] = v.noerror;
-		j["profile"		] = v.profile;
-		j["robustness"	] = v.robustness;
-		j["release"		] = v.release;
+		j["profile"		] = (context_profile_)v.profile;
+		j["depth_bits"	] = v.depth_bits;
+		j["stencil_bits"] = v.stencil_bits;
+		j["multisample"	] = v.multisample;
+		j["srgb_capable"] = v.srgb_capable;
 	}
 
 
@@ -882,9 +910,11 @@ namespace ml::gfx
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static auto create(context_settings const & cs) noexcept
+		using spec_type = typename spec<render_context>;
+
+		ML_NODISCARD static auto create(spec_type const & desc, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_context(cs);
+			return render_device::get_default()->create_context(desc, alloc);
 		}
 
 	public:
@@ -900,7 +930,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual object_id get_handle() const noexcept override = 0;
 
-		ML_NODISCARD virtual context_settings const & get_settings() const noexcept = 0;
+		ML_NODISCARD virtual spec<render_context> const & get_settings() const noexcept = 0;
 
 		ML_NODISCARD virtual typeof<> const & get_self_type() const noexcept override = 0;
 
@@ -994,19 +1024,19 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// vertexarray settings
-	template <> struct ML_NODISCARD desc_<vertexarray> final
+	template <> struct ML_NODISCARD spec<vertexarray> final
 	{
-		pmr::string	name{ nameof_v<vertexarray> };
+		uint32_t	prim{ primitive_triangles };
 	};
 
-	static void from_json(json const & j, desc_<vertexarray> & v)
+	static void from_json(json const & j, spec<vertexarray> & v)
 	{
-		j["name"].get_to(v.name);
+		j["prim"].get_to(v.prim);
 	}
 
-	static void to_json(json & j, desc_<vertexarray> const & v)
+	static void to_json(json & j, spec<vertexarray> const & v)
 	{
-		j["name"] = v.name;
+		j["prim"] = v.prim;
 	}
 
 
@@ -1014,9 +1044,9 @@ namespace ml::gfx
 	class ML_CORE_API vertexarray : public render_object<vertexarray>
 	{
 	public:
-		ML_NODISCARD static auto create(uint32_t prim = primitive_triangles) noexcept
+		ML_NODISCARD static auto create(spec<vertexarray> const & desc = {}, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_vertexarray(prim);
+			return render_device::get_default()->create_vertexarray(desc, alloc);
 		}
 
 	public:
@@ -1033,15 +1063,15 @@ namespace ml::gfx
 	public:
 		virtual void add_vertices(shared<vertexbuffer> const & value) = 0;
 
-		virtual void set_layout(buffer_layout const & value) = 0;
+		virtual void set_layout(vertex_layout const & value) = 0;
 
 		virtual void set_indices(shared<indexbuffer> const & value) = 0;
 
-		ML_NODISCARD virtual buffer_layout const & get_layout() const noexcept = 0;
+		ML_NODISCARD virtual vertex_layout const & get_layout() const noexcept = 0;
 
 		ML_NODISCARD virtual shared<indexbuffer> const & get_indices() const noexcept = 0;
 
-		ML_NODISCARD virtual uint32_t get_primitive() const noexcept = 0;
+		ML_NODISCARD virtual uint32_t get_mode() const noexcept = 0;
 		
 		ML_NODISCARD virtual pmr::vector<shared<vertexbuffer>> const & get_vertices() const noexcept = 0;
 
@@ -1064,21 +1094,19 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// vertexbuffer settings
-	template <> struct ML_NODISCARD desc_<vertexbuffer> final
+	template <> struct ML_NODISCARD spec<vertexbuffer> final
 	{
-		pmr::string	name	{ nameof_v<vertexbuffer> };
 		uint32_t	usage	{ usage_static };
+		size_t		count	{};
 	};
 
-	static void from_json(json const & j, desc_<vertexbuffer> & v)
+	static void from_json(json const & j, spec<vertexbuffer> & v)
 	{
-		j["name"].get_to(v.name);
 		j["usage"].get_to(v.usage);
 	}
 
-	static void to_json(json & j, desc_<vertexbuffer> const & v)
+	static void to_json(json & j, spec<vertexbuffer> const & v)
 	{
-		j["name"] = v.name;
 		j["usage"] = v.usage;
 	}
 
@@ -1087,14 +1115,9 @@ namespace ml::gfx
 	class ML_CORE_API vertexbuffer : public render_object<vertexbuffer>
 	{
 	public:
-		ML_NODISCARD static auto create(uint32_t usage, size_t count, addr_t data) noexcept
+		ML_NODISCARD static auto create(spec<vertexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_vertexbuffer(usage, count, data);
-		}
-
-		ML_NODISCARD static auto create(size_t count, addr_t data = {}) noexcept
-		{
-			return create(data ? usage_static : usage_dynamic, count, data);
+			return render_device::get_default()->create_vertexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1138,19 +1161,22 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// indexbuffer settings
-	template <> struct ML_NODISCARD desc_<indexbuffer> final
+	template <> struct ML_NODISCARD spec<indexbuffer> final
 	{
-		pmr::string	name{ nameof_v<indexbuffer> };
+		uint32_t	usage	{ usage_static };
+		size_t		count	{};
 	};
 
-	static void from_json(json const & j, desc_<indexbuffer> & v)
+	static void from_json(json const & j, spec<indexbuffer> & v)
 	{
-		j["name"].get_to(v.name);
+		j["usage"].get_to(v.usage);
+		j["count"].get_to(v.count);
 	}
 
-	static void to_json(json & j, desc_<indexbuffer> const & v)
+	static void to_json(json & j, spec<indexbuffer> const & v)
 	{
-		j["name"] = v.name;
+		j["usage"] = v.usage;
+		j["count"] = v.count;
 	}
 
 
@@ -1158,14 +1184,9 @@ namespace ml::gfx
 	class ML_CORE_API indexbuffer : public render_object<indexbuffer>
 	{
 	public:
-		ML_NODISCARD static auto create(uint32_t usage, size_t count, addr_t data) noexcept
+		ML_NODISCARD static auto create(spec<indexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_indexbuffer(usage, count, data);
-		}
-
-		ML_NODISCARD static auto create(size_t count, addr_t data = {}) noexcept
-		{
-			return create(data ? usage_static : usage_dynamic, count, data);
+			return render_device::get_default()->create_indexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1237,22 +1258,23 @@ namespace ml::gfx
 	}
 
 
-	// texture format
-	struct ML_NODISCARD tex_format final
+	// storage format
+	struct ML_NODISCARD storage_format final
 	{
-		uint32_t	color	{ format_rgba },
-					pixel	{ color },
-					type	{ type_ubyte };
+		uint32_t
+			color	{ format_rgba },
+			pixel	{ color },
+			type	{ type_ubyte };
 	};
 
-	static void from_json(json const & j, tex_format & v)
+	static void from_json(json const & j, storage_format & v)
 	{
 		j["color"].get_to(v.color);
 		j["pixel"].get_to(v.pixel);
 		j["type"].get_to(v.type);
 	}
 
-	static void to_json(json & j, tex_format const & v)
+	static void to_json(json & j, storage_format const & v)
 	{
 		j["color"] = v.color;
 		j["pixel"] = v.pixel;
@@ -1282,6 +1304,12 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual uint32_t get_type() const noexcept = 0;
 
+		ML_NODISCARD virtual vec2i const & get_size() const noexcept = 0;
+		
+		ML_NODISCARD virtual storage_format const & get_format() const noexcept = 0;
+		
+		ML_NODISCARD virtual int32_t get_flags() const noexcept = 0;
+
 	public:
 		inline void bind(uint32_t slot = 0) const noexcept
 		{
@@ -1301,28 +1329,22 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// texture2d settings
-	template <> struct ML_NODISCARD desc_<texture2d> final
+	template <> struct ML_NODISCARD spec<texture2d> final
 	{
-		pmr::string	name		{ "Texture2D" };
-		fs::path	path		{};
-		vec2i		size		{};
-		tex_format	format		{ format_rgba };
-		int32_t		flags		{ texture_flags_default };
+		vec2i			size	{};
+		storage_format	format	{ format_rgba };
+		int32_t			flags	{ texture_flags_default };
 	};
 
-	static void from_json(json const & j, desc_<texture2d> & v)
+	static void from_json(json const & j, spec<texture2d> & v)
 	{
-		j["name"	].get_to(v.name);
-		j["path"	].get_to(v.path);
 		j["size"	].get_to(v.size);
 		j["format"	].get_to(v.format);
 		j["flags"	].get_to((texture_flags_ &)v.flags);
 	}
 
-	static void to_json(json & j, desc_<texture2d> const & v)
+	static void to_json(json & j, spec<texture2d> const & v)
 	{
-		j["name"	] = v.name;
-		j["path"	] = v.path;
 		j["size"	] = v.size;
 		j["format"	] = v.format;
 		j["flags"	] = (texture_flags_)v.flags;
@@ -1333,22 +1355,16 @@ namespace ml::gfx
 	class ML_CORE_API texture2d : public texture
 	{
 	public:
-		ML_NODISCARD static auto create(desc_<texture2d> const & value, addr_t data = {}) noexcept
+		ML_NODISCARD static auto create(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_texture2d(value, data);
+			return render_device::get_default()->create_texture2d(desc, data);
 		}
 
 		ML_NODISCARD static auto create(bitmap const & img, int32_t flags = texture_flags_default) noexcept
 		{
 			return create(
-			{
-				(pmr::string)img.path().string(),
-				img.path(),
-				img.size(),
-				{ calc_channel_format(img.channels()) },
-				flags
-			}
-			, img.data());
+				{ img.size(), { calc_channel_format(img.channels()) }, flags },
+				img.data());
 		}
 
 		ML_NODISCARD static auto create(fs::path const & path, int32_t flags = texture_flags_default) noexcept
@@ -1386,9 +1402,13 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual bitmap copy_to_image() const = 0;
 
-		ML_NODISCARD virtual desc_<texture2d> const & get_data() const noexcept = 0;
-
 		ML_NODISCARD inline uint32_t get_type() const noexcept { return texture_type_2d; }
+
+		ML_NODISCARD virtual vec2i const & get_size() const noexcept = 0;
+
+		ML_NODISCARD virtual storage_format const & get_format() const noexcept = 0;
+
+		ML_NODISCARD virtual int32_t get_flags() const noexcept = 0;
 	};
 }
 
@@ -1398,31 +1418,25 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// texturecube settings
-	template <> struct ML_NODISCARD desc_<texturecube> final
+	template <> struct ML_NODISCARD spec<texturecube> final
 	{
 		using paths_t = ds::array<fs::path, 6>;
 
-		pmr::string	name		{ "TextureCube" };
-		paths_t		paths		{};
-		vec2i		size		{};
-		tex_format	format		{ format_rgba };
-		int32_t		flags		{ texture_flags_default };
+		vec2i			size	{};
+		storage_format	format	{ format_rgba };
+		int32_t			flags	{ texture_flags_default };
 	};
 
-	static void from_json(json const & j, desc_<texturecube> & v)
+	static void from_json(json const & j, spec<texturecube> & v)
 	{
-		j["name"	].get_to(v.name);
-		j["paths"	].get_to(v.paths);
 		j["size"	].get_to(v.size);
 		j["format"	].get_to(v.format);
 		j["flags"	].get_to((texture_flags_ &)v.flags);
 		
 	}
 
-	static void to_json(json & j, desc_<texturecube> const & v)
+	static void to_json(json & j, spec<texturecube> const & v)
 	{
-		j["name"	] = v.name;
-		j["paths"	] = v.paths;
 		j["size"	] = v.size;
 		j["format"	] = v.format;
 		j["flags"	] = (texture_flags_)v.flags;
@@ -1433,9 +1447,9 @@ namespace ml::gfx
 	class ML_CORE_API texturecube : public texture
 	{
 	public:
-		ML_NODISCARD static auto create(desc_<texturecube> const & value) noexcept
+		ML_NODISCARD static auto create(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_texturecube(value);
+			return render_device::get_default()->create_texturecube(desc, alloc);
 		}
 
 	public:
@@ -1456,9 +1470,13 @@ namespace ml::gfx
 
 		virtual void unlock() override = 0;
 
-		ML_NODISCARD virtual desc_<texturecube> const & get_data() const noexcept = 0;
-
 		ML_NODISCARD inline uint32_t get_type() const noexcept override { return texture_type_cube; }
+
+		ML_NODISCARD virtual vec2i const & get_size() const noexcept = 0;
+
+		ML_NODISCARD virtual storage_format const & get_format() const noexcept = 0;
+
+		ML_NODISCARD virtual int32_t get_flags() const noexcept = 0;
 	};
 }
 
@@ -1468,22 +1486,20 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// framebuffer settings
-	template <> struct ML_NODISCARD desc_<framebuffer> final
+	template <> struct ML_NODISCARD spec<framebuffer> final
 	{
-		pmr::string	name			{ "FrameBuffer" };
-		vec2i		size			{};
-		tex_format	format			{ format_rgba };
-		int32_t		flags			{ texture_flags_default };
-		vec4i		bits_per_pixel	{ 8, 8, 8, 8 };
-		int32_t		stencil_bits	{ 24 },
-					depth_bits		{ 8 };
-		int32_t		samples			{};
-		bool		stereo			{};
+		vec2i			size			{};
+		storage_format	format			{ format_rgba };
+		int32_t			flags			{ texture_flags_default };
+		vec4i			bits_per_pixel	{ 8, 8, 8, 8 };
+		int32_t			stencil_bits	{ 24 },
+						depth_bits		{ 8 };
+		int32_t			samples			{};
+		bool			stereo			{};
 	};
 
-	static void from_json(json const & j, desc_<framebuffer> & v)
+	static void from_json(json const & j, spec<framebuffer> & v)
 	{
-		j["name"			].get_to(v.name);
 		j["size"			].get_to(v.size);
 		j["format"			].get_to(v.format);
 		j["flags"			].get_to((texture_flags_ &)v.flags);
@@ -1494,9 +1510,8 @@ namespace ml::gfx
 		j["stereo"			].get_to(v.stereo);
 	}
 
-	static void to_json(json & j, desc_<framebuffer> const & v)
+	static void to_json(json & j, spec<framebuffer> const & v)
 	{
-		j["name"			] = v.name;
 		j["size"			] = v.size;
 		j["format"			] = v.format;
 		j["flags"			] = (texture_flags_)v.flags;
@@ -1512,9 +1527,9 @@ namespace ml::gfx
 	class ML_CORE_API framebuffer : public render_object<framebuffer>
 	{
 	public:
-		ML_NODISCARD static auto create(desc_<framebuffer> const & value) noexcept
+		ML_NODISCARD static auto create(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_framebuffer(value);
+			return render_device::get_default()->create_framebuffer(desc, alloc);
 		}
 
 	public:
@@ -1541,7 +1556,22 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual shared<texture2d> const & get_depth_attachment() const noexcept = 0;
 
-		ML_NODISCARD virtual desc_<framebuffer> const & get_data() const noexcept = 0;
+		ML_NODISCARD virtual vec2i const & get_size() const noexcept = 0;
+
+		ML_NODISCARD virtual storage_format const & get_format() const noexcept = 0;
+
+		ML_NODISCARD virtual int32_t get_flags() const noexcept = 0;
+
+		ML_NODISCARD virtual vec4i const & get_bits_per_pixel() const noexcept = 0;
+
+		ML_NODISCARD virtual int32_t get_stencil_bits() const noexcept = 0;
+		
+		ML_NODISCARD virtual int32_t get_depth_bits() const noexcept = 0;
+		
+		ML_NODISCARD virtual int32_t get_samples() const noexcept = 0;
+		
+		ML_NODISCARD virtual bool is_stereo() const noexcept = 0;
+
 
 	public:
 		inline void bind() const noexcept
@@ -1673,28 +1703,22 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// shader settings
-	template <> struct ML_NODISCARD desc_<shader> final
+	template <> struct ML_NODISCARD spec<shader> final
 	{
 		using source_t = pmr::vector<pmr::string>;
 
-		pmr::string	name	{ "Shader" };
-		fs::path	path	{};
-		uint32_t	type	{ shader_type_vertex };
+		uint32_t	type	{ shader_vertex };
 		source_t	code	{};
 	};
 
-	static void from_json(json const & j, desc_<shader> & v)
+	static void from_json(json const & j, spec<shader> & v)
 	{
-		j["name"].get_to(v.name);
-		j["path"].get_to(v.path);
 		j["type"].get_to(v.type);
 		j["code"].get_to(v.code);
 	}
 
-	static void to_json(json & j, desc_<shader> const & v)
+	static void to_json(json & j, spec<shader> const & v)
 	{
-		j["name"] = v.name;
-		j["path"] = v.path;
 		j["type"] = v.type;
 		j["code"] = v.code;
 	}
@@ -1704,9 +1728,9 @@ namespace ml::gfx
 	class ML_CORE_API shader : public render_object<shader>
 	{
 	public:
-		ML_NODISCARD static auto create(desc_<shader> const & value) noexcept
+		ML_NODISCARD static auto create(spec<shader> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_shader(value);
+			return render_device::get_default()->create_shader(desc, alloc);
 		}
 
 	public:

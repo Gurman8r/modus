@@ -10,49 +10,38 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using vertices_t	= typename pmr::vector<vertex>;
-		using contiguous_t	= typename pmr::vector<float_t>;
-		using indices_t		= typename pmr::vector<uint32_t>;
-
-		static constexpr gfx::buffer_element default_layout[] =
-		{
-			{ vec3{}, "a_position"	},
-			{ vec3{}, "a_normal"	},
-			{ vec2{}, "a_texcoord"	},
-		};
-
 		mesh(uint32_t mode = gfx::primitive_triangles) noexcept
-			: m_vao{ gfx::vertexarray::create(mode) }
+			: m_vao{ gfx::vertexarray::create({ mode }) }
 		{
 		}
 
-		mesh(contiguous_t const & verts, gfx::buffer_layout const & layout = default_layout)
+		mesh(pmr::vector<float_t> const & v, gfx::vertex_layout const & l = {})
 			: mesh{}
 		{
-			m_vao->set_layout(layout);
-			add_vertices(verts);
+			set_layout(l);
+			add_vertices(v);
 		}
 
-		mesh(contiguous_t const & verts, indices_t const & inds, gfx::buffer_layout const & layout = default_layout)
+		mesh(pmr::vector<float_t> const & v, pmr::vector<uint32_t> const & i, gfx::vertex_layout const & l = {})
 			: mesh{}
 		{
-			m_vao->set_layout(layout);
-			add_vertices(verts);
-			set_indices(inds);
+			set_layout(l);
+			add_vertices(v);
+			set_indices(i);
 		}
 
-		mesh(vertices_t const & verts, gfx::buffer_layout const & layout = default_layout)
-			: mesh{ util::contiguous(verts), layout }
+		mesh(pmr::vector<vertex> const & verts, gfx::vertex_layout const & l = {})
+			: mesh{ util::contiguous(verts), l }
 		{
 		}
 
-		mesh(vertices_t const & verts, indices_t const & inds, gfx::buffer_layout const & layout = default_layout)
-			: mesh{ util::contiguous(verts), inds, layout }
+		mesh(pmr::vector<vertex> const & v, pmr::vector<uint32_t> const & i, gfx::vertex_layout const & l = {})
+			: mesh{ util::contiguous(v), i, l }
 		{
 		}
 
-		mesh(fs::path const & path, gfx::buffer_layout const & layout = default_layout) noexcept
-			: mesh{ load_from_file(path), {}, layout }
+		mesh(fs::path const & path, gfx::vertex_layout const & l = {}) noexcept
+			: mesh{ load_from_file(path), {}, l }
 		{
 		}
 
@@ -84,17 +73,25 @@ namespace ml
 			m_vao->add_vertices(value);
 		}
 
-		void add_vertices(contiguous_t const & verts) noexcept
+		void add_vertices(pmr::vector<float_t> const & value) noexcept
 		{
-			m_vao->add_vertices(gfx::vertexbuffer::create
-			(
-				verts.size(), verts.data()
-			));
+			if (value.empty())
+			{
+				add_vertices(gfx::vertexbuffer::create({
+					gfx::usage_dynamic,
+					0 },
+					nullptr));
+			}
+			else
+			{
+				add_vertices(gfx::vertexbuffer::create({
+					gfx::usage_static,
+					value.size() },
+					value.data()));
+			}
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void set_layout(gfx::buffer_layout const & value) noexcept
+		void set_layout(gfx::vertex_layout const & value) noexcept
 		{
 			m_vao->set_layout(value);
 		}
@@ -104,12 +101,16 @@ namespace ml
 			m_vao->set_indices(value);
 		}
 
-		void set_indices(indices_t const & inds) noexcept
+		void set_indices(pmr::vector<uint32_t> const & value) noexcept
 		{
-			m_vao->set_indices(inds.empty() ? nullptr : gfx::indexbuffer::create
-			(
-				inds.size(), inds.data()
-			));
+			if (value.empty()) { set_indices(nullptr); }
+			else
+			{
+				set_indices(gfx::indexbuffer::create({
+					gfx::usage_static,
+					value.size() },
+					value.data()));
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -122,7 +123,7 @@ namespace ml
 
 		auto get_vao() const & noexcept -> shared<gfx::vertexarray> const & { return m_vao; }
 
-		auto get_layout() const & noexcept -> gfx::buffer_layout const & { return m_vao->get_layout(); }
+		auto get_layout() const & noexcept -> gfx::vertex_layout const & { return m_vao->get_layout(); }
 
 		auto get_indices() const & noexcept -> shared<gfx::indexbuffer> const & { return m_vao->get_indices(); }
 

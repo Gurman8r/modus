@@ -46,8 +46,8 @@ namespace ml
 			{ "viewport##sandbox",	"", true, ImGuiWindowFlags_MenuBar },
 		};
 
+		color m_clear_color{ colors::magenta };
 		vec2 m_resolution{ 1280, 720 };
-
 		pmr::vector<shared<gfx::framebuffer>> m_fb{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -99,7 +99,7 @@ namespace ml
 
 			get_window()->execute(
 				gfx::command::bind_framebuffer(m_fb[0]),
-				gfx::command::set_clear_color(colors::magenta),
+				gfx::command::set_clear_color(m_clear_color),
 				gfx::command::clear(gfx::clear_color | gfx::clear_depth),
 				gfx::command([&](gfx::render_context * ctx) noexcept
 				{
@@ -166,9 +166,7 @@ namespace ml
 				ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].open);
 			}
 			// IMGUI STYLE EDITOR
-			ImGuiExt::DrawPanel(m_panels, imgui_style_panel,
-				&ImGui::ShowStyleEditor,
-				&ImGui::GetStyle());
+			m_panels[imgui_style_panel](&ImGui::ShowStyleEditor, &ImGui::GetStyle());
 
 			// SETTINGS
 			if (m_panels[settings_panel].open) {
@@ -193,7 +191,14 @@ namespace ml
 				if (ImGui::BeginMenuBar()) {
 					ImGuiExt::HelpMarker("viewport");
 					ImGui::Separator();
-					// etc...
+					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+					ImGui::Separator();
+
+					// FPS
+					auto const fps{ get_io()->fps };
+					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+					ImGui::Separator();
+					
 					ImGui::EndMenuBar();
 				}
 				ImGui::Image(

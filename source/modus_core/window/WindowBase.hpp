@@ -1,10 +1,77 @@
 #ifndef _ML_WINDOW_BASE_HPP_
 #define _ML_WINDOW_BASE_HPP_
 
-#include <modus_core/window/WindowSettings.hpp>
+#include <modus_core/detail/Duration.hpp>
+#include <modus_core/window/Input.hpp>
+#include <modus_core/window/VideoMode.hpp>
+#include <modus_core/window/WindowContext.hpp>
 
 namespace ml
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// window hints
+	enum window_hints_ : int32_t
+	{
+		window_hints_none			= 0		,		// none
+		window_hints_auto_iconify	= 1 << 0,		// auto iconify
+		window_hints_center_cursor	= 1 << 1,		// center cursor
+		window_hints_decorated		= 1 << 2,		// decorated
+		window_hints_doublebuffer	= 1 << 3,		// doublebuffer
+		window_hints_floating		= 1 << 4,		// floating
+		window_hints_focus_on_show	= 1 << 5,		// focus on show
+		window_hints_focused		= 1 << 6,		// focused
+		window_hints_maximized		= 1 << 7,		// maximized
+		window_hints_resizable		= 1 << 8,		// resizable
+		window_hints_visible		= 1 << 9,		// visible
+
+		window_hints_default
+			= window_hints_auto_iconify
+			| window_hints_decorated
+			| window_hints_doublebuffer
+			| window_hints_focus_on_show
+			| window_hints_focused
+			| window_hints_resizable
+			| window_hints_visible,
+
+		window_hints_default_max
+			= window_hints_auto_iconify
+			| window_hints_decorated
+			| window_hints_doublebuffer
+			| window_hints_focus_on_show
+			| window_hints_focused
+			| window_hints_maximized
+			| window_hints_resizable,
+	};
+
+	inline void from_json(json const & j, window_hints_ & v)
+	{
+		ML_flag_write((int32_t &)v, window_hints_auto_iconify	, j["auto_iconify"	].get<bool>());
+		ML_flag_write((int32_t &)v, window_hints_center_cursor	, j["center_cursor"	].get<bool>());
+		ML_flag_write((int32_t &)v, window_hints_decorated		, j["decorated"		].get<bool>());
+		ML_flag_write((int32_t &)v, window_hints_doublebuffer	, j["doublebuffer"	].get<bool>());
+		ML_flag_write((int32_t &)v, window_hints_floating		, j["floating"		].get<bool>());
+		ML_flag_write((int32_t &)v, window_hints_focus_on_show	, j["focus_on_show"	].get<bool>());
+		ML_flag_write((int32_t &)v, window_hints_focused		, j["focused"		].get<bool>());
+		ML_flag_write((int32_t &)v, window_hints_maximized		, j["maximized"		].get<bool>());
+		ML_flag_write((int32_t &)v, window_hints_resizable		, j["resizable"		].get<bool>());
+		ML_flag_write((int32_t &)v, window_hints_visible		, j["visible"		].get<bool>());
+	}
+
+	inline void to_json(json & j, window_hints_ const & v)
+	{
+		j["auto_iconify"	] = ML_flag_read(v, window_hints_auto_iconify	);
+		j["decorated"		] = ML_flag_read(v, window_hints_decorated		);
+		j["doublebuffer"	] = ML_flag_read(v, window_hints_doublebuffer	);
+		j["center_cursor"	] = ML_flag_read(v, window_hints_center_cursor	);
+		j["floating"		] = ML_flag_read(v, window_hints_floating		);
+		j["focus_on_show"	] = ML_flag_read(v, window_hints_focus_on_show	);
+		j["focused"			] = ML_flag_read(v, window_hints_focused		);
+		j["maximized"		] = ML_flag_read(v, window_hints_maximized		);
+		j["resizable"		] = ML_flag_read(v, window_hints_resizable		);
+		j["visible"			] = ML_flag_read(v, window_hints_visible		);
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// callback types
@@ -70,7 +137,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual bool open(window_settings const &) = 0;
+		
+		virtual bool open(
+			pmr::string			const &	title,
+			video_mode			const & vm		= {},
+			context_settings	const & cs		= {},
+			window_hints_				hints	= window_hints_default) = 0;
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -106,11 +178,11 @@ namespace ml
 
 		virtual window_handle get_handle() const = 0;
 
-		virtual int32_t get_hints() const = 0;
+		virtual window_hints_ get_hints() const = 0;
 
 		ML_NODISCARD bool has_hints(int32_t value) const noexcept
 		{
-			return (value & get_hints()) == value;
+			return (value & (int32_t)get_hints()) == value;
 		}
 
 		virtual int32_t get_input_mode(int32_t) const = 0;

@@ -12,13 +12,22 @@ namespace ml
 
 		render_window(allocator_type alloc = {}) noexcept;
 
-		render_window(window_settings const & settings, allocator_type alloc = {}) noexcept;
+		render_window(
+			pmr::string			const & title,
+			video_mode			const & vm		= {},
+			context_settings	const & cs		= {},
+			window_hints_				hints	= window_hints_default,
+			allocator_type				alloc	= {}) noexcept;
 
 		virtual ~render_window() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		virtual bool open(window_settings const & settings) override;
+		
+		virtual bool open(
+			pmr::string			const &	title,
+			video_mode			const & vm		= {},
+			context_settings	const & cs		= {},
+			window_hints_				hints	= window_hints_default) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

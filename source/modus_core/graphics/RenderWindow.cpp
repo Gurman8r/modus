@@ -12,10 +12,15 @@ namespace ml
 	{
 	}
 
-	render_window::render_window(window_settings const & settings, allocator_type alloc) noexcept
-		: render_window{ alloc }
+	render_window::render_window(
+		pmr::string			const & title,
+		video_mode			const & vm,
+		context_settings	const & cs,
+		window_hints_				hints,
+		allocator_type				alloc
+	) noexcept : render_window{ alloc }
 	{
-		ML_assert(open(settings));
+		ML_assert(open(title, vm, cs, hints));
 	}
 
 	render_window::~render_window() noexcept
@@ -25,24 +30,31 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool render_window::open(window_settings const & settings)
+	bool render_window::open(
+		pmr::string			const & title,
+		video_mode			const & vm,
+		context_settings	const & cs,
+		window_hints_				hints
+	)
 	{
 		// check already open
 		if (is_open()) { return debug::error("render_window is already open"); }
 
 		// open render_window
-		if (!native_window::open(settings)) { return debug::error("failed opening render_window"); }
+		if (!native_window::open(title, vm, cs, hints)) { return debug::error("failed opening render_window"); }
 
 		// create device
-		if (m_dev.reset(gfx::render_device::create(settings.context.api)); !m_dev)
+		if (m_dev.reset(gfx::render_device::create(cs.api)); !m_dev)
 		{
 			return debug::error("failed creating device");
 		}
 
 		// create context
-		m_dev->set_context(m_ctx = m_dev->create_context(
-			*reinterpret_cast<gfx::spec<gfx::render_context> const *>(&settings.context)
-		));
+		m_dev->set_context(m_ctx = m_dev->create_context({
+			cs.api, cs.major, cs.minor, cs.profile,
+			cs.depth_bits, cs.stencil_bits,
+			cs.multisample, cs.srgb_capable
+			}));
 
 		// setup states
 		execute(

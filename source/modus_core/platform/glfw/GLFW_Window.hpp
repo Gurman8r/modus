@@ -16,13 +16,22 @@ namespace ml
 
 		explicit glfw_window(allocator_type alloc) noexcept;
 
-		explicit glfw_window(window_settings const & settings, allocator_type alloc) noexcept;
+		explicit glfw_window(
+			pmr::string			const & title,
+			video_mode			const & vm		= {},
+			context_settings	const & cs		= {},
+			window_hints_				hints	= window_hints_default,
+			allocator_type				alloc	= {}) noexcept;
 
 		~glfw_window() override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool open(window_settings const & ws) override;
+		virtual bool open(
+			pmr::string			const & title,
+			video_mode			const & vm		= {},
+			context_settings	const & cs		= {},
+			window_hints_				hints	= window_hints_default) override;
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -58,7 +67,7 @@ namespace ml
 
 		window_handle get_handle() const override;
 
-		int32_t get_hints() const override;
+		window_hints_ get_hints() const override;
 
 		int32_t get_input_mode(int32_t mode) const override;
 
@@ -198,7 +207,7 @@ namespace ml
 		pmr::string			m_title		; // 
 		GLFWwindow	*		m_window	; // 
 		GLFWmonitor	*		m_monitor	; // 
-		int32_t				m_hints		; // 
+		window_hints_		m_hints		; // 
 		window_callbacks	m_clbk		; //
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

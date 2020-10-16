@@ -4,73 +4,6 @@
 #include <modus_core/client/PluginManager.hpp>
 #include <modus_core/client/ImGui.hpp>
 
-// CLIENT DOCKSPACE
-namespace ml
-{
-	// client dockspace
-	struct ML_CORE_API client_dockspace final : client_object<client_dockspace>
-	{
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
-		bool					enabled;
-		pmr::string				title;
-		float_t					border;
-		float_t					rounding;
-		float_t					alpha;
-		vec2					padding;
-		vec2					size;
-		int32_t					flags;
-		pmr::vector<uint32_t>	nodes;
-
-		client_dockspace(client_context * ctx) noexcept;
-
-		~client_dockspace() noexcept override = default;
-
-		void configure(json const & j);
-
-		uint32_t begin_builder();
-
-		uint32_t end_builder(uint32_t root);
-
-		uint32_t dock(cstring name, uint32_t id);
-
-		uint32_t split(uint32_t i, uint32_t id, int32_t dir, float_t ratio, uint32_t * value);
-
-		uint32_t split(uint32_t id, int32_t dir, float_t ratio, uint32_t * value);
-
-		uint32_t split(uint32_t id, int32_t dir, float_t ratio, uint32_t * out, uint32_t * value);
-
-		ML_NODISCARD auto & operator[](size_t i) noexcept { return nodes[i]; }
-
-		ML_NODISCARD auto const & operator[](size_t i) const noexcept { return nodes[i]; }
-
-	private:
-		void on_event(event && value) override;
-	};
-}
-
-// CLIENT MENUBAR
-namespace ml
-{
-	// client menubar
-	struct ML_CORE_API client_menubar final : client_object<client_menubar>
-	{
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
-		bool		enabled;
-		pmr::string	title;
-
-		client_menubar(client_context * ctx) noexcept;
-
-		~client_menubar() noexcept override = default;
-
-		void configure(json const & j);
-
-	private:
-		void on_event(event && value) override;
-	};
-}
-
 // CLIENT RUNTIME
 namespace ml
 {
@@ -89,15 +22,53 @@ namespace ml
 
 		ML_NODISCARD int32_t idle();
 
+		ML_NODISCARD bool is_running() const noexcept { return m_running; }
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_imgui() const noexcept -> manual<ImGuiContext> const & { return m_imgui; }
 
-		ML_NODISCARD auto get_dock() noexcept -> client_dockspace & { return m_dock; }
-
-		ML_NODISCARD auto get_menu() noexcept -> client_menubar & { return m_menu; }
-
 		ML_NODISCARD auto get_plugins() noexcept -> plugin_manager & { return m_plugins; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD bool is_menu_enabled() const noexcept { return m_menu_enabled; }
+		
+		ML_NODISCARD bool is_dock_enabled() const noexcept { return m_dock_enabled; }
+
+		ML_NODISCARD auto get_dock_title() const noexcept -> pmr::string const & { return m_dock_title; }
+
+		ML_NODISCARD auto get_dock_border() const noexcept -> float_t { return m_dock_border; }
+
+		ML_NODISCARD auto get_dock_rounding() const noexcept -> float_t { return m_dock_rounding; }
+
+		ML_NODISCARD auto get_dock_alpha() const noexcept -> float_t { return m_dock_alpha; }
+
+		ML_NODISCARD auto get_dock_padding() const noexcept  -> vec2 const & { return m_dock_padding; }
+
+		ML_NODISCARD auto get_dock_size() const noexcept -> vec2 const & { return m_dock_size; }
+
+		ML_NODISCARD auto get_dock_flags() const noexcept -> int32_t { return m_dock_flags; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD void set_menu_enabled(bool value) noexcept { m_menu_enabled = value; }
+
+		ML_NODISCARD void set_dock_enabled(bool value) noexcept { m_dock_enabled = value; }
+
+		ML_NODISCARD void set_dock_title(pmr::string const & value) noexcept { m_dock_title = value; }
+
+		ML_NODISCARD void set_dock_border(float_t value) noexcept { m_dock_border = value; }
+
+		ML_NODISCARD void set_dock_rounding(float_t value) noexcept { m_dock_rounding = value; }
+
+		ML_NODISCARD void set_dock_alpha(float_t value) noexcept { m_dock_alpha = value; }
+
+		ML_NODISCARD void set_dock_padding(vec2 const & value) noexcept { m_dock_padding = value; }
+
+		ML_NODISCARD void set_dock_size(vec2 const & value) noexcept { m_dock_size = value; }
+
+		ML_NODISCARD void set_dock_flags(int32_t value) noexcept { m_dock_flags = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -116,10 +87,19 @@ namespace ml
 
 	private:
 		bool					m_running	; // 
+		std::function<bool()>	m_condition	; // 
 		manual<ImGuiContext>	m_imgui		; // 
-		client_dockspace		m_dock		; // 
-		client_menubar			m_menu		; // 
 		plugin_manager			m_plugins	; // 
+		
+		bool		m_menu_enabled	, // menu enabled
+					m_dock_enabled	; // dock enabled
+		pmr::string	m_dock_title	; // dock title
+		float_t		m_dock_border	; // dock border
+		float_t		m_dock_rounding	; // dock rounding
+		float_t		m_dock_alpha	; // dock alpha
+		vec2		m_dock_padding	; // dock padding
+		vec2		m_dock_size		; // dock size
+		int32_t		m_dock_flags	; // dock flags
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

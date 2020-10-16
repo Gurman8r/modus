@@ -54,10 +54,15 @@ namespace ml
 		ML_assert("failed initializing glfw window" && glfw_init);
 	}
 
-	glfw_window::glfw_window(window_settings const & settings, allocator_type alloc) noexcept
-		: glfw_window{ alloc }
+	glfw_window::glfw_window(
+		pmr::string			const & title,
+		video_mode			const & vm,
+		context_settings	const & cs,
+		window_hints_				hints,
+		allocator_type				alloc
+	) noexcept : glfw_window{ alloc }
 	{
-		ML_assert(open(settings));
+		ML_assert(open(title, vm, cs, hints));
 	}
 
 	glfw_window::~glfw_window()
@@ -69,19 +74,24 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool glfw_window::open(window_settings const & settings)
+	bool glfw_window::open(
+		pmr::string			const & title,
+		video_mode			const & vm,
+		context_settings	const & cs,
+		window_hints_				hints
+	)
 	{
 		// check already open
 		if (is_open()) { return debug::error("glfw_window is already open"); }
 
 		// title
-		if ((m_title = settings.title).empty()) { m_title = "GLFW"; }
+		if ((m_title = title).empty()) { m_title = "GLFW"; }
 
 		// hints
-		m_hints = settings.hints;
+		m_hints = hints;
 
 		// context hints
-		glfwWindowHint(GLFW_CLIENT_API, std::invoke([api = settings.context.api]() noexcept
+		glfwWindowHint(GLFW_CLIENT_API, std::invoke([api = cs.api]() noexcept
 		{
 			switch (api)
 			{
@@ -92,7 +102,7 @@ namespace ml
 			default					: return GLFW_NO_API;
 			}
 		}));
-		glfwWindowHint(GLFW_OPENGL_PROFILE, std::invoke([profile = settings.context.profile]() noexcept
+		glfwWindowHint(GLFW_OPENGL_PROFILE, std::invoke([profile = cs.profile]() noexcept
 		{
 			switch (profile)
 			{
@@ -103,37 +113,37 @@ namespace ml
 			default						: return GLFW_OPENGL_ANY_PROFILE;
 			}
 		}));
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,	settings.context.major);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,	settings.context.minor);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,	cs.major);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,	cs.minor);
 
 		// window hints
-		glfwWindowHint(GLFW_AUTO_ICONIFY,	settings.hints & window_hints_auto_iconify);
-		glfwWindowHint(GLFW_CENTER_CURSOR,	settings.hints & window_hints_center_cursor);
-		glfwWindowHint(GLFW_DECORATED,		settings.hints & window_hints_decorated);
-		glfwWindowHint(GLFW_DOUBLEBUFFER,	settings.hints & window_hints_doublebuffer);
-		glfwWindowHint(GLFW_FLOATING,		settings.hints & window_hints_floating);
-		glfwWindowHint(GLFW_FOCUS_ON_SHOW,	settings.hints & window_hints_focus_on_show);
-		glfwWindowHint(GLFW_FOCUSED,		settings.hints & window_hints_focused);
-		glfwWindowHint(GLFW_MAXIMIZED,		settings.hints & window_hints_maximized);
-		glfwWindowHint(GLFW_RESIZABLE,		settings.hints & window_hints_resizable);
-		glfwWindowHint(GLFW_VISIBLE,		settings.hints & window_hints_visible);
+		glfwWindowHint(GLFW_AUTO_ICONIFY,	hints & window_hints_auto_iconify);
+		glfwWindowHint(GLFW_CENTER_CURSOR,	hints & window_hints_center_cursor);
+		glfwWindowHint(GLFW_DECORATED,		hints & window_hints_decorated);
+		glfwWindowHint(GLFW_DOUBLEBUFFER,	hints & window_hints_doublebuffer);
+		glfwWindowHint(GLFW_FLOATING,		hints & window_hints_floating);
+		glfwWindowHint(GLFW_FOCUS_ON_SHOW,	hints & window_hints_focus_on_show);
+		glfwWindowHint(GLFW_FOCUSED,		hints & window_hints_focused);
+		glfwWindowHint(GLFW_MAXIMIZED,		hints & window_hints_maximized);
+		glfwWindowHint(GLFW_RESIZABLE,		hints & window_hints_resizable);
+		glfwWindowHint(GLFW_VISIBLE,		hints & window_hints_visible);
 
 		// monitor hints
-		glfwWindowHint(GLFW_REFRESH_RATE,	settings.video.refresh_rate);
+		glfwWindowHint(GLFW_REFRESH_RATE,	vm.refresh_rate);
 
 		// framebuffer hints
-		glfwWindowHint(GLFW_RED_BITS,		settings.video.bits_per_pixel[0]);
-		glfwWindowHint(GLFW_GREEN_BITS,		settings.video.bits_per_pixel[1]);
-		glfwWindowHint(GLFW_BLUE_BITS,		settings.video.bits_per_pixel[2]);
-		glfwWindowHint(GLFW_ALPHA_BITS,		settings.video.bits_per_pixel[3]);
-		glfwWindowHint(GLFW_DEPTH_BITS,		settings.context.depth_bits);
-		glfwWindowHint(GLFW_STENCIL_BITS,	settings.context.stencil_bits);
-		glfwWindowHint(GLFW_SRGB_CAPABLE,	settings.context.srgb_capable);
+		glfwWindowHint(GLFW_RED_BITS,		vm.bits_per_pixel[0]);
+		glfwWindowHint(GLFW_GREEN_BITS,		vm.bits_per_pixel[1]);
+		glfwWindowHint(GLFW_BLUE_BITS,		vm.bits_per_pixel[2]);
+		glfwWindowHint(GLFW_ALPHA_BITS,		vm.bits_per_pixel[3]);
+		glfwWindowHint(GLFW_DEPTH_BITS,		cs.depth_bits);
+		glfwWindowHint(GLFW_STENCIL_BITS,	cs.stencil_bits);
+		glfwWindowHint(GLFW_SRGB_CAPABLE,	cs.srgb_capable);
 
 		// create window
 		return (m_window = glfwCreateWindow(
-			settings.video.resolution[0],
-			settings.video.resolution[1],
+			vm.resolution[0],
+			vm.resolution[1],
 			m_title.c_str(), // title
 			nullptr, // monitor
 			nullptr // share
@@ -227,7 +237,7 @@ namespace ml
 		return (window_handle)m_window;
 	}
 
-	int32_t glfw_window::get_hints() const
+	window_hints_ glfw_window::get_hints() const
 	{
 		return m_hints;
 	}

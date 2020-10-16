@@ -45,19 +45,19 @@ namespace ml
 	// CLIENT DOCKSPACE
 	ML_decl_event(client_dock_event)
 	{
-		client_dockspace * const ptr;
+		client_runtime * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_dock_event(client_dockspace * const ptr) noexcept : ptr{ ptr } {}
+		constexpr client_dock_event(client_runtime * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	// CLIENT MENUBAR
 	ML_decl_event(client_menu_event)
 	{
-		client_menubar * const ptr;
+		client_runtime * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_menu_event(client_menubar * const ptr) noexcept : ptr{ ptr } {}
+		constexpr client_menu_event(client_runtime * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	// CLIENT GUI

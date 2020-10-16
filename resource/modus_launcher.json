@@ -33,6 +33,7 @@
 	"client": {
 		"callbacks": true,
 		"style": "resource/modus_launcher.style",
+		"menu": { "enabled": true },
 		"dock": {
 			"enabled"	: true,
 			"title"		: "dockspace",
@@ -42,10 +43,6 @@
 			"padding"	: [ 0, 0 ],
 			"size"		: [ 0, 0 ],
 			"nodes"		: []
-		},
-		"menu": {
-			"enabled"	: true,
-			"title"		: "menubar"
 		},
 		"plugins": [
 			{ "path": "./plugins/sandbox" }

@@ -478,15 +478,5 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def_static("fullscreen_modes"		, &video_mode::fullscreen_modes)
 		;
 
-	// WINDOW SETTINGS
-	py::class_<window_settings>(m, "window_settings")
-		.def(py::init<>())
-		.def(py::init<pmr::string const &, video_mode const &, context_settings const &, int32_t>())
-		.def_readwrite("title"	, &window_settings::title)
-		.def_readwrite("video"	, &window_settings::video)
-		.def_readwrite("context", &window_settings::context)
-		.def_readwrite("hints"	, &window_settings::hints)
-		;
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

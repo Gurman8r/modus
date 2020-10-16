@@ -114,11 +114,20 @@ namespace ml
 
 		void on_client_dock(client_dock_event && ev)
 		{
-			if (auto const root{ ev->begin_builder() })
+			if (auto const root{ ImGui::GetID(ev->get_dock_title().c_str()) }
+			; !ImGui::DockBuilderGetNode(root))
 			{
-				ev->dock(m_panels[viewport_panel].title, root);
-				ev->end_builder(root);
+				ImGui::DockBuilderRemoveNode(root);
+				ImGui::DockBuilderAddNode(root, ev->get_dock_flags());
+				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].title, root);
+				ImGui::DockBuilderFinish(root);
 			}
+
+			//if (auto const root{ ev->begin_builder() })
+			//{
+			//	ev->dock(m_panels[viewport_panel].title, root);
+			//	ev->end_builder(root);
+			//}
 		}
 
 		void on_client_menu(client_menu_event && ev)
@@ -178,8 +187,9 @@ namespace ml
 		void draw_data_panel()
 		{
 			if (m_panels[data_panel].open) {
-				ImGui::SetNextWindowSize({ 640, 480 }, ImGuiCond_Once);
-				ImGui::SetNextWindowPos((vec2)get_window()->get_size() / 2, ImGuiCond_Once, { 0.5f, 0.5f });
+				auto const winsize{ (vec2)get_window()->get_size() };
+				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
+				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
 			m_panels[data_panel]([&]() noexcept
 			{
@@ -211,8 +221,9 @@ namespace ml
 		void draw_settings_panel()
 		{
 			if (m_panels[settings_panel].open) {
+				auto const winsize{ (vec2)get_window()->get_size() };
 				ImGui::SetNextWindowSize({ 320, 512 }, ImGuiCond_Once);
-				ImGui::SetNextWindowPos((vec2)get_window()->get_size() / 2, ImGuiCond_Once, { 0.5f, 0.5f });
+				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
 			m_panels[settings_panel]([&]() noexcept
 			{

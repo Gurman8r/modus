@@ -11,13 +11,22 @@ namespace ml
 
 		native_window(allocator_type alloc = {}) noexcept;
 
-		native_window(window_settings const & settings, allocator_type alloc = {}) noexcept;
+		native_window(
+			pmr::string			const & title,
+			video_mode			const & vm		= {},
+			context_settings	const & cs		= {},
+			window_hints_				hints	= window_hints_default,
+			allocator_type				alloc	= {}) noexcept;
 		
 		virtual ~native_window() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual bool open(window_settings const & settings) override;
+		virtual bool open(
+			pmr::string			const &	title,
+			video_mode			const &	vm,
+			context_settings	const &	cs,
+			window_hints_				hints = window_hints_default) override;
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -53,7 +62,7 @@ namespace ml
 
 		ML_NODISCARD window_handle get_handle() const noexcept final;
 
-		ML_NODISCARD int32_t get_hints() const noexcept final;
+		ML_NODISCARD window_hints_ get_hints() const noexcept final;
 
 		ML_NODISCARD int32_t get_input_mode(int32_t value) const noexcept final;
 

@@ -5,122 +5,26 @@
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 
-// CLIENT DOCKSPACE
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	client_dockspace::client_dockspace(client_context * ctx) noexcept
-		: client_object	{ ctx }
-		, enabled		{}
-		, title			{ ctx->mem->get_allocator() }
-		, border		{}
-		, rounding		{}
-		, alpha			{}
-		, padding		{}
-		, size			{}
-		, flags			{ ImGuiDockNodeFlags_AutoHideTabBar }
-	{
-	}
-
-	void client_dockspace::configure(json const & j)
-	{
-		j["enabled"	].get_to(enabled);
-		j["title"	].get_to(title);
-		j["border"	].get_to(border);
-		j["rounding"].get_to(rounding);
-		j["alpha"	].get_to(alpha);
-		j["padding"	].get_to(padding);
-		j["size"	].get_to(size);
-	}
-
-	uint32_t client_dockspace::begin_builder()
-	{
-		if (uint32_t root{ ImGui::GetID(title.c_str()) }
-		; ImGui::DockBuilderGetNode(root)) { return NULL; }
-		else
-		{
-			ImGui::DockBuilderRemoveNode(root);
-			ImGui::DockBuilderAddNode(root, flags);
-			return root;
-		}
-	}
-
-	uint32_t client_dockspace::end_builder(uint32_t root)
-	{
-		if (root) { ImGui::DockBuilderFinish(root); }
-		return root;
-	}
-
-	uint32_t client_dockspace::dock(cstring name, uint32_t id)
-	{
-		if (!name || !id) { return NULL; }
-		else
-		{
-			ImGui::DockBuilderDockWindow(name, id);
-			return id;
-		}
-	}
-
-	uint32_t client_dockspace::split(uint32_t i, uint32_t id, int32_t dir, float_t ratio, uint32_t * value)
-	{
-		return nodes[(size_t)i] = split(id, dir, ratio, value);
-	}
-
-	uint32_t client_dockspace::split(uint32_t id, int32_t dir, float_t ratio, uint32_t * value)
-	{
-		return this->split(id, dir, ratio, nullptr, value);
-	}
-
-	uint32_t client_dockspace::split(uint32_t id, int32_t dir, float_t ratio, uint32_t * out, uint32_t * value)
-	{
-		return ImGui::DockBuilderSplitNode(id, dir, ratio, out, value);
-	}
-
-	void client_dockspace::on_event(event && value)
-	{
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-// CLIENT MENUBAR
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	client_menubar::client_menubar(client_context * ctx) noexcept
-		: client_object	{ ctx }
-		, enabled		{}
-		, title			{ ctx->mem->get_allocator() }
-	{
-	}
-
-	void client_menubar::configure(json const & j)
-	{
-		j["enabled"	].get_to(enabled);
-		j["title"	].get_to(title);
-	}
-
-	void client_menubar::on_event(event && value)
-	{
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
 // CLIENT RUNTIME
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	client_runtime::client_runtime(client_context * ctx)
-		: client_object	{ ctx }
-		, m_running		{}
-		, m_imgui		{}
-		, m_dock		{ ctx }
-		, m_menu		{ ctx }
-		, m_plugins		{ ctx }
+		: client_object		{ ctx }
+		, m_running			{}
+		, m_condition		{ [ctx](){ return ctx->win->is_open(); } }
+		, m_imgui			{}
+		, m_plugins			{ ctx }
+		, m_menu_enabled	{}
+		, m_dock_enabled	{}
+		, m_dock_title		{}
+		, m_dock_border		{}
+		, m_dock_rounding	{}
+		, m_dock_alpha		{}
+		, m_dock_padding	{}
+		, m_dock_size		{}
+		, m_dock_flags		{ ImGuiDockNodeFlags_AutoHideTabBar }
 	{
 		do_startup(ctx);
 	}
@@ -143,8 +47,7 @@ namespace ml
 		if (!get_window()->is_open()) { return EXIT_FAILURE; }
 
 		// idle
-		do { do_idle(); }
-		while (get_window()->is_open());
+		do { do_idle(); } while (m_condition());
 
 		// exit
 		get_bus()->fire<client_exit_event>(this);
@@ -161,16 +64,15 @@ namespace ml
 		subscribe<window_cursor_pos_event>();
 
 		// python
-		PyObject_SetArenaAllocator(([](auto mres) noexcept {
-			static PyObjectArenaAllocator temp{
-				mres,
-				[](auto mres, size_t size) noexcept {
-					return ((pmr::memory_resource *)mres)->allocate(size);
-				},
-				[](auto mres, void * addr, size_t size) noexcept {
-					return ((pmr::memory_resource *)mres)->deallocate(addr, size);
-				}
-			}; return &temp;
+		PyObject_SetArenaAllocator(([&temp = PyObjectArenaAllocator{}](auto mres) noexcept {
+			temp.ctx = mres;
+			temp.alloc = [](auto mres, size_t s) {
+				return ((pmr::memory_resource *)mres)->allocate(s);
+			};
+			temp.free = [](auto mres, void * p, size_t s) {
+				return ((pmr::memory_resource *)mres)->deallocate(p, s);
+			};
+			return &temp;
 		})(ctx->mem->get_resource()));
 		Py_SetProgramName(ctx->io->program_name.c_str());
 		Py_SetPythonHome(ctx->io->content_path.c_str());
@@ -178,7 +80,11 @@ namespace ml
 		ML_assert(Py_IsInitialized());
 
 		// window
-		ML_assert(ctx->win->open(ctx->io->prefs["window"]));
+		ML_assert(ctx->win->open(
+			ctx->io->prefs["window"]["title"],
+			ctx->io->prefs["window"]["video"],
+			ctx->io->prefs["window"]["context"],
+			ctx->io->prefs["window"]["hints"]));
 		if (ctx->io->prefs["client"]["callbacks"])
 		{
 			static event_bus * bus{}; bus = ctx->bus;
@@ -215,8 +121,14 @@ namespace ml
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		ML_assert(ImGui_Startup(ctx->win, ctx->io->prefs["client"]["callbacks"]));
-		m_menu.configure(ctx->io->prefs["client"]["menu"]);
-		m_dock.configure(ctx->io->prefs["client"]["dock"]);
+		ctx->io->prefs["client"]["menu"]["enabled"	].get_to(m_menu_enabled);
+		ctx->io->prefs["client"]["dock"]["enabled"	].get_to(m_dock_enabled);
+		ctx->io->prefs["client"]["dock"]["title"	].get_to(m_dock_title);
+		ctx->io->prefs["client"]["dock"]["border"	].get_to(m_dock_border);
+		ctx->io->prefs["client"]["dock"]["rounding"	].get_to(m_dock_rounding);
+		ctx->io->prefs["client"]["dock"]["alpha"	].get_to(m_dock_alpha);
+		ctx->io->prefs["client"]["dock"]["padding"	].get_to(m_dock_padding);
+		ctx->io->prefs["client"]["dock"]["size"		].get_to(m_dock_size);
 		if (ctx->io->prefs["client"].contains("style")) {
 			if (ctx->io->prefs["client"]["style"].is_string()) {
 				ImGui_LoadStyle(ctx->io->path2(ctx->io->prefs["client"]["style"]));
@@ -281,17 +193,17 @@ namespace ml
 		ML_ImGui_ScopeID(this);
 
 		// CLIENT DOCKSPACE
-		if (m_dock.enabled && (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable))
+		if (m_dock_enabled && (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable))
 		{
 			ImGuiViewport const * vp{ ImGui::GetMainViewport() };
 			ImGui::SetNextWindowPos(vp->Pos);
 			ImGui::SetNextWindowSize(vp->Size);
 			ImGui::SetNextWindowViewport(vp->ID);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_dock.rounding);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock.border);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock.padding);
-			ImGui::SetNextWindowBgAlpha(m_dock.alpha);
-			if (!ImGuiExt::DrawWindow(m_dock.title.c_str(), &m_dock.enabled,
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_dock_rounding);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock_border);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock_padding);
+			ImGui::SetNextWindowBgAlpha(m_dock_alpha);
+			if (!ImGuiExt::DrawWindow(m_dock_title.c_str(), &m_dock_enabled,
 				ImGuiWindowFlags_NoTitleBar |
 				ImGuiWindowFlags_NoCollapse |
 				ImGuiWindowFlags_NoResize |
@@ -300,16 +212,16 @@ namespace ml
 				ImGuiWindowFlags_NoNavFocus |
 				ImGuiWindowFlags_NoDocking |
 				ImGuiWindowFlags_NoBackground |
-				(m_menu.enabled ? ImGuiWindowFlags_MenuBar : 0),
+				(m_menu_enabled ? ImGuiWindowFlags_MenuBar : 0),
 			[&]() noexcept
 			{
 				ImGui::PopStyleVar(3);
-				get_bus()->fire<client_dock_event>(&m_dock);
+				get_bus()->fire<client_dock_event>(this);
 				ImGui::DockSpace(
-					ImGui::GetID(m_dock.title.c_str()),
-					m_dock.size,
+					ImGui::GetID(m_dock_title.c_str()),
+					m_dock_size,
 					ImGuiDockNodeFlags_PassthruCentralNode |
-					m_dock.flags);
+					m_dock_flags);
 			}))
 			{
 				ImGui::PopStyleVar(3);
@@ -317,9 +229,9 @@ namespace ml
 		}
 
 		// CLIENT MENUBAR
-		if (m_menu.enabled && ImGui::BeginMainMenuBar())
+		if (m_menu_enabled && ImGui::BeginMainMenuBar())
 		{
-			get_bus()->fire<client_menu_event>(&m_menu);
+			get_bus()->fire<client_menu_event>(this);
 
 			ImGui::EndMainMenuBar();
 		}

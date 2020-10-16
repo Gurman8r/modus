@@ -21,10 +21,15 @@ namespace ml
 		ML_assert_msg(m_impl, "failed creating native_window implementation");
 	}
 
-	native_window::native_window(window_settings const & settings, allocator_type alloc) noexcept
-		: native_window{ alloc }
+	native_window::native_window(
+		pmr::string			const & title,
+		video_mode			const & vm,
+		context_settings	const & cs,
+		window_hints_				hints,
+		allocator_type				alloc
+	) noexcept : native_window{ alloc }
 	{
-		ML_assert(open(settings));
+		ML_assert(open(title, vm, cs, hints));
 	}
 
 	native_window::~native_window() noexcept
@@ -34,13 +39,18 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool native_window::open(window_settings const & settings)
+	bool native_window::open(
+		pmr::string			const & title,
+		video_mode			const & vm,
+		context_settings	const & cs,
+		window_hints_				hints
+	)
 	{
 		// check already open
 		if (is_open()) { return debug::error("native_window is already open"); }
 
 		// open native_window
-		if (!m_impl->open(settings)) { return debug::error("failed opening native_window"); }
+		if (!m_impl->open(title, vm, cs, hints)) { return debug::error("failed opening native_window"); }
 		
 		// make current context
 		make_context_current(get_handle());
@@ -49,7 +59,7 @@ namespace ml
 		set_user_pointer(this);
 
 		// centered
-		set_position((video_mode::desktop_mode().resolution - settings.video.resolution) / 2);
+		set_position((video_mode::desktop_mode().resolution - vm.resolution) / 2);
 
 		// maximized
 		if (has_hints(window_hints_maximized)) { maximize(); }
@@ -137,7 +147,7 @@ namespace ml
 		return m_impl->get_handle();
 	}
 
-	int32_t native_window::get_hints() const noexcept
+	window_hints_ native_window::get_hints() const noexcept
 	{
 		return m_impl->get_hints();
 	}

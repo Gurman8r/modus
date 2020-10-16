@@ -42,8 +42,8 @@ namespace ml
 			{ "Dear ImGui Metrics" },
 			{ "Style Editor" },
 			
-			{ "settings##sandbox", "", 0, 1, ImGuiWindowFlags_MenuBar },
-			{ "viewport##sandbox",	"", 1, 1, ImGuiWindowFlags_NoScrollbar },
+			{ "settings##sandbox", "", false, ImGuiWindowFlags_MenuBar },
+			{ "viewport##sandbox",	"", true, ImGuiWindowFlags_MenuBar },
 		};
 
 		vec2 m_resolution{ 1280, 720 };
@@ -129,10 +129,15 @@ namespace ml
 				ImGui::EndMenu();
 			}
 
-			// SANDBOX
-			if (ImGui::BeginMenu("sandbox")) {
-				ImGuiExt::MenuItem(m_panels, settings_panel);
+			// VIEW
+			if (ImGui::BeginMenu("view")) {
 				ImGuiExt::MenuItem(m_panels, viewport_panel);
+				ImGui::EndMenu();
+			}
+
+			// TOOLS
+			if (ImGui::BeginMenu("tools")) {
+				ImGuiExt::MenuItem(m_panels, settings_panel);
 				ImGui::EndMenu();
 			}
 
@@ -170,21 +175,27 @@ namespace ml
 				ImGui::SetNextWindowSize({ 640, 480 }, ImGuiCond_Once);
 				ImGui::SetNextWindowPos((vec2)get_window()->get_size() / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
-			ImGuiExt::DrawPanel(m_panels, settings_panel,
-			[&, &p = m_panels[settings_panel]]() noexcept
+			m_panels[settings_panel]([&]() noexcept
 			{
 				if (ImGui::BeginMenuBar()) {
 					ImGuiExt::HelpMarker("settings");
+					ImGui::Separator();
+					// etc...
 					ImGui::EndMenuBar();
 				}
 			});
 
 			// VIEWPORT
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
-			if (!ImGuiExt::DrawPanel(m_panels, viewport_panel,
-			[&, &p = m_panels[viewport_panel]]() noexcept
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 1.f, 1.f });
+			if (!m_panels[viewport_panel]([&]() noexcept
 			{
 				ImGui::PopStyleVar(1);
+				if (ImGui::BeginMenuBar()) {
+					ImGuiExt::HelpMarker("viewport");
+					ImGui::Separator();
+					// etc...
+					ImGui::EndMenuBar();
+				}
 				ImGui::Image(
 					m_fb.back()->get_color_attachments().front()->get_handle(),
 					m_resolution = ImGui::GetContentRegionAvail(),
@@ -195,7 +206,7 @@ namespace ml
 			}))
 			{
 				ImGui::PopStyleVar(1);
-			}
+			};
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

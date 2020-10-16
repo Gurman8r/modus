@@ -89,8 +89,13 @@ namespace ml::ImGuiExt
 		cstring title		{ "Panel" };
 		cstring shortcut	{ "" };
 		bool	open		{ false };
-		bool	enabled		{ true };
 		int32_t flags		{ ImGuiWindowFlags_None };
+
+		template <class Fn, class ... Args
+		> bool operator()(Fn && fn, Args && ... args) noexcept
+		{
+			return ImGuiExt::DrawPanel(this, 0, ML_forward(fn), ML_forward(args)...);
+		}
 	};
 
 	// DRAW PANEL
@@ -106,9 +111,9 @@ namespace ml::ImGuiExt
 	}
 
 	// PANEL MENU ITEM
-	static bool MenuItem(Panel * p, size_t i)
+	static bool MenuItem(Panel * p, size_t i, bool enabled = true)
 	{
-		return ImGui::MenuItem(p[i].title, p[i].shortcut, &p[i].open, p[i].enabled);
+		return ImGui::MenuItem(p[i].title, p[i].shortcut, &p[i].open, enabled);
 	}
 
 	// PANEL SELECTABLE

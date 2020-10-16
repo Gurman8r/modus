@@ -16,11 +16,11 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
-		pmr::vector<pmr::string> const args;
+		pmr::vector<pmr::string> args;
 
 		json prefs;
 
-		fs::path const
+		fs::path
 			program_name{ args[0] },
 			program_path{ fs::current_path() },
 			content_path{ prefs["path"].get<fs::path>() };

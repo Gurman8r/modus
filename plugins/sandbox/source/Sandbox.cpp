@@ -19,7 +19,32 @@ namespace ml
 {
 	struct ML_PLUGIN_API sandbox final : plugin
 	{
+	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		enum : size_t
+		{
+			imgui_about_panel,
+			imgui_demo_panel,
+			imgui_metrics_panel,
+			imgui_style_panel,
+
+			settings_panel,
+			viewport_panel,
+
+			MAX_PANEL
+		};
+
+		ImGuiExt::Panel m_panels[MAX_PANEL]
+		{
+			{ "About Dear ImGui" },
+			{ "Dear ImGui Demo" },
+			{ "Dear ImGui Metrics" },
+			{ "Style Editor" },
+			
+			{ "settings##sandbox", "", 0, 1, ImGuiWindowFlags_MenuBar },
+			{ "viewport##sandbox",	"", 1, 1, ImGuiWindowFlags_NoScrollbar },
+		};
 
 		vec2 m_resolution{ 1280, 720 };
 
@@ -89,95 +114,88 @@ namespace ml
 		{
 			if (auto const root{ ev->begin_builder() })
 			{
-				//ev->dock("viewport", root);
+				ev->dock(m_panels[viewport_panel].title, root);
 				ev->end_builder(root);
 			}
 		}
 
 		void on_client_menu(client_menu_event && ev)
 		{
-			if (ImGui::BeginMenu("file"))
-			{
-				if (ImGui::MenuItem("quit", "alt+f4"))
-				{
+			// FILE
+			if (ImGui::BeginMenu("file")) {
+				if (ImGui::MenuItem("quit", "alt+f4")) {
 					get_window()->set_should_close(true);
 				}
+				ImGui::EndMenu();
+			}
+
+			// SANDBOX
+			if (ImGui::BeginMenu("sandbox")) {
+				ImGuiExt::MenuItem(m_panels, settings_panel);
+				ImGuiExt::MenuItem(m_panels, viewport_panel);
+				ImGui::EndMenu();
+			}
+
+			// HELP
+			if (ImGui::BeginMenu("help")) {
+				ImGuiExt::MenuItem(m_panels, imgui_about_panel);
+				ImGuiExt::MenuItem(m_panels, imgui_demo_panel);
+				ImGuiExt::MenuItem(m_panels, imgui_metrics_panel);
+				ImGuiExt::MenuItem(m_panels, imgui_style_panel);
 				ImGui::EndMenu();
 			}
 		}
 
 		void on_client_gui(client_gui_event && ev)
 		{
-			// viewport
-			ImGui::SetNextWindowSize({ 640, 480 }, ImGuiCond_Once);
+			// IMGUI ABOUT
+			if (m_panels[imgui_about_panel].open) {
+				ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].open);
+			}
+			// IMGUI DEMO
+			if (m_panels[imgui_demo_panel].open) {
+				ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].open);
+			}
+			// IMGUI METRICS
+			if (m_panels[imgui_metrics_panel].open) {
+				ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].open);
+			}
+			// IMGUI STYLE EDITOR
+			ImGuiExt::DrawPanel(m_panels, imgui_style_panel,
+				&ImGui::ShowStyleEditor,
+				&ImGui::GetStyle());
+
+			// SETTINGS
+			if (m_panels[settings_panel].open) {
+				ImGui::SetNextWindowSize({ 640, 480 }, ImGuiCond_Once);
+				ImGui::SetNextWindowPos((vec2)get_window()->get_size() / 2, ImGuiCond_Once, { 0.5f, 0.5f });
+			}
+			ImGuiExt::DrawPanel(m_panels, settings_panel,
+			[&, &p = m_panels[settings_panel]]() noexcept
+			{
+				if (ImGui::BeginMenuBar()) {
+					ImGuiExt::HelpMarker("settings");
+					ImGui::EndMenuBar();
+				}
+			});
+
+			// VIEWPORT
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.f, 0.f });
-			ImGuiExt::DrawWindow("viewport", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar,
-			[&]() noexcept
+			if (!ImGuiExt::DrawPanel(m_panels, viewport_panel,
+			[&, &p = m_panels[viewport_panel]]() noexcept
 			{
 				ImGui::PopStyleVar(1);
-				draw_viewport_contents();
-			});
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void draw_viewport_contents()
-		{
-			static auto const & modes{ video_mode::fullscreen_modes() };
-			static size_t		index{};
-			static bool			fixed{};
-			video_mode const &	video{ modes[index] };
-
-			if (ImGui::BeginMenuBar())
+				ImGui::Image(
+					m_fb.back()->get_color_attachments().front()->get_handle(),
+					m_resolution = ImGui::GetContentRegionAvail(),
+					{ 0, 1 },
+					{ 1, 0 },
+					colors::white,
+					colors::clear);
+			}))
 			{
-				// resolution
-				char res_label[128]{};
-				constexpr auto
-					fmt_fa{ "automatic" },
-					fmt_vm{ "%i x %i @ %dhz" };
-				if (!fixed) std::sprintf(res_label, fmt_fa);
-				else std::sprintf(res_label, fmt_vm,
-					video.resolution[0],
-					video.resolution[1],
-					video.refresh_rate);
-				ImGui::SetNextItemWidth(160);
-				if (ImGui::BeginCombo("##resolution", res_label))
-				{
-					if (ImGui::Selectable(fmt_fa, !fixed)) { fixed = false; }
-					ImGui::Separator();
-					for (size_t i = 0; i < modes.size(); ++i)
-					{
-						std::sprintf(res_label, fmt_vm,
-							modes[i].resolution[0],
-							modes[i].resolution[1],
-							modes[i].refresh_rate);
-						if (ImGui::Selectable(res_label, fixed && (i == index)))
-						{
-							index = i; fixed = true;
-						}
-					}
-					ImGui::EndCombo();
-				}
-				ImGui::Separator();
-
-				// fps
-				auto const fps{ get_io()->fps };
-				ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
-				ImGui::Separator();
-
-				ImGui::EndMenuBar();
+				ImGui::PopStyleVar(1);
 			}
-
-			auto const tex{ m_fb.back()->get_color_attachments().front().get() };
-			vec2 const dst{ (vec2)ImGui::GetContentRegionAvail() };
-			vec2 src{};
-			if (!fixed) {
-				src = m_resolution = dst;
-			} else {
-				src = tex->get_size();
-				m_resolution = util::scale_to_fit((vec2)modes[index].resolution, dst);
-			}
-			ImGui::Image(tex->get_handle(), util::scale_to_fit(src, dst), { 0, 1 }, { 1, 0 });
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

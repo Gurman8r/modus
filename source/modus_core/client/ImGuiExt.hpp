@@ -67,18 +67,54 @@ namespace ml::ImGuiExt
 	}
 }
 
-// WINDOWS
+// PANELS
 namespace ml::ImGuiExt
 {
+	// DRAW WINDOW
 	template <class Fn, class ... Args
-	> static void DrawWindow(cstring title, bool * open, int32_t flags, Fn && fn, Args && ... args)
+	> bool DrawWindow(cstring title, bool * open, int32_t flags, Fn && fn, Args && ... args)
 	{
-		if (!(open && !*open) && ImGui::Begin(title, open, flags))
-		{
-			std::invoke(ML_forward(fn), ML_forward(args)...);
+		ML_defer(&) { ImGui::End(); };
+		
+		bool const is_open{ ImGui::Begin(title, open, flags) };
+		
+		if (is_open) { std::invoke(ML_forward(fn), ML_forward(args)...); }
+		
+		return is_open;
+	}
 
-			ImGui::End();
-		}
+	// PANEL
+	struct ML_NODISCARD Panel final
+	{
+		cstring title		{ "Panel" };
+		cstring shortcut	{ "" };
+		bool	open		{ false };
+		bool	enabled		{ true };
+		int32_t flags		{ ImGuiWindowFlags_None };
+	};
+
+	// DRAW PANEL
+	template <class Fn, class ... Args
+	> bool DrawPanel(Panel * p, size_t i, Fn && fn, Args && ... args)
+	{
+		if (!p[i].open) { return false; }
+		else return ImGuiExt::DrawWindow(
+			p[i].title,
+			&p[i].open,
+			p[i].flags,
+			ML_forward(fn), ML_forward(args)...);
+	}
+
+	// PANEL MENU ITEM
+	static bool MenuItem(Panel * p, size_t i)
+	{
+		return ImGui::MenuItem(p[i].title, p[i].shortcut, &p[i].open, p[i].enabled);
+	}
+
+	// PANEL SELECTABLE
+	static bool Selectable(Panel * p, size_t i, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
+	{
+		return ImGui::Selectable(p[i].title, &p[i].open, flags, size);
 	}
 }
 

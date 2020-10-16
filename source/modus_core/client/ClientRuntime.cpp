@@ -1,5 +1,6 @@
 #include <modus_core/client/ClientRuntime.hpp>
 #include <modus_core/client/ClientEvents.hpp>
+#include <modus_core/client/ImGuiExt.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -284,15 +285,15 @@ namespace ml
 		// CLIENT DOCKSPACE
 		if (m_dock->enabled && (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable))
 		{
-			ImGuiViewport const * v{ ImGui::GetMainViewport() };
-			ImGui::SetNextWindowPos(v->Pos);
-			ImGui::SetNextWindowSize(v->Size);
-			ImGui::SetNextWindowViewport(v->ID);
+			ImGuiViewport const * vp{ ImGui::GetMainViewport() };
+			ImGui::SetNextWindowPos(vp->Pos);
+			ImGui::SetNextWindowSize(vp->Size);
+			ImGui::SetNextWindowViewport(vp->ID);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_dock->rounding);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock->border);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock->padding);
 			ImGui::SetNextWindowBgAlpha(m_dock->alpha);
-			if (ImGui::Begin(m_dock->title.c_str(), &m_dock->enabled,
+			if (!ImGuiExt::DrawWindow(m_dock->title.c_str(), &m_dock->enabled,
 				ImGuiWindowFlags_NoTitleBar |
 				ImGuiWindowFlags_NoCollapse |
 				ImGuiWindowFlags_NoResize |
@@ -301,8 +302,8 @@ namespace ml
 				ImGuiWindowFlags_NoNavFocus |
 				ImGuiWindowFlags_NoDocking |
 				ImGuiWindowFlags_NoBackground |
-				(m_menu->enabled ? ImGuiWindowFlags_MenuBar : 0)
-			))
+				(m_menu->enabled ? ImGuiWindowFlags_MenuBar : 0),
+			[&]() noexcept
 			{
 				ImGui::PopStyleVar(3);
 				get_bus()->fire<client_dock_event>(m_dock.get());
@@ -311,7 +312,9 @@ namespace ml
 					m_dock->size,
 					ImGuiDockNodeFlags_PassthruCentralNode |
 					m_dock->flags);
-				ImGui::End();
+			}))
+			{
+				ImGui::PopStyleVar(3);
 			}
 		}
 

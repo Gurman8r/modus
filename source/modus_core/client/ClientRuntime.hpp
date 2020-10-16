@@ -91,13 +91,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_dock() const noexcept -> unique<client_dockspace> const & { return m_dock; }
-
 		ML_NODISCARD auto get_imgui() const noexcept -> manual<ImGuiContext> const & { return m_imgui; }
 
-		ML_NODISCARD auto get_menu() const noexcept -> unique<client_menubar> const & { return m_menu; }
+		ML_NODISCARD auto get_dock() noexcept -> client_dockspace & { return m_dock; }
 
-		ML_NODISCARD auto get_plugins() const noexcept -> unique<plugin_manager> const & { return m_plugins; }
+		ML_NODISCARD auto get_menu() noexcept -> client_menubar & { return m_menu; }
+
+		ML_NODISCARD auto get_plugins() noexcept -> plugin_manager & { return m_plugins; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -115,11 +115,11 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		bool						m_running	; // 
-		manual<	ImGuiContext	>	m_imgui		; // 
-		unique<	client_dockspace>	m_dock		; // 
-		unique<	client_menubar	>	m_menu		; // 
-		unique<	plugin_manager	>	m_plugins	; // 
+		bool					m_running	; // 
+		manual<ImGuiContext>	m_imgui		; // 
+		client_dockspace		m_dock		; // 
+		client_menubar			m_menu		; // 
+		plugin_manager			m_plugins	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

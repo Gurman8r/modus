@@ -72,11 +72,11 @@ namespace ml::ImGuiExt
 {
 	// DRAW WINDOW
 	template <class Fn, class ... Args
-	> bool DrawWindow(cstring title, bool * open, int32_t flags, Fn && fn, Args && ... args)
+	> bool DrawWindow(cstring title, bool * p_open, int32_t flags, Fn && fn, Args && ... args)
 	{
 		ML_defer(&) { ImGui::End(); };
 		
-		bool const is_open{ ImGui::Begin(title, open, flags) };
+		bool const is_open{ ImGui::Begin(title, p_open, flags) };
 		
 		if (is_open) { std::invoke(ML_forward(fn), ML_forward(args)...); }
 		
@@ -87,39 +87,30 @@ namespace ml::ImGuiExt
 	struct ML_NODISCARD Panel final
 	{
 		cstring title		{ "Panel" };
-		cstring shortcut	{ "" };
 		bool	open		{ false };
 		int32_t flags		{ ImGuiWindowFlags_None };
 
 		template <class Fn, class ... Args
 		> bool operator()(Fn && fn, Args && ... args) noexcept
 		{
-			return ImGuiExt::DrawPanel(this, 0, ML_forward(fn), ML_forward(args)...);
+			ML_ImGui_ScopeID(this);
+			return open && ImGuiExt::DrawWindow
+			(
+				title, &open, flags, ML_forward(fn), ML_forward(args)...
+			);
 		}
 	};
 
-	// DRAW PANEL
-	template <class Fn, class ... Args
-	> bool DrawPanel(Panel * p, size_t i, Fn && fn, Args && ... args)
+	// MENU ITEM
+	static bool MenuItem(Panel & p, cstring shortcut = {}, bool enabled = true)
 	{
-		if (!p[i].open) { return false; }
-		else return ImGuiExt::DrawWindow(
-			p[i].title,
-			&p[i].open,
-			p[i].flags,
-			ML_forward(fn), ML_forward(args)...);
+		return ImGui::MenuItem(p.title, shortcut, &p.open, enabled);
 	}
 
-	// PANEL MENU ITEM
-	static bool MenuItem(Panel * p, size_t i, bool enabled = true)
+	// SELECTABLE
+	static bool Selectable(Panel & p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
 	{
-		return ImGui::MenuItem(p[i].title, p[i].shortcut, &p[i].open, enabled);
-	}
-
-	// PANEL SELECTABLE
-	static bool Selectable(Panel * p, size_t i, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
-	{
-		return ImGui::Selectable(p[i].title, &p[i].open, flags, size);
+		return ImGui::Selectable(p.title, &p.open, flags, size);
 	}
 }
 

@@ -48,7 +48,7 @@
 			"title"		: "menubar"
 		},
 		"plugins": [
-			{ "path": "plugins/sandbox" }
+			{ "path": "./plugins/sandbox" }
 		],
 		"scripts": [
 			{ "path": "assets/scripts/setup.py" }

@@ -34,17 +34,26 @@ namespace ml
 			return (!lib || m_data.contains<shared_library>(lib)) ? nullptr
 				: std::get<plugin_id &>(m_data.push_back
 				(
-					(plugin_id)lib.hash_code(), lib.path(), std::move(lib), nullptr,
+					(plugin_id)lib.hash_code(),
+					std::move(lib),
+					plugin_details
+					{
+						(pmr::string)lib.path().stem().string(),
+						(pmr::string)lib.path().string(),
+						(pmr::string)lib.path().extension().string(),
+						lib.hash_code()
+					},
 					plugin_iface
 					{
 						lib.proc<plugin *, plugin_manager *, void *>("ml_plugin_attach"),
 						lib.proc<void, plugin_manager *, plugin *>("ml_plugin_detach"),
-					}
+					},
+					nullptr
 				));
 		}) })
 		// load plugin
 		{
-			if (auto const p{ m_data.back<plugin_iface>().attach(this, user) })
+			if (auto const p{ m_data.back<plugin_iface>().do_install(this, user) })
 			{
 				m_data.back<manual<plugin>>().reset(p);
 
@@ -58,18 +67,13 @@ namespace ml
 	bool plugin_manager::uninstall(plugin_id value)
 	{
 		if (!value) { return false; }
-		else if (auto const it{ m_data.find<plugin_id>(value) }
-		; it == m_data.end<plugin_id>()) { return false; }
+		else if (auto const i{ m_data.lookup<plugin_id>(value) }
+		; i == m_data.npos) { return false; }
 		else
 		{
-			auto const i{ m_data.index_of<plugin_id>(it) };
-
 			auto const p{ m_data.at<manual<plugin>>(i).release() };
-
-			m_data.at<plugin_iface>(i).detach(this, p);
-
+			m_data.at<plugin_iface>(i).do_uninstall(this, p);
 			m_data.erase(i);
-
 			return true;
 		}
 	}

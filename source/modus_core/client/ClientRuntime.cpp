@@ -20,7 +20,6 @@ namespace ml
 		, padding		{}
 		, size			{}
 		, flags			{ ImGuiDockNodeFlags_AutoHideTabBar }
-		, nodes			{ ctx->mem->get_allocator() }
 	{
 	}
 
@@ -33,7 +32,6 @@ namespace ml
 		j["alpha"	].get_to(alpha);
 		j["padding"	].get_to(padding);
 		j["size"	].get_to(size);
-		j["nodes"	].get_to(nodes);
 	}
 
 	uint32_t client_dockspace::begin_builder()
@@ -119,10 +117,10 @@ namespace ml
 	client_runtime::client_runtime(client_context * ctx)
 		: client_object	{ ctx }
 		, m_running		{}
-		, m_imgui		{ nullptr }
-		, m_dock		{ ctx->mem->new_object<client_dockspace>(ctx) }
-		, m_menu		{ ctx->mem->new_object<client_menubar>(ctx) }
-		, m_plugins		{ ctx->mem->new_object<plugin_manager>(ctx) }
+		, m_imgui		{}
+		, m_dock		{ ctx }
+		, m_menu		{ ctx }
+		, m_plugins		{ ctx }
 	{
 		do_startup(ctx);
 	}
@@ -217,8 +215,8 @@ namespace ml
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		ML_assert(ImGui_Startup(ctx->win, ctx->io->prefs["client"]["callbacks"]));
-		m_menu->configure(ctx->io->prefs["client"]["menu"]);
-		m_dock->configure(ctx->io->prefs["client"]["dock"]);
+		m_menu.configure(ctx->io->prefs["client"]["menu"]);
+		m_dock.configure(ctx->io->prefs["client"]["dock"]);
 		if (ctx->io->prefs["client"].contains("style")) {
 			if (ctx->io->prefs["client"]["style"].is_string()) {
 				ImGui_LoadStyle(ctx->io->path2(ctx->io->prefs["client"]["style"]));
@@ -230,7 +228,7 @@ namespace ml
 		{
 			for (auto const & e : ctx->io->prefs["client"]["plugins"])
 			{
-				m_plugins->install(e["path"]);
+				m_plugins.install(e["path"]);
 			}
 		}
 
@@ -283,17 +281,17 @@ namespace ml
 		ML_ImGui_ScopeID(this);
 
 		// CLIENT DOCKSPACE
-		if (m_dock->enabled && (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable))
+		if (m_dock.enabled && (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable))
 		{
 			ImGuiViewport const * vp{ ImGui::GetMainViewport() };
 			ImGui::SetNextWindowPos(vp->Pos);
 			ImGui::SetNextWindowSize(vp->Size);
 			ImGui::SetNextWindowViewport(vp->ID);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_dock->rounding);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock->border);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock->padding);
-			ImGui::SetNextWindowBgAlpha(m_dock->alpha);
-			if (!ImGuiExt::DrawWindow(m_dock->title.c_str(), &m_dock->enabled,
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_dock.rounding);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock.border);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock.padding);
+			ImGui::SetNextWindowBgAlpha(m_dock.alpha);
+			if (!ImGuiExt::DrawWindow(m_dock.title.c_str(), &m_dock.enabled,
 				ImGuiWindowFlags_NoTitleBar |
 				ImGuiWindowFlags_NoCollapse |
 				ImGuiWindowFlags_NoResize |
@@ -302,16 +300,16 @@ namespace ml
 				ImGuiWindowFlags_NoNavFocus |
 				ImGuiWindowFlags_NoDocking |
 				ImGuiWindowFlags_NoBackground |
-				(m_menu->enabled ? ImGuiWindowFlags_MenuBar : 0),
+				(m_menu.enabled ? ImGuiWindowFlags_MenuBar : 0),
 			[&]() noexcept
 			{
 				ImGui::PopStyleVar(3);
-				get_bus()->fire<client_dock_event>(m_dock.get());
+				get_bus()->fire<client_dock_event>(&m_dock);
 				ImGui::DockSpace(
-					ImGui::GetID(m_dock->title.c_str()),
-					m_dock->size,
+					ImGui::GetID(m_dock.title.c_str()),
+					m_dock.size,
 					ImGuiDockNodeFlags_PassthruCentralNode |
-					m_dock->flags);
+					m_dock.flags);
 			}))
 			{
 				ImGui::PopStyleVar(3);
@@ -319,9 +317,9 @@ namespace ml
 		}
 
 		// CLIENT MENUBAR
-		if (m_menu->enabled && ImGui::BeginMainMenuBar())
+		if (m_menu.enabled && ImGui::BeginMainMenuBar())
 		{
-			get_bus()->fire<client_menu_event>(m_menu.get());
+			get_bus()->fire<client_menu_event>(&m_menu);
 
 			ImGui::EndMainMenuBar();
 		}

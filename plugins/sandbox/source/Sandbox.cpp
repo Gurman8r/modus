@@ -29,6 +29,7 @@ namespace ml
 			imgui_metrics_panel,
 			imgui_style_panel,
 
+			data_panel,
 			settings_panel,
 			viewport_panel,
 
@@ -42,11 +43,12 @@ namespace ml
 			{ "Dear ImGui Metrics" },
 			{ "Style Editor" },
 			
-			{ "settings##sandbox", "", false, ImGuiWindowFlags_MenuBar },
-			{ "viewport##sandbox",	"", true, ImGuiWindowFlags_MenuBar },
+			{ "data##sandbox", true, ImGuiWindowFlags_None },
+			{ "settings##sandbox", false, ImGuiWindowFlags_MenuBar },
+			{ "viewport##sandbox", true, ImGuiWindowFlags_MenuBar },
 		};
 
-		color m_clear_color{ colors::magenta };
+		color m_clear_color{ 0.4f, 0.f, 1.f, 1.f };
 		vec2 m_resolution{ 1280, 720 };
 		pmr::vector<shared<gfx::framebuffer>> m_fb{};
 
@@ -129,24 +131,20 @@ namespace ml
 				ImGui::EndMenu();
 			}
 
-			// VIEW
-			if (ImGui::BeginMenu("view")) {
-				ImGuiExt::MenuItem(m_panels, viewport_panel);
-				ImGui::EndMenu();
-			}
-
-			// TOOLS
-			if (ImGui::BeginMenu("tools")) {
-				ImGuiExt::MenuItem(m_panels, settings_panel);
+			// SANDBOX
+			if (ImGui::BeginMenu("sandbox")) {
+				ImGuiExt::MenuItem(m_panels[data_panel]);
+				ImGuiExt::MenuItem(m_panels[settings_panel]);
+				ImGuiExt::MenuItem(m_panels[viewport_panel]);
 				ImGui::EndMenu();
 			}
 
 			// HELP
 			if (ImGui::BeginMenu("help")) {
-				ImGuiExt::MenuItem(m_panels, imgui_about_panel);
-				ImGuiExt::MenuItem(m_panels, imgui_demo_panel);
-				ImGuiExt::MenuItem(m_panels, imgui_metrics_panel);
-				ImGuiExt::MenuItem(m_panels, imgui_style_panel);
+				ImGuiExt::MenuItem(m_panels[imgui_demo_panel]);
+				ImGuiExt::MenuItem(m_panels[imgui_metrics_panel]);
+				ImGuiExt::MenuItem(m_panels[imgui_style_panel]);
+				ImGuiExt::MenuItem(m_panels[imgui_about_panel]);
 				ImGui::EndMenu();
 			}
 		}
@@ -154,23 +152,66 @@ namespace ml
 		void on_client_gui(client_gui_event && ev)
 		{
 			// IMGUI ABOUT
-			if (m_panels[imgui_about_panel].open) {
-				ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].open);
-			}
+			if (m_panels[imgui_about_panel].open) { ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].open); }
+
 			// IMGUI DEMO
-			if (m_panels[imgui_demo_panel].open) {
-				ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].open);
-			}
+			if (m_panels[imgui_demo_panel].open) { ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].open); }
+
 			// IMGUI METRICS
-			if (m_panels[imgui_metrics_panel].open) {
-				ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].open);
-			}
+			if (m_panels[imgui_metrics_panel].open) { ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].open); }
+
 			// IMGUI STYLE EDITOR
 			m_panels[imgui_style_panel](&ImGui::ShowStyleEditor, &ImGui::GetStyle());
 
+			// DATA
+			draw_data_panel();
+			
 			// SETTINGS
-			if (m_panels[settings_panel].open) {
+			draw_settings_panel();
+			
+			// VIEWPORT
+			draw_viewport_panel();
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void draw_data_panel()
+		{
+			if (m_panels[data_panel].open) {
 				ImGui::SetNextWindowSize({ 640, 480 }, ImGuiCond_Once);
+				ImGui::SetNextWindowPos((vec2)get_window()->get_size() / 2, ImGuiCond_Once, { 0.5f, 0.5f });
+			}
+			m_panels[data_panel]([&]() noexcept
+			{
+				ML_defer() { ImGui::EndTabBar(); };
+				if (!ImGui::BeginTabBar("tabs")) { return; }
+
+				// plugins
+				if (ImGui::BeginTabItem("plugins")) {
+					ImGui::Columns(4);
+					ImGui::TextDisabled("name"); ImGui::NextColumn();
+					ImGui::TextDisabled("path"); ImGui::NextColumn();
+					ImGui::TextDisabled("extension"); ImGui::NextColumn();
+					ImGui::TextDisabled("ID"); ImGui::NextColumn();
+					ImGui::Separator();
+					for (auto const & info : get_manager()->get_data().get<plugin_details>())
+					{
+						ImGui::Text(info.name.c_str()); ImGui::NextColumn();
+						ImGui::Text(info.path.c_str()); ImGui::NextColumn();
+						ImGui::Text(info.extension.c_str()); ImGui::NextColumn();
+						ImGui::Text("%u", info.hash_code); ImGui::NextColumn();
+					}
+					ImGui::Columns(1);
+					ImGui::Separator();
+					ImGui::EndTabItem();
+				}
+			});
+		}
+
+		void draw_settings_panel()
+		{
+			if (m_panels[settings_panel].open) {
+				ImGui::SetNextWindowSize({ 320, 512 }, ImGuiCond_Once);
 				ImGui::SetNextWindowPos((vec2)get_window()->get_size() / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
 			m_panels[settings_panel]([&]() noexcept
@@ -178,29 +219,33 @@ namespace ml
 				if (ImGui::BeginMenuBar()) {
 					ImGuiExt::HelpMarker("settings");
 					ImGui::Separator();
-					// etc...
 					ImGui::EndMenuBar();
 				}
 			});
+		}
 
-			// VIEWPORT
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 1.f, 1.f });
+		void draw_viewport_panel()
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
 			if (!m_panels[viewport_panel]([&]() noexcept
 			{
 				ImGui::PopStyleVar(1);
+
 				if (ImGui::BeginMenuBar()) {
+
 					ImGuiExt::HelpMarker("viewport");
 					ImGui::Separator();
+
 					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 					ImGui::Separator();
 
-					// FPS
 					auto const fps{ get_io()->fps };
 					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 					ImGui::Separator();
 					
 					ImGui::EndMenuBar();
 				}
+
 				ImGui::Image(
 					m_fb.back()->get_color_attachments().front()->get_handle(),
 					m_resolution = ImGui::GetContentRegionAvail(),
@@ -211,7 +256,7 @@ namespace ml
 			}))
 			{
 				ImGui::PopStyleVar(1);
-			};
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

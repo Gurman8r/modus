@@ -25,7 +25,7 @@ namespace ml
 	{
 		if (m_handle || path.empty()) { return false; }
 
-		format_path(m_path = path);
+		m_path = format_path(path);
 
 		m_hash = hashof(m_path.string());
 

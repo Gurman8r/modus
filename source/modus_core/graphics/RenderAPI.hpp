@@ -1362,9 +1362,7 @@ namespace ml::gfx
 
 		ML_NODISCARD static auto create(bitmap const & img, int32_t flags = texture_flags_default) noexcept
 		{
-			return create(
-				{ img.size(), { calc_channel_format(img.channels()) }, flags },
-				img.data());
+			return create({ img.size(), { calc_channel_format(img.channels()) }, flags }, img.data());
 		}
 
 		ML_NODISCARD static auto create(fs::path const & path, int32_t flags = texture_flags_default) noexcept
@@ -1420,8 +1418,6 @@ namespace ml::gfx
 	// texturecube settings
 	template <> struct ML_NODISCARD spec<texturecube> final
 	{
-		using paths_t = ds::array<fs::path, 6>;
-
 		vec2i			size	{};
 		storage_format	format	{ format_rgba };
 		int32_t			flags	{ texture_flags_default };

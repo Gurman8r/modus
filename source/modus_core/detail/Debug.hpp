@@ -7,17 +7,17 @@
 
 // info message
 #ifndef ML_IMPL_DEBUG_INFO
-#define ML_IMPL_DEBUG_INFO		"[info] "
+#define ML_IMPL_DEBUG_INFO		"[info]"
 #endif
 
 // error message
 #ifndef ML_IMPL_DEBUG_ERROR
-#define ML_IMPL_DEBUG_ERROR		"[error] "
+#define ML_IMPL_DEBUG_ERROR		"[error]"
 #endif
 
 // warning message
 #ifndef ML_IMPL_DEBUG_WARNING
-#define ML_IMPL_DEBUG_WARNING	"[warn] "
+#define ML_IMPL_DEBUG_WARNING	"[warn]"
 #endif
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -48,8 +48,10 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // check message
-#define ML_check_msg(expr, msg) \
-	([](auto x) noexcept { ML_assert_ext(x, msg, __FILE__, __LINE__); return x; })(expr)
+#define ML_check_msg(expr, msg) ([](auto && x) noexcept { \
+	ML_assert_ext(x, msg, __FILE__, __LINE__); \
+	return std::move(x); \
+	})(expr)
 
 // check
 #define ML_check(expr) \
@@ -115,7 +117,7 @@ namespace ml::debug
 	template <class Fmt
 	> auto & puts(Fmt && fmt) noexcept
 	{
-		return io.out << ML_forward(fmt) << '\n';
+		return io.out << ML_forward(fmt) << "\n";
 	}
 
 	template <class Fmt, class Arg0, class ... Args
@@ -131,7 +133,7 @@ namespace ml::debug
 	template <class Fmt
 	> int32_t info(Fmt && fmt) noexcept
 	{
-		io.out << ML_IMPL_DEBUG_INFO << ML_forward(fmt) << '\n';
+		io.out << ML_IMPL_DEBUG_INFO " " << ML_forward(fmt) << "\n";
 
 		return debug::info();
 	}
@@ -149,7 +151,7 @@ namespace ml::debug
 	template <class Fmt
 	> int32_t error(Fmt && fmt) noexcept
 	{
-		io.out << ML_IMPL_DEBUG_ERROR << ML_forward(fmt) << '\n';
+		io.out << ML_IMPL_DEBUG_ERROR " " << ML_forward(fmt) << "\n";
 
 		return debug::error();
 	}
@@ -167,7 +169,7 @@ namespace ml::debug
 	template <class Fmt
 	> int32_t warning(Fmt && fmt) noexcept
 	{
-		io.out << ML_IMPL_DEBUG_WARNING << ML_forward(fmt) << '\n';
+		io.out << ML_IMPL_DEBUG_WARNING " " << ML_forward(fmt) << "\n";
 
 		return debug::warning();
 	}

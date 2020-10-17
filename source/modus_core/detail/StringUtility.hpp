@@ -15,18 +15,18 @@ namespace std::pmr
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // std string template
-#define ML_STD_STRING_TEMPLATE(Ch, Tr, Al, St)	\
+#define ML_STD_STRING_TEMPLATE(Ch, Tr, Al, Str)	\
 	class Ch = char,							\
 	class Tr = std::char_traits<Ch>,			\
 	class Al = std::allocator<Ch>,				\
-	class St = std::basic_string<Ch, Tr, Al>
+	class Str = std::basic_string<Ch, Tr, Al>
 
 // pmr string template
-#define ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, St)	\
+#define ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str)	\
 	class Ch = char,							\
 	class Tr = std::char_traits<Ch>,			\
 	class Al = pmr::polymorphic_allocator<Ch>,	\
-	class St = pmr::basic_string<Ch, Tr>
+	class Str = pmr::basic_string<Ch, Tr>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -209,26 +209,19 @@ namespace ml::util
 
 	ML_NODISCARD inline pmr::vector<pmr::string> tokenize(pmr::string value, pmr::string const & delim) noexcept
 	{
-		if (value.empty()) { return {}; }
-		if (delim.empty()) { return { value }; }
 		pmr::vector<pmr::string> temp{};
-		size_t i{};
-		while ((i = value.find(delim)) != value.npos)
-		{
-			temp.push_back(value.substr(0, i));
-			value.erase(0, i + delim.size());
+		auto tok{ std::strtok(value.data(), delim.c_str()) };
+		while (tok) {
+			temp.push_back(tok);
+			tok = std::strtok(nullptr, delim.c_str());
 		}
-		temp.push_back(value);
 		return temp;
 	}
 
 	ML_NODISCARD inline pmr::string detokenize(pmr::vector<pmr::string> const & value, pmr::string const & delim = " ")
 	{
-		if (value.empty()) { return {}; }
-		if (value.size() == 1) { return value.front(); }
 		pmr::stringstream ss{};
-		for (auto const & str : value)
-		{
+		for (auto const & str : value) {
 			ss << str << delim;
 		}
 		return ss.str();

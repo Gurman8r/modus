@@ -4,9 +4,9 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(client_context * context)
-		: client_object	{ context }
-		, m_data		{ get_memory()->get_allocator() }
+	plugin_manager::plugin_manager(client_context * ctx)
+		: client_object	{ ctx }
+		, m_data		{ ctx->mem->get_allocator() }
 	{
 	}
 

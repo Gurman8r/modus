@@ -342,8 +342,8 @@ namespace ml::gfx
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_texture2d> };
 
 		vec2i			m_size		{}			; // 
-		storage_format	m_format	{}			; // 
-		int32_t			m_flags		{}			; // 
+		texture_format	m_format	{}			; // 
+		texture_flags_	m_flags		{}			; // 
 		uint32_t		m_handle	{}			; // handle
 		bool			m_locked	{ true }	; // locked
 
@@ -377,9 +377,9 @@ namespace ml::gfx
 
 		vec2i const & get_size() const noexcept { return m_size; }
 
-		storage_format const & get_format() const noexcept { return m_format; }
+		texture_format const & get_format() const noexcept { return m_format; }
 
-		int32_t get_flags() const noexcept { return m_flags; }
+		texture_flags_ get_flags() const noexcept { return m_flags; }
 	};
 }
 
@@ -395,8 +395,8 @@ namespace ml::gfx
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_texturecube> };
 
 		vec2i			m_size		{}			; // 
-		storage_format	m_format	{}			; // 
-		int32_t			m_flags		{}			; // 
+		texture_format	m_format	{}			; // 
+		texture_flags_	m_flags		{}			; // 
 		uint32_t		m_handle	{}			; // handle
 		bool			m_locked	{ true }	; // locked
 
@@ -418,9 +418,9 @@ namespace ml::gfx
 
 		vec2i const & get_size() const noexcept { return m_size; }
 
-		storage_format const & get_format() const noexcept { return m_format; }
+		texture_format const & get_format() const noexcept { return m_format; }
 
-		int32_t get_flags() const noexcept { return m_flags; }
+		texture_flags_ get_flags() const noexcept { return m_flags; }
 	};
 }
 
@@ -436,8 +436,8 @@ namespace ml::gfx
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_framebuffer> };
 
 		vec2i							m_size			{}; // 
-		storage_format					m_format		{}; // 
-		int32_t							m_flags			{}; // 
+		texture_format					m_format		{}; // 
+		texture_flags_					m_flags			{}; // 
 		vec4i							m_bpp			{}; // 
 		int32_t							m_stencil_bits	{}; // 
 		int32_t							m_depth_bits	{}; // 
@@ -472,9 +472,9 @@ namespace ml::gfx
 
 		vec2i const & get_size() const noexcept { return m_size; }
 
-		storage_format const & get_format() const noexcept { return m_format; }
+		texture_format const & get_format() const noexcept { return m_format; }
 
-		int32_t get_flags() const noexcept { return m_flags; }
+		texture_flags_ get_flags() const noexcept { return m_flags; }
 
 		vec4i const & get_bits_per_pixel() const noexcept override { return m_bpp; }
 

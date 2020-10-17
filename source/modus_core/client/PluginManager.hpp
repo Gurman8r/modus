@@ -1,8 +1,8 @@
 #ifndef _ML_PLUGIN_MANAGER_HPP_
 #define _ML_PLUGIN_MANAGER_HPP_
 
-#include <modus_core/system/SharedLibrary.hpp>
 #include <modus_core/client/Plugin.hpp>
+#include <modus_core/system/SharedLibrary.hpp>
 
 namespace ml
 {
@@ -11,7 +11,7 @@ namespace ml
 	{
 		pmr::string name, path, extension;
 
-		hash_t hash_code;
+		hash_t id;
 	};
 
 	// plugin interface
@@ -50,7 +50,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD plugin_storage const & get_data() const noexcept
+		ML_NODISCARD plugin_storage const & get_storage() const noexcept
 		{
 			return m_data;
 		}

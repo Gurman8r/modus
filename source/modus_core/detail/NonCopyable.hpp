@@ -2,7 +2,6 @@
 #define _ML_NON_COPYABLE_HPP_
 
 #include <modus_core/Export.hpp>
-#include <modus_core/detail/Utility.hpp>
 
 namespace ml
 {

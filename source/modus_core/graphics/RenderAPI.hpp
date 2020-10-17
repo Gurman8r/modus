@@ -28,7 +28,7 @@ namespace ml::gfx
 	ML_decl_handle(	object_id	)	; // object handle
 	ML_decl_handle(	uniform_id	)	; // register handle
 
-	template <class ...> struct spec; // object descriptor
+	template <class ...> struct spec; // object specification
 
 	ML_alias addr_t		= typename void const *			; // data address
 	ML_alias buffer_t	= typename pmr::vector<byte_t>	; // byte buffer
@@ -1243,6 +1243,16 @@ namespace ml::gfx
 			| texture_flags_repeat,
 	};
 
+	ML_NODISCARD constexpr auto & operator&=(texture_flags_ & lhs, int32_t const rhs) noexcept
+	{
+		return (texture_flags_ &)((int32_t &)lhs &= rhs);
+	}
+
+	ML_NODISCARD constexpr auto & operator|=(texture_flags_ & lhs, int32_t const rhs) noexcept
+	{
+		return (texture_flags_ &)((int32_t &)lhs |= rhs);
+	}
+
 	static void from_json(json const & j, texture_flags_ & v)
 	{
 		ML_flag_write((int32_t &)v, texture_flags_repeat, j["repeat"].get<bool>());
@@ -1258,8 +1268,8 @@ namespace ml::gfx
 	}
 
 
-	// storage format
-	struct ML_NODISCARD storage_format final
+	// texture format
+	struct ML_NODISCARD texture_format final
 	{
 		uint32_t
 			color	{ format_rgba },
@@ -1267,18 +1277,18 @@ namespace ml::gfx
 			type	{ type_ubyte };
 	};
 
-	static void from_json(json const & j, storage_format & v)
+	static void from_json(json const & j, texture_format & v)
 	{
-		j["color"].get_to(v.color);
-		j["pixel"].get_to(v.pixel);
-		j["type"].get_to(v.type);
+		j["color"	].get_to(v.color);
+		j["pixel"	].get_to(v.pixel);
+		j["type"	].get_to(v.type);
 	}
 
-	static void to_json(json & j, storage_format const & v)
+	static void to_json(json & j, texture_format const & v)
 	{
-		j["color"] = v.color;
-		j["pixel"] = v.pixel;
-		j["type"] = v.type;
+		j["color"	] = v.color;
+		j["pixel"	] = v.pixel;
+		j["type"	] = v.type;
 	}
 
 	// base texture
@@ -1306,9 +1316,9 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual vec2i const & get_size() const noexcept = 0;
 		
-		ML_NODISCARD virtual storage_format const & get_format() const noexcept = 0;
+		ML_NODISCARD virtual texture_format const & get_format() const noexcept = 0;
 		
-		ML_NODISCARD virtual int32_t get_flags() const noexcept = 0;
+		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 
 	public:
 		inline void bind(uint32_t slot = 0) const noexcept
@@ -1332,22 +1342,22 @@ namespace ml::gfx
 	template <> struct ML_NODISCARD spec<texture2d> final
 	{
 		vec2i			size	{};
-		storage_format	format	{ format_rgba };
-		int32_t			flags	{ texture_flags_default };
+		texture_format	format	{ format_rgba };
+		texture_flags_	flags	{ texture_flags_default };
 	};
 
 	static void from_json(json const & j, spec<texture2d> & v)
 	{
 		j["size"	].get_to(v.size);
 		j["format"	].get_to(v.format);
-		j["flags"	].get_to((texture_flags_ &)v.flags);
+		j["flags"	].get_to(v.flags);
 	}
 
 	static void to_json(json & j, spec<texture2d> const & v)
 	{
 		j["size"	] = v.size;
 		j["format"	] = v.format;
-		j["flags"	] = (texture_flags_)v.flags;
+		j["flags"	] = v.flags;
 	}
 
 
@@ -1360,12 +1370,12 @@ namespace ml::gfx
 			return render_device::get_default()->create_texture2d(desc, data);
 		}
 
-		ML_NODISCARD static auto create(bitmap const & img, int32_t flags = texture_flags_default) noexcept
+		ML_NODISCARD static auto create(bitmap const & img, texture_flags_ flags = texture_flags_default) noexcept
 		{
 			return create({ img.size(), { calc_channel_format(img.channels()) }, flags }, img.data());
 		}
 
-		ML_NODISCARD static auto create(fs::path const & path, int32_t flags = texture_flags_default) noexcept
+		ML_NODISCARD static auto create(fs::path const & path, texture_flags_ flags = texture_flags_default) noexcept
 		{
 			return create(bitmap{ path }, flags);
 		}
@@ -1404,9 +1414,9 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual vec2i const & get_size() const noexcept = 0;
 
-		ML_NODISCARD virtual storage_format const & get_format() const noexcept = 0;
+		ML_NODISCARD virtual texture_format const & get_format() const noexcept = 0;
 
-		ML_NODISCARD virtual int32_t get_flags() const noexcept = 0;
+		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 	};
 }
 
@@ -1419,15 +1429,15 @@ namespace ml::gfx
 	template <> struct ML_NODISCARD spec<texturecube> final
 	{
 		vec2i			size	{};
-		storage_format	format	{ format_rgba };
-		int32_t			flags	{ texture_flags_default };
+		texture_format	format	{ format_rgba };
+		texture_flags_	flags	{ texture_flags_default };
 	};
 
 	static void from_json(json const & j, spec<texturecube> & v)
 	{
 		j["size"	].get_to(v.size);
 		j["format"	].get_to(v.format);
-		j["flags"	].get_to((texture_flags_ &)v.flags);
+		j["flags"	].get_to(v.flags);
 		
 	}
 
@@ -1435,7 +1445,7 @@ namespace ml::gfx
 	{
 		j["size"	] = v.size;
 		j["format"	] = v.format;
-		j["flags"	] = (texture_flags_)v.flags;
+		j["flags"	] = v.flags;
 	}
 
 
@@ -1470,9 +1480,9 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual vec2i const & get_size() const noexcept = 0;
 
-		ML_NODISCARD virtual storage_format const & get_format() const noexcept = 0;
+		ML_NODISCARD virtual texture_format const & get_format() const noexcept = 0;
 
-		ML_NODISCARD virtual int32_t get_flags() const noexcept = 0;
+		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 	};
 }
 
@@ -1485,8 +1495,8 @@ namespace ml::gfx
 	template <> struct ML_NODISCARD spec<framebuffer> final
 	{
 		vec2i			size			{};
-		storage_format	format			{ format_rgba };
-		int32_t			flags			{ texture_flags_default };
+		texture_format	format			{ format_rgba };
+		texture_flags_	flags			{ texture_flags_default };
 		vec4i			bits_per_pixel	{ 8, 8, 8, 8 };
 		int32_t			stencil_bits	{ 24 },
 						depth_bits		{ 8 };
@@ -1498,7 +1508,7 @@ namespace ml::gfx
 	{
 		j["size"			].get_to(v.size);
 		j["format"			].get_to(v.format);
-		j["flags"			].get_to((texture_flags_ &)v.flags);
+		j["flags"			].get_to(v.flags);
 		j["bits_per_pixel"	].get_to(v.bits_per_pixel);
 		j["stencil_bits"	].get_to(v.stencil_bits);
 		j["depth_bits"		].get_to(v.depth_bits);
@@ -1510,7 +1520,7 @@ namespace ml::gfx
 	{
 		j["size"			] = v.size;
 		j["format"			] = v.format;
-		j["flags"			] = (texture_flags_)v.flags;
+		j["flags"			] = v.flags;
 		j["bits_per_pixel"	] = v.bits_per_pixel;
 		j["stencil_bits"	] = v.stencil_bits;
 		j["depth_bits"		] = v.depth_bits;
@@ -1554,9 +1564,9 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual vec2i const & get_size() const noexcept = 0;
 
-		ML_NODISCARD virtual storage_format const & get_format() const noexcept = 0;
+		ML_NODISCARD virtual texture_format const & get_format() const noexcept = 0;
 
-		ML_NODISCARD virtual int32_t get_flags() const noexcept = 0;
+		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 
 		ML_NODISCARD virtual vec4i const & get_bits_per_pixel() const noexcept = 0;
 

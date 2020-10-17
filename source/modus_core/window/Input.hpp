@@ -178,17 +178,6 @@ namespace ml
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ML_alias keyboard_state = typename ds::array<int32_t, key_code_MAX>;
-
-	ML_alias mouse_state = typename ds::array<int32_t, mouse_button_MAX>;
-
-	struct input_axis final
-	{
-		// WIP
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_INPUT_HPP_

@@ -1,5 +1,6 @@
 #include <modus_core/client/ClientRuntime.hpp>
 #include <modus_core/client/ClientEvents.hpp>
+#include <modus_core/client/ClientDatabase.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -70,24 +71,18 @@ static auto const default_settings{ R"(
 		}
 	},
 	"client": {
-		"callbacks": true,
-		"style": "resource/modus_launcher.style",
-		"dock": {
-			"enabled"	: true,
-			"title"		: "dockspace",
-			"border"	: 0,
-			"rounding"	: 0,
-			"alpha"		: 0,
-			"padding"	: [ 0, 0 ],
-			"size"		: [ 0, 0 ],
-			"nodes"		: []
-		},
-		"menu": {
-			"enabled"	: true,
-			"title"		: "menubar"
-		},
+		"callbacks"		: true,
+		"gui_style"		: "resource/modus_launcher.style",
+		"menu_enabled"	: true,
+		"dock_enabled"	: true,
+		"dock_title"	: "dockspace",
+		"dock_border"	: 0,
+		"dock_rounding"	: 0,
+		"dock_alpha"	: 0,
+		"dock_padding"	: [ 0, 0 ],
+		"dock_size"		: [ 0, 0 ],
 		"plugins": [
-			{ "path": "plugins/sandbox" }
+			{ "path": "./plugins/sandbox" }
 		],
 		"scripts": [
 			{ "path": "assets/scripts/setup.py" }
@@ -108,10 +103,11 @@ static auto load_settings(fs::path const & path = SETTINGS_PATH)
 ml::int32_t main()
 {
 	static memory_manager	mem		{ pmr::get_default_resource() };
-	static client_io		io		{ { __argv, __argv + __argc }, load_settings() };
+	static client_io		io		{ __argc, __argv, load_settings() };
+	static client_database	db		{};
 	static event_bus		bus		{};
 	static render_window	win		{};
-	static client_context	ctx		{ &mem, &io, &bus, &win };
+	static client_context	ctx		{ &mem, &io, &db, &bus, &win };
 	static client_runtime	runtime	{ &ctx };
 
 	return runtime.idle();

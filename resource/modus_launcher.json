@@ -31,24 +31,21 @@
 		}
 	},
 	"client": {
-		"callbacks": true,
-		"style": "resource/modus_launcher.style",
-		"menu": { "enabled": true },
-		"dock": {
-			"enabled"	: true,
-			"title"		: "dockspace",
-			"border"	: 0,
-			"rounding"	: 0,
-			"alpha"		: 0,
-			"padding"	: [ 0, 0 ],
-			"size"		: [ 0, 0 ],
-			"nodes"		: []
-		},
+		"callbacks"		: true,
+		"gui_style"		: "resource/modus_launcher.style",
+		"menu_enabled"	: true,
+		"dock_enabled"	: true,
+		"dock_title"	: "dockspace",
+		"dock_border"	: 0,
+		"dock_rounding"	: 0,
+		"dock_alpha"	: 0,
+		"dock_padding"	: [ 0, 0 ],
+		"dock_size"		: [ 0, 0 ],
 		"plugins": [
 			{ "path": "./plugins/sandbox" }
 		],
 		"scripts": [
-			{ "path": "assets/scripts/setup.py" }
+			{ "path": "resource/modus_launcher.py" }
 		]
 	}
 }

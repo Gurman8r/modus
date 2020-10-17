@@ -1,24 +1,24 @@
 #include <modus_core/client/ClientRuntime.hpp>
 #include <modus_core/client/ClientEvents.hpp>
+#include <modus_core/client/ClientDatabase.hpp>
 #include <modus_core/client/ImGuiExt.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 
-// CLIENT RUNTIME
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	client_runtime::client_runtime(client_context * ctx)
 		: client_object		{ ctx }
-		, m_running			{}
-		, m_condition		{ [ctx](){ return ctx->win->is_open(); } }
+		, m_idling			{}
+		, m_loopcond		{ std::bind(&render_window::is_open, ctx->win) }
 		, m_imgui			{}
 		, m_plugins			{ ctx }
 		, m_menu_enabled	{}
 		, m_dock_enabled	{}
-		, m_dock_title		{}
+		, m_dock_title		{ ctx->mem->get_allocator() }
 		, m_dock_border		{}
 		, m_dock_rounding	{}
 		, m_dock_alpha		{}
@@ -38,19 +38,17 @@ namespace ml
 
 	int32_t client_runtime::idle()
 	{
-		// run check
-		if (m_running || !get_window()->is_open()) { return EXIT_FAILURE; }
-		else { m_running = true; } ML_defer(&) { m_running = false; };
+		// lock
+		if (m_idling) { return EXIT_FAILURE; }
+		else { m_idling = true; } ML_defer(&) { m_idling = false; };
 		
-		// enter
+		// enter / exit
 		get_bus()->fire<client_enter_event>(this);
-		if (!get_window()->is_open()) { return EXIT_FAILURE; }
-
-		// idle
-		do { do_idle(); } while (m_condition());
-
-		// exit
-		get_bus()->fire<client_exit_event>(this);
+		ML_defer(&) { get_bus()->fire<client_exit_event>(this); };
+		
+		// do idle
+		if (!check_loop_condition()) { return EXIT_FAILURE; }
+		do { do_idle(); } while (check_loop_condition());
 		return EXIT_SUCCESS;
 	}
 
@@ -121,17 +119,17 @@ namespace ml
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		ML_assert(ImGui_Startup(ctx->win, ctx->io->prefs["client"]["callbacks"]));
-		ctx->io->prefs["client"]["menu"]["enabled"	].get_to(m_menu_enabled);
-		ctx->io->prefs["client"]["dock"]["enabled"	].get_to(m_dock_enabled);
-		ctx->io->prefs["client"]["dock"]["title"	].get_to(m_dock_title);
-		ctx->io->prefs["client"]["dock"]["border"	].get_to(m_dock_border);
-		ctx->io->prefs["client"]["dock"]["rounding"	].get_to(m_dock_rounding);
-		ctx->io->prefs["client"]["dock"]["alpha"	].get_to(m_dock_alpha);
-		ctx->io->prefs["client"]["dock"]["padding"	].get_to(m_dock_padding);
-		ctx->io->prefs["client"]["dock"]["size"		].get_to(m_dock_size);
-		if (ctx->io->prefs["client"].contains("style")) {
-			if (ctx->io->prefs["client"]["style"].is_string()) {
-				ImGui_LoadStyle(ctx->io->path2(ctx->io->prefs["client"]["style"]));
+		ctx->io->prefs["client"]["menu_enabled"	].get_to(m_menu_enabled);
+		ctx->io->prefs["client"]["dock_enabled"	].get_to(m_dock_enabled);
+		ctx->io->prefs["client"]["dock_title"	].get_to(m_dock_title);
+		ctx->io->prefs["client"]["dock_border"	].get_to(m_dock_border);
+		ctx->io->prefs["client"]["dock_rounding"].get_to(m_dock_rounding);
+		ctx->io->prefs["client"]["dock_alpha"	].get_to(m_dock_alpha);
+		ctx->io->prefs["client"]["dock_padding"	].get_to(m_dock_padding);
+		ctx->io->prefs["client"]["dock_size"	].get_to(m_dock_size);
+		if (ctx->io->prefs["client"].contains("gui_style")) {
+			if (ctx->io->prefs["client"]["gui_style"].is_string()) {
+				ImGui_LoadStyle(ctx->io->path2(ctx->io->prefs["client"]["gui_style"]));
 			}
 		}
 
@@ -170,9 +168,9 @@ namespace ml
 			auto const dt{ (float_t)io.delta_time.count() };
 			io.fps_accum += dt - io.fps_times[io.fps_index];
 			io.fps_times[io.fps_index] = dt;
-			io.fps_index = (io.fps_index + 1) % ML_arraysize(io.fps_times);
+			io.fps_index = (io.fps_index + 1) % io.fps_times.size();
 			io.fps = (0.f < io.fps_accum)
-				? 1.f / (io.fps_accum / (float_t)ML_arraysize(io.fps_times))
+				? 1.f / (io.fps_accum / (float_t)io.fps_times.size())
 				: FLT_MAX;
 		};
 

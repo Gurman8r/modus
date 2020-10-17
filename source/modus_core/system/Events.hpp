@@ -22,17 +22,12 @@ namespace ml
 	// EVENT BASE
 	struct event : non_copyable
 	{
-		ML_NODISCARD constexpr operator hash_t() const noexcept
-		{
-			return m_evid;
-		}
+		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_id; }
 
 	protected:
-		constexpr explicit event(hash_t id) noexcept : m_evid{ id }
-		{
-		}
+		constexpr explicit event(hash_t id) noexcept : m_id{ id } {}
 
-		hash_t const m_evid; // 
+		hash_t const m_id; // event id
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -57,9 +52,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit event_listener(event_bus * bus, bool enabled = true) noexcept
-			: m_bus		{ bus }
-			, m_enabled	{ enabled }
+		explicit event_listener(event_bus * bus) noexcept : m_bus{ bus }
 		{
 			ML_assert_msg(bus, "INVALID EVENT BUS");
 		}
@@ -68,18 +61,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		virtual void on_event(event &&) = 0; // handle event
+
 		ML_NODISCARD event_bus * get_bus() const noexcept { return m_bus; }
-
-		ML_NODISCARD bool is_listening() const noexcept { return m_enabled; }
-
-		bool enable_listening(bool value) noexcept { return m_enabled = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		friend event_bus;
-
-		virtual void on_event(event &&) = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -110,8 +94,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		event_bus * const	m_bus		; // 
-		bool				m_enabled	; // 
+		event_bus * const m_bus; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -143,10 +126,7 @@ namespace ml
 			{
 				for (auto const listener : (*cat->second))
 				{
-					if (listener->is_listening())
-					{
-						listener->on_event(ML_forward(ev));
-					}
+					listener->on_event(ML_forward(ev));
 				}
 			}
 		}

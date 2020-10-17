@@ -1,6 +1,5 @@
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
-ImGuiStyle	FramePadding			4.0 4.0
 ImGuiStyle	FrameBorderSize			1.0
 ImGuiStyle	TabBorderSize			1.0
 ImGuiStyle	WindowRounding			0.0

@@ -6,20 +6,18 @@
 // TOOLTIPS
 namespace ml::ImGuiExt
 {
-	// tooltip ex
-	template <class ... Args
-	> void TooltipEx(Args && ... args) noexcept
+	// TOOLTIP-EX
+	template <class Fn, class ... Args
+	> void TooltipEx(Fn && fn, Args && ... args) noexcept
 	{
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			std::invoke(ML_forward(args)...);
-			ImGui::EndTooltip();
-		}
+		if (!ImGui::IsItemHovered()) { return; }
+		ImGui::BeginTooltip();
+		std::invoke(ML_forward(fn), ML_forward(args)...);
+		ImGui::EndTooltip();
 	}
 
-	// tooltip
-	inline void Tooltip(cstring first, cstring last = nullptr) noexcept
+	// TOOLTIP
+	inline void Tooltip(cstring first, cstring last = {}) noexcept
 	{
 		TooltipEx([first, last]() noexcept
 		{
@@ -29,66 +27,29 @@ namespace ml::ImGuiExt
 		});
 	}
 
-	// tooltip fmt
-	inline void TooltipFmt(cstring fmt, ...) noexcept
-	{
-		char buf[1024] = "";
-		va_list args;
-		va_start(args, fmt);
-		std::vsnprintf(buf, ML_arraysize(buf), fmt, args);
-		va_end(args);
-		Tooltip(buf);
-	}
-
-	// help marker ex
-	template <class ... Args
-	> void HelpMarkerEx(Args && ... args) noexcept
-	{
-		ImGui::TextDisabled("(?)");
-		TooltipEx(ML_forward(args)...);
-	}
-
-	// help marker
+	// HELP MARKER
 	inline void HelpMarker(cstring first, cstring last = nullptr) noexcept
 	{
 		ImGui::TextDisabled("(?)");
 		Tooltip(first, last);
 	}
 
-	// help marker
-	inline void HelpMarkerFmt(cstring fmt, ...) noexcept
-	{
-		char buf[1024] = "";
-		va_list args;
-		va_start(args, fmt);
-		std::vsnprintf(buf, ML_arraysize(buf), fmt, args);
-		va_end(args);
-		Tooltip(buf);
-	}
-}
-
-// PANELS
-namespace ml::ImGuiExt
-{
 	// DRAW WINDOW
 	template <class Fn, class ... Args
 	> bool DrawWindow(cstring title, bool * p_open, int32_t flags, Fn && fn, Args && ... args)
 	{
 		ML_defer(&) { ImGui::End(); };
-		
 		bool const is_open{ ImGui::Begin(title, p_open, flags) };
-		
 		if (is_open) { std::invoke(ML_forward(fn), ML_forward(args)...); }
-		
 		return is_open;
 	}
-
+	
 	// PANEL
 	struct ML_NODISCARD Panel final
 	{
-		cstring title		{ "Panel" };
-		bool	open		{ false };
-		int32_t flags		{ ImGuiWindowFlags_None };
+		cstring title	{ "Panel" };
+		bool	open	{ false };
+		int32_t flags	{ ImGuiWindowFlags_None };
 
 		template <class Fn, class ... Args
 		> bool operator()(Fn && fn, Args && ... args) noexcept
@@ -101,13 +62,13 @@ namespace ml::ImGuiExt
 		}
 	};
 
-	// MENU ITEM
+	// PANEL MENU ITEM
 	static bool MenuItem(Panel & p, cstring shortcut = {}, bool enabled = true)
 	{
 		return ImGui::MenuItem(p.title, shortcut, &p.open, enabled);
 	}
 
-	// SELECTABLE
+	// PANEL SELECTABLE
 	static bool Selectable(Panel & p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
 	{
 		return ImGui::Selectable(p.title, &p.open, flags, size);
@@ -116,316 +77,241 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// TEXTURE PREVIEW
-namespace ml
+// OUTPUT TEXT
+namespace ml::ImGuiExt
 {
-	struct ML_NODISCARD gui_texture_preview final
-	{
-		void *	tex_addr	{ nullptr };
-		vec2i	tex_size	{};
-		vec2	img_size	{};
-		float_t	reg_zoom	{ 4.f };
-		float_t	reg_size	{ 32.f };
-
-		void render() noexcept
-		{
-			if (!tex_addr) { return; }
-
-			auto const & io		{ ImGui::GetIO() };
-			auto const reg_avail{ ImGui::GetContentRegionAvail() };
-			auto const scr_pos	{ ImGui::GetCursorScreenPos() };
-			auto const scr_size	{ util::scale_to_fit((vec2)tex_size,
-			{
-				img_size[0] == 0.f ? reg_avail[0] : img_size[0],
-				img_size[1] == 0.f ? reg_avail[1] : img_size[1]
-			}) };
-
-			ImGui::Image(
-				tex_addr,
-				scr_size,
-				{ 0, 1 },
-				{ 1, 0 },
-				colors::white,
-				colors::gray
-			);
-
-			// zoom tooltip region
-			if ((0.f < reg_size) && (0.f < reg_zoom) && ImGui::IsItemHovered())
-			{
-				ImGui::BeginTooltip(); ML_defer() { ImGui::EndTooltip(); };
-				
-				float_t rx{ io.MousePos[0] - scr_pos[0] - reg_size * .5f };
-				if (rx < 0.f) { rx = 0.f; }
-				else if (rx > scr_size[0] - reg_size) { rx = (scr_size[0] - reg_size); }
-
-				float_t ry{ io.MousePos[1] - scr_pos[1] - reg_size * .5f };
-				if (ry < 0.f) { ry = 0.f; }
-				else if (ry > scr_size[1] - reg_size) { ry = (scr_size[1] - reg_size); }
-
-				ImGui::Text("%u: %dx%d (%.0fx%.0f)",
-					(uint32_t)(intptr_t)tex_addr,
-					tex_size[0], tex_size[1],
-					scr_size[0], scr_size[1]
-				);
-				ImGui::Text("Min: (%.2f, %.2f)", rx, ry);
-				ImGui::Text("Max: (%.2f, %.2f)", rx + reg_size, ry + reg_size);
-				ImGui::Image(
-					tex_addr,
-					{ reg_size * reg_zoom, reg_size * reg_zoom },
-					{
-						(rx / scr_size[0]),
-						(1.f - (ry / scr_size[1]))
-					},
-					{
-						((rx + reg_size) / scr_size[0]),
-						(1.f - ((ry + reg_size) / scr_size[1]))
-					},
-					colors::white,
-					colors::gray
-				);
-			}
-		}
-	};
-}
-
-// CONSOLE
-namespace ml
-{
-	struct ML_NODISCARD gui_console final
+	struct ML_NODISCARD OutputText
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using self_type			= typename _ML gui_console;
-		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
-		using command_name		= typename pmr::string;
-		using command_args		= typename pmr::vector<pmr::string>;
-		using command_clbk		= typename std::function<void(command_args)>;
-		using command_info		= typename pmr::vector<pmr::string>;
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		struct ML_NODISCARD command_data final
+		pmr::vector<pmr::string>	Items			; // lines
+		ImGuiTextFilter				Filter			; // text filter
+		bool						AutoScroll		; // auto-scroll
+		bool						ScrollToBottom	; // scroll-to-bottom
+
+		OutputText(allocator_type alloc = {}) noexcept
+			: Items			{ alloc }
+			, Filter		{}
+			, AutoScroll	{ true }
+			, ScrollToBottom{}
 		{
-			command_name name; // name
-			command_clbk clbk; // callback
-			command_info info; // information
+		}
 
-			bool operator==(command_data const & other) const noexcept
+		void Clear() noexcept
+		{
+			Items.clear();
+		}
+
+		void Write(char const value) noexcept
+		{
+			switch (value)
 			{
+			default: {
+				if (Items.empty()) { Items.push_back({}); }
+				Items.back().push_back(value);
+			} break;
+
+			case '\n': {
+				Items.push_back({});
+			} break;
+			}
+		}
+
+		void Dump(pmr::stringstream & value) noexcept
+		{
+			for (char c : value.str()) {
+				Write(c);
+			}
+			value.str({});
+		}
+
+		void Print(pmr::string const & value) noexcept
+		{
+			for (char c : value) {
+				Write(c);
+			}
+		}
+
+		void Printl(pmr::string const & value = {}) noexcept
+		{
+			Print(value);
+			Write('\n');
+		}
+
+		template <class ... Args
+		> void Printf(pmr::string const & value, Args && ... args) noexcept
+		{
+			ds::array<char, 256> buf{};
+			std::sprintf(buf, value.c_str(), ML_forward(args)...);
+			Print(buf.data());
+		}
+
+		template <class ID
+		> void Draw(ID && id, vec2 const & size = {}, bool border = {}, int32_t flags = ImGuiWindowFlags_HorizontalScrollbar) noexcept
+		{
+			// LINES
+			ImGui::BeginChild(ML_forward(id), size, border, flags);
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4, 1 });
+			for (pmr::string const & line : Items)
+			{
+				// Filter pass
+				if (!Filter.PassFilter(line.c_str())) { continue; }
+
+				// color
+				color c{}; bool has_color{};
+				if (strstr(line.c_str(), "[error]")) {
+					c = { 1.0f, 0.4f, 0.4f, 1.0f }; has_color = true;
+				}
+				else if (!std::strncmp(line.c_str(), "# ", 2)) {
+					c = { 1.0f, 0.8f, 0.6f, 1.0f }; has_color = true;
+				}
+
+				if (has_color) { ImGui::PushStyleColor(ImGuiCol_Text, c); }
+				ImGui::TextUnformatted(line.c_str());
+				if (has_color) { ImGui::PopStyleColor(); }
+			}
+			if (ScrollToBottom || (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())) {
+				ImGui::SetScrollHereY(1.0f);
+			}
+			ScrollToBottom = false;
+			ImGui::PopStyleVar();
+			ImGui::EndChild();
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// COMMAND LINE
+namespace ml::ImGuiExt
+{
+	struct ML_NODISCARD CommandLine
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		struct ML_NODISCARD Command final
+		{
+			using Info = typename pmr::vector<pmr::string>;
+
+			using Callback = typename std::function<void(
+				pmr::string &&,
+				pmr::vector<pmr::string> &&
+				)>;
+
+			pmr::string	name; // name
+			Callback	clbk; // callback
+			Info		info; // information
+
+			ML_NODISCARD bool operator==(Command const & other) const noexcept {
 				return (this == std::addressof(other)) || (name == other.name);
 			}
 
-			bool operator<(command_data const & other) const noexcept
-			{
+			ML_NODISCARD bool operator<(Command const & other) const noexcept {
 				return (this != std::addressof(other)) && (name < other.name);
 			}
 		};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		gui_console(allocator_type alloc = {}) noexcept
-			: commands	{ alloc }
-			, history	{ alloc }
-			, lines		{ alloc }
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+
+		pmr::vector<Command>		Commands	; // commands
+		pmr::vector<pmr::string>	History		; // history
+		int32_t						HistoryPos	; // history index
+		ds::array<char, 256>		InputBuf	; // input
+		OutputText					Output		; // output
+		pmr::string					Prefix		; // 
+
+		CommandLine(allocator_type alloc = {}) noexcept
+			: Commands	{ alloc }
+			, History	{ alloc }
+			, HistoryPos{ -1 }
+			, Output	{ alloc }
+			, InputBuf	{}
+			, Prefix	{ ":~$", alloc }
 		{
 		}
 
-		pmr::vector<command_data>	commands		{}		; // commands
-		pmr::vector<pmr::string>	history			{}		; // history buffer
-		pmr::vector<pmr::string>	lines			{}		; // text buffer
-
-		ds::array<char, 256>		input			{}		; // input buffer
-		int32_t						history_pos		{ -1 }	; // history index
-		ImGuiTextFilter				filter			{}		; // text filter
-		bool						auto_scroll		{ true }; // auto-scroll
-		bool						scroll_to_bot	{}		; // scroll-to-bottom
-		cstring						cmd_lock		{}		; // forced command prefix
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		bool lock(cstring value) noexcept
+		void Execute(pmr::string const line) noexcept
 		{
-			return value && !cmd_lock && (cmd_lock = value);
-		}
-
-		bool unlock(cstring value) noexcept
-		{
-			return value && cmd_lock && (0 == std::strcmp(cmd_lock, value));
-		}
-
-		self_type & clear() noexcept
-		{
-			lines.clear();
-			return (*this);
-		}
-
-		self_type & write(char const value) noexcept
-		{
-			switch (value)
-			{
-			default:
-				if (lines.empty()) { lines.push_back({}); }
-				lines.back().push_back(value);
-				break;
-			case '\n':
-				lines.push_back({});
-				break;
-			}
-			return (*this);
-		}
-
-		self_type & dump(pmr::stringstream & ss)
-		{
-			for (char c : ss.str())
-			{
-				this->write(c);
-			}
-			ss.str({});
-			return (*this);
-		}
-
-		self_type & print(pmr::string const & value) noexcept
-		{
-			for (char c : value)
-			{
-				this->write(c);
-			}
-			return (*this);
-		}
-
-		self_type & printl(pmr::string const & value = {}) noexcept
-		{
-			return this->print(value).write('\n');
-		}
-
-		self_type & printf(cstring fmt, ...) noexcept
-		{
-			ds::array<char, 1024> buf{};
-			va_list args{};
-			va_start(args, fmt);
-			std::vsnprintf(buf.data(), buf.size(), fmt, args);
-			buf.back() = 0;
-			va_end(args);
-			return this->print(buf.data());
-		}
-
-		self_type & execute(cstring value) noexcept
-		{
-			this->printf("# %s\n", value);
+			if (line.empty()) { return; }
+			Output.Printf("# %s\n", line.c_str());
 
 			// update history
-			history_pos = -1;
-			if (auto const it{ std::find(history.begin(), history.end(), value) }
-			; it != history.end())
-			{
-				history.erase(it);
-			}
-			history.push_back(value);
+			HistoryPos = -1;
+			if (auto const it{ std::find(History.begin(), History.end(), line) }
+			; it != History.end()) { History.erase(it); }
+			History.push_back(line);
+
+			// command name
+			size_t i{ line.find_first_of(' ') };
+			if (i == line.npos) { i = line.size(); } else { i++; }
 
 			// process command
-			if (auto toks{ util::tokenize(value, " ") }; !toks.empty())
+			auto args{ util::tokenize(line, " ") };
+			if (auto const it{ std::find_if(Commands.begin(), Commands.end(),
+			[&](auto & elem) noexcept { return elem.name == args[0]; }) }
+			; (it != Commands.end() && it->clbk))
 			{
-				if (auto const it{ std::find_if(commands.begin(), commands.end(), [&
-				](auto & cmd) noexcept
-				{
-					return cmd.name == (cmd_lock ? cmd_lock : toks.front());
-				}) }
-				; it != commands.end())
-				{
-					if (!cmd_lock) { toks.erase(toks.begin()); }
-
-					std::invoke(it->clbk, std::move(toks));
-				}
-				else
-				{
-					this->printf("unknown command: \'%s\'\n", toks.front().c_str());
-				}
+				std::invoke(it->clbk, line.substr(i), std::move(args));
+			}
+			else
+			{
+				Output.Printf("unknown command: \'%s\'\n", args[0].c_str());
 			}
 
-			scroll_to_bot = true;
-			return (*this);
+			Output.ScrollToBottom = true;
 		}
 
-		self_type & render()
+		void Draw() noexcept
 		{
-			ML_ImGui_ScopeID(this);
-
-			// HEADER
-			filter.Draw("filter", 180); ImGui::SameLine();
-			ImGui::Checkbox("auto-scroll", &auto_scroll); ImGui::SameLine();
-			if (ImGui::Button("clear")) clear(); ImGui::SameLine();
-			ImGui::Text("lock: %s", cmd_lock ? cmd_lock : "-"); //ImGui::SameLine();
+			// OPTIONS
+			Output.Filter.Draw("filter", 180); ImGui::SameLine();
+			ImGui::Checkbox("auto-scroll", &Output.AutoScroll); ImGui::SameLine();
+			if (ImGui::Button("clear")) { Output.Clear(); }
 			ImGui::Separator();
 
-			float_t const footer_height{ ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing() };
-
-			// CONTENT
-			ImGui::BeginChild("console content area",
-				{ 0, -footer_height }, false, ImGuiWindowFlags_HorizontalScrollbar
-			);
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4, 1 });
-			for (pmr::string const & line : lines)
-			{
-				auto const str{ line.c_str() };
-				if (!filter.PassFilter(str)) continue;
-
-				// # (orange)
-				bool pop_color{};
-				if (0 == std::strncmp(str, "# ", 2)) {
-					ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 0.8f, 0.6f, 1.0f });
-					pop_color = true;
-				}
-				ImGui::TextUnformatted(str);
-				if (pop_color) { ImGui::PopStyleColor(); }
-			}
-			if (scroll_to_bot || (auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
-			{
-				ImGui::SetScrollHereY(1.0f);
-			}
-			scroll_to_bot = false;
-			ImGui::PopStyleVar();
-			ImGui::EndChild();
+			// OUTPUT
+			auto const footer{ ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing() };
+			Output.Draw("output area", { 0, -footer }, false, ImGuiWindowFlags_HorizontalScrollbar);
 			ImGui::Separator();
 
-			// COMMAND LINE
+			// INPUT
 			bool reclaim_focus{};
-			ImGui::TextDisabled("%s:~$", cmd_lock ? cmd_lock : ""); ImGui::SameLine();
+			ImGui::TextDisabled(Prefix.c_str()); ImGui::SameLine();
 			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-			if (ImGui::InputText("##input", &input[0], ML_arraysize(input),
+			if (ImGui::InputText(
+				"##input", InputBuf.data(), InputBuf.size(),
 				ImGuiInputTextFlags_EnterReturnsTrue |
 				ImGuiInputTextFlags_CallbackCompletion |
 				ImGuiInputTextFlags_CallbackHistory,
-				[](auto * u) { return ((gui_console *)u->UserData)->text_edit_callback(u); },
+				[](auto * u) { return ((CommandLine *)u->UserData)->InputTextCallback(u); },
 				this
 			))
 			{
-				if (auto const s{ util::trim((pmr::string)input.data()) }; !s.empty())
-				{
-					execute(s.c_str());
-				}
-				std::strcpy(input.data(), "");
+				if (InputBuf) { Execute(InputBuf.data()); }
+				std::strcpy(InputBuf.data(), "");
 				reclaim_focus = true;
 			}
 			ImGui::PopItemWidth();
 
 			// Auto-focus on window apparition
 			ImGui::SetItemDefaultFocus();
-			if (reclaim_focus)
-			{
-				ImGui::SetKeyboardFocusHere(-1); // Auto focus previous window
-			}
-
-			return (*this);
+			// Auto focus previous widget
+			if (reclaim_focus) { ImGui::SetKeyboardFocusHere(-1); }
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	private:
-		int32_t text_edit_callback(ImGuiInputTextCallbackData * data)
+		int32_t InputTextCallback(ImGuiInputTextCallbackData * data)
 		{
 			switch (data->EventFlag)
 			{
-			case ImGuiInputTextFlags_CallbackCompletion:
-			{
-				// TEXT COMPLETION
+			// COMPLETION
+			case ImGuiInputTextFlags_CallbackCompletion: {
 
 				// Locate beginning of current word
 				cstring word_end = data->Buf + data->CursorPos;
@@ -440,14 +326,14 @@ namespace ml
 
 				// Build a list of candidates
 				pmr::vector<cstring> candidates;
-				for (size_t i = 0; i < commands.size(); i++)
-					if (std::strncmp(commands[i].name.c_str(), word_start, (size_t)(word_end - word_start)) == 0)
-						candidates.push_back(commands[i].name.c_str());
+				for (size_t i = 0; i < Commands.size(); i++)
+					if (std::strncmp(Commands[i].name.c_str(), word_start, (size_t)(word_end - word_start)) == 0)
+						candidates.push_back(Commands[i].name.c_str());
 
 				if (candidates.size() == 0)
 				{
 					// No match
-					this->printf("No match for \'%.*s\'!\n", (size_t)(word_end - word_start), word_start);
+					Output.Printf("No match for \'%.*s\'!\n", (size_t)(word_end - word_start), word_start);
 				}
 				else if (candidates.size() == 1)
 				{
@@ -481,38 +367,37 @@ namespace ml
 					}
 
 					// List matches
-					this->printf("Possible matches:\n");
-					for (size_t i = 0; i < candidates.size(); i++)
-						this->printf("- %s\n", candidates[i]);
+					Output.Printf("Possible matches:\n");
+					for (size_t i = 0; i < candidates.size(); i++) {
+						Output.Printf("- %s\n", candidates[i]);
+					}
 				}
+			} break;
 
-				break;
-			}
-			case ImGuiInputTextFlags_CallbackHistory:
-			{
-				// HISTORY
-				const size_t prev_history_pos = history_pos;
+			// HISTORY
+			case ImGuiInputTextFlags_CallbackHistory: {
+				const size_t prev_history_pos = HistoryPos;
 				if (data->EventKey == ImGuiKey_UpArrow)
 				{
-					if (history_pos == -1)
-						history_pos = (int32_t)history.size() - 1;
-					else if (history_pos > 0)
-						history_pos--;
+					if (HistoryPos == -1)
+						HistoryPos = (int32_t)History.size() - 1;
+					else if (HistoryPos > 0)
+						HistoryPos--;
 				}
 				else if (data->EventKey == ImGuiKey_DownArrow)
 				{
-					if (history_pos != -1)
-						if (++history_pos >= (int32_t)history.size())
-							history_pos = -1;
+					if (HistoryPos != -1)
+						if (++HistoryPos >= (int32_t)History.size())
+							HistoryPos = -1;
 				}
 
-				if (prev_history_pos != history_pos)
+				if (prev_history_pos != HistoryPos)
 				{
-					cstring history_str = (history_pos >= 0) ? history[history_pos].c_str() : "";
+					cstring history_str = (HistoryPos >= 0) ? History[HistoryPos].c_str() : "";
 					data->DeleteChars(0, data->BufTextLen);
 					data->InsertChars(0, history_str);
 				}
-			}
+			} break;
 			}
 			return 0;
 		}

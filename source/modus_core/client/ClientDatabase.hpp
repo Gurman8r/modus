@@ -17,29 +17,26 @@ namespace ml
 
 		using storage_type = typename pmr::unordered_map<hash_t, category_type>;
 
-		client_database(allocator_type alloc = {}) noexcept : m_data{ alloc }
+		client_database(allocator_type alloc = {}) noexcept : m_vars{ alloc }
 		{
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		// get all categories
-		ML_NODISCARD storage_type & all() noexcept
-		{
-			return m_data;
+		ML_NODISCARD storage_type & all() noexcept {
+			return m_vars;
 		}
 
 		// get category
 		template <class Type
-		> ML_NODISCARD category_type & category() noexcept
-		{
-			return m_data[hashof_v<Type>];
+		> ML_NODISCARD category_type & category() noexcept {
+			return this->all()[hashof_v<Type>];
 		}
 
 		// get element
 		template <class Type, class Key = pmr::string
-		> ML_NODISCARD std::any & element(Key && key) noexcept
-		{
+		> ML_NODISCARD std::any & element(Key && key) noexcept {
 			category_type & cat{ this->category<Type>() };
 			if (auto const it{ cat.find(ML_forward(key)) }
 			; it != cat.end()) { return it->second; }
@@ -71,22 +68,22 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto begin() noexcept -> storage_type::iterator { return m_data.begin(); }
+		ML_NODISCARD auto begin() noexcept -> storage_type::iterator { return m_vars.begin(); }
 		
-		ML_NODISCARD auto begin() const noexcept -> storage_type::const_iterator { return m_data.begin(); }
+		ML_NODISCARD auto begin() const noexcept -> storage_type::const_iterator { return m_vars.begin(); }
 		
-		ML_NODISCARD auto cbegin() const noexcept -> storage_type::const_iterator { return m_data.cbegin(); }
+		ML_NODISCARD auto cbegin() const noexcept -> storage_type::const_iterator { return m_vars.cbegin(); }
 		
-		ML_NODISCARD auto end() noexcept -> storage_type::iterator { return m_data.end(); }
+		ML_NODISCARD auto end() noexcept -> storage_type::iterator { return m_vars.end(); }
 		
-		ML_NODISCARD auto end() const noexcept -> storage_type::const_iterator { return m_data.end(); }
+		ML_NODISCARD auto end() const noexcept -> storage_type::const_iterator { return m_vars.end(); }
 		
-		ML_NODISCARD auto cend() const noexcept -> storage_type::const_iterator { return m_data.cend(); }
+		ML_NODISCARD auto cend() const noexcept -> storage_type::const_iterator { return m_vars.cend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		storage_type m_data;
+		storage_type m_vars;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

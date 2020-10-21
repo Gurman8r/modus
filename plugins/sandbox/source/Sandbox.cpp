@@ -19,10 +19,25 @@ namespace ml
 {
 	struct ML_PLUGIN_API sandbox final : plugin
 	{
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// panel ids
+		// database
+		db_var<ds::hashmap<pmr::string, font>>					m_fonts		{ get_db(), "fonts" };
+		db_var<ds::hashmap<pmr::string, bitmap>>				m_images	{ get_db(), "images" };
+		db_var<ds::hashmap<pmr::string, shared<gfx::program>>>	m_programs	{ get_db(), "programs" };
+		db_var<ds::hashmap<pmr::string, shared<gfx::shader>>>	m_shaders	{ get_db(), "shaders" };
+		db_var<ds::hashmap<pmr::string, shared<gfx::texture>>>	m_textures	{ get_db(), "textures" };
+
+		// rendering
+		vec2 m_resolution{ 1280, 720 };
+		color m_clear_color{ 0.4f, 0.f, 1.f, 1.f };
+		pmr::vector<shared<gfx::framebuffer>> m_fb{};
+
+		// command line
+		basic_stream_sniper<>	m_cout		{ &std::cout };
+		ImGuiExt::CommandLine	m_console	{};
+
+		// panels
 		enum : size_t
 		{
 			imgui_about_panel,
@@ -37,8 +52,6 @@ namespace ml
 
 			MAX_PANEL
 		};
-
-		// panels
 		ImGuiExt::Panel m_panels[MAX_PANEL]
 		{
 			{ "About Dear ImGui" },
@@ -52,18 +65,6 @@ namespace ml
 			{ "viewport"	, 1, ImGuiWindowFlags_MenuBar },
 		};
 
-		// console
-		ImGuiExt::CommandLine	m_console	{};
-		basic_stream_sniper<>	m_cout		{ &std::cout };
-
-		// rendering
-		vec2 m_resolution{ 1280, 720 };
-		color m_clear_color{ 0.4f, 0.f, 1.f, 1.f };
-		pmr::vector<shared<gfx::framebuffer>> m_fb{};
-
-		// database
-		db_var< ds::hashmap<pmr::string, bitmap> > m_images{ get_db(), "images" };
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		~sandbox() noexcept override {}
@@ -75,7 +76,7 @@ namespace ml
 			subscribe<client_idle_event>();
 			subscribe<client_dock_event>();
 			subscribe<client_menu_event>();
-			subscribe<client_gui_event>();
+			subscribe<client_imgui_event>();
 		}
 
 		void on_event(event && value) override
@@ -87,7 +88,7 @@ namespace ml
 			case client_idle_event	::ID: return on_client_idle((client_idle_event &&)value);
 			case client_dock_event	::ID: return on_client_dock((client_dock_event &&)value);
 			case client_menu_event	::ID: return on_client_menu((client_menu_event &&)value);
-			case client_gui_event	::ID: return on_client_gui((client_gui_event &&)value);
+			case client_imgui_event	::ID: return on_client_imgui((client_imgui_event &&)value);
 			}
 		}
 
@@ -167,7 +168,7 @@ namespace ml
 			}
 		}
 
-		void on_client_gui(client_gui_event && ev)
+		void on_client_imgui(client_imgui_event && ev)
 		{
 			// IMGUI
 			if (m_panels[imgui_about_panel].open) {

@@ -85,7 +85,7 @@ static auto const default_settings{ R"(
 			{ "path": "./plugins/sandbox" }
 		],
 		"scripts": [
-			{ "path": "assets/scripts/setup.py" }
+			{ "path": "resource/modus_launcher.py" }
 		]
 	}
 }

@@ -284,7 +284,7 @@ namespace ml::ImGuiExt
 			}
 			else
 			{
-				Output.Printf("unknown command: %s%s\n", name.c_str(), line.c_str());
+				Output.Printf("[error] unknown command: %s %s\n", name.c_str(), line.c_str());
 			}
 
 			Output.ScrollToBottom = true;

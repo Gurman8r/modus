@@ -53,7 +53,6 @@ namespace ml
 			gfx::command::set_clear_color(colors::black),
 			gfx::command::clear(gfx::clear_color));
 
-
 		ImDrawData * const draw_data{ &ctx->Viewports[0]->DrawDataP };
 #if defined(ML_IMPL_RENDERER_OPENGL)
 		ImGui_ImplOpenGL3_RenderDrawData(draw_data);
@@ -110,6 +109,7 @@ namespace ml
 			case hashof("WindowBorderSize")			: ref.WindowBorderSize = parse<float_t>(ss); break;
 			case hashof("WindowMinSize")			: ref.WindowMinSize = parse<vec2>(ss); break;
 			case hashof("WindowTitleAlign")			: ref.WindowTitleAlign = parse<vec2>(ss); break;
+			case hashof("WindowMenuButtonPosition")	: ref.WindowMenuButtonPosition = parse<int32_t>(ss); break;
 			case hashof("ChildRounding")			: ref.ChildRounding = parse<float_t>(ss); break;
 			case hashof("ChildBorderSize")			: ref.ChildBorderSize = parse<float_t>(ss); break;
 			case hashof("PopupRounding")			: ref.PopupRounding = parse<float_t>(ss); break;
@@ -128,6 +128,8 @@ namespace ml
 			case hashof("GrabRounding")				: ref.GrabRounding = parse<float_t>(ss); break;
 			case hashof("TabRounding")				: ref.TabRounding = parse<float_t>(ss); break;
 			case hashof("TabBorderSize")			: ref.TabBorderSize = parse<float_t>(ss); break;
+			case hashof("TabMinWidthForCloseButton"): ref.TabMinWidthForCloseButton = parse<float_t>(ss); break;
+			case hashof("ColorButtonPosition")		: ref.ColorButtonPosition = parse<int32_t>(ss); break;
 			case hashof("ButtonTextAlign")			: ref.ButtonTextAlign = parse<vec2>(ss); break;
 			case hashof("SelectableTextAlign")		: ref.SelectableTextAlign = parse<vec2>(ss); break;
 			case hashof("DisplayWindowPadding")		: ref.DisplayWindowPadding = parse<vec2>(ss); break;

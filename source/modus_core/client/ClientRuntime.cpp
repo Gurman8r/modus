@@ -43,7 +43,7 @@ namespace ml
 	int32_t client_runtime::idle()
 	{
 		// lock
-		if (m_idling) { return EXIT_FAILURE; }
+		if (m_idling || !check_loop_condition()) { return EXIT_FAILURE; }
 		else { m_idling = true; } ML_defer(&) { m_idling = false; };
 		
 		// enter / exit
@@ -242,7 +242,7 @@ namespace ml
 		}
 
 		// CLIENT GUI
-		get_bus()->fire<client_gui_event>(m_imgui.get());
+		get_bus()->fire<client_imgui_event>(m_imgui.get());
 	}
 
 	void client_runtime::on_event(event && value)

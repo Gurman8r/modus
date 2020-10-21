@@ -61,12 +61,12 @@ namespace ml
 	};
 
 	// CLIENT GUI
-	ML_decl_event(client_gui_event)
+	ML_decl_event(client_imgui_event)
 	{
 		ImGuiContext * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_gui_event(ImGuiContext * const ptr) noexcept : ptr{ ptr } {}
+		constexpr client_imgui_event(ImGuiContext * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -26,7 +26,7 @@ namespace ml
 
 		ML_NODISCARD int32_t idle();
 
-		ML_NODISCARD int32_t check_loop_condition() const noexcept { return m_loopcond && m_loopcond(); }
+		ML_NODISCARD bool check_loop_condition() const noexcept { return m_loopcond && m_loopcond(); }
 
 		ML_NODISCARD loop_condition_fn const & get_loop_condition() const noexcept { return m_loopcond; }
 

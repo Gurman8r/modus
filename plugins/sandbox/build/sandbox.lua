@@ -51,7 +51,6 @@ links{
 
 includedirs{
 	"%{wks.location}/source",
-	"%{wks.location}/source/modus_core",
 	"%{wks.location}/vendor/source",
 	"%{wks.location}/vendor/source/json/include",
 	"%{wks.location}/vendor/source/pybind11/include",

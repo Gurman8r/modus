@@ -38,6 +38,7 @@ filter{ "system:Windows" }
 dofile "./vendor/build/glfw.lua"
 dofile "./vendor/build/imgui.lua"
 dofile "./build/modus_core.lua"
+--dofile "./build/modus_editor.lua"
 dofile "./build/modus_launcher.lua"
 dofile "./plugins/sandbox/build/sandbox.lua"
 		

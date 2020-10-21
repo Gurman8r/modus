@@ -1,8 +1,6 @@
 #ifndef _ML_CLIENT_DATABASE_HPP_
 #define _ML_CLIENT_DATABASE_HPP_
 
-// WIP
-
 #include <modus_core/detail/HashMap.hpp>
 #include <modus_core/system/Memory.hpp>
 

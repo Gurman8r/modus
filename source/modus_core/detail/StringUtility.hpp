@@ -234,38 +234,46 @@ namespace ml::util
 	{
 		switch (static_cast<char>(c))
 		{
+		default  : return false;
 		case '\n':
 		case '\t':
 		case '\r':
 		case ' ' : return true;
-		default  : return false;
 		}
 	}
 
-	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str)
-	> ML_NODISCARD Str trim_front(Str value) noexcept
+	template <class Ch = char
+	> struct is_whitespace_t
 	{
-		while (!value.empty() && is_whitespace(value.front()))
+		ML_NODISCARD constexpr bool operator()(Ch const c) const noexcept {
+			return is_whitespace(c);
+		}
+	};
+
+	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str), class Pr = is_whitespace_t<Ch>
+	> Str & trim_front(Str & value, Pr predicate = {}) noexcept
+	{
+		while (!value.empty() && predicate(value.front()))
 		{
 			value.erase(value.begin());
 		}
 		return value;
 	}
 
-	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str)
-	> ML_NODISCARD Str trim_back(Str value) noexcept
+	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str), class Pr = is_whitespace_t<Ch>
+	> Str & trim_back(Str & value, Pr predicate = {}) noexcept
 	{
-		while (!value.empty() && is_whitespace(value.back()))
+		while (!value.empty() && predicate(value.back()))
 		{
 			value.pop_back();
 		}
 		return value;
 	}
 
-	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str)
-	> ML_NODISCARD Str trim(Str value) noexcept
+	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str), class Pr = is_whitespace_t<Ch>
+	> ML_NODISCARD Str & trim(Str & value, Pr predicate = {}) noexcept
 	{
-		return trim_front(trim_back(value));
+		return trim_front(trim_back(value, predicate), predicate);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

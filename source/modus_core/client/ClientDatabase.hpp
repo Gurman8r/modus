@@ -191,7 +191,7 @@ namespace ml
 
 		ML_NODISCARD auto get() const noexcept -> reference {
 			ML_assert(!expired());
-			return *std::any_cast<value_type>(ML_check(lock()).get());
+			return *std::any_cast<value_type>(lock().get());
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

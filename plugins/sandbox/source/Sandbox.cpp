@@ -45,8 +45,8 @@ namespace ml
 			imgui_metrics_panel,
 			imgui_style_panel,
 
-			database_panel,
 			console_panel,
+			database_panel,
 			settings_panel,
 			viewport_panel,
 
@@ -59,10 +59,10 @@ namespace ml
 			{ "Dear ImGui Metrics" },
 			{ "Style Editor" },
 			
-			{ "database"	, 0, ImGuiWindowFlags_None },
-			{ "console"		, 1, ImGuiWindowFlags_None },
-			{ "settings"	, 0, ImGuiWindowFlags_MenuBar },
-			{ "viewport"	, 1, ImGuiWindowFlags_MenuBar },
+			{ "command line"	, 1, ImGuiWindowFlags_None },
+			{ "database"		, 0, ImGuiWindowFlags_None },
+			{ "settings"		, 0, ImGuiWindowFlags_MenuBar },
+			{ "viewport"		, 1, ImGuiWindowFlags_MenuBar },
 		};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -162,8 +162,8 @@ namespace ml
 			if (ImGui::BeginMenu("help")) {
 				ImGuiExt::MenuItem(m_panels[imgui_demo_panel]);
 				ImGuiExt::MenuItem(m_panels[imgui_metrics_panel]);
-				ImGuiExt::MenuItem(m_panels[imgui_style_panel]);
 				ImGuiExt::MenuItem(m_panels[imgui_about_panel]);
+				ImGuiExt::MenuItem(m_panels[imgui_style_panel]);
 				ImGui::EndMenu();
 			}
 		}
@@ -205,16 +205,19 @@ namespace ml
 			{
 				if (m_console.Draw(); !m_console.Commands.empty()) { return; }
 
-				// help
-				m_console.Commands.push_back({ "help", {}, [&](auto && line) {
-					for (auto const & cmd : m_console.Commands) {
-						std::cout << cmd.name << "\n";
-					}
-				} });
+				m_console.User = "";
+				m_console.Host = "";
+				m_console.Path = "";
+				m_console.Mode = "";
 
 				// clear
 				m_console.Commands.push_back({ "clear", {}, [&](auto && line) {
 					m_console.Output.Clear();
+				} });
+
+				// echo
+				m_console.Commands.push_back({ "echo", {}, [&](auto && line) {
+					debug::puts(line);
 				} });
 
 				// exit
@@ -222,23 +225,26 @@ namespace ml
 					get_window()->set_should_close(true);
 				} });
 
-				// echo
-				m_console.Commands.push_back({ "echo", {}, [&](auto && line) {
-					std::cout << line << "\n";
+				// help
+				m_console.Commands.push_back({ "help", {}, [&](auto && line) {
+					for (auto const & cmd : m_console.Commands) {
+						debug::puts(cmd.Name);
+					}
+				} });
+
+				// history
+				m_console.Commands.push_back({ "history", {}, [&](auto && line) {
+					for (auto const & str : m_console.History) {
+						debug::puts(str);
+					}
 				} });
 
 				// py
 				m_console.Commands.push_back({ "py", {}, [&](auto && line) {
-					if (line.empty()) {
-						if (m_console.Domain.empty()) {
-							m_console.Domain = "py";
-							static ML_scope() { std::cout << "# type '\\' to stop using python\n"; };
-							return;
-						}
-					}
-					else if (line == "\\") {
-						m_console.Domain.clear();
-						return;
+					if (line.empty() && m_console.Mode.empty()) {
+						return (void)(m_console.Mode = "py");
+					} else if (!line.empty() && m_console.Mode == line) {
+						return m_console.Mode.clear();
 					}
 					PyRun_SimpleString(line.c_str());
 				} });

@@ -185,7 +185,7 @@ namespace ml
 
 		ML_NODISCARD auto database() const noexcept -> client_database * { return m_db; }
 
-		ML_NODISCARD auto use_count() const noexcept -> long { return m_ptr.use_count(); }
+		ML_NODISCARD auto use_count() const noexcept -> int32_t { return m_ptr.use_count(); }
 
 		ML_NODISCARD bool expired() const noexcept { return m_ptr.expired(); }
 		

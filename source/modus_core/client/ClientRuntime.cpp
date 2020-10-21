@@ -208,7 +208,7 @@ namespace ml
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock_border);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock_padding);
 			ImGui::SetNextWindowBgAlpha(m_dock_alpha);
-			if (!ImGuiExt::DrawWindow(m_dock_title.c_str(), &m_dock_enabled,
+			if (!ImGuiExt::DrawPanel(m_dock_title.c_str(), &m_dock_enabled,
 				ImGuiWindowFlags_NoTitleBar |
 				ImGuiWindowFlags_NoCollapse |
 				ImGuiWindowFlags_NoResize |

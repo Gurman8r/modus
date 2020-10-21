@@ -45,7 +45,7 @@ namespace ml::ImGuiExt
 {
 	// DRAW WINDOW
 	template <class Fn, class ... Args
-	> bool DrawWindow(cstring title, bool * p_open, int32_t flags, Fn && fn, Args && ... args)
+	> bool DrawPanel(cstring title, bool * p_open, int32_t flags, Fn && fn, Args && ... args)
 	{
 		ML_defer(&) { ImGui::End(); };
 		bool const is_open{ ImGui::Begin(title, p_open, flags) };
@@ -64,7 +64,7 @@ namespace ml::ImGuiExt
 		> bool operator()(Fn && fn, Args && ... args) noexcept
 		{
 			ML_ImGui_ScopeID(this);
-			return open && ImGuiExt::DrawWindow
+			return open && ImGuiExt::DrawPanel
 			(
 				title, &open, flags, ML_forward(fn), ML_forward(args)...
 			);
@@ -95,13 +95,13 @@ namespace ml::ImGuiExt
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		pmr::vector<pmr::string>	Items			; // lines
+		pmr::vector<pmr::string>	Lines			; // lines
 		ImGuiTextFilter				Filter			; // text filter
 		bool						AutoScroll		; // auto-scroll
 		bool						ScrollToBottom	; // scroll-to-bottom
 
 		OutputText(allocator_type alloc = {}) noexcept
-			: Items			{ alloc }
+			: Lines			{ alloc }
 			, Filter		{}
 			, AutoScroll	{ true }
 			, ScrollToBottom{}
@@ -110,7 +110,7 @@ namespace ml::ImGuiExt
 
 		void Clear() noexcept
 		{
-			Items.clear();
+			Lines.clear();
 		}
 
 		void Write(char const value) noexcept
@@ -118,41 +118,31 @@ namespace ml::ImGuiExt
 			switch (value)
 			{
 			default: {
-				if (Items.empty()) { Items.push_back({}); }
-				Items.back().push_back(value);
+				if (Lines.empty()) { Lines.push_back({}); }
+				Lines.back().push_back(value);
 			} break;
 
 			case '\n': {
-				Items.push_back({});
+				Lines.push_back({});
 			} break;
 			}
 		}
 
 		void Dump(pmr::stringstream & value) noexcept
 		{
-			for (char c : value.str()) {
-				Write(c);
-			}
+			for (char c : value.str()) { Write(c); }
 			value.str({});
 		}
 
-		void Print(pmr::string const & value) noexcept
+		void Print(pmr::string const & value = "\n") noexcept
 		{
-			for (char c : value) {
-				Write(c);
-			}
-		}
-
-		void Printl(pmr::string const & value = {}) noexcept
-		{
-			Print(value);
-			Write('\n');
+			for (char c : value) { Write(c); }
 		}
 
 		template <class ... Args
 		> void Printf(pmr::string const & value, Args && ... args) noexcept
 		{
-			ds::array<char, 256> buf{};
+			ds::array<char, 512> buf{};
 			std::sprintf(buf, value.c_str(), ML_forward(args)...);
 			Print(buf.data());
 		}
@@ -163,15 +153,15 @@ namespace ml::ImGuiExt
 			// LINES
 			ImGui::BeginChild(ML_forward(id), size, border, flags);
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4, 1 });
-			for (pmr::string const & line : Items)
+			for (pmr::string const & line : Lines)
 			{
-				// Filter pass
+				// filter
 				if (!Filter.PassFilter(line.c_str())) { continue; }
 
 				// color
 				color c{}; bool has_color{};
 				if (strstr(line.c_str(), "[error]")) {
-					c = { 1.0f, 0.4f, 0.4f, 1.0f }; has_color = true;
+					c = colors::red; has_color = true;
 				}
 				else if (!std::strncmp(line.c_str(), "# ", 2)) {
 					c = { 1.0f, 0.8f, 0.6f, 1.0f }; has_color = true;
@@ -202,19 +192,19 @@ namespace ml::ImGuiExt
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
 		struct ML_NODISCARD Command final
 		{
-			using Info = typename pmr::vector<pmr::string>;
-
-			using Callback = typename std::function<void(
-				pmr::string &&
-				)>;
+			using Information = typename pmr::vector<pmr::string>;
+			
+			using Callback = typename std::function< void(pmr::string &&) >;
 
 			pmr::string	name; // name
+			Information	info; // info
 			Callback	clbk; // callback
-			Info		info; // information
+
+			void operator()(pmr::string && value) noexcept {
+				std::invoke(ML_check(clbk), std::move(value));
+			}
 
 			ML_NODISCARD bool operator==(Command const & other) const noexcept {
 				return (this == std::addressof(other)) || (name == other.name);
@@ -227,25 +217,43 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		
+		pmr::string
+			User	, // user
+			Domain	, // domain
+			Path	; // path
+
 		pmr::vector<Command>		Commands	; // commands
 		pmr::vector<pmr::string>	History		; // history
 		int32_t						HistoryPos	; // history index
-		ds::array<char, 256>		InputBuf	; // input
+		ds::array<char, 256>		Input		; // input
 		OutputText					Output		; // output
-		pmr::string					Prefix		; // 
 
 		CommandLine(allocator_type alloc = {}) noexcept
-			: Commands	{ alloc }
+			: User		{ alloc }
+			, Domain	{ alloc }
+			, Path		{ alloc }
+			, Commands	{ alloc }
 			, History	{ alloc }
 			, HistoryPos{ -1 }
+			, Input		{}
 			, Output	{ alloc }
-			, InputBuf	{}
-			, Prefix	{ alloc }
 		{
+		}
+
+		ML_NODISCARD auto Find(pmr::string const & name) noexcept
+			-> std::optional<pmr::vector<Command>::iterator>
+		{
+			if (auto const it{ std::find_if(Commands.begin(), Commands.end(),
+			[&](auto & elem) noexcept { return elem.name == name; }) }
+			; it != Commands.end()) { return it; }
+			else { return std::nullopt; }
 		}
 
 		void Execute(pmr::string line) noexcept
 		{
+			// print line
 			if (line.empty()) { return; }
 			Output.Printf("# %s\n", line.c_str());
 
@@ -255,30 +263,28 @@ namespace ml::ImGuiExt
 			; it != History.end()) { History.erase(it); }
 			History.push_back(line);
 
-			// process text
-			pmr::string name;
-			if (!Prefix.empty()) {
-				name = Prefix;
-			}
-			else if (size_t const i{ line.find_first_of(' ') }; i != line.npos) {
-				name = line.substr(0, i);
-				line = line.substr(i + 1);
-			}
-			else {
-				name = line;
-				line.clear();
-			}
-			
-			// execute command
-			if (auto const it{ std::find_if(Commands.begin(), Commands.end(),
-			[&](auto & e) noexcept { return e.name == name; }) }
-			; (it != Commands.end() && it->clbk))
+			// process command
+			if (pmr::string name; auto const cmd{ this->Find(([&]() noexcept -> pmr::string &
 			{
-				std::invoke(it->clbk, std::move(line));
+				if (!Domain.empty()) {
+					name = Domain;
+				}
+				else if (size_t const i{ line.find_first_of(' ') }; i != line.npos) {
+					name = line.substr(0, i);
+					line = line.substr(i + 1);
+				}
+				else {
+					name = line;
+					line.clear();
+				}
+				return name;
+			})()) })
+			{
+				std::invoke(**cmd, std::move(line));
 			}
 			else
 			{
-				Output.Printf("unknown command: \'%s\'\n", name.c_str());
+				Output.Printf("unknown command: %s%s\n", name.c_str(), line.c_str());
 			}
 
 			Output.ScrollToBottom = true;
@@ -289,9 +295,7 @@ namespace ml::ImGuiExt
 			// OPTIONS
 			Output.Filter.Draw("filter", 180); ImGui::SameLine();
 			ImGui::Checkbox("auto-scroll", &Output.AutoScroll); ImGui::SameLine();
-			if (ImGui::Button("clear")) { Output.Clear(); } ImGui::SameLine();
-			if (!Prefix.empty()) { ImGui::Text("pre: %s", Prefix.c_str()); }
-			else { ImGui::TextDisabled("pre: -"); }
+			if (ImGui::Button("clear")) { Output.Clear(); }
 			ImGui::Separator();
 
 			// OUTPUT
@@ -299,12 +303,35 @@ namespace ml::ImGuiExt
 			Output.Draw("output area", { 0, -footer }, false, ImGuiWindowFlags_HorizontalScrollbar);
 			ImGui::Separator();
 
-			// INPUT
+			// INFO HEADER
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 }); {
+				ImGui::PushStyleColor(ImGuiCol_Text, colors::green); ImGui::Text( // user
+					User.empty() ? "root" : User.c_str()
+				); ImGui::SameLine();
+				ImGui::PushStyleColor(ImGuiCol_Text, colors::white); ImGui::Text( // @
+					"@"
+				); ImGui::SameLine();
+				ImGui::PushStyleColor(ImGuiCol_Text, colors::green); ImGui::Text( // domain
+					Domain.empty() ? "modus" : Domain.c_str()
+				); ImGui::SameLine();
+				ImGui::PushStyleColor(ImGuiCol_Text, colors::white); ImGui::Text( // :
+					":"
+				); ImGui::SameLine();
+				ImGui::PushStyleColor(ImGuiCol_Text, colors::cyan); ImGui::Text( // path
+					Path.empty() ? "~" : Path.c_str()
+				); ImGui::SameLine();
+				ImGui::PushStyleColor(ImGuiCol_Text, colors::white); ImGui::Text( // $
+					"$"
+				);
+				ImGui::PopStyleColor(6);
+			} ImGui::PopStyleVar();
+			ImGui::SameLine();
+
+			// INPUT TEXT
 			bool reclaim_focus{};
-			ImGui::TextDisabled("%s:~$", Prefix.c_str()); ImGui::SameLine();
 			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
 			if (ImGui::InputText(
-				"##input", InputBuf.data(), InputBuf.size(),
+				"##input", Input.data(), Input.size(),
 				ImGuiInputTextFlags_EnterReturnsTrue |
 				ImGuiInputTextFlags_CallbackCompletion |
 				ImGuiInputTextFlags_CallbackHistory,
@@ -312,8 +339,8 @@ namespace ml::ImGuiExt
 				this
 			))
 			{
-				if (InputBuf) { Execute(InputBuf.data()); }
-				std::strcpy(InputBuf.data(), "");
+				if (Input) { this->Execute(Input.data()); }
+				std::strcpy(Input.data(), "");
 				reclaim_focus = true;
 			}
 			ImGui::PopItemWidth();
@@ -325,7 +352,7 @@ namespace ml::ImGuiExt
 		}
 
 	private:
-		int32_t InputTextCallback(ImGuiInputTextCallbackData * data)
+		int32_t InputTextCallback(ImGuiInputTextCallbackData * data) noexcept
 		{
 			switch (data->EventFlag)
 			{

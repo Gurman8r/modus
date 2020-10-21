@@ -187,22 +187,23 @@ namespace ml
 	class colors final
 	{
 	public:
-		static constexpr auto clear		= color{ 0.0f, 0.0f, 0.0f, 0.0f };
-		static constexpr auto white		= color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		static constexpr auto gray		= color{ 0.5f, 0.5f, 0.5f, 1.0f };
-		static constexpr auto black		= color{ 0.0f, 0.0f, 0.0f, 1.0f };
-		static constexpr auto red		= color{ 1.0f, 0.0f, 0.0f, 1.0f };
-		static constexpr auto green		= color{ 0.0f, 1.0f, 0.0f, 1.0f };
-		static constexpr auto blue		= color{ 0.0f, 0.0f, 1.0f, 1.0f };
-		static constexpr auto cyan		= color{ 0.0f, 1.0f, 1.0f, 1.0f };
-		static constexpr auto yellow	= color{ 1.0f, 1.0f, 0.0f, 1.0f };
-		static constexpr auto magenta	= color{ 1.0f, 0.0f, 1.0f, 1.0f };
-		static constexpr auto violet	= color{ 0.5f, 0.0f, 1.0f, 1.0f };
-		static constexpr auto lime		= color{ 0.5f, 1.0f, 0.0f, 1.0f };
-		static constexpr auto orange	= color{ 1.0f, 0.5f, 0.0f, 1.0f };
-		static constexpr auto fuchsia	= color{ 1.0f, 0.0f, 0.5f, 1.0f };
-		static constexpr auto aqua		= color{ 0.0f, 1.0f, 0.5f, 1.0f };
-		static constexpr auto azure		= color{ 0.0f, 0.5f, 1.0f, 1.0f };
+		static constexpr color clear	{ 0.0f, 0.0f, 0.0f, 0.0f };
+		static constexpr color white	{ 1.0f, 1.0f, 1.0f, 1.0f };
+		static constexpr color gray		{ 0.5f, 0.5f, 0.5f, 1.0f };
+		static constexpr color black	{ 0.0f, 0.0f, 0.0f, 1.0f };
+
+		static constexpr color red		{ 1.0f, 0.0f, 0.0f, 1.0f };
+		static constexpr color green	{ 0.0f, 1.0f, 0.0f, 1.0f };
+		static constexpr color blue		{ 0.0f, 0.0f, 1.0f, 1.0f };
+		static constexpr color cyan		{ 0.0f, 1.0f, 1.0f, 1.0f };
+		static constexpr color yellow	{ 1.0f, 1.0f, 0.0f, 1.0f };
+		static constexpr color magenta	{ 1.0f, 0.0f, 1.0f, 1.0f };
+		static constexpr color violet	{ 0.5f, 0.0f, 1.0f, 1.0f };
+		static constexpr color lime		{ 0.5f, 1.0f, 0.0f, 1.0f };
+		static constexpr color orange	{ 1.0f, 0.5f, 0.0f, 1.0f };
+		static constexpr color fuchsia	{ 1.0f, 0.0f, 0.5f, 1.0f };
+		static constexpr color aqua		{ 0.0f, 1.0f, 0.5f, 1.0f };
+		static constexpr color azure	{ 0.0f, 0.5f, 1.0f, 1.0f };
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

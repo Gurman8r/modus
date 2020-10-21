@@ -30,7 +30,7 @@ namespace ml
 			imgui_metrics_panel,
 			imgui_style_panel,
 
-			data_panel,
+			database_panel,
 			console_panel,
 			settings_panel,
 			viewport_panel,
@@ -46,7 +46,7 @@ namespace ml
 			{ "Dear ImGui Metrics" },
 			{ "Style Editor" },
 			
-			{ "data"		, 0, ImGuiWindowFlags_None },
+			{ "database"	, 0, ImGuiWindowFlags_None },
 			{ "console"		, 1, ImGuiWindowFlags_None },
 			{ "settings"	, 0, ImGuiWindowFlags_MenuBar },
 			{ "viewport"	, 1, ImGuiWindowFlags_MenuBar },
@@ -78,16 +78,16 @@ namespace ml
 			subscribe<client_gui_event>();
 		}
 
-		void on_event(event && ev) override
+		void on_event(event && value) override
 		{
-			switch (ev)
+			switch (value)
 			{
-			case client_enter_event	::ID: return on_client_enter((client_enter_event &&)ev);
-			case client_exit_event	::ID: return on_client_exit	((client_exit_event &&)ev);
-			case client_idle_event	::ID: return on_client_idle	((client_idle_event &&)ev);
-			case client_dock_event	::ID: return on_client_dock	((client_dock_event &&)ev);
-			case client_menu_event	::ID: return on_client_menu	((client_menu_event &&)ev);
-			case client_gui_event	::ID: return on_client_gui	((client_gui_event &&)ev);
+			case client_enter_event	::ID: return on_client_enter((client_enter_event &&)value);
+			case client_exit_event	::ID: return on_client_exit((client_exit_event &&)value);
+			case client_idle_event	::ID: return on_client_idle((client_idle_event &&)value);
+			case client_dock_event	::ID: return on_client_dock((client_dock_event &&)value);
+			case client_menu_event	::ID: return on_client_menu((client_menu_event &&)value);
+			case client_gui_event	::ID: return on_client_gui((client_gui_event &&)value);
 			}
 		}
 
@@ -151,7 +151,7 @@ namespace ml
 			// TOOLS
 			if (ImGui::BeginMenu("tools")) {
 				ImGuiExt::MenuItem(m_panels[console_panel]);
-				ImGuiExt::MenuItem(m_panels[data_panel]);
+				ImGuiExt::MenuItem(m_panels[database_panel]);
 				ImGuiExt::MenuItem(m_panels[settings_panel]);
 				ImGuiExt::MenuItem(m_panels[viewport_panel]);
 				ImGui::EndMenu();
@@ -170,14 +170,22 @@ namespace ml
 		void on_client_gui(client_gui_event && ev)
 		{
 			// IMGUI
-			if (m_panels[imgui_about_panel].open) { ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].open); }
-			if (m_panels[imgui_demo_panel].open) { ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].open); }
-			if (m_panels[imgui_metrics_panel].open) { ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].open); }
-			m_panels[imgui_style_panel](&ImGui::ShowStyleEditor, &ImGui::GetStyle());
+			if (m_panels[imgui_about_panel].open) {
+				ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].open);
+			}
+			if (m_panels[imgui_demo_panel].open) {
+				ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].open);
+			}
+			if (m_panels[imgui_metrics_panel].open) {
+				ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].open);
+			}
+			m_panels[imgui_style_panel](
+				&ImGui::ShowStyleEditor, &ImGui::GetStyle()
+			);
 
 			// SANDBOX
 			draw_console_panel	(); // CONSOLE
-			draw_data_panel		(); // DATA
+			draw_database_panel	(); // DATABASE
 			draw_settings_panel	(); // SETTINGS
 			draw_viewport_panel	(); // VIEWPORT
 		}
@@ -189,7 +197,7 @@ namespace ml
 		{
 			if (m_panels[console_panel].open) {
 				auto const winsize{ (vec2)get_window()->get_size() };
-				ImGui::SetNextWindowSize({ 480, 480 }, ImGuiCond_Once);
+				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
 			m_panels[console_panel]([&]() noexcept
@@ -197,34 +205,38 @@ namespace ml
 				if (m_console.Draw(); !m_console.Commands.empty()) { return; }
 
 				// help
-				m_console.Commands.push_back({ "help", [&](auto line) {
+				m_console.Commands.push_back({ "help", {}, [&](auto && line) {
 					for (auto const & cmd : m_console.Commands) {
 						std::cout << cmd.name << "\n";
 					}
 				} });
 
+				// clear
+				m_console.Commands.push_back({ "clear", {}, [&](auto && line) {
+					m_console.Output.Clear();
+				} });
+
 				// exit
-				m_console.Commands.push_back({ "exit", [&](auto line) {
+				m_console.Commands.push_back({ "exit", {}, [&](auto && line) {
 					get_window()->set_should_close(true);
 				} });
 
 				// echo
-				m_console.Commands.push_back({ "echo", [&](auto line) {
+				m_console.Commands.push_back({ "echo", {}, [&](auto && line) {
 					std::cout << line << "\n";
 				} });
 
 				// py
-				m_console.Commands.push_back({ "py", [&](auto line) {
-					auto args{ util::tokenize(line, " ")};
-					if (args.empty()) {
-						if (m_console.Prefix.empty()) {
-							m_console.Prefix = "py";
+				m_console.Commands.push_back({ "py", {}, [&](auto && line) {
+					if (line.empty()) {
+						if (m_console.Domain.empty()) {
+							m_console.Domain = "py";
 							static ML_scope() { std::cout << "# type '\\' to stop using python\n"; };
 							return;
 						}
 					}
-					else if (args.front() == "\\") {
-						m_console.Prefix.clear();
+					else if (line == "\\") {
+						m_console.Domain.clear();
 						return;
 					}
 					PyRun_SimpleString(line.c_str());
@@ -232,15 +244,15 @@ namespace ml
 			});
 		}
 
-		// DATA
-		void draw_data_panel()
+		// DATABASE
+		void draw_database_panel()
 		{
-			if (m_panels[data_panel].open) {
+			if (m_panels[database_panel].open) {
 				auto const winsize{ (vec2)get_window()->get_size() };
 				ImGui::SetNextWindowSize({ 960, 329 }, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
-			m_panels[data_panel]([&]() noexcept
+			m_panels[database_panel]([&]() noexcept
 			{
 				ML_defer() { ImGui::EndTabBar(); };
 				if (!ImGui::BeginTabBar("tabs")) { return; }

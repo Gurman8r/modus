@@ -28,6 +28,9 @@
 	{}													\
 	constexpr operator _ML vec4() const noexcept {		\
 		return { x, y, z, w };							\
+	}													\
+	constexpr operator _ML color() const noexcept {		\
+		return { x, y, z, w };							\
 	}
 #endif
 

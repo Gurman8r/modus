@@ -425,13 +425,6 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def_property_readonly_static("num_lock", [](py::object) { return (int32_t)key_mods_num_lock; })
 		;
 
-	// KEY STATE
-	py::class_<input_state_>(m, "input_state")
-		.def_property_readonly_static("release", [](py::object) { return (int32_t)input_state_release; })
-		.def_property_readonly_static("press", [](py::object) { return (int32_t)input_state_press; })
-		.def_property_readonly_static("repeat", [](py::object) { return (int32_t)input_state_repeat; })
-		;
-
 	// WINDOW HINTS
 	py::class_<window_hints_>(m, "window_hints")
 		.def_property_readonly_static("none"			, [](py::object) { return (int32_t)window_hints_none; })

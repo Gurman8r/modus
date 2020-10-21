@@ -57,9 +57,12 @@ namespace ml
 		basic_stream_sniper<>	m_cout		{ &std::cout };
 
 		// rendering
-		color m_clear_color{ 0.4f, 0.f, 1.f, 1.f };
 		vec2 m_resolution{ 1280, 720 };
+		color m_clear_color{ 0.4f, 0.f, 1.f, 1.f };
 		pmr::vector<shared<gfx::framebuffer>> m_fb{};
+
+		// database
+		db_var< ds::hashmap<pmr::string, bitmap> > m_images{ get_db(), "images" };
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -92,9 +95,9 @@ namespace ml
 
 		void on_client_enter(client_enter_event && ev)
 		{
-			if (auto & icon{ get_db()->emplace<bitmap>("icon", get_io()->path2("resource/icon.png")) })
+			if (bitmap & i = m_images["icon"] = { get_io()->path2("resource/icon.png") })
 			{
-				get_window()->set_icons(icon.width(), icon.height(), 1, icon.data());
+				get_window()->set_icons(i.width(), i.height(), 1, i.data());
 			}
 
 			m_fb.push_back(gfx::framebuffer::create({ m_resolution }));
@@ -102,7 +105,6 @@ namespace ml
 
 		void on_client_exit(client_exit_event && ev)
 		{
-			get_db()->erase<bitmap>("icon");
 		}
 
 		void on_client_idle(client_idle_event && ev)
@@ -146,8 +148,8 @@ namespace ml
 				ImGui::EndMenu();
 			}
 
-			// VIEW
-			if (ImGui::BeginMenu("view")) {
+			// TOOLS
+			if (ImGui::BeginMenu("tools")) {
 				ImGuiExt::MenuItem(m_panels[console_panel]);
 				ImGuiExt::MenuItem(m_panels[data_panel]);
 				ImGuiExt::MenuItem(m_panels[settings_panel]);
@@ -168,9 +170,9 @@ namespace ml
 		void on_client_gui(client_gui_event && ev)
 		{
 			// IMGUI
-			m_panels[imgui_about_panel](&ImGui::ShowAboutWindow, &m_panels[imgui_about_panel].open);
-			m_panels[imgui_demo_panel](&ImGui::ShowDemoWindow, &m_panels[imgui_demo_panel].open);
-			m_panels[imgui_metrics_panel](&ImGui::ShowMetricsWindow, &m_panels[imgui_metrics_panel].open);
+			if (m_panels[imgui_about_panel].open) { ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].open); }
+			if (m_panels[imgui_demo_panel].open) { ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].open); }
+			if (m_panels[imgui_metrics_panel].open) { ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].open); }
 			m_panels[imgui_style_panel](&ImGui::ShowStyleEditor, &ImGui::GetStyle());
 
 			// SANDBOX
@@ -195,25 +197,37 @@ namespace ml
 				if (m_console.Draw(); !m_console.Commands.empty()) { return; }
 
 				// help
-				m_console.Commands.push_back({ "help", [&](auto && line, auto && args) {
+				m_console.Commands.push_back({ "help", [&](auto line) {
 					for (auto const & cmd : m_console.Commands) {
 						std::cout << cmd.name << "\n";
 					}
 				} });
 
 				// exit
-				m_console.Commands.push_back({ "exit", [&](auto && line, auto && args) {
+				m_console.Commands.push_back({ "exit", [&](auto line) {
 					get_window()->set_should_close(true);
 				} });
 
 				// echo
-				m_console.Commands.push_back({ "echo", [&](auto && line, auto && args) {
+				m_console.Commands.push_back({ "echo", [&](auto line) {
 					std::cout << line << "\n";
 				} });
 
 				// py
-				m_console.Commands.push_back({ "py", [&](auto && line, auto && args) {
-					py::eval((std::string)line);
+				m_console.Commands.push_back({ "py", [&](auto line) {
+					auto args{ util::tokenize(line, " ")};
+					if (args.empty()) {
+						if (m_console.Prefix.empty()) {
+							m_console.Prefix = "py";
+							static ML_scope() { std::cout << "# type '\\' to stop using python\n"; };
+							return;
+						}
+					}
+					else if (args.front() == "\\") {
+						m_console.Prefix.clear();
+						return;
+					}
+					PyRun_SimpleString(line.c_str());
 				} });
 			});
 		}

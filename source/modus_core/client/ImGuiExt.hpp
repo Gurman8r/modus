@@ -3,6 +3,8 @@
 
 #include <modus_core/client/ImGui.hpp>
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // TOOLTIPS
 namespace ml::ImGuiExt
 {
@@ -33,7 +35,14 @@ namespace ml::ImGuiExt
 		ImGui::TextDisabled("(?)");
 		Tooltip(first, last);
 	}
+}
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+
+// PANELS
+namespace ml::ImGuiExt
+{
 	// DRAW WINDOW
 	template <class Fn, class ... Args
 	> bool DrawWindow(cstring title, bool * p_open, int32_t flags, Fn && fn, Args && ... args)
@@ -193,13 +202,14 @@ namespace ml::ImGuiExt
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+
 		struct ML_NODISCARD Command final
 		{
 			using Info = typename pmr::vector<pmr::string>;
 
 			using Callback = typename std::function<void(
-				pmr::string &&,
-				pmr::vector<pmr::string> &&
+				pmr::string &&
 				)>;
 
 			pmr::string	name; // name
@@ -217,8 +227,6 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
 		pmr::vector<Command>		Commands	; // commands
 		pmr::vector<pmr::string>	History		; // history
 		int32_t						HistoryPos	; // history index
@@ -232,11 +240,11 @@ namespace ml::ImGuiExt
 			, HistoryPos{ -1 }
 			, Output	{ alloc }
 			, InputBuf	{}
-			, Prefix	{ ":~$", alloc }
+			, Prefix	{ alloc }
 		{
 		}
 
-		void Execute(pmr::string const line) noexcept
+		void Execute(pmr::string line) noexcept
 		{
 			if (line.empty()) { return; }
 			Output.Printf("# %s\n", line.c_str());
@@ -247,21 +255,30 @@ namespace ml::ImGuiExt
 			; it != History.end()) { History.erase(it); }
 			History.push_back(line);
 
-			// command name
-			size_t i{ line.find_first_of(' ') };
-			if (i == line.npos) { i = line.size(); } else { i++; }
-
-			// process command
-			auto args{ util::tokenize(line, " ") };
+			// process text
+			pmr::string name;
+			if (!Prefix.empty()) {
+				name = Prefix;
+			}
+			else if (size_t const i{ line.find_first_of(' ') }; i != line.npos) {
+				name = line.substr(0, i);
+				line = line.substr(i + 1);
+			}
+			else {
+				name = line;
+				line.clear();
+			}
+			
+			// execute command
 			if (auto const it{ std::find_if(Commands.begin(), Commands.end(),
-			[&](auto & elem) noexcept { return elem.name == args[0]; }) }
+			[&](auto & e) noexcept { return e.name == name; }) }
 			; (it != Commands.end() && it->clbk))
 			{
-				std::invoke(it->clbk, line.substr(i), std::move(args));
+				std::invoke(it->clbk, std::move(line));
 			}
 			else
 			{
-				Output.Printf("unknown command: \'%s\'\n", args[0].c_str());
+				Output.Printf("unknown command: \'%s\'\n", name.c_str());
 			}
 
 			Output.ScrollToBottom = true;
@@ -272,7 +289,9 @@ namespace ml::ImGuiExt
 			// OPTIONS
 			Output.Filter.Draw("filter", 180); ImGui::SameLine();
 			ImGui::Checkbox("auto-scroll", &Output.AutoScroll); ImGui::SameLine();
-			if (ImGui::Button("clear")) { Output.Clear(); }
+			if (ImGui::Button("clear")) { Output.Clear(); } ImGui::SameLine();
+			if (!Prefix.empty()) { ImGui::Text("pre: %s", Prefix.c_str()); }
+			else { ImGui::TextDisabled("pre: -"); }
 			ImGui::Separator();
 
 			// OUTPUT
@@ -282,7 +301,7 @@ namespace ml::ImGuiExt
 
 			// INPUT
 			bool reclaim_focus{};
-			ImGui::TextDisabled(Prefix.c_str()); ImGui::SameLine();
+			ImGui::TextDisabled("%s:~$", Prefix.c_str()); ImGui::SameLine();
 			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
 			if (ImGui::InputText(
 				"##input", InputBuf.data(), InputBuf.size(),

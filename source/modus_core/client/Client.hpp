@@ -51,9 +51,9 @@ namespace ml
 		ds::array<float_t, 120> fps_times	{};
 
 		// input
-		vec2d									cursor		{};
-		ds::array<int32_t, mouse_button_MAX>	mouse		{};
-		ds::array<int32_t, key_code_MAX>		keyboard	{};
+		vec2d					cursor		{};
+		mouse_state				mouse		{};
+		keyboard_state			keyboard	{};
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

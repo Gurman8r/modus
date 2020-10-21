@@ -26,6 +26,10 @@ namespace ml
 		, m_dock_size		{}
 		, m_dock_flags		{ ImGuiDockNodeFlags_AutoHideTabBar }
 	{
+		subscribe<window_key_event>();
+		subscribe<window_mouse_event>();
+		subscribe<window_cursor_pos_event>();
+
 		do_startup(ctx);
 	}
 
@@ -56,10 +60,11 @@ namespace ml
 
 	void client_runtime::do_startup(client_context * ctx)
 	{
-		// events
-		subscribe<window_key_event>();
-		subscribe<window_mouse_event>();
-		subscribe<window_cursor_pos_event>();
+		// preferences
+		ML_assert(ctx->io->prefs.contains("window"));
+		ML_assert(ctx->io->prefs.contains("client"));
+		auto & window_prefs{ ctx->io->prefs["window"] };
+		auto & client_prefs{ ctx->io->prefs["client"] };
 
 		// python
 		PyObject_SetArenaAllocator(([&temp = PyObjectArenaAllocator{}](auto mres) noexcept {
@@ -79,11 +84,11 @@ namespace ml
 
 		// window
 		ML_assert(ctx->win->open(
-			ctx->io->prefs["window"]["title"],
-			ctx->io->prefs["window"]["video"],
-			ctx->io->prefs["window"]["context"],
-			ctx->io->prefs["window"]["hints"]));
-		if (ctx->io->prefs["client"]["callbacks"])
+			window_prefs["title"],
+			window_prefs["video"],
+			window_prefs["context"],
+			window_prefs["hints"]));
+		if (client_prefs["callbacks"])
 		{
 			static event_bus * bus{}; bus = ctx->bus;
 			ctx->win->set_char_callback([](auto, auto ... x) { bus->fire<window_char_event>(x...); });
@@ -118,36 +123,38 @@ namespace ml
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-		ML_assert(ImGui_Startup(ctx->win, ctx->io->prefs["client"]["callbacks"]));
-		ctx->io->prefs["client"]["menu_enabled"	].get_to(m_menu_enabled);
-		ctx->io->prefs["client"]["dock_enabled"	].get_to(m_dock_enabled);
-		ctx->io->prefs["client"]["dock_title"	].get_to(m_dock_title);
-		ctx->io->prefs["client"]["dock_border"	].get_to(m_dock_border);
-		ctx->io->prefs["client"]["dock_rounding"].get_to(m_dock_rounding);
-		ctx->io->prefs["client"]["dock_alpha"	].get_to(m_dock_alpha);
-		ctx->io->prefs["client"]["dock_padding"	].get_to(m_dock_padding);
-		ctx->io->prefs["client"]["dock_size"	].get_to(m_dock_size);
-		if (ctx->io->prefs["client"].contains("gui_style")) {
-			if (ctx->io->prefs["client"]["gui_style"].is_string()) {
-				ImGui_LoadStyle(ctx->io->path2(ctx->io->prefs["client"]["gui_style"]));
+		ML_assert(ImGui_Startup(ctx->win, client_prefs["callbacks"]));
+		client_prefs["menu_enabled"	].get_to(m_menu_enabled);
+		client_prefs["dock_enabled"	].get_to(m_dock_enabled);
+		client_prefs["dock_title"	].get_to(m_dock_title);
+		client_prefs["dock_border"	].get_to(m_dock_border);
+		client_prefs["dock_rounding"].get_to(m_dock_rounding);
+		client_prefs["dock_alpha"	].get_to(m_dock_alpha);
+		client_prefs["dock_padding"	].get_to(m_dock_padding);
+		client_prefs["dock_size"	].get_to(m_dock_size);
+		if (client_prefs.contains("gui_style")) {
+			if (client_prefs["gui_style"].is_string()) {
+				ImGui_LoadStyle(ctx->io->path2(client_prefs["gui_style"]));
 			}
 		}
 
 		// install plugins
-		if (ctx->io->prefs["client"].contains("plugins"))
+		if (client_prefs.contains("plugins"))
 		{
-			for (auto const & e : ctx->io->prefs["client"]["plugins"])
+			for (auto const & e : client_prefs["plugins"])
 			{
 				m_plugins.install(e["path"]);
 			}
 		}
 
 		// execute scripts
-		if (ctx->io->prefs["client"].contains("scripts"))
+		if (client_prefs.contains("scripts"))
 		{
-			for (auto const & e : ctx->io->prefs["client"]["scripts"])
+			for (auto const & e : client_prefs["scripts"])
 			{
-				py::eval_file(ctx->io->path2(e["path"]).string());
+				auto const path{ ctx->io->path2(e["path"]).string() };
+				auto const file{ std::fopen(path.c_str(), "r") };
+				PyRun_AnyFileExFlags(file, path.c_str(), true, nullptr);
 			}
 		}
 	}

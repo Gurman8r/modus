@@ -146,7 +146,7 @@ namespace ml
 
 		bool set_uniform(uniform const & u) noexcept
 		{
-			switch (u.name().empty() ? 0 : u.type().hash_code())
+			switch (u.name().empty() ? 0 : u.type().hash())
 			{
 			default							: return false;
 			case hashof_v<bool>				: return set_uniform(u.name(), *u.get<bool>());

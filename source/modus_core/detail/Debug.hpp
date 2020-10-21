@@ -48,14 +48,14 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // check message
-#define ML_check_msg(expr, msg) ([](auto && x) noexcept { \
-	ML_assert_ext(x, msg, __FILE__, __LINE__); \
-	return std::move(x); \
+#define ML_check_msg(expr, msg) ([](auto && x) noexcept {	\
+		ML_assert_ext(x, msg, __FILE__, __LINE__);			\
+		return ML_forward(x);								\
 	})(expr)
 
 // check
 #define ML_check(expr) \
-	ML_check_msg(expr, "CHECK FAILED: " #expr)
+	ML_check_msg(expr, "CHECK FAILED: " ML_to_string(expr))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

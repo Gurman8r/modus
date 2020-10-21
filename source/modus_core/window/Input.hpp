@@ -167,15 +167,11 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// input state
-	enum input_state_ : int32_t
-	{
-		input_state_release	, // release | hi -> lo
-		input_state_press	, // press   | lo -> hi
-		input_state_repeat	, // repeat  | hi -> hi
+	// states
 
-		input_state_MAX
-	};
+	ML_alias keyboard_state = typename ds::array<int32_t, key_code_MAX>;
+
+	ML_alias mouse_state = typename ds::array<int32_t, mouse_button_MAX>;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

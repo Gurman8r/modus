@@ -178,7 +178,7 @@ namespace ml
 		{
 			if (type() != value.type())
 			{
-				return type().compare(value.type());
+				return util::compare((hash_t)type(), (hash_t)value.type());
 			}
 			else
 			{

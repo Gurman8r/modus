@@ -3,9 +3,9 @@
 
 #include <modus_core/client/ImGui.hpp>
 
-// TOOLTIPS
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// TOOLTIPS
 namespace ml::ImGuiExt
 {
 	// TOOLTIP-EX
@@ -37,9 +37,60 @@ namespace ml::ImGuiExt
 	}
 }
 
-// PANELS
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// LOCAL STACK
+namespace ml::ImGuiExt
+{
+	struct ML_NODISCARD LocalStack final
+	{
+		int32_t numcol, numvar;
+
+		LocalStack() noexcept : numcol{}, numvar{} {}
+
+		~LocalStack() noexcept { PopStyleColor(-1); PopStyleVar(-1); };
+
+		int32_t PopStyleColor(int32_t count = 1) noexcept {
+			if (count > 0) {
+				ImGui::PopStyleColor(count);
+				return numcol -= count;
+			}
+			else {
+				return this->PopStyleColor(numcol);
+			}
+		}
+
+		int32_t PopStyleVar(int32_t count = 1) noexcept {
+			if (count > 0) {
+				ImGui::PopStyleVar(count);
+				return numvar -= count;
+			}
+			else {
+				return this->PopStyleVar(numvar);
+			}
+		}
+
+		int32_t PushStyleColor(int32_t id, uint32_t value) noexcept {
+			ImGui::PushStyleColor(id, value); return numcol++;
+		}
+
+		int32_t PushStyleColor(int32_t id, color const & value) noexcept {
+			ImGui::PushStyleColor(id, value); return numcol++;
+		}
+
+		int32_t PushStyleVar(int32_t id, float_t value) noexcept {
+			ImGui::PushStyleVar(id, value); return numvar++;
+		}
+
+		int32_t PushStyleVar(int32_t id, vec2 const & value) noexcept {
+			ImGui::PushStyleVar(id, value); return numvar++;
+		}
+	};
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// PANELS
 namespace ml::ImGuiExt
 {
 	// DRAW PANEL
@@ -88,9 +139,9 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// OUTPUT TEXT
 namespace ml::ImGuiExt
 {
-	// OUTPUT TEXT
 	struct ML_NODISCARD OutputText
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -187,33 +238,23 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-namespace ml
-{
-	// COMMAND LINE FLAGS
-	enum ImGuiExtCommandLineFlags_ : int32_t
-	{
-		ImGuiExtCommandLineFlags_None = 0,
-		ImGuiExtCommandLineFlags_NoOptions = 1 << 0,
-		ImGuiExtCommandLineFlags_NoPrefix = 1 << 1,
-	};
-}
-
+// COMMAND LINE
 namespace ml::ImGuiExt
 {
-	// COMMAND LINE
 	struct ML_NODISCARD CommandLine
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// COMMAND
 		struct ML_NODISCARD Command final
 		{
-			pmr::string							Name		; // name
-			pmr::vector<pmr::string>			Info		; // info
-			std::function<void(pmr::string &&)>	Callback	; // callback
+			using Signature = void(pmr::string &&, pmr::string &&);
 
-			void operator()(pmr::string && line) noexcept {
-				std::invoke(ML_check(Callback), std::move(line));
+			pmr::string					Name		; // name
+			std::function<Signature>	Callback	; // callback
+			pmr::vector<pmr::string>	Info		; // info
+
+			void operator()(pmr::string && name, pmr::string && line) noexcept {
+				std::invoke(ML_check(Callback), std::move(name), std::move(line));
 			}
 
 			ML_NODISCARD bool operator==(Command const & other) const noexcept {
@@ -229,20 +270,26 @@ namespace ml::ImGuiExt
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
+		struct {
+			color
+				Delim	{ colors::white },
+				User	{ colors::aqua },
+				Host	{ colors::magenta },
+				Path	{ colors::cyan },
+				Mode	{ colors::fuchsia };
+		} Colors;
+
 		OutputText					Output		; // output
 		ds::array<char, 256>		Input		; // input
 		pmr::vector<Command>		Commands	; // commands
 		pmr::vector<pmr::string>	History		; // history
 		int32_t						HistoryPos	; // history index
 
-		pmr::string
-			User	, // user
-			Host	, // host
-			Path	, // path
-			Mode	; // mode
+		pmr::string User, Host, Path, Mode; // prefix
 
 		CommandLine(allocator_type alloc = {}) noexcept
-			: Output	{ alloc }
+			: Colors	{}
+			, Output	{ alloc }
 			, Input		{}
 			, Commands	{ alloc }
 			, History	{ alloc }
@@ -262,94 +309,78 @@ namespace ml::ImGuiExt
 			else { return std::nullopt; }
 		}
 
-		void Draw(int32_t flags = ImGuiExtCommandLineFlags_None) noexcept
+		void Draw() noexcept
 		{
-			// OPTIONS
-			if (!ML_flag_read(flags, ImGuiExtCommandLineFlags_NoOptions))
-			{
-				Output.Filter.Draw("filter", 180); ImGui::SameLine();
-				ImGui::Checkbox("auto-scroll", &Output.AutoScroll); ImGui::SameLine();
-				if (ImGui::Button("clear")) { Output.Clear(); }
-				ImGui::Separator();
-			}
-
 			// OUTPUT
 			auto const input_height{ ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing() };
-			Output.Draw("output area", { 0, -input_height }, false, ImGuiWindowFlags_HorizontalScrollbar);
+			Output.Draw("##output area", { 0, -input_height }, false, ImGuiWindowFlags_HorizontalScrollbar);
 			ImGui::Separator();
 
-			// PREFIX
-			if (!ML_flag_read(flags, ImGuiExtCommandLineFlags_NoPrefix))
+			// INPUT
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4, 4 });
+			ImGui::BeginChild("##input area", {}, false, ImGuiWindowFlags_MenuBar);
+			ImGui::BeginMenuBar();
 			{
-				int32_t numcol{}, numvar{};
-				ML_defer(&numcol, &numvar) {
-					ImGui::PopStyleColor(numcol);
-					ImGui::PopStyleVar(numvar);
-				};
-
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 }); ++numvar;
-
-				// user@
+				// user@host:path$ /mode
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+				ImGui::PushStyleColor(ImGuiCol_Text, Colors.Delim);
 				if (!User.empty()) {
-					ImGui::PushStyleColor(ImGuiCol_Text, colors::magenta); ++numcol;
-					ImGui::Text("%.*s", User.size(), User.c_str()); ImGui::SameLine();
-					ImGui::PushStyleColor(ImGuiCol_Text, colors::white); ++numcol;
-					ImGui::Text("@"); ImGui::SameLine();
+					ImGui::PushStyleColor(ImGuiCol_Text, Colors.User);
+					ImGui::Text("%.*s", User.size(), User.c_str());
+					ImGui::PopStyleColor(); ImGui::SameLine();
 				}
-
-				// host:
+				ImGui::Text("@"); ImGui::SameLine();
 				if (!Host.empty()) {
-					ImGui::PushStyleColor(ImGuiCol_Text, colors::green); ++numcol;
-					ImGui::Text("%.*s", Host.size(), Host.c_str()); ImGui::SameLine();
-					ImGui::PushStyleColor(ImGuiCol_Text, colors::white); ++numcol;
-					ImGui::Text(":"); ImGui::SameLine();
+					ImGui::PushStyleColor(ImGuiCol_Text, Colors.Host);
+					ImGui::Text("%.*s", Host.size(), Host.c_str());
+					ImGui::PopStyleColor(); ImGui::SameLine();
 				}
-
-				// path$
+				ImGui::Text(":"); ImGui::SameLine();
 				if (!Path.empty()) {
-					ImGui::PushStyleColor(ImGuiCol_Text, colors::cyan); ++numcol;
-					ImGui::Text("%.*s", Path.size(), Path.c_str()); ImGui::SameLine();
-					ImGui::PushStyleColor(ImGuiCol_Text, colors::white); ++numcol;
-					ImGui::Text("$ "); ImGui::SameLine();
+					ImGui::PushStyleColor(ImGuiCol_Text, Colors.Path);
+					ImGui::Text("%.*s", Path.size(), Path.c_str());
+					ImGui::PopStyleColor(); ImGui::SameLine();
 				}
-
-				// /mode
+				ImGui::Text("$ "); ImGui::SameLine();
 				if (!Mode.empty()) {
-					ImGui::PushStyleColor(ImGuiCol_Text, colors::white); ++numcol;
 					ImGui::Text("/"); ImGui::SameLine();
-					ImGui::PushStyleColor(ImGuiCol_Text, colors::fuchsia); ++numcol;
-					ImGui::Text("%.*s ", Mode.size(), Mode.c_str()); ImGui::SameLine();
+					ImGui::PushStyleColor(ImGuiCol_Text, Colors.Mode);
+					ImGui::Text("%.*s ", Mode.size(), Mode.c_str());
+					ImGui::PopStyleColor(); ImGui::SameLine();
 				}
-			}
+				ImGui::PopStyleColor(1);
+				ImGui::PopStyleVar(1);
 
-			// INPUT TEXT
-			bool reclaim_focus{};
-			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-			if (ImGui::InputText(
-				"##input", Input.data(), Input.size(),
-				ImGuiInputTextFlags_EnterReturnsTrue |
-				ImGuiInputTextFlags_CallbackCompletion |
-				ImGuiInputTextFlags_CallbackHistory,
-				[](auto * u) { return ((CommandLine *)u->UserData)->InputTextCallback(u); },
-				this
-			))
-			{
-				if (Input) { Execute(Input.data()); }
-				std::strcpy(Input.data(), "");
-				reclaim_focus = true;
+				// INPUT TEXT
+				bool reclaim_focus{};
+				ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+				if (ImGui::InputText(
+					"##input text", Input.data(), Input.size(),
+					ImGuiInputTextFlags_EnterReturnsTrue |
+					ImGuiInputTextFlags_CallbackCompletion |
+					ImGuiInputTextFlags_CallbackHistory,
+					[](auto * u) { return ((CommandLine *)u->UserData)->InputTextCallback(u); },
+					this
+				))
+				{
+					if (Input) { Execute(Input.data()); }
+					std::strcpy(Input.data(), "");
+					reclaim_focus = true;
+				}
+				ImGui::PopItemWidth();
+				ImGui::SetItemDefaultFocus(); // focus on window apparition
+				if (reclaim_focus) ImGui::SetKeyboardFocusHere(-1); // focus previous widget
 			}
-			ImGui::PopItemWidth();
-
-			ImGui::SetItemDefaultFocus(); // focus on window apparition
-			
-			if (reclaim_focus) { ImGui::SetKeyboardFocusHere(-1); } // focus previous widget
+			ImGui::EndMenuBar();
+			ImGui::EndChild();
+			ImGui::PopStyleVar(1);
 		}
 
 		void Execute(pmr::string line) noexcept
 		{
 			// empty, nothing to do
 			if (line.empty()) { return; }
-			
+
 			// print line
 			Output.Printf("# %s\n", line.c_str());
 
@@ -369,8 +400,8 @@ namespace ml::ImGuiExt
 					;
 			})()) { return; }
 
-			// process command
-			if (pmr::string name; auto const it{ this->Find(([&]() noexcept -> pmr::string &
+			// process name
+			else if (pmr::string name; auto const it{ this->Find(([&]() noexcept -> pmr::string &
 			{
 				if (!Mode.empty()) {
 					name = Mode;
@@ -384,7 +415,7 @@ namespace ml::ImGuiExt
 				return name;
 			})()) })
 			{
-				std::invoke(**it, std::move(line));
+				std::invoke(**it, std::move(name), std::move(line));
 			}
 			else
 			{
@@ -407,7 +438,7 @@ namespace ml::ImGuiExt
 				while (first > data->Buf)
 				{
 					if (char const c{ first[-1] }
-					; c == ' ' || c == '\t' || c == ',' || c == ';' || c == '/')
+					; util::is_whitespace(c) || c == ',' || c == ';' || c == '/')
 					{
 						break;
 					}

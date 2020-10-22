@@ -21,22 +21,6 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// database
-		db_var<ds::hashmap<pmr::string, font>>					m_fonts		{ get_db(), "fonts" };
-		db_var<ds::hashmap<pmr::string, bitmap>>				m_images	{ get_db(), "images" };
-		db_var<ds::hashmap<pmr::string, shared<gfx::program>>>	m_programs	{ get_db(), "programs" };
-		db_var<ds::hashmap<pmr::string, shared<gfx::shader>>>	m_shaders	{ get_db(), "shaders" };
-		db_var<ds::hashmap<pmr::string, shared<gfx::texture>>>	m_textures	{ get_db(), "textures" };
-
-		// rendering
-		vec2 m_resolution{ 1280, 720 };
-		color m_clear_color{ 0.4f, 0.f, 1.f, 1.f };
-		pmr::vector<shared<gfx::framebuffer>> m_fb{};
-
-		// command line
-		basic_stream_sniper<>	m_cout		{ &std::cout };
-		ImGuiExt::CommandLine	m_console	{};
-
 		// panels
 		enum : size_t
 		{
@@ -59,11 +43,27 @@ namespace ml
 			{ "Dear ImGui Metrics" },
 			{ "Style Editor" },
 			
-			{ "command line"	, 1, ImGuiWindowFlags_None },
+			{ "command line"	, 1, ImGuiWindowFlags_MenuBar },
 			{ "database"		, 0, ImGuiWindowFlags_None },
 			{ "settings"		, 0, ImGuiWindowFlags_MenuBar },
 			{ "viewport"		, 1, ImGuiWindowFlags_MenuBar },
 		};
+
+		// command line
+		basic_stream_sniper<>	m_cout{ &std::cout };
+		ImGuiExt::CommandLine	m_console{};
+
+		// rendering
+		vec2 m_resolution{ 1280, 720 };
+		color m_clear_color{ 0.4f, 0.f, 1.f, 1.f };
+		pmr::vector<shared<gfx::framebuffer>> m_fb{};
+
+		// database
+		db_var<ds::hashmap<pmr::string, font>>					m_fonts		{ get_db(), "fonts" };
+		db_var<ds::hashmap<pmr::string, bitmap>>				m_images	{ get_db(), "images" };
+		db_var<ds::hashmap<pmr::string, shared<gfx::program>>>	m_programs	{ get_db(), "programs" };
+		db_var<ds::hashmap<pmr::string, shared<gfx::shader>>>	m_shaders	{ get_db(), "shaders" };
+		db_var<ds::hashmap<pmr::string, shared<gfx::texture>>>	m_textures	{ get_db(), "textures" };
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -124,8 +124,6 @@ namespace ml
 				}),
 				gfx::command::bind_framebuffer(nullptr));
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void on_client_dock(client_dock_event && ev)
 		{
@@ -201,54 +199,152 @@ namespace ml
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
-			m_panels[console_panel]([&]() noexcept
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4, 4 });
+			if (!m_panels[console_panel]([&]() noexcept
 			{
-				if (m_console.Draw(); !m_console.Commands.empty()) { return; }
+				ImGui::PopStyleVar(1);
 
-				m_console.User = "";
-				m_console.Host = "";
-				m_console.Path = "";
+				// menubar
+				if (ImGui::BeginMenuBar())
+				{
+					// filter
+					ImGui::TextDisabled("filter"); ImGui::SameLine();
+					m_console.Output.Filter.Draw("##filter", 256);
+					ImGui::Separator();
+
+					// session
+					if (ImGui::BeginMenu("session"))
+					{
+						// username
+						char username[32]{}; std::strcpy(username, m_console.User.c_str());
+						ImGui::TextDisabled("user"); ImGui::SameLine();
+						if (ImGui::InputText(
+							"##user name",
+							username,
+							ML_arraysize(username),
+							ImGuiInputTextFlags_EnterReturnsTrue
+						)) {
+							m_console.User = username;
+						} ImGui::SameLine();
+						ImGui::ColorEdit4("##user color", m_console.Colors.User,
+							ImGuiColorEditFlags_NoInputs |
+							ImGuiColorEditFlags_NoLabel);
+
+						// hostname
+						char hostname[32]{}; std::strcpy(hostname, m_console.Host.c_str());
+						ImGui::TextDisabled("host"); ImGui::SameLine();
+						if (ImGui::InputText(
+							"##host name",
+							hostname,
+							ML_arraysize(hostname),
+							ImGuiInputTextFlags_EnterReturnsTrue
+						)) {
+							m_console.Host = hostname;
+						} ImGui::SameLine();
+						ImGui::ColorEdit4("##host color", m_console.Colors.Host,
+							ImGuiColorEditFlags_NoInputs |
+							ImGuiColorEditFlags_NoLabel);
+
+						// pathname
+						char pathname[32]{}; std::strcpy(pathname, m_console.Path.c_str());
+						ImGui::TextDisabled("path"); ImGui::SameLine();
+						if (ImGui::InputText(
+							"##path name",
+							pathname,
+							ML_arraysize(pathname),
+							ImGuiInputTextFlags_EnterReturnsTrue
+						)) {
+							m_console.Path = pathname;
+						} ImGui::SameLine();
+						ImGui::ColorEdit4("##path color", m_console.Colors.Path,
+							ImGuiColorEditFlags_NoInputs |
+							ImGuiColorEditFlags_NoLabel);
+
+						// modename
+						char modename[32]{}; std::strcpy(modename, m_console.Mode.c_str());
+						ImGui::TextDisabled("mode"); ImGui::SameLine();
+						if (ImGui::InputText(
+							"##mode name",
+							modename,
+							ML_arraysize(modename),
+							ImGuiInputTextFlags_EnterReturnsTrue
+						)) {
+							m_console.Mode = modename;
+						} ImGui::SameLine();
+						ImGui::ColorEdit4("##mode color", m_console.Colors.Mode,
+							ImGuiColorEditFlags_NoInputs |
+							ImGuiColorEditFlags_NoLabel);
+
+						ImGui::EndMenu();
+					} ImGui::Separator();
+
+					// clear
+					if (ImGui::MenuItem("clear")) { m_console.Output.Clear(); }
+					ImGui::Separator();
+
+					// auto scroll
+					ImGui::Checkbox("auto scroll", &m_console.Output.AutoScroll);
+					ImGui::Separator();
+
+					ImGui::EndMenuBar();
+				}
+				
+				// draw
+				m_console.Draw();
+
+				// setup
+				if (!m_console.Commands.empty()) { return; }
+				m_console.User = "root";
+				m_console.Host = "localhost";
+				m_console.Path = "~";
 				m_console.Mode = "";
 
 				// clear
-				m_console.Commands.push_back({ "clear", {}, [&](auto && line) {
+				m_console.Commands.push_back({ "clear", [&](auto name, auto line) {
 					m_console.Output.Clear();
 				} });
 
 				// echo
-				m_console.Commands.push_back({ "echo", {}, [&](auto && line) {
+				m_console.Commands.push_back({ "echo", [&](auto name, auto line) {
 					debug::puts(line);
 				} });
 
 				// exit
-				m_console.Commands.push_back({ "exit", {}, [&](auto && line) {
+				m_console.Commands.push_back({ "exit", [&](auto name, auto line) {
 					get_window()->set_should_close(true);
 				} });
 
 				// help
-				m_console.Commands.push_back({ "help", {}, [&](auto && line) {
+				m_console.Commands.push_back({ "help", [&](auto name, auto line) {
 					for (auto const & cmd : m_console.Commands) {
 						debug::puts(cmd.Name);
 					}
 				} });
 
 				// history
-				m_console.Commands.push_back({ "history", {}, [&](auto && line) {
+				m_console.Commands.push_back({ "history", [&](auto name, auto line) {
 					for (auto const & str : m_console.History) {
 						debug::puts(str);
 					}
 				} });
 
-				// py
-				m_console.Commands.push_back({ "py", {}, [&](auto && line) {
-					if (line.empty() && m_console.Mode.empty()) {
-						return (void)(m_console.Mode = "py");
-					} else if (!line.empty() && m_console.Mode == line) {
-						return m_console.Mode.clear();
+				// python
+				m_console.Commands.push_back({ "python", [&](auto name, auto line) {
+					// lock
+					if (m_console.Mode.empty() && line.empty()) {
+						m_console.Mode = name; return;
 					}
+					// unlock
+					else if (m_console.Mode == line && line == name) {
+						m_console.Mode.clear(); return;
+					}
+					// evaluate
 					PyRun_SimpleString(line.c_str());
 				} });
-			});
+			}))
+			{
+				ImGui::PopStyleVar(1);
+			}
 		}
 
 		// DATABASE

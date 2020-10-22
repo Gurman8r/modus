@@ -117,7 +117,7 @@ namespace ml
 			case hashof("FramePadding")				: ref.FramePadding = parse<vec2>(ss); break;
 			case hashof("FrameRounding")			: ref.FrameRounding = parse<float_t>(ss); break;
 			case hashof("FrameBorderSize")			: ref.FrameBorderSize = parse<float_t>(ss); break;
-			case hashof("ItemSpacing")				: ref.ItemInnerSpacing = parse<vec2>(ss); break;
+			case hashof("ItemSpacing")				: ref.ItemSpacing = parse<vec2>(ss); break;
 			case hashof("ItemInnerSpacing")			: ref.ItemInnerSpacing = parse<vec2>(ss); break;
 			case hashof("TouchExtraPadding")		: ref.TouchExtraPadding = parse<vec2>(ss); break;
 			case hashof("IndentSpacing")			: ref.IndentSpacing = parse<float_t>(ss); break;

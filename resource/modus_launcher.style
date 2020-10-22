@@ -1,16 +1,16 @@
 # Style
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
-ImGuiStyle WindowRounding				0.0
-ImGuiStyle WindowMenuButtonPosition		1
-ImGuiStyle FrameBorderSize				1.0
-ImGuiStyle TabBorderSize				1.0
 ImGuiStyle ChildRounding				0.0
 ImGuiStyle FrameRounding				0.0
+ImGuiStyle FrameBorderSize				1.0
+ImGuiStyle GrabRounding					0.0
+ImGuiStyle TabBorderSize				1.0
+ImGuiStyle TabRounding					0.0
 ImGuiStyle PopupRounding				0.0
 ImGuiStyle ScrollbarRounding			0.0
-ImGuiStyle GrabRounding					0.0
-ImGuiStyle TabRounding					0.0
+ImGuiStyle WindowMenuButtonPosition		1
+ImGuiStyle WindowRounding				0.0
 
 # Colors
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #

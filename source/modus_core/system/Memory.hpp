@@ -1,9 +1,9 @@
 #ifndef _ML_MEMORY_HPP_
 #define _ML_MEMORY_HPP_
 
+#include <modus_core/detail/BatchVector.hpp>
 #include <modus_core/detail/Debug.hpp>
 #include <modus_core/detail/Singleton.hpp>
-#include <modus_core/detail/BatchVector.hpp>
 
 // passthrough
 namespace ml

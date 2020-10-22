@@ -1,8 +1,8 @@
 #ifndef _ML_RENDER_API_HPP_
 #define _ML_RENDER_API_HPP_
 
+#include <modus_core/detail/Method.hpp>
 #include <modus_core/detail/FlatMap.hpp>
-#include <modus_core/Export.hpp>
 #include <modus_core/graphics/Bitmap.hpp>
 #include <modus_core/window/WindowContext.hpp>
 
@@ -1648,7 +1648,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual bool link() = 0;
 
-		virtual bool bind_uniform(cstring name, std::function<void(uniform_id)> const & fn) = 0;
+		virtual bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) = 0;
 
 		ML_NODISCARD virtual pmr::string const & get_error_log() const noexcept = 0;
 
@@ -1753,7 +1753,7 @@ namespace ml::gfx
 	public:
 		virtual bool compile(uint32_t type, size_t count, cstring * str, int32_t const * len = {}) = 0;
 
-		virtual bool bind_uniform(cstring name, std::function<void(uniform_id)> const & fn) = 0;
+		virtual bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) = 0;
 
 		ML_NODISCARD virtual pmr::string const & get_info_log() const noexcept = 0;
 

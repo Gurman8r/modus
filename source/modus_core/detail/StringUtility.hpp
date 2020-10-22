@@ -251,9 +251,9 @@ namespace ml::util
 	};
 
 	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str), class Pr = is_whitespace_t<Ch>
-	> Str & trim_front(Str & value, Pr predicate = {}) noexcept
+	> Str & trim_front(Str & value, Pr pr = {}) noexcept
 	{
-		while (!value.empty() && predicate(value.front()))
+		while (!value.empty() && pr(value.front()))
 		{
 			value.erase(value.begin());
 		}
@@ -261,9 +261,9 @@ namespace ml::util
 	}
 
 	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str), class Pr = is_whitespace_t<Ch>
-	> Str & trim_back(Str & value, Pr predicate = {}) noexcept
+	> Str & trim_back(Str & value, Pr pr = {}) noexcept
 	{
-		while (!value.empty() && predicate(value.back()))
+		while (!value.empty() && pr(value.back()))
 		{
 			value.pop_back();
 		}
@@ -271,9 +271,9 @@ namespace ml::util
 	}
 
 	template <ML_PMR_STRING_TEMPLATE(Ch, Tr, Al, Str), class Pr = is_whitespace_t<Ch>
-	> ML_NODISCARD Str & trim(Str & value, Pr predicate = {}) noexcept
+	> ML_NODISCARD Str & trim(Str & value, Pr pr = {}) noexcept
 	{
-		return trim_front(trim_back(value, predicate), predicate);
+		return trim_front(trim_back(value, pr), pr);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

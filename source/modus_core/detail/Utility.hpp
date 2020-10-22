@@ -7,7 +7,6 @@
 #include <modus_core/detail/Meta.hpp>
 #include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/detail/TypeInfo.hpp>
-#include <modus_core/detail/Wrapper.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

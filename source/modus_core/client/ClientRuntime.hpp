@@ -7,7 +7,7 @@
 namespace ml
 {
 	// loop condition
-	ML_alias loop_condition_fn = typename std::function<int32_t()>;
+	ML_alias loop_condition_fn = typename ds::method<int32_t()>;
 
 	// client runtime
 	struct ML_CORE_API client_runtime final : client_object<client_runtime>

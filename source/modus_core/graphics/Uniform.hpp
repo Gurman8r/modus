@@ -31,7 +31,7 @@ namespace ml
 
 		using variable_type = typename meta::rename<std::variant, allowed_types>;
 
-		using function_type = typename std::function<variable_type()>;
+		using function_type = typename ds::method<variable_type()>;
 
 		enum : size_t { id_variable, id_function };
 

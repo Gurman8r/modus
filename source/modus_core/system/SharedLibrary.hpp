@@ -2,6 +2,7 @@
 #define _ML_SHARED_LIBRARY_HPP_
 
 #include <modus_core/detail/FlatMap.hpp>
+#include <modus_core/detail/Method.hpp>
 #include <modus_core/system/Memory.hpp>
 
 namespace ml

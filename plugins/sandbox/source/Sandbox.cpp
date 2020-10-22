@@ -45,7 +45,7 @@ namespace ml
 			
 			{ "command line" , true, ImGuiWindowFlags_MenuBar },
 			{ "database" , false, ImGuiWindowFlags_None },
-			{ "settings" , false, ImGuiWindowFlags_MenuBar },
+			{ "settings" , false, ImGuiWindowFlags_None },
 			{ "viewport" , true, ImGuiWindowFlags_MenuBar },
 		};
 
@@ -287,7 +287,7 @@ namespace ml
 					} ImGui::Separator();
 
 					// clear
-					if (ImGui::MenuItem("clear")) { m_console.Output.Clear(); }
+					if (ImGui::MenuItem("clear")) { m_console.Output.Lines.clear(); }
 					ImGui::Separator();
 
 					ImGui::EndMenuBar();
@@ -304,47 +304,42 @@ namespace ml
 				m_console.Mode = "";
 
 				// clear
-				m_console.Commands.push_back({ "clear", [&](auto name, auto line) {
-					m_console.Output.Clear();
-				} });
-
-				// echo
-				m_console.Commands.push_back({ "echo", [&](auto name, auto line) {
-					debug::puts(line);
-				} });
+				m_console.AddCommand("clear", {}, [&](auto line) {
+					m_console.Output.Lines.clear();
+				});
 
 				// exit
-				m_console.Commands.push_back({ "exit", [&](auto name, auto line) {
+				m_console.AddCommand("exit", {}, [&](auto line) {
 					get_window()->set_should_close(true);
-				} });
+				});
 
 				// help
-				m_console.Commands.push_back({ "help", [&](auto name, auto line) {
-					for (auto const & cmd : m_console.Commands) {
-						debug::puts(cmd.Name);
+				m_console.AddCommand("help", {}, [&](auto line) {
+					for (auto const & name : m_console.Commands.get<pmr::string>()) {
+						debug::puts(name);
 					}
-				} });
+				});
 
 				// history
-				m_console.Commands.push_back({ "history", [&](auto name, auto line) {
+				m_console.AddCommand("history", {}, [&](auto line) {
 					for (auto const & str : m_console.History) {
 						debug::puts(str);
 					}
-				} });
+				});
 
 				// python
-				m_console.Commands.push_back({ "python", [&](auto name, auto line) {
+				m_console.AddCommand("python", {}, [&](auto line) {
 					// lock
 					if (m_console.Mode.empty() && line.empty()) {
-						m_console.Mode = name; return;
+						m_console.Mode = "python"; return;
 					}
 					// unlock
-					else if (m_console.Mode == line && line == name) {
+					else if (m_console.Mode == line && line == "python") {
 						m_console.Mode.clear(); return;
 					}
 					// evaluate
 					PyRun_SimpleString(line.c_str());
-				} });
+				});
 			}))
 			{
 				ImGui::PopStyleVar(1);
@@ -388,6 +383,7 @@ namespace ml
 		// SETTINGS
 		void draw_settings_panel()
 		{
+			ImGuiStyle * styleref{};
 			if (m_panels[settings_panel].open) {
 				auto const winsize{ (vec2)get_window()->get_size() };
 				ImGui::SetNextWindowSize({ 320, 512 }, ImGuiCond_Once);
@@ -395,11 +391,51 @@ namespace ml
 			}
 			m_panels[settings_panel]([&]() noexcept
 			{
-				if (ImGui::BeginMenuBar()) {
-					ImGuiExt::HelpMarker("settings");
-					ImGui::Separator();
-					ImGui::EndMenuBar();
+				ImGuiStyle & style = ImGui::GetStyle();
+				static ImGuiStyle ref_saved_style;
+
+				static bool init = true;
+				if (init && styleref == NULL)
+					ref_saved_style = style;
+				init = false;
+				if (styleref == NULL)
+					styleref = &ref_saved_style;
+
+				ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
+
+				if (ImGui::ShowStyleSelector("Colors##Selector"))
+					ref_saved_style = style;
+				ImGui::ShowFontSelector("Fonts##Selector");
+
+				if (ImGui::SliderFloat("FrameRounding", &style.FrameRounding, 0.0f, 12.0f, "%.0f"))
+					style.GrabRounding = style.FrameRounding; // Make GrabRounding always the same value as FrameRounding
+				{ bool border = (style.WindowBorderSize > 0.0f); if (ImGui::Checkbox("WindowBorder", &border)) { style.WindowBorderSize = border ? 1.0f : 0.0f; } }
+				ImGui::SameLine();
+				{ bool border = (style.FrameBorderSize > 0.0f);  if (ImGui::Checkbox("FrameBorder", &border)) { style.FrameBorderSize = border ? 1.0f : 0.0f; } }
+				ImGui::SameLine();
+				{ bool border = (style.PopupBorderSize > 0.0f);  if (ImGui::Checkbox("PopupBorder", &border)) { style.PopupBorderSize = border ? 1.0f : 0.0f; } }
+
+				// Save/Revert button
+				if (ImGui::Button("Save Ref"))
+					*styleref = ref_saved_style = style;
+				ImGui::SameLine();
+				if (ImGui::Button("Revert Ref"))
+					style = *styleref;
+
+				ImGui::Separator();
+
+				if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
+				{
+					if (ImGui::BeginTabItem("General"))
+					{
+						ImGui::Text("Main");
+						ImGui::EndTabItem();
+					}
+
+					ImGui::EndTabBar();
 				}
+
+				ImGui::PopItemWidth();
 			});
 		}
 

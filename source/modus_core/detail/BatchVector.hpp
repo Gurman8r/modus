@@ -835,20 +835,6 @@ namespace ml::ds
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <size_t I, class U = value_i<I>
-		> ML_NODISCARD bool contains(U && value) const noexcept
-		{
-			return std::binary_search(this->cbegin<I>(), this->cend<I>(), ML_forward(value));
-		}
-
-		template <class T, class U = T
-		> ML_NODISCARD bool contains(U && value) const noexcept
-		{
-			return std::binary_search(this->cbegin<T>(), this->cend<T>(), ML_forward(value));
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		template <size_t I, class U = value_i<I>
 		> ML_NODISCARD iterator_i<I> find(U && value) noexcept
 		{
 			return std::find(this->begin<I>(), this->end<I>(), ML_forward(value));
@@ -875,14 +861,39 @@ namespace ml::ds
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <size_t I, class U = value_i<I>
+		> ML_NODISCARD bool binary_search(U && value) const noexcept
+		{
+			return std::binary_search(this->cbegin<I>(), this->cend<I>(), ML_forward(value));
+		}
+
+		template <class T, class U = T
+		> ML_NODISCARD bool binary_search(U && value) const noexcept
+		{
+			return std::binary_search(this->cbegin<T>(), this->cend<T>(), ML_forward(value));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <size_t I, class U = value_i<I>
+		> ML_NODISCARD bool contains(U && value) const noexcept
+		{
+			return this->find<I>(ML_forward(value)) != this->end<I>();
+		}
+
+		template <class T, class U = T
+		> ML_NODISCARD bool contains(U && value) const noexcept
+		{
+			return this->find<T>(ML_forward(value)) != this->end<T>();
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <size_t I, class U = value_i<I>
 		> ML_NODISCARD size_t lookup(U && value) const noexcept
 		{
 			if (auto const it{ this->find<I>(ML_forward(value)) }
 			; it == this->end<I>()) { return npos; }
-			else
-			{
-				return this->index_of<I>(it);
-			}
+			else { return this->index_of<I>(it); }
 		}
 
 		template <class T, class U = value_t<T>
@@ -890,10 +901,7 @@ namespace ml::ds
 		{
 			if (auto const it{ this->find<T>(ML_forward(value)) }
 			; it == this->end<T>()) { return npos; }
-			else
-			{
-				return this->index_of<T>(it);
-			}
+			else { return this->index_of<T>(it); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

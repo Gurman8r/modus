@@ -34,14 +34,14 @@ namespace ml::gfx
 	}
 
 	// render command
-	class command final : public std::function< void(render_context *) >
+	class command final : public ds::method< void(render_context *) >
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Fn, class ... Args
 		> command(Fn && fn, Args && ... args) noexcept
-			: function{ std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...) }
+			: method{ std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...) }
 		{
 		}
 

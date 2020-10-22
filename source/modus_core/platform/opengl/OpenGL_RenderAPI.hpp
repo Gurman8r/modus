@@ -538,7 +538,7 @@ namespace ml::gfx
 
 		bool link() override;
 
-		bool bind_uniform(cstring name, std::function<void(uniform_id)> const & fn) override
+		bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) override
 		{
 			program_uniform_binder u{ *this, name };
 			if (u) { std::invoke(fn, u.location); }
@@ -619,7 +619,7 @@ namespace ml::gfx
 	public:
 		bool compile(uint32_t type, size_t count, cstring * str, int32_t const * len = {}) override;
 
-		bool bind_uniform(cstring name, std::function<void(uniform_id)> const & fn) override
+		bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) override
 		{
 			shader_uniform_binder u{ *this, name };
 			if (u) { std::invoke(fn, u.loc); }

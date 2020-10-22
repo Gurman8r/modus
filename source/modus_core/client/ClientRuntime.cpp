@@ -1,7 +1,6 @@
 #include <modus_core/client/ClientRuntime.hpp>
 #include <modus_core/client/ClientEvents.hpp>
 #include <modus_core/client/ClientDatabase.hpp>
-#include <modus_core/client/ImGuiExt.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -153,8 +152,8 @@ namespace ml
 			for (auto const & e : client_prefs["scripts"])
 			{
 				auto const path{ ctx->io->path2(e["path"]).string() };
-				auto const file{ std::fopen(path.c_str(), "r") };
-				PyRun_AnyFileExFlags(file, path.c_str(), true, nullptr);
+
+				PyRun_AnyFileEx(std::fopen(path.c_str(), "r"), path.c_str(), true);
 			}
 		}
 	}
@@ -208,7 +207,7 @@ namespace ml
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock_border);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock_padding);
 			ImGui::SetNextWindowBgAlpha(m_dock_alpha);
-			if (!ImGuiExt::DrawPanel(m_dock_title.c_str(), &m_dock_enabled,
+			if (!ImGuiExt::DrawWindow(m_dock_title.c_str(), &m_dock_enabled,
 				ImGuiWindowFlags_NoTitleBar |
 				ImGuiWindowFlags_NoCollapse |
 				ImGuiWindowFlags_NoResize |

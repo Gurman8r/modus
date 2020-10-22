@@ -43,7 +43,7 @@ namespace ml::ds
 		storage_type m_data; // aggregate initializer
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+		
 		constexpr auto data() noexcept -> pointer { return m_data.data(); }
 
 		constexpr auto data() const noexcept -> const_pointer { return m_data.data(); }

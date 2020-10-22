@@ -40,36 +40,82 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// PANELS
+// WINDOWS
 namespace ml::ImGuiExt
 {
-	// DRAW PANEL
-	template <class Fn, class ... Args
-	> bool DrawPanel(cstring title, bool * p_open, int32_t flags, Fn && fn, Args && ... args)
+	// BEGIN / END
+	template <class BeginFn, class EndFn, class Fn, class ... Args
+	> bool BeginEnd(BeginFn && begin_fn, EndFn && end_fn, Fn && fn, Args && ... args)
 	{
-		ML_defer(&) { ImGui::End(); };
+		ML_defer(&) { std::invoke(ML_forward(end_fn)); };
 		
-		bool const is_open{ ImGui::Begin(title, p_open, flags) };
+		bool const is_open{ std::invoke(ML_forward(begin_fn)) };
 		
 		if (is_open) { std::invoke(ML_forward(fn), ML_forward(args)...); }
 		
 		return is_open;
 	}
-	
+
+	// DRAW WINDOW
+	template <class Fn, class ... Args
+	> bool DrawWindow(cstring title, bool * p_open, int32_t flags, Fn && fn, Args && ... args) noexcept
+	{
+		return ImGuiExt::BeginEnd(
+			std::bind(&ImGui::Begin, title, p_open, flags),
+			&ImGui::End,
+			ML_forward(fn), ML_forward(args)...);
+	}
+
+	// DRAW CHILD EX
+	template <class Fn, class ... Args
+	> bool DrawChildEx(cstring name, ImGuiID id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
+	{
+		return ImGuiExt::BeginEnd(
+			std::bind(&ImGui::BeginChildEx, name, id, size, border, flags),
+			&ImGui::EndChild,
+			ML_forward(fn), ML_forward(args)...);
+	}
+
+	// DRAW CHILD
+	template <class Fn, class ... Args
+	> bool DrawChild(cstring id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
+	{
+		return ImGuiExt::DrawChildEx
+		(
+			id, ImGui::GetID(id), size, border, flags, ML_forward(fn), ML_forward(args)...
+		);
+	}
+
+	// DRAW CHILD
+	template <class Fn, class ... Args
+	> bool DrawChild(ImGuiID id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
+	{
+		return ImGuiExt::DrawChildEx
+		(
+			nullptr, id, size, border, flags, ML_forward(fn), ML_forward(args)...
+		);
+	}
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// PANELS
+namespace ml::ImGuiExt
+{
 	// PANEL
 	struct ML_NODISCARD Panel final
 	{
-		cstring title	{ "Panel" };
-		bool	open	{ false };
-		int32_t flags	{ ImGuiWindowFlags_None };
+		cstring Title	{ "Panel" };
+		bool	IsOpen	{ false };
+		int32_t Flags	{ ImGuiWindowFlags_None };
 
 		template <class Fn, class ... Args
 		> bool operator()(Fn && fn, Args && ... args) noexcept
 		{
 			ML_ImGui_ScopeID(this);
-			return open && ImGuiExt::DrawPanel
+			return IsOpen && ImGuiExt::DrawWindow
 			(
-				title, &open, flags, ML_forward(fn), ML_forward(args)...
+				Title, &IsOpen, Flags, ML_forward(fn), ML_forward(args)...
 			);
 		}
 	};
@@ -77,63 +123,64 @@ namespace ml::ImGuiExt
 	// PANEL MENU ITEM
 	static bool MenuItem(Panel & p, cstring shortcut = {}, bool enabled = true)
 	{
-		return ImGui::MenuItem(p.title, shortcut, &p.open, enabled);
+		return ImGui::MenuItem(p.Title, shortcut, &p.IsOpen, enabled);
 	}
 
 	// PANEL SELECTABLE
 	static bool Selectable(Panel & p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
 	{
-		return ImGui::Selectable(p.title, &p.open, flags, size);
+		return ImGui::Selectable(p.Title, &p.IsOpen, flags, size);
 	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// OUTPUT TEXT
+// OUTPUT LOG
 namespace ml::ImGuiExt
 {
-	struct ML_CORE_API ML_NODISCARD OutputText
+	struct ML_CORE_API ML_NODISCARD OutputLog final : trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		using LineBuffer = typename pmr::vector<pmr::string>;
+		using Line = typename pmr::string;
 
-		using LinePrinter = typename ds::method< void(pmr::string const &) >;
+		using LineBuffer = typename pmr::vector<Line>;
+
+		struct ML_CORE_API Printer final : ds::method< void(LineBuffer const &, size_t) >
+		{
+			using ds::method< void(LineBuffer const &, size_t) >::method;
+
+			static Printer Default;
+
+			Printer() noexcept : Printer{ Default } {}
+		};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		LineBuffer		Lines			; // line buffer
 		ImGuiTextFilter	Filter			; // line filter
-		LinePrinter		Printer			; // line printer
-		bool			ScrollToBottom	; // scroll to bottom
+		LineBuffer		Lines			; // line buffer
 		bool			AutoScroll		; // auto-scroll
+		bool			ScrollToBottom	; // scroll to bottom
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		OutputText(allocator_type alloc = {}) noexcept
-			: Lines			{ alloc }
-			, Filter		{}
-			, Printer		{ &DefaultPrinter }
-			, ScrollToBottom{}
-			, AutoScroll	{ true }
-		{
-		}
+		explicit OutputLog(allocator_type alloc) noexcept : OutputLog{ NULL, true, alloc } {}
 
-		void Draw() noexcept;
+		OutputLog(cstring default_filter = "", bool auto_scroll = true, allocator_type alloc = {}) noexcept;
 
-		static void DefaultPrinter(pmr::string const & line) noexcept;
+		void Draw(Printer const & print = {});
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		OutputText & Write(char const c) noexcept
+		auto & Write(char const value) noexcept
 		{
-			switch (c)
+			switch (value)
 			{
 			default: { // default
 				if (Lines.empty()) { Lines.push_back({}); }
-				Lines.back().push_back(c);
+				Lines.back().push_back(value);
 			} break;
 
 			case '\n': { // new line
@@ -143,51 +190,51 @@ namespace ml::ImGuiExt
 			return (*this);
 		}
 
-		OutputText & Print(cstring value = "\n") noexcept
+		auto & Print(cstring value = "\n") noexcept
 		{
-			for (size_t i = 0; i < std::strlen(value); ++i) {
+			for (size_t i = 0; i < std::strlen(value); ++i)
 				this->Write(value[i]);
-			}
 			return (*this);
 		}
 
-		OutputText & Print(pmr::string const & value = "\n") noexcept
+		auto & Print(Line const & value = "\n") noexcept
 		{
-			for (char c : value) {
+			for (char c : value)
 				this->Write(c);
-			}
 			return (*this);
 		}
 
 		template <class ... Args
-		> OutputText & Printf(cstring str, Args && ... args) noexcept
+		> auto & Printf(cstring str, Args && ... args) noexcept
 		{
-			ds::array<char, 512> buf{};
+			ds::array<char, 256> buf{};
 			std::sprintf(buf, str, ML_forward(args)...);
 			return this->Print(buf.data());
 		}
 
 		template <class ... Args
-		> OutputText & Printf(pmr::string const & str, Args && ... args) noexcept
+		> auto & Printf(Line const & str, Args && ... args) noexcept
 		{
 			return this->Printf(str.c_str(), ML_forward(args)...);
 		}
 
-		template <
-			class Ch = char,
-			class Tr = std::char_traits<Ch>,
-			class Al = pmr::polymorphic_allocator<Ch>
-		> OutputText & Dump(std::basic_stringstream<Ch, Tr, Al> & ss) noexcept
+		auto & Dump(pmr::stringstream & ss) noexcept
 		{
-			for (Ch const c : ss.str()) {
-				this->Write(static_cast<char>(c));
-			}
+			for (char c : ss.str())
+				this->Write(c);
 			ss.str({});
 			return (*this);
 		}
 
-		template <class T
-		> OutputText & operator<<(T && value) noexcept
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		auto & operator<<(char value) noexcept { return this->Write(value); }
+
+		auto & operator<<(cstring value) noexcept { return this->Print(value); }
+
+		auto & operator<<(Line const & value) noexcept { return this->Print(value); }
+
+		template <class T> auto & operator<<(T && value) noexcept
 		{
 			pmr::stringstream ss{};
 			ss << value;
@@ -203,24 +250,35 @@ namespace ml::ImGuiExt
 // COMMAND LINE
 namespace ml::ImGuiExt
 {
-	struct ML_CORE_API ML_NODISCARD CommandLine
+	struct ML_CORE_API ML_NODISCARD CommandLine final : trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		using InputTextCallback = ImGuiInputTextCallback;
-
-		using InputTextCallbackData = ImGuiInputTextCallbackData;
-
-		using Callback = ds::method<void(pmr::string &&)>;
-
-		using CommandInfo = pmr::vector<pmr::string>;
+		using InputBuffer		= typename ds::array<char, 256>;
+		using Line				= typename OutputLog::Line;
+		using Printer			= typename OutputLog::Printer;
+		using CommandName		= typename pmr::string;
+		using CommandProc			= typename ds::method< void(Line &&) >;
+		using CommandInfo		= typename pmr::vector<pmr::string>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		pmr::string User, Host, Path, Mode; // session
+
+		InputBuffer In; // input
+
+		OutputLog Out; // output
+
+		ds::batch_vector<CommandName, CommandInfo, CommandProc> Commands; // commands
+
+		pmr::vector<Line> History; // history
+
+		int32_t HistoryPos; // history pos
+
 		// colors
-		struct {
+		struct ML_NODISCARD {
 			color
 				Delim	{ colors::white },
 				User	{ colors::aqua },
@@ -229,54 +287,68 @@ namespace ml::ImGuiExt
 				Mode	{ colors::fuchsia };
 		} Colors;
 
-		// commands
-		ds::batch_vector<
-			pmr::string,	// name
-			CommandInfo,	// info
-			Callback		// callback
-		> Commands;
-
-		OutputText					Output		; // output
-		ds::array<char, 256>		Input		; // input
-		pmr::vector<pmr::string>	History		; // history
-		int32_t						HistoryPos	; // history index
-
-		pmr::string User, Host, Path, Mode; // prefix
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		CommandLine(allocator_type alloc = {}) noexcept;
 
-		void Draw() noexcept;
+		void Draw(Printer const & print = {}, bool prefix = true);
 
-		void Execute(pmr::string line) noexcept;
+		void DrawInput(cstring label, bool prefix = true);
+
+		int32_t Execute(Line && line);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool AddCommand(pmr::string const & name, CommandInfo const & info, Callback const & clbk) noexcept
+		template <class Name = CommandName
+		> bool AddCommand(Name && name, CommandInfo const & info, CommandProc const & clbk) noexcept
 		{
-			if (Commands.contains<pmr::string>(name)) { return false; }
-			else { Commands.push_back(name, info, clbk); return true; }
+			if (this->HasCommand(ML_forward(name))) { return false; }
+			else { Commands.push_back(ML_forward(name), info, clbk); return true; }
 		}
 
-		bool DelCommand(pmr::string const & name) noexcept
+		template <class Name = CommandName
+		> bool DelCommand(Name && name) noexcept
 		{
-			if (auto const i{ Commands.lookup<pmr::string>(name) }
-			; i == Commands.npos) { return false; }
-			else { Commands.erase(i); return true; }
+			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return false; }
+			else { Commands.erase(*i); return true; }
 		}
 
-		ML_NODISCARD Callback * GetCallback(pmr::string const & name) noexcept
+		template <class Name = CommandName
+		> ML_NODISCARD bool HasCommand(Name && name) const noexcept
 		{
-			if (auto const i{ Commands.lookup<pmr::string>(name) }
-			; i == Commands.npos) { return nullptr; }
-			else { return std::addressof(Commands.at<Callback>(i)); }
+			return Commands.contains<CommandName>(ML_forward(name));
+		}
+
+		template <class Name = CommandName
+		> ML_NODISCARD std::optional<size_t> GetIndex(Name && name) const noexcept
+		{
+			if (auto const i{ Commands.lookup<CommandName>(ML_forward(name)) }
+			; i == Commands.npos) { return std::nullopt; }
+			else { return i; }
+		}
+
+		template <class Name = CommandName
+		> ML_NODISCARD CommandProc * GetProc(Name && name) noexcept
+		{
+			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
+			else {
+				return std::addressof(Commands.at<CommandProc>(*i));
+			}
+		}
+
+		template <class Name = CommandName
+		> ML_NODISCARD CommandInfo * GetInfo(Name && name) noexcept
+		{
+			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
+			else {
+				return std::addressof(Commands.at<CommandInfo>(*i));
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		int32_t InputTextCallbackStub(ImGuiInputTextCallbackData * data) noexcept;
+		int32_t InputTextCallbackStub(ImGuiInputTextCallbackData * data);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

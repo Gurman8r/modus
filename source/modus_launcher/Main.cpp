@@ -1,11 +1,6 @@
 #include <modus_core/client/ClientRuntime.hpp>
-#include <modus_core/client/ClientEvents.hpp>
 #include <modus_core/client/ClientDatabase.hpp>
-#include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/window/WindowEvents.hpp>
-#include <modus_core/scene/Node.hpp>
-#include <modus_core/scene/SceneManager.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;

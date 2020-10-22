@@ -2,7 +2,6 @@
 #define _ML_SHARED_LIBRARY_HPP_
 
 #include <modus_core/detail/FlatMap.hpp>
-#include <modus_core/detail/Method.hpp>
 #include <modus_core/system/Memory.hpp>
 
 namespace ml
@@ -13,8 +12,9 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
-		using symbol_table		= typename ds::map<hash_t, void *>;
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		
+		using symbol_table = typename ds::map<hash_t, void *>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -82,18 +82,21 @@ namespace ml
 		bool close();
 
 		void * get_proc_address(cstring name);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
 		void * get_proc_address(pmr::string const & name) noexcept
 		{
 			return this->get_proc_address(name.c_str());
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		template <class Ret, class ... Args, class ID
 		> auto proc(ID && name) noexcept
 		{
-			return reinterpret_cast<Ret(*)(Args...)>(this->get_proc_address(ML_forward(name)));
+			return reinterpret_cast<Ret(*)(Args...)>
+			(
+				this->get_proc_address(ML_forward(name))
+			);
 		}
 
 		template <class Ret, class ... Args, class ID

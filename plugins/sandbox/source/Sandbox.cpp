@@ -8,7 +8,6 @@
 #include <modus_core/graphics/Mesh.hpp>
 #include <modus_core/graphics/Shader.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/client/ImGuiExt.hpp>
 #include <modus_core/scene/SceneManager.hpp>
 #include <modus_core/scene/Viewport.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -110,7 +109,7 @@ namespace ml
 
 		void on_client_idle(client_idle_event && ev)
 		{
-			m_console.Output.Dump(m_cout.sstr());
+			m_console.Out.Dump(m_cout.sstr());
 
 			for (auto & fb : m_fb) { fb->resize(m_resolution); }
 
@@ -132,7 +131,7 @@ namespace ml
 			{
 				ImGui::DockBuilderRemoveNode(root);
 				ImGui::DockBuilderAddNode(root, ev->get_dock_flags());
-				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].title, root);
+				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, root);
 				ImGui::DockBuilderFinish(root);
 			}
 		}
@@ -169,14 +168,14 @@ namespace ml
 		void on_client_imgui(client_imgui_event && ev)
 		{
 			// IMGUI
-			if (m_panels[imgui_about_panel].open) {
-				ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].open);
+			if (m_panels[imgui_about_panel].IsOpen) {
+				ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].IsOpen);
 			}
-			if (m_panels[imgui_demo_panel].open) {
-				ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].open);
+			if (m_panels[imgui_demo_panel].IsOpen) {
+				ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].IsOpen);
 			}
-			if (m_panels[imgui_metrics_panel].open) {
-				ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].open);
+			if (m_panels[imgui_metrics_panel].IsOpen) {
+				ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].IsOpen);
 			}
 			m_panels[imgui_style_panel](
 				&ImGui::ShowStyleEditor, &ImGui::GetStyle()
@@ -194,7 +193,7 @@ namespace ml
 		// CONSOLE
 		void draw_console_panel()
 		{
-			if (m_panels[console_panel].open) {
+			if (m_panels[console_panel].IsOpen) {
 				auto const winsize{ (vec2)get_window()->get_size() };
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
@@ -209,14 +208,14 @@ namespace ml
 				{
 					// filter
 					ImGui::TextDisabled("filter"); ImGui::SameLine();
-					m_console.Output.Filter.Draw("##filter", 256);
+					m_console.Out.Filter.Draw("##filter", 256);
 					ImGui::Separator();
 
 					// options
 					if (ImGui::BeginMenu("options"))
 					{
 						// auto scroll
-						ImGui::Checkbox("auto scroll", &m_console.Output.AutoScroll);
+						ImGui::Checkbox("auto scroll", &m_console.Out.AutoScroll);
 						ImGui::Separator();
 
 						// user
@@ -287,7 +286,7 @@ namespace ml
 					} ImGui::Separator();
 
 					// clear
-					if (ImGui::MenuItem("clear")) { m_console.Output.Lines.clear(); }
+					if (ImGui::MenuItem("clear")) { m_console.Out.Lines.clear(); }
 					ImGui::Separator();
 
 					ImGui::EndMenuBar();
@@ -305,7 +304,7 @@ namespace ml
 
 				// clear
 				m_console.AddCommand("clear", {}, [&](auto line) {
-					m_console.Output.Lines.clear();
+					m_console.Out.Lines.clear();
 				});
 
 				// exit
@@ -349,7 +348,7 @@ namespace ml
 		// DATABASE
 		void draw_database_panel()
 		{
-			if (m_panels[database_panel].open) {
+			if (m_panels[database_panel].IsOpen) {
 				auto const winsize{ (vec2)get_window()->get_size() };
 				ImGui::SetNextWindowSize({ 960, 329 }, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
@@ -384,7 +383,7 @@ namespace ml
 		void draw_settings_panel()
 		{
 			ImGuiStyle * styleref{};
-			if (m_panels[settings_panel].open) {
+			if (m_panels[settings_panel].IsOpen) {
 				auto const winsize{ (vec2)get_window()->get_size() };
 				ImGui::SetNextWindowSize({ 320, 512 }, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });

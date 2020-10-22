@@ -1,41 +1,49 @@
 #include <modus_core/client/ImGuiExt.hpp>
 
-// OUTPUT TEXT
+// OUTPUT LOG
 namespace ml::ImGuiExt
 {
-	void OutputText::Draw() noexcept
+	OutputLog::Printer OutputLog::Printer::Default{ [](auto const & lines, auto i) noexcept
+	{
+		color c{ colors::white };
+		if (!std::strncmp(lines[i].c_str(), "# ", 2)) {
+			c = { 1.0f, 0.8f, 0.6f, 1.0f };
+		}
+		else if (!std::strncmp(lines[i].c_str(), "[error] ", 8)) {
+			c = colors::red;
+		}
+
+		ImGui::PushStyleColor(ImGuiCol_Text, c);
+		ImGui::TextUnformatted(lines[i].c_str());
+		ImGui::PopStyleColor();
+	} };
+
+	OutputLog::OutputLog(cstring default_filter, bool auto_scroll, allocator_type alloc) noexcept
+		: Filter		{ default_filter }
+		, Lines			{ alloc }
+		, AutoScroll	{ auto_scroll }
+		, ScrollToBottom{}
+	{
+	}
+
+	void OutputLog::Draw(Printer const & print)
 	{
 		// draw lines
-		LinePrinter printer{ Printer ? Printer : &DefaultPrinter };
-		for (pmr::string const & line : Lines)
-		{
-			if (Filter.PassFilter(line.c_str()))
+		ImGui::BeginGroup(); {
+			for (size_t i = 0, imax = Lines.size(); i < imax; ++i)
 			{
-				printer(line);
+				if (Filter.PassFilter(Lines[i].c_str()))
+				{
+					print(Lines, i);
+				}
 			}
-		}
+		} ImGui::EndGroup();
 
 		// scroll to bottom
 		if (ScrollToBottom || (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())) {
 			ImGui::SetScrollHereY(1.0f);
-		} ScrollToBottom = false;
-	}
-
-	void OutputText::DefaultPrinter(pmr::string const & line) noexcept
-	{
-		// color
-		color c{};
-		bool has_color{};
-		if (std::strstr(line.c_str(), "[error]")) {
-			c = colors::red; has_color = true;
 		}
-		else if (!std::strncmp(line.c_str(), "# ", 2)) {
-			c = { 1.0f, 0.8f, 0.6f, 1.0f }; has_color = true;
-		}
-		// text
-		if (has_color) { ImGui::PushStyleColor(ImGuiCol_Text, c); }
-		ImGui::TextUnformatted(line.c_str());
-		if (has_color) { ImGui::PopStyleColor(); }
+		ScrollToBottom = false;
 	}
 }
 
@@ -43,119 +51,133 @@ namespace ml::ImGuiExt
 namespace ml::ImGuiExt
 {
 	CommandLine::CommandLine(allocator_type alloc) noexcept
-		: Colors	{}
-		, Commands	{ alloc }
-		, Output	{ alloc }
-		, Input		{}
-		, History	{ alloc }
-		, HistoryPos{ -1 }
-		, User		{ alloc }
+		: User		{ alloc }
 		, Host		{ alloc }
 		, Path		{ alloc }
 		, Mode		{ alloc }
+		, In		{}
+		, Out		{ alloc }
+		, Commands	{ alloc }
+		, History	{ alloc }
+		, HistoryPos{ -1 }
+		, Colors	{}
 	{
 	}
 
-	void CommandLine::Draw() noexcept
+	void CommandLine::Draw(Printer const & print, bool prefix)
 	{
-		// OUTPUT AREA
-		auto const input_height{
-			ImGui::GetStyle().ItemSpacing.y +
-			ImGui::GetFrameHeightWithSpacing()
-		};
-		ImGui::BeginChild("##output area", { 0, -input_height }, false, ImGuiWindowFlags_HorizontalScrollbar);
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4, 1 });
-		Output.Draw();
-		ImGui::PopStyleVar();
-		ImGui::EndChild();
-		ImGui::Separator();
+		// OUTPUT
+		ImGuiExt::DrawChild(
+			"##output area",
+			{ 0, -(ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing()) },
+			true,
+			ImGuiWindowFlags_HorizontalScrollbar,
+			&OutputLog::Draw, &Out, print);
+		
+		// INPUT
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+		ImGuiExt::DrawChild(
+			"##input area",
+			{},
+			false,
+			ImGuiWindowFlags_NoScrollbar,
+			&CommandLine::DrawInput, this, "##input text", prefix);
+		ImGui::PopStyleVar(1);
+	}
 
-		// INPUT AREA
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4, 4 });
-		ImGui::BeginChild("##input area", {}, false, ImGuiWindowFlags_MenuBar);
-		ImGui::BeginMenuBar();
-		{
-			// PREFIX user@host:path$ /mode
+	void CommandLine::DrawInput(cstring label, bool prefix)
+	{
+		ImGui::AlignTextToFramePadding();
+
+		// PREFIX user@host:path$ /mode
+		if (prefix) {
 			ImGui::BeginGroup();
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
 			ImGui::PushStyleColor(ImGuiCol_Text, Colors.Delim);
 			if (!User.empty()) {
 				ImGui::PushStyleColor(ImGuiCol_Text, Colors.User);
-				ImGui::Text("%.*s", User.size(), User.c_str());
+				ImGui::Text("%.*s", User.size(), User.data());
 				ImGui::PopStyleColor(); ImGui::SameLine();
 			}
 			ImGui::Text("@"); ImGui::SameLine();
 			if (!Host.empty()) {
 				ImGui::PushStyleColor(ImGuiCol_Text, Colors.Host);
-				ImGui::Text("%.*s", Host.size(), Host.c_str());
+				ImGui::Text("%.*s", Host.size(), Host.data());
 				ImGui::PopStyleColor(); ImGui::SameLine();
 			}
 			ImGui::Text(":"); ImGui::SameLine();
 			if (!Path.empty()) {
 				ImGui::PushStyleColor(ImGuiCol_Text, Colors.Path);
-				ImGui::Text("%.*s", Path.size(), Path.c_str());
+				ImGui::Text("%.*s", Path.size(), Path.data());
 				ImGui::PopStyleColor(); ImGui::SameLine();
 			}
 			ImGui::Text("$ "); ImGui::SameLine();
 			if (!Mode.empty()) {
 				ImGui::Text("/"); ImGui::SameLine();
 				ImGui::PushStyleColor(ImGuiCol_Text, Colors.Mode);
-				ImGui::Text("%.*s ", Mode.size(), Mode.c_str());
+				ImGui::Text("%.*s ", Mode.size(), Mode.data());
 				ImGui::PopStyleColor(); ImGui::SameLine();
 			}
-			ImGui::PopStyleColor(1);
-			ImGui::PopStyleVar(1);
+			ImGui::PopStyleColor();
+			ImGui::PopStyleVar();
 			ImGui::EndGroup();
-
-			// INPUT TEXT
-			bool reclaim_focus{};
-			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-			if (ImGui::InputText(
-				"##input text", Input.data(), Input.size(),
-				ImGuiInputTextFlags_EnterReturnsTrue |
-				ImGuiInputTextFlags_CallbackCompletion |
-				ImGuiInputTextFlags_CallbackHistory,
-				[](auto * u) { return ((CommandLine *)u->UserData)->InputTextCallbackStub(u); },
-				this
-			))
-			{
-				if (Input) { Execute(Input.data()); }
-				std::strcpy(Input.data(), "");
-				reclaim_focus = true;
-			}
-			ImGui::PopItemWidth();
-			ImGui::SetItemDefaultFocus(); // focus on window apparition
-			if (reclaim_focus) ImGui::SetKeyboardFocusHere(-1); // focus previous widget
+			ImGui::SameLine();
 		}
-		ImGui::EndMenuBar();
-		ImGui::EndChild();
-		ImGui::PopStyleVar(1);
+
+		// INPUT TEXT
+		bool reclaim_focus{};
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+		if (ImGui::InputText(
+			label, In.data(), In.max_size(),
+			ImGuiInputTextFlags_EnterReturnsTrue |
+			ImGuiInputTextFlags_CallbackCompletion |
+			ImGuiInputTextFlags_CallbackHistory,
+			[](auto * u) { return ((CommandLine *)u->UserData)->InputTextCallbackStub(u); },
+			this
+		))
+		{
+			if (In)
+			{
+				Out.Printf("# %s\n", In.data());
+				
+				Execute({ In.data() });
+				
+				Out.ScrollToBottom = true;
+			}
+			std::strcpy(In, "");
+			reclaim_focus = true;
+		}
+		ImGui::PopItemWidth();
+		ImGui::SetItemDefaultFocus(); // focus on window apparition
+		if (reclaim_focus) { ImGui::SetKeyboardFocusHere(-1); } // focus previous widget
 	}
 
-	void CommandLine::Execute(pmr::string line) noexcept
+	int32_t CommandLine::Execute(Line && line)
 	{
-		// empty, nothing to do
-		if (line.empty()) { return; }
+		// nothing to do
+		if (line.empty()) { return debug::error(); }
 
-		// append line
-		Output.Printf("# %s\n", line.c_str());
+		// add to history
 		HistoryPos = -1;
 		if (auto const it{ std::find(History.begin(), History.end(), line) }
 		; it != History.end()) { History.erase(it); }
 		History.push_back(line);
 
-		// process line
-		if (!std::invoke([&]() {
+		// validate text
+		if (!std::invoke([&]() noexcept
+		{
 			using namespace util;
 			return !trim(line).empty()
 				&& (line.front() == '/' || !Mode.empty())
-				&& !trim_front(line, [](char c) { return c == '/' || is_whitespace(c); }).empty()
-				;
-		})) {
-			return;
+				&& !trim_front(line, [
+				](char c) { return c == '/' || is_whitespace(c); }).empty();
+		}))
+		{
+			return debug::error("invalid command syntax");
 		}
+		
 		// process command
-		else if (pmr::string name; auto const clbk{ GetCallback(([&]() noexcept -> pmr::string &
+		if (CommandName name; auto const proc{ GetProc(std::invoke([&]() noexcept -> auto &
 		{
 			if (!Mode.empty()) {
 				name = Mode;
@@ -167,19 +189,18 @@ namespace ml::ImGuiExt
 				line.clear();
 			}
 			return name;
-		})()) })
+		})) })
 		{
-			std::invoke(ML_check(*clbk), std::move(line));
+			std::invoke(*proc, std::move(line));
+			return debug::ok();
 		}
 		else
 		{
-			Output.Printf("[error] unknown command: %s %s\n", name.c_str(), line.c_str());
+			return debug::error("unknown command: {0} {1}", name, line);
 		}
-
-		Output.ScrollToBottom = true;
 	}
 
-	int32_t CommandLine::InputTextCallbackStub(ImGuiInputTextCallbackData * data) noexcept
+	int32_t CommandLine::InputTextCallbackStub(ImGuiInputTextCallbackData * data)
 	{
 		switch (data->EventFlag)
 		{
@@ -200,7 +221,7 @@ namespace ml::ImGuiExt
 
 			// build list of candidates
 			pmr::vector<cstring> candidates{};
-			for (auto const & name : Commands.get<pmr::string>())
+			for (auto const & name : Commands.get<CommandName>())
 			{
 				if (!std::strncmp(name.c_str(), first, (size_t)(last - first)))
 				{
@@ -210,7 +231,7 @@ namespace ml::ImGuiExt
 			// no matches
 			if (candidates.empty())
 			{
-				Output.Printf("# %.*s\n", (size_t)(last - first), first);
+				Out.Printf("# %.*s\n", (size_t)(last - first), first);
 			}
 			// single match
 			else if (candidates.size() == 1)
@@ -247,10 +268,10 @@ namespace ml::ImGuiExt
 				}
 
 				// display suggestions
-				Output.Printf("suggestions:\n");
+				Out.Printf("suggestions:\n");
 				for (size_t i = 0; i < candidates.size(); ++i)
 				{
-					Output.Printf("- %s\n", candidates[i]);
+					Out.Printf("- %s\n", candidates[i]);
 				}
 			}
 		} break;

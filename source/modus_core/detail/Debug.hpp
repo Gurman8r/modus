@@ -5,9 +5,9 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// info message
+// ok message
 #ifndef ML_IMPL_DEBUG_INFO
-#define ML_IMPL_DEBUG_INFO		"[info]"
+#define ML_IMPL_DEBUG_INFO		"[ok]"
 #endif
 
 // error message
@@ -128,20 +128,20 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	constexpr int32_t info() noexcept { return 1; } // true
+	constexpr int32_t ok() noexcept { return 1; } // true
 
 	template <class Fmt
-	> int32_t info(Fmt && fmt) noexcept
+	> int32_t ok(Fmt && fmt) noexcept
 	{
 		io.out << ML_IMPL_DEBUG_INFO " " << ML_forward(fmt) << "\n";
 
-		return debug::info();
+		return debug::ok();
 	}
 
 	template <class Fmt, class Arg0, class ... Args
-	> int32_t info(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> int32_t ok(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
-		return debug::info(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
+		return debug::ok(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

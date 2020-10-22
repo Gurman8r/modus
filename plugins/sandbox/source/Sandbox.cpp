@@ -43,10 +43,10 @@ namespace ml
 			{ "Dear ImGui Metrics" },
 			{ "Style Editor" },
 			
-			{ "command line"	, 1, ImGuiWindowFlags_MenuBar },
-			{ "database"		, 0, ImGuiWindowFlags_None },
-			{ "settings"		, 0, ImGuiWindowFlags_MenuBar },
-			{ "viewport"		, 1, ImGuiWindowFlags_MenuBar },
+			{ "command line" , true, ImGuiWindowFlags_MenuBar },
+			{ "database" , false, ImGuiWindowFlags_None },
+			{ "settings" , false, ImGuiWindowFlags_MenuBar },
+			{ "viewport" , true, ImGuiWindowFlags_MenuBar },
 		};
 
 		// command line
@@ -212,10 +212,14 @@ namespace ml
 					m_console.Output.Filter.Draw("##filter", 256);
 					ImGui::Separator();
 
-					// session
-					if (ImGui::BeginMenu("session"))
+					// options
+					if (ImGui::BeginMenu("options"))
 					{
-						// username
+						// auto scroll
+						ImGui::Checkbox("auto scroll", &m_console.Output.AutoScroll);
+						ImGui::Separator();
+
+						// user
 						char username[32]{}; std::strcpy(username, m_console.User.c_str());
 						ImGui::TextDisabled("user"); ImGui::SameLine();
 						if (ImGui::InputText(
@@ -225,12 +229,13 @@ namespace ml
 							ImGuiInputTextFlags_EnterReturnsTrue
 						)) {
 							m_console.User = username;
-						} ImGui::SameLine();
-						ImGui::ColorEdit4("##user color", m_console.Colors.User,
+						}
+						ImGui::SameLine(); ImGui::ColorEdit4(
+							"##user color", m_console.Colors.User,
 							ImGuiColorEditFlags_NoInputs |
 							ImGuiColorEditFlags_NoLabel);
 
-						// hostname
+						// host
 						char hostname[32]{}; std::strcpy(hostname, m_console.Host.c_str());
 						ImGui::TextDisabled("host"); ImGui::SameLine();
 						if (ImGui::InputText(
@@ -240,12 +245,13 @@ namespace ml
 							ImGuiInputTextFlags_EnterReturnsTrue
 						)) {
 							m_console.Host = hostname;
-						} ImGui::SameLine();
-						ImGui::ColorEdit4("##host color", m_console.Colors.Host,
+						}
+						ImGui::SameLine(); ImGui::ColorEdit4(
+							"##host color", m_console.Colors.Host,
 							ImGuiColorEditFlags_NoInputs |
 							ImGuiColorEditFlags_NoLabel);
 
-						// pathname
+						// path
 						char pathname[32]{}; std::strcpy(pathname, m_console.Path.c_str());
 						ImGui::TextDisabled("path"); ImGui::SameLine();
 						if (ImGui::InputText(
@@ -255,12 +261,13 @@ namespace ml
 							ImGuiInputTextFlags_EnterReturnsTrue
 						)) {
 							m_console.Path = pathname;
-						} ImGui::SameLine();
-						ImGui::ColorEdit4("##path color", m_console.Colors.Path,
+						}
+						ImGui::SameLine(); ImGui::ColorEdit4(
+							"##path color", m_console.Colors.Path,
 							ImGuiColorEditFlags_NoInputs |
 							ImGuiColorEditFlags_NoLabel);
 
-						// modename
+						// mode
 						char modename[32]{}; std::strcpy(modename, m_console.Mode.c_str());
 						ImGui::TextDisabled("mode"); ImGui::SameLine();
 						if (ImGui::InputText(
@@ -270,8 +277,9 @@ namespace ml
 							ImGuiInputTextFlags_EnterReturnsTrue
 						)) {
 							m_console.Mode = modename;
-						} ImGui::SameLine();
-						ImGui::ColorEdit4("##mode color", m_console.Colors.Mode,
+						}
+						ImGui::SameLine(); ImGui::ColorEdit4(
+							"##mode color", m_console.Colors.Mode,
 							ImGuiColorEditFlags_NoInputs |
 							ImGuiColorEditFlags_NoLabel);
 
@@ -280,10 +288,6 @@ namespace ml
 
 					// clear
 					if (ImGui::MenuItem("clear")) { m_console.Output.Clear(); }
-					ImGui::Separator();
-
-					// auto scroll
-					ImGui::Checkbox("auto scroll", &m_console.Output.AutoScroll);
 					ImGui::Separator();
 
 					ImGui::EndMenuBar();

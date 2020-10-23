@@ -52,7 +52,7 @@ namespace ml
 
 		// rendering
 		vec2 m_resolution{ 1280, 720 };
-		color m_clear_color{ 0.4f, 0.f, 1.f, 1.f };
+		color m_clear_color{ 0.223f, 0.f, 0.46f, 1.f };
 		pmr::vector<shared<gfx::framebuffer>> m_fb{};
 
 		// database
@@ -312,11 +312,15 @@ namespace ml
 				}
 				
 				// draw
-				m_term.DrawOutput("##output", {}, { 0, -ImGui::GetFrameHeightWithSpacing() });
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4, 0 });
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
-				m_term.DrawInput("##input");
-				ImGui::PopStyleVar(2);
+				ImGuiExt::ChildWindow("##output", { 0, -ImGui::GetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_HorizontalScrollbar, [&]()
+				{
+					m_term.Output.Draw();
+				});
+				ImGuiExt::ChildWindow("##input", {}, false, ImGuiWindowFlags_NoScrollbar, [&]()
+				{
+					m_term.DrawPrefix(); ImGui::SameLine();
+					m_term.DrawInput();
+				});
 
 				// setup
 				if (!m_term.Commands.empty()) { return; }

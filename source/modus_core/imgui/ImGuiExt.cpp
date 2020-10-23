@@ -71,87 +71,77 @@ namespace ml::ImGuiExt
 	{
 	}
 
-	bool Terminal::DrawOutput(cstring str_id, Printer const & print, vec2 const & size, bool border, int32_t flags)
+	void Terminal::DrawPrefix()
 	{
-		ML_ImGui_ScopeID(this);
-		return ImGuiExt::ChildWindow(str_id, size, border, flags, [&]() noexcept
-		{
-			Output.Draw(print);
-		});
+		ImGui::BeginGroup(); ML_defer(&) { ImGui::EndGroup(); };
+		ImGui::AlignTextToFramePadding();
+
+		// PREFIX user@host:path$ /mode
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+		ImGui::PushStyleColor(ImGuiCol_Text, Colors.Delim);
+		if (!User.empty()) {
+			ImGui::PushStyleColor(ImGuiCol_Text, Colors.User);
+			ImGui::Text("%.*s", User.size(), User.data());
+			ImGui::PopStyleColor(); ImGui::SameLine();
+		}
+		ImGui::Text("@"); ImGui::SameLine();
+		if (!Host.empty()) {
+			ImGui::PushStyleColor(ImGuiCol_Text, Colors.Host);
+			ImGui::Text("%.*s", Host.size(), Host.data());
+			ImGui::PopStyleColor(); ImGui::SameLine();
+		}
+		ImGui::Text(":"); ImGui::SameLine();
+		if (!Path.empty()) {
+			ImGui::PushStyleColor(ImGuiCol_Text, Colors.Path);
+			ImGui::Text("%.*s", Path.size(), Path.data());
+			ImGui::PopStyleColor(); ImGui::SameLine();
+		}
+		ImGui::Text("$"); ImGui::SameLine();
+		if (!Mode.empty()) {
+			ImGui::Text(" /"); ImGui::SameLine();
+			ImGui::PushStyleColor(ImGuiCol_Text, Colors.Mode);
+			ImGui::Text("%.*s", Mode.size(), Mode.data());
+			ImGui::PopStyleColor(); ImGui::SameLine();
+		}
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
 	}
 
-	bool Terminal::DrawInput(cstring str_id, bool prefix, vec2 const & size, bool border, int32_t flags)
+	void Terminal::DrawInput()
 	{
-		ML_ImGui_ScopeID(this);
-		return ImGuiExt::ChildWindow(str_id, size, border, flags, [&]() noexcept
+		ImGui::BeginGroup(); ML_defer(&) { ImGui::EndGroup(); };
+		ImGui::AlignTextToFramePadding();
+
+		bool reclaim_focus{};
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+		if (ImGui::InputText(
+			"##inputtext", Input.data(), Input.max_size(),
+			ImGuiInputTextFlags_EnterReturnsTrue |
+			ImGuiInputTextFlags_CallbackCompletion |
+			ImGuiInputTextFlags_CallbackHistory,
+			[](auto * u) { return ((Terminal *)u->UserData)->InputTextCallbackStub(u); },
+			this
+		))
 		{
-			ImGui::AlignTextToFramePadding();
-
-			// PREFIX user@host:path$ /mode
-			if (prefix) {
-				ImGui::BeginGroup();
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
-				ImGui::PushStyleColor(ImGuiCol_Text, Colors.Delim);
-				if (!User.empty()) {
-					ImGui::PushStyleColor(ImGuiCol_Text, Colors.User);
-					ImGui::Text("%.*s", User.size(), User.data());
-					ImGui::PopStyleColor(); ImGui::SameLine();
-				}
-				ImGui::Text("@"); ImGui::SameLine();
-				if (!Host.empty()) {
-					ImGui::PushStyleColor(ImGuiCol_Text, Colors.Host);
-					ImGui::Text("%.*s", Host.size(), Host.data());
-					ImGui::PopStyleColor(); ImGui::SameLine();
-				}
-				ImGui::Text(":"); ImGui::SameLine();
-				if (!Path.empty()) {
-					ImGui::PushStyleColor(ImGuiCol_Text, Colors.Path);
-					ImGui::Text("%.*s", Path.size(), Path.data());
-					ImGui::PopStyleColor(); ImGui::SameLine();
-				}
-				ImGui::Text("$ "); ImGui::SameLine();
-				if (!Mode.empty()) {
-					ImGui::Text("/"); ImGui::SameLine();
-					ImGui::PushStyleColor(ImGuiCol_Text, Colors.Mode);
-					ImGui::Text("%.*s ", Mode.size(), Mode.data());
-					ImGui::PopStyleColor(); ImGui::SameLine();
-				}
-				ImGui::PopStyleColor();
-				ImGui::PopStyleVar();
-				ImGui::EndGroup();
-				ImGui::SameLine();
+			if (Input) {
+				Execute(Input.data());
+				Output.ScrollToBottom = true;
 			}
-
-			// INPUT TEXT
-			bool reclaim_focus{};
-			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-			if (ImGui::InputText(
-				"##inputtext", Input.data(), Input.max_size(),
-				ImGuiInputTextFlags_EnterReturnsTrue |
-				ImGuiInputTextFlags_CallbackCompletion |
-				ImGuiInputTextFlags_CallbackHistory,
-				[](auto * u) { return ((Terminal *)u->UserData)->InputTextCallbackStub(u); },
-				this
-			))
-			{
-				if (Input) {
-					Execute(Input.data());
-					Output.ScrollToBottom = true;
-				}
-				std::strcpy(Input, "");
-				reclaim_focus = true;
-			}
-			ImGui::PopItemWidth();
-			ImGui::SetItemDefaultFocus(); // focus on window apparition
-			if (reclaim_focus) { ImGui::SetKeyboardFocusHere(-1); } // focus previous widget
-		});
+			std::strcpy(Input, "");
+			reclaim_focus = true;
+		}
+		ImGui::PopItemWidth();
+		ImGui::SetItemDefaultFocus(); // focus on window apparition
+		if (reclaim_focus) { ImGui::SetKeyboardFocusHere(-1); } // focus previous widget
 	}
 
 	int32_t Terminal::Execute(Line && line)
 	{
+		// empty check
+		if (util::trim(line).empty()) { return debug::error(); }
+		
 		// append line
 		Output.Printf("# %s\n", line.c_str());
-		if (util::trim(line).empty()) { return debug::error(); }
 		HistoryPos = -1;
 		if (auto const it{ std::find(History.begin(), History.end(), line) }
 		; it != History.end()) {

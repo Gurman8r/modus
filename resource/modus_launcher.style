@@ -2,6 +2,7 @@
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
 ImGuiStyle ChildRounding				0.0
+ImGuiStyle FramePadding					4.0 4.0
 ImGuiStyle FrameRounding				0.0
 ImGuiStyle FrameBorderSize				1.0
 ImGuiStyle GrabRounding					0.0

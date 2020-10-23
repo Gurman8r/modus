@@ -303,9 +303,9 @@ namespace ml::ImGuiExt
 
 		Terminal(allocator_type alloc = {}) noexcept;
 
-		bool DrawOutput(cstring str_id, Printer const & print = {}, vec2 const & size = {}, bool border = false, int32_t flags = ImGuiWindowFlags_HorizontalScrollbar);
-
-		bool DrawInput(cstring str_id, bool prefix = true, vec2 const & size = {}, bool border = false, int32_t flags = ImGuiWindowFlags_NoScrollbar);
+		void DrawPrefix();
+		
+		void DrawInput();
 
 		int32_t Execute(Line && line);
 

@@ -14,18 +14,16 @@ namespace ml
 
 		using category_type = typename ds::hashmap<pmr::string, shared<std::any>>;
 
-		using storage_type = typename ds::hashmap<typeof<>, category_type>;
-
-		client_database(allocator_type alloc = {}) noexcept : m_vars{ alloc }
-		{
-		}
+		using categories_type = typename ds::hashmap<typeof<>, category_type>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		client_database(allocator_type alloc = {}) noexcept : m_categories{ alloc } {}
+
 		// get all categories
-		ML_NODISCARD storage_type & all() noexcept
+		ML_NODISCARD categories_type & all() noexcept
 		{
-			return m_vars;
+			return m_categories;
 		}
 
 		// get category
@@ -76,22 +74,22 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto begin() noexcept -> storage_type::iterator { return m_vars.begin(); }
+		ML_NODISCARD auto begin() noexcept -> categories_type::iterator { return m_categories.begin(); }
 		
-		ML_NODISCARD auto begin() const noexcept -> storage_type::const_iterator { return m_vars.begin(); }
+		ML_NODISCARD auto begin() const noexcept -> categories_type::const_iterator { return m_categories.begin(); }
 		
-		ML_NODISCARD auto cbegin() const noexcept -> storage_type::const_iterator { return m_vars.cbegin(); }
+		ML_NODISCARD auto cbegin() const noexcept -> categories_type::const_iterator { return m_categories.cbegin(); }
 		
-		ML_NODISCARD auto end() noexcept -> storage_type::iterator { return m_vars.end(); }
+		ML_NODISCARD auto end() noexcept -> categories_type::iterator { return m_categories.end(); }
 		
-		ML_NODISCARD auto end() const noexcept -> storage_type::const_iterator { return m_vars.end(); }
+		ML_NODISCARD auto end() const noexcept -> categories_type::const_iterator { return m_categories.end(); }
 		
-		ML_NODISCARD auto cend() const noexcept -> storage_type::const_iterator { return m_vars.cend(); }
+		ML_NODISCARD auto cend() const noexcept -> categories_type::const_iterator { return m_categories.cend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		storage_type m_vars;
+		categories_type m_categories;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

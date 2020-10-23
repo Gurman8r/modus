@@ -1,5 +1,5 @@
-#ifndef _ML_SCENE_TREE_HPP_
-#define _ML_SCENE_TREE_HPP_
+#ifndef _ML_SCENE_HPP_
+#define _ML_SCENE_HPP_
 
 #include <modus_core/Export.hpp>
 #include <modus_core/system/Memory.hpp>
@@ -10,7 +10,7 @@ namespace ml
 {
 	struct entity;
 
-	struct ML_CORE_API scene_tree : trackable, non_copyable
+	struct ML_CORE_API scene : trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -20,9 +20,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		scene_tree(allocator_type alloc = {}) noexcept;
+		scene(allocator_type alloc = {}) noexcept;
 
-		~scene_tree() noexcept override;
+		~scene() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -52,4 +52,4 @@ namespace ml
 	};
 }
 
-#endif // !_ML_SCENE_TREE_HPP_
+#endif // !_ML_SCENE_HPP_

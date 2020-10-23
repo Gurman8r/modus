@@ -4,7 +4,6 @@
 // WIP
 
 #include <modus_core/detail/Matrix.hpp>
-#include <modus_core/system/Memory.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

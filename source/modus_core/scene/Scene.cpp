@@ -1,4 +1,4 @@
-#include <modus_core/scene/SceneTree.hpp>
+#include <modus_core/scene/Scene.hpp>
 #include <modus_core/scene/Entity.hpp>
 #include <modus_core/scene/Components.hpp>
 
@@ -6,19 +6,19 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	scene_tree::scene_tree(allocator_type alloc) noexcept
+	scene::scene(allocator_type alloc) noexcept
 		: m_entities{ alloc }
 		, m_registry{}
 	{
 	}
 
-	scene_tree::~scene_tree() noexcept
+	scene::~scene() noexcept
 	{
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	shared<entity> & scene_tree::create_entity(pmr::string const & name, allocator_type alloc) noexcept
+	shared<entity> & scene::create_entity(pmr::string const & name, allocator_type alloc) noexcept
 	{
 		auto & temp{ m_entities.emplace_back(
 			std::allocate_shared<entity>(alloc, this, m_registry.create())
@@ -28,7 +28,7 @@ namespace ml
 		return temp;
 	}
 
-	void scene_tree::destroy_entity(shared<entity> const & value) noexcept
+	void scene::destroy_entity(shared<entity> const & value) noexcept
 	{
 		if (auto const it{ std::find(m_entities.begin(), m_entities.end(), value) }
 		; it != m_entities.end())
@@ -41,7 +41,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool scene_tree::load_from_file(fs::path const & path)
+	bool scene::load_from_file(fs::path const & path)
 	{
 		std::ifstream f{ path }; ML_defer(&f) { f.close(); };
 		if (f)
@@ -54,7 +54,7 @@ namespace ml
 		}
 	}
 
-	bool scene_tree::load_from_memory(json const & j)
+	bool scene::load_from_memory(json const & j)
 	{
 		return false;
 	}

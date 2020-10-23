@@ -72,20 +72,49 @@ namespace ml
 
 	// client object
 	template <class Derived
-	> struct client_object : trackable, non_copyable, event_listener
+	> struct client_object : trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		explicit client_object(client_context * ctx) noexcept
+			: m_ctx{ ctx }
+		{
+		}
+
+		virtual ~client_object() noexcept override = default;
+
+		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_ctx->bus; }
+
+		ML_NODISCARD auto get_context() const noexcept -> client_context * { return m_ctx; }
+
+		ML_NODISCARD auto get_db() const noexcept -> client_database * { return m_ctx->db; }
+
+		ML_NODISCARD auto get_io() const noexcept -> client_io * { return m_ctx->io; }
+
+		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_ctx->mem; }
+
+		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_ctx->win; }
+
+	private:
+		client_context * const m_ctx;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+
+	// client listener
+	template <class Derived
+	> struct client_listener : trackable, non_copyable, event_listener
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		explicit client_listener(client_context * ctx) noexcept
 			: event_listener{ ML_check(ctx)->bus }
 			, m_ctx			{ ctx }
 		{
 			ML_assert("BUS MISMATCH" && get_bus() == m_ctx->bus);
 		}
 
-		virtual ~client_object() noexcept override = default;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		virtual ~client_listener() noexcept override = default;
 
 		using event_listener::get_bus;
 		
@@ -101,8 +130,6 @@ namespace ml
 
 	protected:
 		virtual void on_event(event &&) override = 0;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		client_context * const m_ctx;

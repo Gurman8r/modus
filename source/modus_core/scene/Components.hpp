@@ -1,6 +1,7 @@
 #ifndef _COMPONENTS_HPP_
 #define _COMPONENTS_HPP_
 
+#include <modus_core/graphics/Camera.hpp>
 #include <modus_core/scene/Entity.hpp>
 
 namespace ml

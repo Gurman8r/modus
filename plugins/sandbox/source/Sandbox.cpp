@@ -8,8 +8,8 @@
 #include <modus_core/graphics/Mesh.hpp>
 #include <modus_core/graphics/Shader.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/scene/SceneManager.hpp>
-#include <modus_core/scene/Viewport.hpp>
+#include <modus_core/graphics/Viewport.hpp>
+#include <modus_core/scene/Scene.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -28,9 +28,8 @@ namespace ml
 			imgui_metrics_panel,
 			imgui_style_panel,
 
-			console_panel,
 			database_panel,
-			settings_panel,
+			terminal_panel,
 			viewport_panel,
 
 			MAX_PANEL
@@ -42,15 +41,14 @@ namespace ml
 			{ "Dear ImGui Metrics" },
 			{ "Style Editor" },
 			
-			{ "command line" , true, ImGuiWindowFlags_MenuBar },
-			{ "database" , false, ImGuiWindowFlags_None },
-			{ "settings" , false, ImGuiWindowFlags_None },
-			{ "viewport" , true, ImGuiWindowFlags_MenuBar },
+			{ "database", 0, ImGuiWindowFlags_None },
+			{ "terminal", 1, ImGuiWindowFlags_MenuBar },
+			{ "viewport", 1, ImGuiWindowFlags_MenuBar },
 		};
 
 		// command line
 		basic_stream_sniper<>	m_cout{ &std::cout };
-		ImGuiExt::CommandLine	m_console{};
+		ImGuiExt::Terminal		m_term{};
 
 		// rendering
 		vec2 m_resolution{ 1280, 720 };
@@ -95,9 +93,9 @@ namespace ml
 
 		void on_client_enter(client_enter_event && ev)
 		{
-			if (bitmap & i = m_images["icon"] = { get_io()->path2("resource/icon.png") })
+			if (bitmap & img = m_images["icon"] = { get_io()->path2("resource/icon.png") })
 			{
-				get_window()->set_icons(i.width(), i.height(), 1, i.data());
+				get_window()->set_icons(img.width(), img.height(), 1, img.data());
 			}
 
 			m_fb.push_back(gfx::framebuffer::create({ m_resolution }));
@@ -109,7 +107,7 @@ namespace ml
 
 		void on_client_idle(client_idle_event && ev)
 		{
-			m_console.Out.Dump(m_cout.sstr());
+			m_term.Output.Dump(m_cout.sstr());
 
 			for (auto & fb : m_fb) { fb->resize(m_resolution); }
 
@@ -123,6 +121,8 @@ namespace ml
 				}),
 				gfx::command::bind_framebuffer(nullptr));
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void on_client_dock(client_dock_event && ev)
 		{
@@ -148,9 +148,8 @@ namespace ml
 
 			// TOOLS
 			if (ImGui::BeginMenu("tools")) {
-				ImGuiExt::MenuItem(m_panels[console_panel]);
 				ImGuiExt::MenuItem(m_panels[database_panel]);
-				ImGuiExt::MenuItem(m_panels[settings_panel]);
+				ImGuiExt::MenuItem(m_panels[terminal_panel]);
 				ImGuiExt::MenuItem(m_panels[viewport_panel]);
 				ImGui::EndMenu();
 			}
@@ -182,168 +181,12 @@ namespace ml
 			);
 
 			// SANDBOX
-			draw_console_panel	(); // CONSOLE
+			draw_terminal_panel	(); // CONSOLE
 			draw_database_panel	(); // DATABASE
-			draw_settings_panel	(); // SETTINGS
 			draw_viewport_panel	(); // VIEWPORT
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		// CONSOLE
-		void draw_console_panel()
-		{
-			if (m_panels[console_panel].IsOpen) {
-				auto const winsize{ (vec2)get_window()->get_size() };
-				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
-				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
-			}
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4, 4 });
-			if (!m_panels[console_panel]([&]() noexcept
-			{
-				ImGui::PopStyleVar(1);
-
-				// menubar
-				if (ImGui::BeginMenuBar())
-				{
-					// filter
-					ImGui::TextDisabled("filter"); ImGui::SameLine();
-					m_console.Out.Filter.Draw("##filter", 256);
-					ImGui::Separator();
-
-					// options
-					if (ImGui::BeginMenu("options"))
-					{
-						// auto scroll
-						ImGui::Checkbox("auto scroll", &m_console.Out.AutoScroll);
-						ImGui::Separator();
-
-						// user
-						char username[32]{}; std::strcpy(username, m_console.User.c_str());
-						ImGui::TextDisabled("user"); ImGui::SameLine();
-						if (ImGui::InputText(
-							"##user name",
-							username,
-							ML_arraysize(username),
-							ImGuiInputTextFlags_EnterReturnsTrue
-						)) {
-							m_console.User = username;
-						}
-						ImGui::SameLine(); ImGui::ColorEdit4(
-							"##user color", m_console.Colors.User,
-							ImGuiColorEditFlags_NoInputs |
-							ImGuiColorEditFlags_NoLabel);
-
-						// host
-						char hostname[32]{}; std::strcpy(hostname, m_console.Host.c_str());
-						ImGui::TextDisabled("host"); ImGui::SameLine();
-						if (ImGui::InputText(
-							"##host name",
-							hostname,
-							ML_arraysize(hostname),
-							ImGuiInputTextFlags_EnterReturnsTrue
-						)) {
-							m_console.Host = hostname;
-						}
-						ImGui::SameLine(); ImGui::ColorEdit4(
-							"##host color", m_console.Colors.Host,
-							ImGuiColorEditFlags_NoInputs |
-							ImGuiColorEditFlags_NoLabel);
-
-						// path
-						char pathname[32]{}; std::strcpy(pathname, m_console.Path.c_str());
-						ImGui::TextDisabled("path"); ImGui::SameLine();
-						if (ImGui::InputText(
-							"##path name",
-							pathname,
-							ML_arraysize(pathname),
-							ImGuiInputTextFlags_EnterReturnsTrue
-						)) {
-							m_console.Path = pathname;
-						}
-						ImGui::SameLine(); ImGui::ColorEdit4(
-							"##path color", m_console.Colors.Path,
-							ImGuiColorEditFlags_NoInputs |
-							ImGuiColorEditFlags_NoLabel);
-
-						// mode
-						char modename[32]{}; std::strcpy(modename, m_console.Mode.c_str());
-						ImGui::TextDisabled("mode"); ImGui::SameLine();
-						if (ImGui::InputText(
-							"##mode name",
-							modename,
-							ML_arraysize(modename),
-							ImGuiInputTextFlags_EnterReturnsTrue
-						)) {
-							m_console.Mode = modename;
-						}
-						ImGui::SameLine(); ImGui::ColorEdit4(
-							"##mode color", m_console.Colors.Mode,
-							ImGuiColorEditFlags_NoInputs |
-							ImGuiColorEditFlags_NoLabel);
-
-						ImGui::EndMenu();
-					} ImGui::Separator();
-
-					// clear
-					if (ImGui::MenuItem("clear")) { m_console.Out.Lines.clear(); }
-					ImGui::Separator();
-
-					ImGui::EndMenuBar();
-				}
-				
-				// draw
-				m_console.Draw();
-
-				// setup
-				if (!m_console.Commands.empty()) { return; }
-				m_console.User = "root";
-				m_console.Host = "localhost";
-				m_console.Path = "~";
-				m_console.Mode = "";
-
-				// clear
-				m_console.AddCommand("clear", {}, [&](auto line) {
-					m_console.Out.Lines.clear();
-				});
-
-				// exit
-				m_console.AddCommand("exit", {}, [&](auto line) {
-					get_window()->set_should_close(true);
-				});
-
-				// help
-				m_console.AddCommand("help", {}, [&](auto line) {
-					for (auto const & name : m_console.Commands.get<pmr::string>()) {
-						debug::puts(name);
-					}
-				});
-
-				// history
-				m_console.AddCommand("history", {}, [&](auto line) {
-					for (auto const & str : m_console.History) {
-						debug::puts(str);
-					}
-				});
-
-				// python
-				m_console.AddCommand("python", {}, [&](auto line) {
-					// lock
-					if (m_console.Mode.empty() && line.empty()) {
-						m_console.Mode = "python"; return;
-					}
-					// unlock
-					else if (m_console.Mode == line && line == "python") {
-						m_console.Mode.clear(); return;
-					}
-					// evaluate
-					PyRun_SimpleString(line.c_str());
-				});
-			}))
-			{
-				ImGui::PopStyleVar(1);
-			}
-		}
 
 		// DATABASE
 		void draw_database_panel()
@@ -353,10 +196,29 @@ namespace ml
 				ImGui::SetNextWindowSize({ 960, 329 }, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
-			m_panels[database_panel]([&]() noexcept
+			m_panels[database_panel]([&, &db = *get_db()]() noexcept
 			{
 				ML_defer() { ImGui::EndTabBar(); };
 				if (!ImGui::BeginTabBar("tabs")) { return; }
+
+				// database
+				if (ImGui::BeginTabItem("database")) {
+					ImGui::Columns(2);
+					ImGui::Text("type"); ImGui::NextColumn();
+					ImGui::Text("name"); ImGui::NextColumn();
+					ImGui::Separator();
+					for (auto & [type, category] : db.all())
+					{
+						for (auto & [name, elem] : category)
+						{
+							ImGui::Text("%u", type.hash()); ImGui::NextColumn();
+							ImGui::Text("%s", name.c_str()); ImGui::NextColumn();
+						}
+					}
+					ImGui::Columns(1);
+					ImGui::Separator();
+					ImGui::EndTabItem();
+				}
 
 				// plugins
 				if (ImGui::BeginTabItem("plugins")) {
@@ -379,63 +241,136 @@ namespace ml
 			});
 		}
 
-		// SETTINGS
-		void draw_settings_panel()
+		// TERMINAL
+		void draw_terminal_panel()
 		{
-			ImGuiStyle * styleref{};
-			if (m_panels[settings_panel].IsOpen) {
+			if (m_panels[terminal_panel].IsOpen) {
 				auto const winsize{ (vec2)get_window()->get_size() };
-				ImGui::SetNextWindowSize({ 320, 512 }, ImGuiCond_Once);
+				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
-			m_panels[settings_panel]([&]() noexcept
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4, 4 });
+			if (!m_panels[terminal_panel]([&]() noexcept
 			{
-				ImGuiStyle & style = ImGui::GetStyle();
-				static ImGuiStyle ref_saved_style;
+				ImGui::PopStyleVar(1);
 
-				static bool init = true;
-				if (init && styleref == NULL)
-					ref_saved_style = style;
-				init = false;
-				if (styleref == NULL)
-					styleref = &ref_saved_style;
-
-				ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
-
-				if (ImGui::ShowStyleSelector("Colors##Selector"))
-					ref_saved_style = style;
-				ImGui::ShowFontSelector("Fonts##Selector");
-
-				if (ImGui::SliderFloat("FrameRounding", &style.FrameRounding, 0.0f, 12.0f, "%.0f"))
-					style.GrabRounding = style.FrameRounding; // Make GrabRounding always the same value as FrameRounding
-				{ bool border = (style.WindowBorderSize > 0.0f); if (ImGui::Checkbox("WindowBorder", &border)) { style.WindowBorderSize = border ? 1.0f : 0.0f; } }
-				ImGui::SameLine();
-				{ bool border = (style.FrameBorderSize > 0.0f);  if (ImGui::Checkbox("FrameBorder", &border)) { style.FrameBorderSize = border ? 1.0f : 0.0f; } }
-				ImGui::SameLine();
-				{ bool border = (style.PopupBorderSize > 0.0f);  if (ImGui::Checkbox("PopupBorder", &border)) { style.PopupBorderSize = border ? 1.0f : 0.0f; } }
-
-				// Save/Revert button
-				if (ImGui::Button("Save Ref"))
-					*styleref = ref_saved_style = style;
-				ImGui::SameLine();
-				if (ImGui::Button("Revert Ref"))
-					style = *styleref;
-
-				ImGui::Separator();
-
-				if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
+				// menubar
+				if (ImGui::BeginMenuBar())
 				{
-					if (ImGui::BeginTabItem("General"))
+					// filter
+					ImGui::TextDisabled("filter"); ImGui::SameLine();
+					m_term.Output.Filter.Draw("##filter", 256);
+					ImGui::Separator();
+
+					// options
+					if (ImGui::BeginMenu("options"))
 					{
-						ImGui::Text("Main");
-						ImGui::EndTabItem();
-					}
+						// auto scroll
+						ImGui::Checkbox("auto scroll", &m_term.Output.AutoScroll);
+						ImGui::Separator();
 
-					ImGui::EndTabBar();
+						// USER
+						char username[32]{}; std::strcpy(username, m_term.User.c_str());
+						ImGui::TextDisabled("user"); ImGui::SameLine();
+						if (ImGui::InputText("##username", username, ML_arraysize(username), ImGuiInputTextFlags_EnterReturnsTrue)) {
+							m_term.User = username;
+						} ImGui::SameLine();
+						ImGui::ColorEdit4("##usercolor", m_term.Colors.User, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+
+						// HOST
+						char hostname[32]{}; std::strcpy(hostname, m_term.Host.c_str());
+						ImGui::TextDisabled("host"); ImGui::SameLine();
+						if (ImGui::InputText("##hostname", hostname, ML_arraysize(hostname), ImGuiInputTextFlags_EnterReturnsTrue)) {
+							m_term.Host = hostname;
+						} ImGui::SameLine();
+						ImGui::ColorEdit4("##hostcolor", m_term.Colors.Host, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+
+						// PATH
+						char pathname[32]{}; std::strcpy(pathname, m_term.Path.c_str());
+						ImGui::TextDisabled("path"); ImGui::SameLine();
+						if (ImGui::InputText("##pathname", pathname, ML_arraysize(pathname), ImGuiInputTextFlags_EnterReturnsTrue)) {
+							m_term.Path = pathname;
+						} ImGui::SameLine();
+						ImGui::ColorEdit4("##pathcolor", m_term.Colors.Path, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+
+						// MODE
+						char modename[32]{}; std::strcpy(modename, m_term.Mode.c_str());
+						ImGui::TextDisabled("mode"); ImGui::SameLine();
+						if (ImGui::InputText("##modename", modename, ML_arraysize(modename), ImGuiInputTextFlags_EnterReturnsTrue)) {
+							m_term.Mode = modename;
+						} ImGui::SameLine();
+						ImGui::ColorEdit4("##modecolor", m_term.Colors.Mode, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+
+						ImGui::EndMenu();
+					} ImGui::Separator();
+
+					// clear
+					if (ImGui::MenuItem("clear")) { m_term.Output.Lines.clear(); }
+					ImGui::Separator();
+
+					ImGui::EndMenuBar();
 				}
+				
+				// draw
+				m_term.DrawOutput("##output", {}, { 0, -ImGui::GetFrameHeightWithSpacing() });
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4, 0 });
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+				m_term.DrawInput("##input");
+				ImGui::PopStyleVar(2);
 
-				ImGui::PopItemWidth();
-			});
+				// setup
+				if (!m_term.Commands.empty()) { return; }
+				m_term.User = "root";
+				m_term.Host = "localhost";
+				m_term.Path = "~";
+				m_term.Mode = "";
+
+				// clear
+				m_term.AddCommand("clear", {}, [&](auto line) {
+					m_term.Output.Lines.clear();
+				});
+
+				// echo
+				m_term.AddCommand("echo", {}, [&](auto line) {
+					debug::puts(line);
+				});
+
+				// exit
+				m_term.AddCommand("exit", {}, [&](auto line) {
+					get_window()->set_should_close(true);
+				});
+
+				// help
+				m_term.AddCommand("help", {}, [&](auto line) {
+					for (auto const & name : m_term.Commands.get<pmr::string>()) {
+						debug::puts("- {0}", name);
+					}
+				});
+
+				// history
+				m_term.AddCommand("history", {}, [&](auto line) {
+					for (auto const & str : m_term.History) {
+						debug::puts(str);
+					}
+				});
+
+				// python
+				m_term.AddCommand("python", {}, [&](auto line) {
+					// lock
+					if (m_term.Mode.empty() && line.empty()) {
+						m_term.Mode = "python"; return;
+					}
+					// unlock
+					else if (m_term.Mode == line && line == "python") {
+						m_term.Mode.clear(); return;
+					}
+					// evaluate
+					PyRun_SimpleString(line.c_str());
+				});
+			}))
+			{
+				ImGui::PopStyleVar(1);
+			}
 		}
 
 		// VIEWPORT

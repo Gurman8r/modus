@@ -10,7 +10,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	client_runtime::client_runtime(client_context * ctx)
-		: client_object		{ ctx }
+		: client_listener		{ ctx }
 		, m_idling			{}
 		, m_loopcond		{ std::bind(&render_window::is_open, ctx->win) }
 		, m_imgui			{}
@@ -207,7 +207,7 @@ namespace ml
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_dock_border);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_dock_padding);
 			ImGui::SetNextWindowBgAlpha(m_dock_alpha);
-			if (!ImGuiExt::DrawWindow(m_dock_title.c_str(), &m_dock_enabled,
+			if (!ImGuiExt::Window(m_dock_title.c_str(), &m_dock_enabled,
 				ImGuiWindowFlags_NoTitleBar |
 				ImGuiWindowFlags_NoCollapse |
 				ImGuiWindowFlags_NoResize |

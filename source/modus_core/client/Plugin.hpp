@@ -13,7 +13,7 @@ namespace ml
 
 	ML_decl_handle(plugin_id);
 
-	struct ML_CORE_API plugin : client_object<plugin>
+	struct ML_CORE_API plugin : client_listener<plugin>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

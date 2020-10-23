@@ -1,7 +1,7 @@
 #ifndef _ML_CLIENT_RUNTIME_HPP_
 #define _ML_CLIENT_RUNTIME_HPP_
 
-#include <modus_core/client/ImGuiExt.hpp>
+#include <modus_core/imgui/ImGuiExt.hpp>
 #include <modus_core/client/PluginManager.hpp>
 
 namespace ml
@@ -10,7 +10,7 @@ namespace ml
 	ML_alias loop_condition_fn = typename ds::method<int32_t()>;
 
 	// client runtime
-	struct ML_CORE_API client_runtime final : client_object<client_runtime>
+	struct ML_CORE_API client_runtime final : client_listener<client_runtime>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

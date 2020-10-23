@@ -3,7 +3,7 @@
 
 // WIP
 
-#include <modus_core/scene/SceneTree.hpp>
+#include <modus_core/scene/Scene.hpp>
 
 namespace ml
 {

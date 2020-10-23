@@ -2,7 +2,7 @@
 #define _ML_IMGUI_EXT_HPP_
 
 #include <modus_core/detail/Method.hpp>
-#include <modus_core/client/ImGui.hpp>
+#include <modus_core/imgui/ImGui.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -43,7 +43,7 @@ namespace ml::ImGuiExt
 // WINDOWS
 namespace ml::ImGuiExt
 {
-	// BEGIN / END
+	// BEGIN/END
 	template <class BeginFn, class EndFn, class Fn, class ... Args
 	> bool BeginEnd(BeginFn && begin_fn, EndFn && end_fn, Fn && fn, Args && ... args)
 	{
@@ -56,19 +56,19 @@ namespace ml::ImGuiExt
 		return is_open;
 	}
 
-	// DRAW WINDOW
+	// WINDOW
 	template <class Fn, class ... Args
-	> bool DrawWindow(cstring title, bool * p_open, int32_t flags, Fn && fn, Args && ... args) noexcept
+	> bool Window(cstring title, bool * open, int32_t flags, Fn && fn, Args && ... args) noexcept
 	{
 		return ImGuiExt::BeginEnd(
-			std::bind(&ImGui::Begin, title, p_open, flags),
+			std::bind(&ImGui::Begin, title, open, flags),
 			&ImGui::End,
 			ML_forward(fn), ML_forward(args)...);
 	}
 
-	// DRAW CHILD EX
+	// CHILD WINDOW EX
 	template <class Fn, class ... Args
-	> bool DrawChildEx(cstring name, ImGuiID id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
+	> bool ChildWindowEx(cstring name, ImGuiID id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
 	{
 		return ImGuiExt::BeginEnd(
 			std::bind(&ImGui::BeginChildEx, name, id, size, border, flags),
@@ -76,21 +76,21 @@ namespace ml::ImGuiExt
 			ML_forward(fn), ML_forward(args)...);
 	}
 
-	// DRAW CHILD
+	// CHILD WINDOW
 	template <class Fn, class ... Args
-	> bool DrawChild(cstring id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
+	> bool ChildWindow(cstring id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
 	{
-		return ImGuiExt::DrawChildEx
+		return ImGuiExt::ChildWindowEx
 		(
 			id, ImGui::GetID(id), size, border, flags, ML_forward(fn), ML_forward(args)...
 		);
 	}
 
-	// DRAW CHILD
+	// CHILD WINDOW
 	template <class Fn, class ... Args
-	> bool DrawChild(ImGuiID id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
+	> bool ChildWindow(ImGuiID id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
 	{
-		return ImGuiExt::DrawChildEx
+		return ImGuiExt::ChildWindowEx
 		(
 			nullptr, id, size, border, flags, ML_forward(fn), ML_forward(args)...
 		);
@@ -113,21 +113,27 @@ namespace ml::ImGuiExt
 		> bool operator()(Fn && fn, Args && ... args) noexcept
 		{
 			ML_ImGui_ScopeID(this);
-			return IsOpen && ImGuiExt::DrawWindow
+			return IsOpen && ImGuiExt::Window
 			(
 				Title, &IsOpen, Flags, ML_forward(fn), ML_forward(args)...
 			);
 		}
 	};
 
+	// PANEL ID
+	inline ImGuiID GetID(Panel & p) noexcept
+	{
+		return ImGui::GetID(p.Title);
+	}
+
 	// PANEL MENU ITEM
-	static bool MenuItem(Panel & p, cstring shortcut = {}, bool enabled = true)
+	inline bool MenuItem(Panel & p, cstring shortcut = {}, bool enabled = true)
 	{
 		return ImGui::MenuItem(p.Title, shortcut, &p.IsOpen, enabled);
 	}
 
 	// PANEL SELECTABLE
-	static bool Selectable(Panel & p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
+	inline bool Selectable(Panel & p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
 	{
 		return ImGui::Selectable(p.Title, &p.IsOpen, flags, size);
 	}
@@ -135,10 +141,10 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// OUTPUT LOG
+// TEXT LOG
 namespace ml::ImGuiExt
 {
-	struct ML_CORE_API ML_NODISCARD OutputLog final : trackable, non_copyable
+	struct ML_CORE_API ML_NODISCARD TextLog final : trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -148,9 +154,11 @@ namespace ml::ImGuiExt
 
 		using LineBuffer = typename pmr::vector<Line>;
 
-		struct ML_CORE_API Printer final : ds::method< void(LineBuffer const &, size_t) >
+		using PrinterSignature = typename void(LineBuffer const &, size_t);
+
+		struct ML_CORE_API Printer final : ds::method< PrinterSignature >
 		{
-			using ds::method< void(LineBuffer const &, size_t) >::method;
+			using ds::method< PrinterSignature >::method;
 
 			static Printer Default;
 
@@ -159,18 +167,18 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ImGuiTextFilter	Filter			; // line filter
-		LineBuffer		Lines			; // line buffer
-		bool			AutoScroll		; // auto-scroll
+		ImGuiTextFilter	Filter			; // filter
+		LineBuffer		Lines			; // lines
+		bool			AutoScroll		; // auto scroll
 		bool			ScrollToBottom	; // scroll to bottom
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit OutputLog(allocator_type alloc) noexcept : OutputLog{ NULL, true, alloc } {}
+		explicit TextLog(allocator_type alloc) noexcept : TextLog{ NULL, true, alloc } {}
 
-		OutputLog(cstring default_filter = "", bool auto_scroll = true, allocator_type alloc = {}) noexcept;
+		TextLog(cstring default_filter = "", bool auto_scroll = true, allocator_type alloc = {}) noexcept;
 
-		void Draw(Printer const & print = {});
+		void Draw(Printer const & print = {}) noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -192,15 +200,19 @@ namespace ml::ImGuiExt
 
 		auto & Print(cstring value = "\n") noexcept
 		{
-			for (size_t i = 0; i < std::strlen(value); ++i)
-				this->Write(value[i]);
+			std::for_each_n(value, std::strlen(value), [&](char c)
+			{
+				this->Write(c);
+			});
 			return (*this);
 		}
 
 		auto & Print(Line const & value = "\n") noexcept
 		{
 			for (char c : value)
+			{
 				this->Write(c);
+			}
 			return (*this);
 		}
 
@@ -220,13 +232,10 @@ namespace ml::ImGuiExt
 
 		auto & Dump(pmr::stringstream & ss) noexcept
 		{
-			for (char c : ss.str())
-				this->Write(c);
+			this->Print(ss.str());
 			ss.str({});
 			return (*this);
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		auto & operator<<(char value) noexcept { return this->Write(value); }
 
@@ -237,7 +246,7 @@ namespace ml::ImGuiExt
 		template <class T> auto & operator<<(T && value) noexcept
 		{
 			pmr::stringstream ss{};
-			ss << value;
+			ss << ML_forward(value);
 			return this->Dump(ss);
 		}
 
@@ -247,31 +256,34 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// COMMAND LINE
+// TERMINAL
 namespace ml::ImGuiExt
 {
-	struct ML_CORE_API ML_NODISCARD CommandLine final : trackable, non_copyable
+	struct ML_CORE_API ML_NODISCARD Terminal final : trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		using InputBuffer		= typename ds::array<char, 256>;
-		using Line				= typename OutputLog::Line;
-		using Printer			= typename OutputLog::Printer;
-		using CommandName		= typename pmr::string;
-		using CommandProc			= typename ds::method< void(Line &&) >;
-		using CommandInfo		= typename pmr::vector<pmr::string>;
+		using InputBuffer = typename ds::array<char, 256>;
+		
+		using Line = typename TextLog::Line;
+		
+		using Printer = typename TextLog::Printer;
+		
+		using CommandProc = typename ds::method< void(Line &&) >;
+		
+		using CommandInfo = typename pmr::vector<pmr::string>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		pmr::string User, Host, Path, Mode; // session
 
-		InputBuffer In; // input
+		InputBuffer Input; // input
 
-		OutputLog Out; // output
+		TextLog Output; // output
 
-		ds::batch_vector<CommandName, CommandInfo, CommandProc> Commands; // commands
+		ds::batch_vector<pmr::string, CommandInfo, CommandProc> Commands; // commands
 
 		pmr::vector<Line> History; // history
 
@@ -289,59 +301,59 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		CommandLine(allocator_type alloc = {}) noexcept;
+		Terminal(allocator_type alloc = {}) noexcept;
 
-		void Draw(Printer const & print = {}, bool prefix = true);
+		bool DrawOutput(cstring str_id, Printer const & print = {}, vec2 const & size = {}, bool border = false, int32_t flags = ImGuiWindowFlags_HorizontalScrollbar);
 
-		void DrawInput(cstring label, bool prefix = true);
+		bool DrawInput(cstring str_id, bool prefix = true, vec2 const & size = {}, bool border = false, int32_t flags = ImGuiWindowFlags_NoScrollbar);
 
 		int32_t Execute(Line && line);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Name = CommandName
+		template <class Name = pmr::string
 		> bool AddCommand(Name && name, CommandInfo const & info, CommandProc const & clbk) noexcept
 		{
 			if (this->HasCommand(ML_forward(name))) { return false; }
 			else { Commands.push_back(ML_forward(name), info, clbk); return true; }
 		}
 
-		template <class Name = CommandName
+		template <class Name = pmr::string
 		> bool DelCommand(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return false; }
 			else { Commands.erase(*i); return true; }
 		}
 
-		template <class Name = CommandName
+		template <class Name = pmr::string
 		> ML_NODISCARD bool HasCommand(Name && name) const noexcept
 		{
-			return Commands.contains<CommandName>(ML_forward(name));
+			return Commands.contains<pmr::string>(ML_forward(name));
 		}
 
-		template <class Name = CommandName
+		template <class Name = pmr::string
 		> ML_NODISCARD std::optional<size_t> GetIndex(Name && name) const noexcept
 		{
-			if (auto const i{ Commands.lookup<CommandName>(ML_forward(name)) }
+			if (auto const i{ Commands.lookup<pmr::string>(ML_forward(name)) }
 			; i == Commands.npos) { return std::nullopt; }
 			else { return i; }
 		}
 
-		template <class Name = CommandName
-		> ML_NODISCARD CommandProc * GetProc(Name && name) noexcept
-		{
-			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
-			else {
-				return std::addressof(Commands.at<CommandProc>(*i));
-			}
-		}
-
-		template <class Name = CommandName
+		template <class Name = pmr::string
 		> ML_NODISCARD CommandInfo * GetInfo(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
 			else {
 				return std::addressof(Commands.at<CommandInfo>(*i));
+			}
+		}
+
+		template <class Name = pmr::string
+		> ML_NODISCARD CommandProc * GetProc(Name && name) noexcept
+		{
+			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
+			else {
+				return std::addressof(Commands.at<CommandProc>(*i));
 			}
 		}
 

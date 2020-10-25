@@ -19,7 +19,7 @@ namespace ml
 	ML_alias loop_condition_fn = typename ds::method<int32_t(void)>;
 
 	// client runtime
-	struct ML_CORE_API client_runtime final : client_listener<client_runtime>
+	struct ML_CORE_API client_runtime final : client_object<client_runtime>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -31,8 +31,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// LOOP
-
 		ML_NODISCARD int32_t idle();
 
 		ML_NODISCARD bool check_loop_condition() const noexcept { return m_loopcond && m_loopcond(); }
@@ -43,17 +41,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// IMGUI
-
-		ML_NODISCARD auto get_imgui() const noexcept -> manual<ImGuiContext> const & { return m_imgui; }
-
-		ML_NODISCARD auto get_dockspace() noexcept -> ImGuiExt::Dockspace & { return m_dock; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		// PLUGINS
-
 		ML_NODISCARD auto get_plugins() noexcept -> plugin_manager & { return m_plugins; }
+
+		ML_NODISCARD auto get_imgui() const noexcept -> ImGuiContext * { return m_imgui.get(); }
+
+		ML_NODISCARD auto get_dockspace() noexcept -> ImGuiExt::Dockspace & { return m_dockspace; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -64,16 +56,14 @@ namespace ml
 
 		void do_gui();
 
-		void on_event(event && value) override;
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		bool					m_idling	; // run lock
 		loop_condition_fn		m_loopcond	; // loop condition
-		manual<ImGuiContext>	m_imgui		; // imgui context
-		ImGuiExt::Dockspace		m_dock		; // imgui dockspace
 		plugin_manager			m_plugins	; // plugin manager
+		manual<ImGuiContext>	m_imgui		; // imgui context
+		ImGuiExt::Dockspace		m_dockspace	; // imgui dockspace
 
 		ML_NODISCARD static auto do_update_timers(client_io & io) noexcept
 		{

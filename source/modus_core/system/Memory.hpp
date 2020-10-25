@@ -143,6 +143,12 @@ namespace ml
 // memory manager
 namespace ml
 {
+	struct memory_manager;
+
+	ML_NODISCARD ML_CORE_API memory_manager * get_default_memory() noexcept;
+
+	ML_CORE_API memory_manager * set_default_memory(memory_manager * value) noexcept;
+
 	// memory manager
 	struct ML_CORE_API memory_manager final : non_copyable
 	{
@@ -162,24 +168,26 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit memory_manager(pmr::memory_resource * res) : memory_manager{
-			*reinterpret_cast<passthrough_resource *>(res)
-		} {}
-
-		explicit memory_manager(passthrough_resource & res) noexcept
-			: m_resource{ std::addressof(res) }
+		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource()) noexcept
+			: m_resource{ reinterpret_cast<passthrough_resource *>(mres) }
 			, m_alloc	{ m_resource }
 			, m_records	{ m_alloc }
 			, m_counter	{}
 		{
-			ML_assert(!g_mem && (g_mem = this));
-			ML_assert(m_resource == pmr::get_default_resource());
+			if (!get_default_memory() && (m_resource == pmr::get_default_resource()))
+			{
+				set_default_memory(this);
+			}
 		}
 
 		~memory_manager() noexcept
 		{
-			ML_assert("MEMORY LEAKS DETECTED" && m_records.empty<>());
-			ML_assert(g_mem == this && !(g_mem = nullptr));
+			ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
+			
+			if (this == get_default_memory())
+			{
+				set_default_memory(nullptr);
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -277,9 +285,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// get instance
-		ML_NODISCARD static auto get() noexcept -> memory_manager * { return g_mem; }
-
 		// get allocator
 		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_alloc; }
 
@@ -358,7 +363,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		static memory_manager *			g_mem		; // singleton
 		passthrough_resource * const	m_resource	; // resource
 		allocator_type					m_alloc		; // allocator
 		record_storage					m_records	; // records
@@ -378,22 +382,22 @@ namespace ml
 
 		ML_NODISCARD void * operator new(size_t size) noexcept
 		{
-			return memory_manager::get()->allocate(size);
+			return get_default_memory()->allocate(size);
 		}
 
 		ML_NODISCARD void * operator new[](size_t size) noexcept
 		{
-			return memory_manager::get()->allocate(size);
+			return get_default_memory()->allocate(size);
 		}
 
 		void operator delete(void * addr) noexcept
 		{
-			memory_manager::get()->deallocate(addr);
+			get_default_memory()->deallocate(addr);
 		}
 
 		void operator delete[](void * addr) noexcept
 		{
-			memory_manager::get()->deallocate(addr);
+			get_default_memory()->deallocate(addr);
 		}
 	};
 }
@@ -405,7 +409,7 @@ namespace ml
 	{
 		void operator()(void * addr) const noexcept
 		{
-			memory_manager::get()->deallocate(addr);
+			get_default_memory()->deallocate(addr);
 		}
 	};
 
@@ -413,7 +417,7 @@ namespace ml
 	{
 		void operator()(void * addr) const noexcept
 		{
-			memory_manager::get()->deallocate(addr);
+			get_default_memory()->deallocate(addr);
 		}
 	};
 
@@ -421,7 +425,7 @@ namespace ml
 	{
 		void operator()(T * addr) const noexcept
 		{
-			memory_manager::get()->delete_object<T>(addr);
+			get_default_memory()->delete_object<T>(addr);
 		}
 	};
 }

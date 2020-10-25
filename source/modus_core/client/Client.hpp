@@ -76,7 +76,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit client_object(client_context * ctx) noexcept : m_ctx{ ctx }
+		explicit client_object(client_context * ctx) noexcept : m_ctx{ ML_check(ctx) }
 		{
 		}
 

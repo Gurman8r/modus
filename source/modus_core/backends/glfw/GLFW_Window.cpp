@@ -59,10 +59,11 @@ namespace ml
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints,
-		allocator_type				alloc
+		allocator_type				alloc,
+		void *						userptr
 	) noexcept : glfw_window{ alloc }
 	{
-		ML_assert(open(title, vm, cs, hints));
+		ML_assert(this->open(title, vm, cs, hints, userptr));
 	}
 
 	glfw_window::~glfw_window()
@@ -78,11 +79,14 @@ namespace ml
 		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
-		window_hints_				hints
+		window_hints_				hints,
+		void *						userptr
 	)
 	{
 		// check already open
-		if (is_open()) { return debug::error("glfw_window is already open"); }
+		if (is_open()) {
+			return debug::error("glfw_window is already open");
+		}
 
 		// title
 		if ((m_title = title).empty()) { m_title = "GLFW"; }
@@ -141,13 +145,19 @@ namespace ml
 		glfwWindowHint(GLFW_SRGB_CAPABLE,	cs.srgb_capable);
 
 		// create window
-		return (m_window = glfwCreateWindow(
+		if (!(m_window = glfwCreateWindow(
 			vm.resolution[0],
 			vm.resolution[1],
 			m_title.c_str(), // title
 			nullptr, // monitor
 			nullptr // share
-		)) || debug::error("failed opening glfw_window");
+		))) return debug::error("failed opening glfw_window");
+
+		// user pointer
+		set_user_pointer(get_handle(), userptr);
+		
+		// good
+		return true;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -288,11 +298,6 @@ namespace ml
 	ds::string const & glfw_window::get_title() const
 	{
 		return m_title;
-	}
-
-	void * glfw_window::get_user_pointer() const
-	{
-		return glfwGetWindowUserPointer(m_window);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -474,11 +479,19 @@ namespace ml
 		glfwSetWindowTitle(m_window, (m_title = value).c_str());
 	}
 
-	void glfw_window::set_user_pointer(void * value)
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void * glfw_window::get_user_pointer(window_handle wh)
 	{
-		glfwSetWindowUserPointer(m_window, value);
+		return glfwGetWindowUserPointer((GLFWwindow *)wh);
 	}
-	
+
+	void * glfw_window::set_user_pointer(window_handle wh, void * value)
+	{
+		glfwSetWindowUserPointer((GLFWwindow *)wh, value);
+		return value;
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	window_handle glfw_window::get_context_current()
@@ -543,6 +556,15 @@ namespace ml
 	{
 		glfwSwapInterval(value);
 	}
+
+	window_error_callback glfw_window::set_error_callback(window_error_callback fn)
+	{
+		return reinterpret_cast<window_error_callback>(
+			glfwSetErrorCallback(
+				reinterpret_cast<GLFWerrorfun>(fn)));
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	cursor_handle glfw_window::create_custom_cursor(size_t w, size_t h, byte_t const * p)
 	{
@@ -629,13 +651,6 @@ namespace ml
 		return reinterpret_cast<window_drop_callback>(
 			glfwSetDropCallback(m_window,
 				reinterpret_cast<GLFWdropfun>(m_clbk.on_drop = fn)));
-	}
-
-	window_error_callback glfw_window::set_error_callback(window_error_callback fn)
-	{
-		return reinterpret_cast<window_error_callback>(
-			glfwSetErrorCallback(
-				reinterpret_cast<GLFWerrorfun>(m_clbk.on_error = fn)));
 	}
 
 	window_focus_callback glfw_window::set_focus_callback(window_focus_callback fn)

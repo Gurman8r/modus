@@ -9,7 +9,7 @@
 #include <modus_core/graphics/Mesh.hpp>
 #include <modus_core/graphics/Shader.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/graphics/Viewport.hpp>
+#include <modus_core/window/Viewport.hpp>
 #include <modus_core/scene/Scene.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 
@@ -74,6 +74,9 @@ namespace ml
 			subscribe<client_idle_event>();
 			subscribe<imgui_docker_event>();
 			subscribe<imgui_render_event>();
+			subscribe<window_key_event>();
+			subscribe<window_mouse_event>();
+			subscribe<window_cursor_pos_event>();
 		}
 
 		void on_event(event && value) override
@@ -85,6 +88,21 @@ namespace ml
 			case client_idle_event	::ID: return on_client_idle((client_idle_event &&)value);
 			case imgui_docker_event	::ID: return on_imgui_docker((imgui_docker_event &&)value);
 			case imgui_render_event	::ID: return on_imgui_render((imgui_render_event &&)value);
+
+			case window_key_event::ID: {
+				auto && ev{ (window_key_event &&)value };
+				get_io()->keyboard[ev.key] = ev.action;
+			} break;
+
+			case window_mouse_event::ID: {
+				auto && ev{ (window_mouse_event &&)value };
+				get_io()->mouse[ev.button] = ev.action;
+			} break;
+
+			case window_cursor_pos_event::ID: {
+				auto && ev{ (window_cursor_pos_event &&)value };
+				get_io()->cursor = { ev.x, ev.y };
+			} break;
 			}
 		}
 

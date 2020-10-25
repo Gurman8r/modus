@@ -1,9 +1,9 @@
 #include <modus_core/graphics/Bitmap.hpp>
 
-#define STBI_MALLOC(s)				ml::memory_manager::get()->allocate(s)
-#define STBI_FREE(p)				ml::memory_manager::get()->deallocate(p)
-#define STBI_REALLOC(p, s)			ml::memory_manager::get()->reallocate(p, s)
-#define STBI_REALLOC_SIZED(p, o, n) ml::memory_manager::get()->reallocate(p, o, n)
+#define STBI_MALLOC(s)				ml::get_default_memory()->allocate(s)
+#define STBI_FREE(p)				ml::get_default_memory()->deallocate(p)
+#define STBI_REALLOC(p, s)			ml::get_default_memory()->reallocate(p, s)
+#define STBI_REALLOC_SIZED(p, o, n) ml::get_default_memory()->reallocate(p, o, n)
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>

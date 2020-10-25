@@ -131,18 +131,18 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		using self_type = typename window_base;
 
 		virtual ~window_base() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		
 		virtual bool open(
 			ds::string			const &	title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default) = 0;
+			window_hints_				hints	= window_hints_default,
+			void *						userptr	= nullptr) = 0;
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -200,8 +200,6 @@ namespace ml
 		virtual vec2i get_size() const = 0;
 
 		virtual ds::string const & get_title() const = 0;
-
-		virtual void * get_user_pointer() const = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -265,9 +263,15 @@ namespace ml
 
 		virtual void set_title(ds::string const &) = 0;
 
-		virtual void set_user_pointer(void *) = 0;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static void * get_user_pointer(window_handle) = delete;
+
+		static void * set_user_pointer(window_handle, void *) = delete;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static int32_t extension_supported(cstring) = delete;
 
 		static window_handle get_context_current() = delete;
 
@@ -279,8 +283,6 @@ namespace ml
 
 		static duration get_time() = delete;
 
-		static int32_t extension_supported(cstring) = delete;
-
 		static void make_context_current(window_handle) = delete;
 
 		static void poll_events() = delete;
@@ -288,6 +290,10 @@ namespace ml
 		static void swap_buffers(window_handle) = delete;
 
 		static void swap_interval(int32_t) = delete;
+
+		static window_error_callback set_error_callback(window_error_callback) = delete;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		static cursor_handle create_custom_cursor(size_t, size_t, byte_t const *) = delete;
 
@@ -304,7 +310,6 @@ namespace ml
 		virtual window_cursor_enter_callback		set_cursor_enter_callback		(window_cursor_enter_callback) = 0;
 		virtual window_cursor_pos_callback			set_cursor_pos_callback			(window_cursor_pos_callback) = 0;
 		virtual window_drop_callback				set_drop_callback				(window_drop_callback) = 0;
-		virtual window_error_callback				set_error_callback				(window_error_callback) = 0;
 		virtual window_focus_callback				set_focus_callback				(window_focus_callback) = 0;
 		virtual window_framebuffer_resize_callback	set_framebuffer_resize_callback	(window_framebuffer_resize_callback) = 0;
 		virtual window_iconify_callback				set_iconify_callback			(window_iconify_callback) = 0;
@@ -325,7 +330,6 @@ namespace ml
 			set_cursor_enter_callback		(nullptr);
 			set_cursor_pos_callback			(nullptr);
 			set_drop_callback				(nullptr);
-			set_error_callback				(nullptr);
 			set_focus_callback				(nullptr);
 			set_framebuffer_resize_callback	(nullptr);
 			set_iconify_callback			(nullptr);

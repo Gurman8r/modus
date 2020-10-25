@@ -14,6 +14,8 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		using self_type = typename glfw_window;
+
 		explicit glfw_window(allocator_type alloc) noexcept;
 
 		explicit glfw_window(
@@ -21,7 +23,8 @@ namespace ml
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
-			allocator_type				alloc	= {}) noexcept;
+			allocator_type				alloc	= {},
+			void *						userptr	= nullptr) noexcept;
 
 		~glfw_window() override;
 
@@ -31,7 +34,8 @@ namespace ml
 			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default) override;
+			window_hints_				hints	= window_hints_default,
+			void *						userptr	= nullptr) override;
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -84,8 +88,6 @@ namespace ml
 		vec2i get_size() const override;
 
 		ds::string const & get_title() const override;
-
-		void * get_user_pointer() const override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -149,9 +151,15 @@ namespace ml
 		
 		void set_title(ds::string const & value) override;
 
-		void set_user_pointer(void * value) override;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static void * get_user_pointer(window_handle wh);
+
+		static void * set_user_pointer(window_handle wh, void * value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static int32_t extension_supported(cstring value);
 
 		static window_handle get_context_current();
 
@@ -163,8 +171,6 @@ namespace ml
 
 		static duration get_time();
 
-		static int32_t extension_supported(cstring value);
-
 		static void make_context_current(window_handle value);
 
 		static void poll_events();
@@ -172,6 +178,10 @@ namespace ml
 		static void swap_buffers(window_handle value);
 
 		static void swap_interval(int32_t value);
+
+		static window_error_callback set_error_callback(window_error_callback fn);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		static cursor_handle create_custom_cursor(size_t w, size_t h, byte_t const * p);
 
@@ -188,7 +198,6 @@ namespace ml
 		window_cursor_enter_callback		set_cursor_enter_callback		(window_cursor_enter_callback		fn) override;
 		window_cursor_pos_callback			set_cursor_pos_callback			(window_cursor_pos_callback			fn) override;
 		window_drop_callback				set_drop_callback				(window_drop_callback				fn) override;
-		window_error_callback				set_error_callback				(window_error_callback				fn) override;
 		window_focus_callback				set_focus_callback				(window_focus_callback				fn) override;
 		window_framebuffer_resize_callback	set_framebuffer_resize_callback	(window_framebuffer_resize_callback	fn) override;
 		window_iconify_callback				set_iconify_callback			(window_iconify_callback			fn) override;

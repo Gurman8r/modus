@@ -98,7 +98,7 @@ static auto load_settings(fs::path const & path = SETTINGS_PATH)
 
 ml::int32_t main()
 {
-	static memory_manager	mem		{ pmr::get_default_resource() };
+	static memory_manager	mem		{};
 	static client_io		io		{ __argc, __argv, load_settings() };
 	static event_bus		bus		{};
 	static render_window	win		{};

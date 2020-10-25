@@ -3,15 +3,15 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifdef ML_IMPL_RENDERER_OPENGL
-#include "../platform/opengl/OpenGL_RenderAPI.hpp"
+#include <modus_core/backends/opengl/OpenGL_RenderAPI.hpp>
 #endif
 
 #ifdef ML_IMPL_RENDERER_DIRECTX
-#include "../platform/directx/DirectX_RenderAPI.hpp"
+#include <modus_core/backends/directx/DirectX_RenderAPI.hpp>
 #endif
 
 #ifdef ML_IMPL_RENDERER_VULKAN
-#include "../platform/vulkan/Vulkan_RenderAPI.hpp"
+#include <modus_core/backends/vulkan/Vulkan_RenderAPI.hpp>
 #endif
 
 // etc...

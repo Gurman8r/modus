@@ -5,10 +5,7 @@
 
 namespace ml
 {
-	template <
-		class Ch = char,
-		class Tr = std::char_traits<Ch>,
-		class Al = pmr::polymorphic_allocator<Ch>
+	template <ML_STRING_TEMPLATE(Ch, Tr, Al)
 	> struct basic_stream_sniper final : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

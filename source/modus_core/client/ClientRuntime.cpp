@@ -9,7 +9,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	static client_runtime * g_client{}; // singleton
+	static client_runtime * g_client{};
 
 	client_runtime * get_default_runtime() noexcept {
 		return g_client;
@@ -22,17 +22,13 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	client_runtime::client_runtime(client_context * ctx)
-		: client_listener	{ ctx }
-		, m_idling			{}
-		, m_loopcond		{ std::bind(&render_window::is_open, ctx->win) }
-		, m_imgui			{}
-		, m_dock			{ "##MainDockspace" }
-		, m_plugins			{ ctx }
+		: client_object	{ ctx }
+		, m_idling		{}
+		, m_loopcond	{ std::bind(&render_window::is_open, ctx->win) }
+		, m_plugins		{ ctx }
+		, m_imgui		{}
+		, m_dockspace	{ "##MainDockspace" }
 	{
-		subscribe<window_key_event>();
-		subscribe<window_mouse_event>();
-		subscribe<window_cursor_pos_event>();
-
 		do_startup(ctx);
 	}
 
@@ -63,7 +59,7 @@ namespace ml
 
 			get_bus()->fire<client_idle_event>(this);
 
-			ImGui_DoFrame(get_window(), m_imgui.get(), [&]() noexcept
+			ImGui_DoFrame(get_window(), get_imgui(), [&]() noexcept
 			{
 				do_gui();
 			});
@@ -85,6 +81,7 @@ namespace ml
 		auto & io{ *ctx->io };
 		ML_assert(io.prefs.contains("client"));
 		auto & client_prefs	{ io.prefs["client"] };
+		bool const should_install_callbacks{ client_prefs["callbacks"] };
 
 		// python
 		PyObject_SetArenaAllocator(([&temp = PyObjectArenaAllocator{}](auto mres) noexcept {
@@ -96,7 +93,7 @@ namespace ml
 				return ((pmr::memory_resource *)mres)->deallocate(p, s);
 			};
 			return &temp;
-		})(ctx->mem->get_resource()));
+		})(get_memory()->get_resource()));
 		Py_SetProgramName(io.program_name.c_str());
 		Py_SetPythonHome(io.content_path.c_str());
 		Py_InitializeEx(1);
@@ -110,27 +107,69 @@ namespace ml
 			window_prefs["video"],
 			window_prefs["context"],
 			window_prefs["hints"]));
-		if (client_prefs["callbacks"])
+		ctx->win->set_user_pointer(ctx);
+		if (should_install_callbacks)
 		{
-			static event_bus * bus{}; bus = ctx->bus;
-			ctx->win->set_char_callback([](auto, auto ... x) { bus->fire<window_char_event>(x...); });
-			ctx->win->set_char_mods_callback([](auto, auto ... x) { bus->fire<window_char_mods_event>(x...); });
-			ctx->win->set_close_callback([](auto, auto ... x) { bus->fire<window_close_event>(x...); });
-			ctx->win->set_cursor_enter_callback([](auto, auto ... x) { bus->fire<window_cursor_enter_event>(x...); });
-			ctx->win->set_cursor_pos_callback([](auto, auto ... x) { bus->fire<window_cursor_pos_event>(x...); });
-			ctx->win->set_content_scale_callback([](auto, auto ... x) { bus->fire<window_content_scale_event>(x...); });
-			ctx->win->set_drop_callback([](auto, auto ... x) { bus->fire<window_drop_event>(x...); });
-			ctx->win->set_error_callback([](auto ... x) { bus->fire<window_error_event>(x...); });
-			ctx->win->set_focus_callback([](auto, auto ... x) { bus->fire<window_focus_event>(x...); });
-			ctx->win->set_framebuffer_resize_callback([](auto, auto ... x) { bus->fire<window_framebuffer_resize_event>(x...); });
-			ctx->win->set_iconify_callback([](auto, auto ... x) { bus->fire<window_iconify_event>(x...); });
-			ctx->win->set_key_callback([](auto, auto ... x) { bus->fire<window_key_event>(x...); });
-			ctx->win->set_maximize_callback([](auto, auto ... x) { bus->fire<window_maximize_event>(x...); });
-			ctx->win->set_mouse_callback([](auto, auto ... x) { bus->fire<window_mouse_event>(x...); });
-			ctx->win->set_position_callback([](auto, auto ... x) { bus->fire<window_position_event>(x...); });
-			ctx->win->set_refresh_callback([](auto, auto ... x) { bus->fire<window_refresh_event>(x...); });
-			ctx->win->set_resize_callback([](auto, auto ... x) { bus->fire<window_resize_event>(x...); });
-			ctx->win->set_scroll_callback([](auto, auto ... x) { bus->fire<window_scroll_event>(x...); });
+			static struct {
+				ML_NODISCARD event_bus * get(window_handle w) const
+				{
+					return ((client_context *)render_window::get_user_pointer(w))->bus;
+				}
+			} helper;
+
+			render_window::set_error_callback([
+			](auto ... x) { get_default_runtime()->get_bus()->fire<window_error_event>(x...); });
+
+			ctx->win->set_char_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_char_event>(x...); });
+			
+			ctx->win->set_char_mods_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_char_mods_event>(x...); });
+			
+			ctx->win->set_close_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_close_event>(x...); });
+			
+			ctx->win->set_cursor_enter_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_cursor_enter_event>(x...); });
+			
+			ctx->win->set_cursor_pos_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_cursor_pos_event>(x...); });
+			
+			ctx->win->set_content_scale_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_content_scale_event>(x...); });
+			
+			ctx->win->set_drop_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_drop_event>(x...); });
+			
+			ctx->win->set_focus_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_focus_event>(x...); });
+			
+			ctx->win->set_framebuffer_resize_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_framebuffer_resize_event>(x...); });
+			
+			ctx->win->set_iconify_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_iconify_event>(x...); });
+			
+			ctx->win->set_key_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_key_event>(x...); });
+			
+			ctx->win->set_maximize_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_maximize_event>(x...); });
+			
+			ctx->win->set_mouse_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_mouse_event>(x...); });
+			
+			ctx->win->set_position_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_position_event>(x...); });
+			
+			ctx->win->set_refresh_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_refresh_event>(x...); });
+			
+			ctx->win->set_resize_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_resize_event>(x...); });
+			
+			ctx->win->set_scroll_callback([
+			](auto w, auto ... x) { helper.get(w)->fire<window_scroll_event>(x...); });
 		}
 
 		// imgui
@@ -146,12 +185,12 @@ namespace ml
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-		ML_assert(ImGui_Startup(ctx->win, client_prefs["callbacks"]));
-		imgui_prefs["dockspace"]["alpha"	].get_to(m_dock.Alpha);
-		imgui_prefs["dockspace"]["border"	].get_to(m_dock.Border);
-		imgui_prefs["dockspace"]["padding"	].get_to(m_dock.Padding);
-		imgui_prefs["dockspace"]["rounding"	].get_to(m_dock.Rounding);
-		imgui_prefs["dockspace"]["size"		].get_to(m_dock.Size);
+		ML_assert(ImGui_Startup(ctx->win, should_install_callbacks));
+		imgui_prefs["dockspace"]["alpha"	].get_to(m_dockspace.Alpha);
+		imgui_prefs["dockspace"]["border"	].get_to(m_dockspace.Border);
+		imgui_prefs["dockspace"]["padding"	].get_to(m_dockspace.Padding);
+		imgui_prefs["dockspace"]["rounding"	].get_to(m_dockspace.Rounding);
+		imgui_prefs["dockspace"]["size"		].get_to(m_dockspace.Size);
 		if (imgui_prefs.contains("style")) {
 			auto & style_prefs{ imgui_prefs["style"] };
 			if (style_prefs.is_string()) {
@@ -173,9 +212,7 @@ namespace ml
 		{
 			for (auto const & e : client_prefs["scripts"])
 			{
-				auto const path{ io.path2(e["path"]).string() };
-
-				PyRun_AnyFileEx(std::fopen(path.c_str(), "r"), path.c_str(), true);
+				Python_DoFile(io.path2(e["path"]));
 			}
 		}
 	}
@@ -191,38 +228,13 @@ namespace ml
 	{
 		ML_ImGui_ScopeID(this);
 
-		// DOCKER
-		ML_flag_write(
-			m_dock.WinFlags,
-			ImGuiWindowFlags_MenuBar,
-			ImGui::FindWindowByName("##MainMenuBar"));
-		m_dock(m_imgui->Viewports[0], [&]() noexcept {
+		ML_flag_write(m_dockspace.WinFlags, ImGuiWindowFlags_MenuBar, ImGui::FindWindowByName("##MainMenuBar"));
+		m_dockspace(m_imgui->Viewports[0], [&]() noexcept
+		{
 			get_bus()->fire<imgui_docker_event>(this);
 		});
 
-		// RENDER
 		get_bus()->fire<imgui_render_event>(this);
-	}
-
-	void client_runtime::on_event(event && value)
-	{
-		switch (value)
-		{
-		case window_key_event::ID: {
-			auto && ev{ (window_key_event &&)value };
-			get_io()->keyboard[ev.key] = ev.action;
-		} break;
-
-		case window_mouse_event::ID: {
-			auto && ev{ (window_mouse_event &&)value };
-			get_io()->mouse[ev.button] = ev.action;
-		} break;
-
-		case window_cursor_pos_event::ID: {
-			auto && ev{ (window_cursor_pos_event &&)value };
-			get_io()->cursor = { ev.x, ev.y };
-		} break;
-		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

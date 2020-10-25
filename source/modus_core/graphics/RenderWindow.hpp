@@ -10,6 +10,8 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		using self_type = typename render_window;
+
 		render_window(allocator_type alloc = {}) noexcept;
 
 		render_window(
@@ -17,7 +19,8 @@ namespace ml
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
-			allocator_type				alloc	= {}) noexcept;
+			allocator_type				alloc	= {},
+			void *						userptr	= nullptr) noexcept;
 
 		virtual ~render_window() noexcept override;
 
@@ -27,7 +30,8 @@ namespace ml
 			ds::string			const &	title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default) override;
+			window_hints_				hints	= window_hints_default,
+			void *						userptr	= nullptr) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

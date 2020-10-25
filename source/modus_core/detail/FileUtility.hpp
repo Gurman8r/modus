@@ -31,7 +31,7 @@ namespace ml::util
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// load file contents into string
-	template <ML_STRING_TEMPLATE_STR(Ch, Tr, Al, Str)
+	template <ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)
 	> ML_NODISCARD static inline Str get_file_string(fs::path const & path) noexcept
 	{
 		if (auto const contents{ util::get_file_contents<Ch>(path) })

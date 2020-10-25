@@ -9,6 +9,8 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		using self_type = typename native_window;
+
 		native_window(allocator_type alloc = {}) noexcept;
 
 		native_window(
@@ -16,7 +18,8 @@ namespace ml
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
-			allocator_type				alloc	= {}) noexcept;
+			allocator_type				alloc	= {},
+			void *						userptr	= nullptr) noexcept;
 		
 		virtual ~native_window() noexcept override;
 
@@ -26,7 +29,8 @@ namespace ml
 			ds::string			const &	title,
 			video_mode			const &	vm,
 			context_settings	const &	cs,
-			window_hints_				hints = window_hints_default) override;
+			window_hints_				hints = window_hints_default,
+			void *						userptr	= nullptr) override;
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -79,8 +83,6 @@ namespace ml
 		ML_NODISCARD vec2i get_size() const noexcept final;
 
 		ML_NODISCARD ds::string const & get_title() const noexcept final;
-
-		ML_NODISCARD void * get_user_pointer() const noexcept final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -144,9 +146,19 @@ namespace ml
 		
 		void set_title(ds::string const & value) noexcept final;
 
-		void set_user_pointer(void * value) noexcept final;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD static void * get_user_pointer(window_handle handle) noexcept;
+
+		ML_NODISCARD void * get_user_pointer() const noexcept { return get_user_pointer(get_handle()); }
+
+		static void * set_user_pointer(window_handle handle, void * value) noexcept;
+
+		void * set_user_pointer(void * value) noexcept { return set_user_pointer(get_handle(), value); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD static int32_t extension_supported(cstring value) noexcept;
 
 		ML_NODISCARD static window_handle get_context_current() noexcept;
 
@@ -158,8 +170,6 @@ namespace ml
 
 		ML_NODISCARD static duration get_time() noexcept;
 
-		ML_NODISCARD static int32_t extension_supported(cstring value) noexcept;
-
 		static void make_context_current(window_handle value) noexcept;
 
 		static void poll_events() noexcept;
@@ -167,6 +177,10 @@ namespace ml
 		static void swap_buffers(window_handle value) noexcept;
 
 		static void swap_interval(int32_t value) noexcept;
+
+		static window_error_callback set_error_callback(window_error_callback fn) noexcept;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD static cursor_handle create_custom_cursor(size_t w, size_t h, byte_t const * p) noexcept;
 
@@ -183,7 +197,6 @@ namespace ml
 		window_cursor_enter_callback		set_cursor_enter_callback		(window_cursor_enter_callback		fn) noexcept final;
 		window_cursor_pos_callback			set_cursor_pos_callback			(window_cursor_pos_callback			fn) noexcept final;
 		window_drop_callback				set_drop_callback				(window_drop_callback				fn) noexcept final;
-		window_error_callback				set_error_callback				(window_error_callback				fn) noexcept final;
 		window_focus_callback				set_focus_callback				(window_focus_callback				fn) noexcept final;
 		window_framebuffer_resize_callback	set_framebuffer_resize_callback	(window_framebuffer_resize_callback	fn) noexcept final;
 		window_iconify_callback				set_iconify_callback			(window_iconify_callback			fn) noexcept final;
@@ -198,7 +211,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		unique<	window_base	> m_impl; // native_window implementation
+		unique<	window_base	> m_backend; // native_window implementation
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

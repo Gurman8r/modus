@@ -4,41 +4,48 @@
 #include <modus_core/Common.hpp>
 
 // STRING TEMPLATE
-#define ML_STRING_TEMPLATE(Ch, Tr, Al)			\
-	class Ch = char,							\
-	class Tr = std::char_traits<Ch>,			\
-	class Al = pmr::polymorphic_allocator<Ch>
+#define ML_STRING_TEMPLATE(Ch, Tr, Al)				\
+	class Ch = ML_char,								\
+	class Tr = _ML std::char_traits<Ch>,			\
+	class Al = _ML pmr::polymorphic_allocator<Ch>
+
+// BASIC STRING TEMPLATE
+#define ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)	\
+	class Ch = ML_char,								\
+	class Tr = _ML std::char_traits<Ch>,			\
+	class Al = _ML pmr::polymorphic_allocator<Ch>,	\
+	class Str = _ML ds::basic_string<Ch, Tr, Al>
 
 // STRING
 namespace ml::ds
 {
 	template <ML_STRING_TEMPLATE(Ch, Tr, Al)
-	> ML_alias basic_string = typename std::basic_string
+	> ML_alias basic_string = typename std::basic_string // basic_string
 	<
 		Ch, Tr, Al
 	>;
 
-	ML_alias string = typename basic_string<char>;
+	ML_alias string = typename basic_string<char>; // string
 
-	ML_alias wstring = typename basic_string<wchar_t>;
+	ML_alias wstring = typename basic_string<wchar_t>; // wstring
 
-	ML_alias u16string = typename basic_string<char16_t>;
+	ML_alias u16string = typename basic_string<char16_t>; // u16string
 	
-	ML_alias u32string = typename basic_string<char32_t>;
+	ML_alias u32string = typename basic_string<char32_t>; // u32string
 }
 
 // STRINGSTREAM
 namespace ml::ds
 {
 	template <ML_STRING_TEMPLATE(Ch, Tr, Al)
-	> ML_alias basic_stringstream = typename std::basic_stringstream
+	> ML_alias basic_stringstream = typename std::basic_stringstream // basic_stringstream
 	<
 		Ch, Tr, Al
 	>;
 
-	ML_alias stringstream = typename basic_stringstream<char>;
+	ML_alias stringstream = typename basic_stringstream<char>; // stringstream
 
-	ML_alias wstringstream = typename basic_stringstream<char>;
+	ML_alias wstringstream = typename basic_stringstream<char>; // wstringstream
 }
 
 #endif // !_ML_STRING_HPP_

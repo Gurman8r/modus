@@ -55,7 +55,7 @@ namespace ml
 	}
 
 	glfw_window::glfw_window(
-		pmr::string			const & title,
+		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints,
@@ -75,7 +75,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	bool glfw_window::open(
-		pmr::string			const & title,
+		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints
@@ -285,7 +285,7 @@ namespace ml
 		return temp;
 	}
 
-	pmr::string const & glfw_window::get_title() const
+	ds::string const & glfw_window::get_title() const
 	{
 		return m_title;
 	}
@@ -469,7 +469,7 @@ namespace ml
 		glfwSetWindowSize(m_window, value[0], value[1]);
 	}
 
-	void glfw_window::set_title(pmr::string const & value)
+	void glfw_window::set_title(ds::string const & value)
 	{
 		glfwSetWindowTitle(m_window, (m_title = value).c_str());
 	}

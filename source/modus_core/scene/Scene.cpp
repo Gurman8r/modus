@@ -18,7 +18,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	shared<entity> & scene::create_entity(pmr::string const & name, allocator_type alloc) noexcept
+	shared<entity> & scene::create_entity(ds::string const & name, allocator_type alloc) noexcept
 	{
 		auto & temp{ m_entities.emplace_back(
 			std::allocate_shared<entity>(alloc, this, m_registry.create())

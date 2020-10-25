@@ -269,7 +269,8 @@ namespace ml
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// get type info
+	// get type
+
 	template <class T
 	> static constexpr auto typeof_v
 	{

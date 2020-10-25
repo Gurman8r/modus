@@ -139,7 +139,7 @@ namespace ml
 
 		
 		virtual bool open(
-			pmr::string			const &	title,
+			ds::string			const &	title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default) = 0;
@@ -199,7 +199,7 @@ namespace ml
 
 		virtual vec2i get_size() const = 0;
 
-		virtual pmr::string const & get_title() const = 0;
+		virtual ds::string const & get_title() const = 0;
 
 		virtual void * get_user_pointer() const = 0;
 
@@ -263,7 +263,7 @@ namespace ml
 
 		virtual void set_size(vec2i const &) = 0;
 
-		virtual void set_title(pmr::string const &) = 0;
+		virtual void set_title(ds::string const &) = 0;
 
 		virtual void set_user_pointer(void *) = 0;
 

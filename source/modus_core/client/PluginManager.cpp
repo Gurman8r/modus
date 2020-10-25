@@ -38,9 +38,9 @@ namespace ml
 					std::move(lib),
 					plugin_details
 					{
-						(pmr::string)lib.path().stem().string(),
-						(pmr::string)lib.path().string(),
-						(pmr::string)lib.path().extension().string(),
+						(ds::string)lib.path().stem().string(),
+						(ds::string)lib.path().string(),
+						(ds::string)lib.path().extension().string(),
 						lib.hash_code()
 					},
 					plugin_iface

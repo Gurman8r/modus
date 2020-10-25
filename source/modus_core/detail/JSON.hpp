@@ -10,15 +10,18 @@
 
 namespace ml
 {
-	ML_alias json = typename nlohmann::json;
+	ML_alias json1 = typename nlohmann::json;
 
-	//ML_alias json = typename nlohmann::basic_json
-	//<
-	//	std::map,
-	//	std::vector, std::string, bool, int64_t, uint64_t, float64_t,
-	//	std::allocator,
-	//	nlohmann::adl_serializer
-	//>;
+	ML_alias json2 = typename nlohmann::basic_json
+	<
+		std::map,
+		std::vector, std::string, bool, int64_t, uint64_t, float64_t,
+		std::allocator,
+		nlohmann::adl_serializer,
+		std::vector<uint8_t>
+	>;
+
+	ML_alias json = typename json1;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -32,7 +35,7 @@ namespace std::filesystem
 
 	inline void from_json(_ML json const & j, path & value)
 	{
-		if (j.is_string()) { value = j.get<pmr::string>(); }
+		if (j.is_string()) { value = j.get<std::string>(); }
 	}
 }
 

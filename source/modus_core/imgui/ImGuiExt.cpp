@@ -150,13 +150,12 @@ namespace ml::ImGuiExt
 
 		// validate line
 		if ((line.front() != '/' && Mode.empty()) || util::trim_front(line, [
-		](char c) { return c == '/' || util::is_whitespace(c); }).empty())
-		{
-			return debug::error("invalid command syntax");
+		](char c) { return c == '/' || util::is_whitespace(c); }).empty()) {
+			return debug::error();
 		}
 
 		// process command
-		if (pmr::string name; auto const proc{ GetProc(std::invoke([&]() noexcept -> auto &
+		if (ds::string name; auto const proc{ GetProc(std::invoke([&]() noexcept -> auto &
 		{
 			if (!Mode.empty()) {
 				name = Mode;
@@ -202,7 +201,7 @@ namespace ml::ImGuiExt
 
 			// build list of candidates
 			pmr::vector<cstring> candidates{};
-			for (auto const & name : Commands.get<pmr::string>())
+			for (auto const & name : Commands.get<ds::string>())
 			{
 				if (!std::strncmp(name.c_str(), first, (size_t)(last - first)))
 				{

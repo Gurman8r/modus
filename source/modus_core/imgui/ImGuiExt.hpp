@@ -102,12 +102,76 @@ namespace ml::ImGuiExt
 // PANELS
 namespace ml::ImGuiExt
 {
-	// PANEL
-	struct ML_NODISCARD Panel final
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// BASIC PANEL
+	template <class Derived
+	> struct ML_NODISCARD BasicPanel
 	{
-		cstring Title	{ "Panel" };
-		bool	IsOpen	{ false };
-		int32_t Flags	{ ImGuiWindowFlags_None };
+		cstring		Title;
+		bool		IsOpen;
+		int32_t		WinFlags;
+
+		BasicPanel(cstring title, bool open = false, int32_t winflags = ImGuiWindowFlags_None) noexcept
+			: Title		{ title }
+			, IsOpen	{ open }
+			, WinFlags	{ winflags }
+		{
+		}
+
+		BasicPanel(BasicPanel const & other) noexcept
+			: BasicPanel{ other.Title, other.IsOpen, other.WinFlags }
+		{
+		}
+
+		bool Begin() noexcept {
+			return IsOpen && ImGui::Begin(Title, &IsOpen, WinFlags);
+		}
+
+		void End() noexcept {
+			ImGui::End();
+		}
+
+		ML_NODISCARD ImGuiID GetID() const noexcept {
+			return ImGuiExt::GetID(this);
+		}
+	};
+
+	// BASIC PANEL ID
+	template <class Derived
+	> ImGuiID GetID(BasicPanel<Derived> const * p) noexcept
+	{
+		return ImGui::GetID(p->Title);
+	}
+
+	// BASIC PANEL MENU ITEM
+	template <class Derived
+	> bool MenuItem(BasicPanel<Derived> * p, cstring shortcut = {}, bool enabled = true)
+	{
+		return ImGui::MenuItem(p->Title, shortcut, &p->IsOpen, enabled);
+	}
+
+	// BASIC PANEL SELECTABLE
+	template <class Derived
+	> bool Selectable(BasicPanel<Derived> * p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
+	{
+		return ImGui::Selectable(p->Title, &p->IsOpen, flags, size);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// PANEL
+	struct ML_NODISCARD Panel : BasicPanel<Panel>
+	{
+		Panel(cstring title, bool open = false, int32_t winflags = ImGuiWindowFlags_None) noexcept
+			: BasicPanel{ title, open, winflags }
+		{
+		}
+
+		Panel(Panel const & other) noexcept : BasicPanel{ other }
+		{
+		}
 
 		template <class Fn, class ... Args
 		> bool operator()(Fn && fn, Args && ... args) noexcept
@@ -115,28 +179,106 @@ namespace ml::ImGuiExt
 			ML_ImGui_ScopeID(this);
 			return IsOpen && ImGuiExt::Window
 			(
-				Title, &IsOpen, Flags, ML_forward(fn), ML_forward(args)...
+				Title, &IsOpen, WinFlags, ML_forward(fn), ML_forward(args)...
 			);
 		}
 	};
+}
 
-	// PANEL ID
-	inline ImGuiID GetID(Panel & p) noexcept
-	{
-		return ImGui::GetID(p.Title);
-	}
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// PANEL MENU ITEM
-	inline bool MenuItem(Panel & p, cstring shortcut = {}, bool enabled = true)
+// DOCKSPACE
+namespace ml::ImGuiExt
+{
+	struct ML_NODISCARD Dockspace : BasicPanel<Dockspace>
 	{
-		return ImGui::MenuItem(p.Title, shortcut, &p.IsOpen, enabled);
-	}
+		float_t		Border		; // 
+		float_t		Rounding	; // 
+		vec2		Padding		; // 
+		float_t		Alpha		; // 
+		vec2		Size		; // 
+		int32_t		DockFlags	; // 
 
-	// PANEL SELECTABLE
-	inline bool Selectable(Panel & p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
-	{
-		return ImGui::Selectable(p.Title, &p.IsOpen, flags, size);
-	}
+		static constexpr auto DefaultWindowFlags
+		{
+			ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoMove |
+			ImGuiWindowFlags_NoBringToFrontOnFocus |
+			ImGuiWindowFlags_NoNavFocus |
+			ImGuiWindowFlags_NoDocking |
+			ImGuiWindowFlags_NoBackground
+		};
+
+		static bool IsDockingEnabled() noexcept {
+			return ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
+		}
+
+		Dockspace(
+			cstring			title		= "Dockspace",
+			bool			open		= true,
+			float_t			border		= {},
+			float_t			rounding	= {},
+			vec2 const &	padding		= {},
+			float_t			alpha		= {},
+			vec2 const &	docksize	= {},
+			int32_t			winflags	= DefaultWindowFlags,
+			int32_t			dockflags	= ImGuiDockNodeFlags_AutoHideTabBar)
+			: BasicPanel	{ title, open, winflags }
+			, Border		{ border }
+			, Rounding		{ rounding }
+			, Padding		{ padding }
+			, Alpha			{ alpha }
+			, Size			{ docksize }
+			, DockFlags		{ dockflags }
+		{}
+
+		Dockspace(Dockspace const & other) noexcept : Dockspace{
+			other.Title,
+			other.IsOpen,
+			other.Border,
+			other.Rounding,
+			other.Padding,
+			other.Alpha,
+			other.Size,
+			other.WinFlags,
+			other.DockFlags
+		}
+		{}
+
+		template <class Fn, class ... Args
+		> bool operator()(ImGuiViewport const * vp, Fn && fn, Args && ... args) noexcept
+		{
+			if (!vp || !IsOpen || !IsDockingEnabled()) { return false; }
+
+			ML_ImGui_ScopeID(this);
+			ImGui::SetNextWindowPos(vp->Pos);
+			ImGui::SetNextWindowSize(vp->Size);
+			ImGui::SetNextWindowViewport(vp->ID);
+			ImGui::SetNextWindowBgAlpha(Alpha);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, Rounding);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, Border);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, Padding);
+
+			bool const is_open{ Begin() }; ML_defer(&) { End(); };
+
+			ImGui::PopStyleVar(3);
+
+			if (is_open)
+			{
+				std::invoke(ML_forward(fn), ML_forward(args)...);
+
+				ImGui::DockSpace(
+					GetID(),
+					Size,
+					ImGuiDockNodeFlags_PassthruCentralNode | DockFlags,
+					nullptr);
+			}
+
+			return is_open;
+		}
+	};
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -150,7 +292,7 @@ namespace ml::ImGuiExt
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		using Line = typename pmr::string;
+		using Line = typename ds::string;
 
 		using LineBuffer = typename pmr::vector<Line>;
 
@@ -230,7 +372,7 @@ namespace ml::ImGuiExt
 			return this->Printf(str.c_str(), ML_forward(args)...);
 		}
 
-		auto & Dump(pmr::stringstream & ss) noexcept
+		auto & Dump(ds::stringstream & ss) noexcept
 		{
 			this->Print(ss.str());
 			ss.str({});
@@ -245,7 +387,7 @@ namespace ml::ImGuiExt
 
 		template <class T> auto & operator<<(T && value) noexcept
 		{
-			pmr::stringstream ss{};
+			ds::stringstream ss{};
 			ss << ML_forward(value);
 			return this->Dump(ss);
 		}
@@ -273,17 +415,17 @@ namespace ml::ImGuiExt
 		
 		using CommandProc = typename ds::method< void(Line &&) >;
 		
-		using CommandInfo = typename pmr::vector<pmr::string>;
+		using CommandInfo = typename pmr::vector<ds::string>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		pmr::string User, Host, Path, Mode; // session
+		ds::string User, Host, Path, Mode; // session
 
 		InputBuffer Input; // input
 
 		TextLog Output; // output
 
-		ds::batch_vector<pmr::string, CommandInfo, CommandProc> Commands; // commands
+		ds::batch_vector<ds::string, CommandInfo, CommandProc> Commands; // commands
 
 		pmr::vector<Line> History; // history
 
@@ -311,35 +453,35 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Name = pmr::string
+		template <class Name = ds::string
 		> bool AddCommand(Name && name, CommandInfo const & info, CommandProc const & clbk) noexcept
 		{
 			if (this->HasCommand(ML_forward(name))) { return false; }
 			else { Commands.push_back(ML_forward(name), info, clbk); return true; }
 		}
 
-		template <class Name = pmr::string
+		template <class Name = ds::string
 		> bool DelCommand(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return false; }
 			else { Commands.erase(*i); return true; }
 		}
 
-		template <class Name = pmr::string
+		template <class Name = ds::string
 		> ML_NODISCARD bool HasCommand(Name && name) const noexcept
 		{
-			return Commands.contains<pmr::string>(ML_forward(name));
+			return Commands.contains<ds::string>(ML_forward(name));
 		}
 
-		template <class Name = pmr::string
+		template <class Name = ds::string
 		> ML_NODISCARD std::optional<size_t> GetIndex(Name && name) const noexcept
 		{
-			if (auto const i{ Commands.lookup<pmr::string>(ML_forward(name)) }
+			if (auto const i{ Commands.lookup<ds::string>(ML_forward(name)) }
 			; i == Commands.npos) { return std::nullopt; }
 			else { return i; }
 		}
 
-		template <class Name = pmr::string
+		template <class Name = ds::string
 		> ML_NODISCARD CommandInfo * GetInfo(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
@@ -348,7 +490,7 @@ namespace ml::ImGuiExt
 			}
 		}
 
-		template <class Name = pmr::string
+		template <class Name = ds::string
 		> ML_NODISCARD CommandProc * GetProc(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }

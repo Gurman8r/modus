@@ -31,7 +31,7 @@ namespace ml
 		}
 
 		// config
-		pmr::vector<pmr::string>	args;
+		pmr::vector<ds::string>	args;
 		json						prefs;
 		fs::path					program_name, program_path, content_path;
 
@@ -63,9 +63,9 @@ namespace ml
 	{
 		memory_manager	* const mem		; // memory
 		client_io		* const io		; // io
-		client_database * const db		; // database
 		event_bus		* const bus		; // bus
 		render_window	* const win		; // window
+		client_database * const db		; // database
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -76,8 +76,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit client_object(client_context * ctx) noexcept
-			: m_ctx{ ctx }
+		explicit client_object(client_context * ctx) noexcept : m_ctx{ ctx }
 		{
 		}
 
@@ -100,6 +99,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// client listener
 	template <class Derived
@@ -136,6 +137,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_CLIENT_HPP_

@@ -3,7 +3,7 @@
 
 #include <modus_core/Export.hpp>
 #include <modus_core/detail/Rect.hpp>
-#include <modus_core/detail/FlatSet.hpp>
+#include <modus_core/detail/Set.hpp>
 
 namespace ml
 {

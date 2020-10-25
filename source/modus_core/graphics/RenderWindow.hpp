@@ -13,7 +13,7 @@ namespace ml
 		render_window(allocator_type alloc = {}) noexcept;
 
 		render_window(
-			pmr::string			const & title,
+			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
@@ -24,7 +24,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
 		virtual bool open(
-			pmr::string			const &	title,
+			ds::string			const &	title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default) override;

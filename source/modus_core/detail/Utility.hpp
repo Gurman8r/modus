@@ -5,7 +5,6 @@
 #include <modus_core/detail/Flow.hpp>
 #include <modus_core/detail/JSON.hpp>
 #include <modus_core/detail/Meta.hpp>
-#include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/detail/TypeInfo.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

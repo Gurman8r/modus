@@ -22,7 +22,7 @@ namespace ml
 	}
 
 	native_window::native_window(
-		pmr::string			const & title,
+		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints,
@@ -40,7 +40,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	bool native_window::open(
-		pmr::string			const & title,
+		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints
@@ -187,7 +187,7 @@ namespace ml
 		return m_impl->get_size();
 	}
 
-	pmr::string const & native_window::get_title() const noexcept
+	ds::string const & native_window::get_title() const noexcept
 	{
 		return m_impl->get_title();
 	}
@@ -341,7 +341,7 @@ namespace ml
 		m_impl->set_size(value);
 	}
 
-	void native_window::set_title(pmr::string const & value) noexcept
+	void native_window::set_title(ds::string const & value) noexcept
 	{
 		m_impl->set_title(value);
 	}

@@ -2,7 +2,7 @@
 #define _ML_RENDER_API_HPP_
 
 #include <modus_core/detail/Method.hpp>
-#include <modus_core/detail/FlatMap.hpp>
+#include <modus_core/detail/Map.hpp>
 #include <modus_core/graphics/Bitmap.hpp>
 #include <modus_core/window/WindowContext.hpp>
 
@@ -620,9 +620,9 @@ namespace ml::gfx
 	struct ML_NODISCARD device_properties final
 	{
 		// version
-		pmr::string renderer, vendor, version;
+		ds::string renderer, vendor, version;
 		int32_t major_version, minor_version;
-		pmr::vector<pmr::string> extensions;
+		pmr::vector<ds::string> extensions;
 
 		// textures
 		bool texture_edge_clamp_available;
@@ -635,18 +635,17 @@ namespace ml::gfx
 		// shaders
 		bool shaders_available;
 		bool geometry_shaders_available;
-		pmr::string shading_language_version;
+		ds::string shading_language_version;
 	};
 
-	
+
+	ML_NODISCARD ML_CORE_API render_device * get_default_device() noexcept;
+
+	ML_CORE_API render_device * set_default_device(render_device * value) noexcept;
+
 	// base device
 	class ML_CORE_API render_device : public non_copyable, public trackable
 	{
-	private:
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static render_device * g_dev; // default device
-
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -657,12 +656,6 @@ namespace ml::gfx
 		ML_NODISCARD static render_device * create(int32_t api, allocator_type alloc = {}) noexcept;
 
 		static void destroy(render_device * value) noexcept;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD static render_device * get_default() noexcept { return g_dev; }
-
-		static render_device * set_default(render_device * value) noexcept { return g_dev = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -914,7 +907,7 @@ namespace ml::gfx
 
 		ML_NODISCARD static auto create(spec_type const & desc, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_context(desc, alloc);
+			return get_default_device()->create_context(desc, alloc);
 		}
 
 	public:
@@ -1046,7 +1039,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<vertexarray> const & desc = {}, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_vertexarray(desc, alloc);
+			return get_default_device()->create_vertexarray(desc, alloc);
 		}
 
 	public:
@@ -1117,7 +1110,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<vertexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_vertexbuffer(desc, data, alloc);
+			return get_default_device()->create_vertexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1186,7 +1179,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<indexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_indexbuffer(desc, data, alloc);
+			return get_default_device()->create_indexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1367,7 +1360,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_texture2d(desc, data);
+			return get_default_device()->create_texture2d(desc, data);
 		}
 
 		ML_NODISCARD static auto create(bitmap const & img, texture_flags_ flags = texture_flags_default) noexcept
@@ -1455,7 +1448,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_texturecube(desc, alloc);
+			return get_default_device()->create_texturecube(desc, alloc);
 		}
 
 	public:
@@ -1535,7 +1528,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_framebuffer(desc, alloc);
+			return get_default_device()->create_framebuffer(desc, alloc);
 		}
 
 	public:
@@ -1611,7 +1604,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create() noexcept
 		{
-			return render_device::get_default()->create_program();
+			return get_default_device()->create_program();
 		}
 
 	public:
@@ -1630,14 +1623,14 @@ namespace ml::gfx
 	public:
 		virtual bool attach(uint32_t type, size_t count, cstring * str, int32_t const * len = {}) = 0;
 
-		inline bool attach(uint32_t type, pmr::string const & str) noexcept
+		inline bool attach(uint32_t type, ds::string const & str) noexcept
 		{
 			if (str.empty()) { return false; }
 			cstring temp{ str.c_str() };
 			return attach(type, 1, &temp, nullptr);
 		}
 
-		inline bool attach(uint32_t type, pmr::vector<pmr::string> const & str) noexcept
+		inline bool attach(uint32_t type, pmr::vector<ds::string> const & str) noexcept
 		{
 			if (str.empty()) { return false; }
 			cstring temp{ str.front().c_str() };
@@ -1650,11 +1643,11 @@ namespace ml::gfx
 
 		virtual bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) = 0;
 
-		ML_NODISCARD virtual pmr::string const & get_error_log() const noexcept = 0;
+		ML_NODISCARD virtual ds::string const & get_error_log() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<uint32_t, object_id> const & get_shaders() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::map<uint32_t, pmr::vector<pmr::string>> const & get_source() const noexcept = 0;
+		ML_NODISCARD virtual ds::map<uint32_t, pmr::vector<ds::string>> const & get_source() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<uniform_id, shared<texture>> const & get_textures() const noexcept = 0;
 
@@ -1711,7 +1704,7 @@ namespace ml::gfx
 	// shader settings
 	template <> struct ML_NODISCARD spec<shader> final
 	{
-		using source_t = pmr::vector<pmr::string>;
+		using source_t = pmr::vector<ds::string>;
 
 		uint32_t	type	{ shader_vertex };
 		source_t	code	{};
@@ -1736,7 +1729,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<shader> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return render_device::get_default()->create_shader(desc, alloc);
+			return get_default_device()->create_shader(desc, alloc);
 		}
 
 	public:
@@ -1755,9 +1748,9 @@ namespace ml::gfx
 
 		virtual bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) = 0;
 
-		ML_NODISCARD virtual pmr::string const & get_info_log() const noexcept = 0;
+		ML_NODISCARD virtual ds::string const & get_info_log() const noexcept = 0;
 
-		ML_NODISCARD virtual pmr::vector<pmr::string> const & get_source() const noexcept = 0;
+		ML_NODISCARD virtual pmr::vector<ds::string> const & get_source() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<uniform_id, shared<texture>> const & get_textures() const noexcept = 0;
 

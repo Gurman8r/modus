@@ -22,7 +22,15 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	render_device * render_device::g_dev{};
+	static render_device * g_device{}; // singleton
+
+	render_device * get_default_device() noexcept {
+		return g_device;
+	}
+
+	render_device * set_default_device(render_device * value) noexcept {
+		return g_device = value;
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -40,16 +48,16 @@ namespace ml::gfx
 			}
 		}) };
 
-		if (!g_dev) { set_default(temp); }
+		if (!g_device) { set_default_device(temp); }
 
 		return temp;
 	}
 
 	void render_device::destroy(render_device * value) noexcept
 	{
-		if (!value) { value = g_dev; }
+		if (!value) { value = g_device; }
 
-		if (g_dev == value) { set_default(nullptr); }
+		if (g_device == value) { set_default_device(nullptr); }
 
 		delete value;
 	}

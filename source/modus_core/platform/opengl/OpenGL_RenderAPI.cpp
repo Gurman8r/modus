@@ -653,7 +653,7 @@ namespace ml::gfx
 	}
 
 	// get program info log
-	static void gl_get_program_info_log(uint32_t obj, pmr::string & buf) noexcept
+	static void gl_get_program_info_log(uint32_t obj, ds::string & buf) noexcept
 	{
 		int32_t max_len{};
 		ML_glCheck(glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &max_len));
@@ -702,10 +702,10 @@ namespace ml::gfx
 			ML_glCheck(glGetIntegerv(GL_NUM_EXTENSIONS, &num));
 			m_data.extensions.reserve(num);
 
-			pmr::stringstream ss{};
+			ds::stringstream ss{};
 			ML_glCheck(ss.str((cstring)glGetString(GL_EXTENSIONS)));
 
-			pmr::string line{};
+			ds::string line{};
 			while (std::getline(ss, line, ' '))
 			{
 				m_data.extensions.push_back(line);

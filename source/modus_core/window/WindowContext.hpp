@@ -29,7 +29,7 @@ namespace ml
 		if (j.is_number()) { v = (context_api_)j.get<int32_t>(); }
 		else if (j.is_string())
 		{
-			switch (auto const s{ j.get<pmr::string>() }; hashof(util::to_lower(s)))
+			switch (auto const s{ j.get<ds::string>() }; hashof(util::to_lower(s)))
 			{
 			case hashof("unknown"	): v = context_api_unknown	; break;
 			case hashof("opengl"	): v = context_api_opengl	; break;
@@ -66,7 +66,7 @@ namespace ml
 		if (j.is_number()) { v = (context_profile_)j.get<int32_t>(); }
 		else if (j.is_string())
 		{
-			switch (auto const s{ j.get<pmr::string>() }; hashof(util::to_lower(s)))
+			switch (auto const s{ j.get<ds::string>() }; hashof(util::to_lower(s)))
 			{
 			case hashof("any"	): v = context_profile_any		; break;
 			case hashof("core"	): v = context_profile_core		; break;

@@ -500,9 +500,9 @@ namespace ml::gfx
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_program> };
 
 		uint32_t									m_handle		{}; // handle
-		pmr::string									m_error_log		{}; // error log
+		ds::string									m_error_log		{}; // error log
 		ds::map<uint32_t, object_id>				m_shaders		{}; // shader cache
-		ds::map<uint32_t, pmr::vector<pmr::string>>	m_source		{}; // source cache
+		ds::map<uint32_t, pmr::vector<ds::string>>	m_source		{}; // source cache
 		ds::map<uniform_id, shared<texture>>		m_textures		{}; // texture cache
 		ds::map<hash_t, uniform_id>					m_uniforms		{}; // uniform cache
 
@@ -545,11 +545,11 @@ namespace ml::gfx
 			return u;
 		}
 
-		pmr::string const & get_error_log() const noexcept override { return m_error_log; }
+		ds::string const & get_error_log() const noexcept override { return m_error_log; }
 
 		ds::map<uint32_t, object_id> const & get_shaders() const noexcept override { return m_shaders; }
 
-		ds::map<uint32_t, pmr::vector<pmr::string>> const & get_source() const noexcept override { return m_source; }
+		ds::map<uint32_t, pmr::vector<ds::string>> const & get_source() const noexcept override { return m_source; }
 
 		ds::map<uniform_id, shared<texture>> const & get_textures() const noexcept override { return m_textures; }
 
@@ -586,10 +586,10 @@ namespace ml::gfx
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_shader> };
 
 		uint32_t								m_type		{}; // type
-		pmr::vector<pmr::string>				m_code		{}; // code
+		pmr::vector<ds::string>				m_code		{}; // code
 		uint32_t								m_handle	{}; // handle
-		pmr::string								m_log		{}; // error log
-		pmr::vector<pmr::string>				m_source	{}; // source
+		ds::string								m_log		{}; // error log
+		pmr::vector<ds::string>				m_source	{}; // source
 		ds::map<hash_t, uniform_id>				m_attribs	{}; // attributes
 		ds::map<hash_t, uniform_id>				m_uniforms	{}; // uniforms
 		ds::map<uniform_id, shared<texture>>	m_textures	{}; // textures
@@ -626,9 +626,9 @@ namespace ml::gfx
 			return u;
 		}
 
-		pmr::string const & get_info_log() const noexcept override { return m_log; }
+		ds::string const & get_info_log() const noexcept override { return m_log; }
 
-		pmr::vector<pmr::string> const & get_source() const noexcept override { return m_source; }
+		pmr::vector<ds::string> const & get_source() const noexcept override { return m_source; }
 
 		ds::map<uniform_id, shared<texture>> const & get_textures() const noexcept override { return m_textures; }
 

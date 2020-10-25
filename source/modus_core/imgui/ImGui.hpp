@@ -39,6 +39,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui_club/imgui_memory_editor/imgui_memory_editor.h>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -47,7 +48,6 @@
 #include <ImGuizmo/ImSequencer.h>
 #include <ImGuizmo/ImCurveEdit.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
-#include <imgui_club/imgui_memory_editor/imgui_memory_editor.h>
 #include <imgui-node-editor/imgui_node_editor.h>
 
 namespace ml

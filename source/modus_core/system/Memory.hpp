@@ -3,9 +3,10 @@
 
 #include <modus_core/detail/BatchVector.hpp>
 #include <modus_core/detail/Debug.hpp>
+#include <modus_core/detail/Pointer.hpp>
 #include <modus_core/detail/Singleton.hpp>
 
-// passthrough
+// passthrough resource
 namespace ml
 {
 	// proxy for testing an upstream resource
@@ -108,48 +109,7 @@ namespace ml
 	};
 }
 
-// types
-namespace ml
-{
-	// trackable
-	struct trackable;
-
-	// no delete
-	struct no_delete final
-	{
-		template <class T
-		> void operator()(T *) const noexcept {}
-	};
-
-	// default delete
-	template <class ...> struct default_delete;
-
-	// unique pointer
-	template <class T, class Dx = default_delete<T>
-	> struct unique : public std::unique_ptr<T, Dx> {
-		using std::unique_ptr<T, Dx>::unique_ptr;
-	};
-
-	// manual pointer
-	template <class T
-	> struct manual : unique<T, no_delete> {
-		using unique<T, no_delete>::unique;
-	};
-
-	// shared pointer
-	template <class T
-	> struct shared : public std::shared_ptr<T> {
-		using std::shared_ptr<T>::shared_ptr;
-	};
-
-	// weak pointer
-	template <class T
-	> struct unown : public std::weak_ptr<T> {
-		using std::weak_ptr<T>::weak_ptr;
-	};
-}
-
-// record
+// memory record
 namespace ml
 {
 	// memory record
@@ -180,7 +140,7 @@ namespace ml
 	}
 }
 
-// memory
+// memory manager
 namespace ml
 {
 	// memory manager
@@ -206,7 +166,7 @@ namespace ml
 			*reinterpret_cast<passthrough_resource *>(res)
 		} {}
 
-		explicit memory_manager(passthrough_resource & res)
+		explicit memory_manager(passthrough_resource & res) noexcept
 			: m_resource{ std::addressof(res) }
 			, m_alloc	{ m_resource }
 			, m_records	{ m_alloc }
@@ -438,7 +398,7 @@ namespace ml
 	};
 }
 
-// deleters
+// default deleters
 namespace ml
 {
 	template <> struct default_delete<> final

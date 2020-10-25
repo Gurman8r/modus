@@ -8,7 +8,7 @@ namespace ml
 {
 	struct ML_NODISCARD tag_component final
 	{
-		pmr::string tag;
+		ds::string tag;
 	};
 
 	struct ML_NODISCARD transform_component final

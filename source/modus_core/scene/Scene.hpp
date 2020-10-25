@@ -26,7 +26,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		shared<entity> & create_entity(pmr::string const & name, allocator_type alloc = {}) noexcept;
+		shared<entity> & create_entity(ds::string const & name, allocator_type alloc = {}) noexcept;
 
 		void destroy_entity(shared<entity> const & value) noexcept;
 

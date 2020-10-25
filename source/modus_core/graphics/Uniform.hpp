@@ -38,7 +38,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using info_type		= typename typeof<>;
-		using name_type		= typename pmr::string;
+		using name_type		= typename ds::string;
 		using data_type		= typename std::variant<variable_type, function_type>;
 		using storage_type	= typename std::tuple<info_type, name_type, data_type>;
 
@@ -302,7 +302,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD iterator find(pmr::string const & name)
+		ML_NODISCARD iterator find(ds::string const & name)
 		{
 			if (name.empty()) return end();
 
@@ -312,7 +312,7 @@ namespace ml
 			});
 		}
 
-		ML_NODISCARD const_iterator find(pmr::string const & name) const
+		ML_NODISCARD const_iterator find(ds::string const & name) const
 		{
 			if (name.empty()) return cend();
 			
@@ -325,7 +325,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class T
-		> ML_NODISCARD iterator find(pmr::string const & name)
+		> ML_NODISCARD iterator find(ds::string const & name)
 		{
 			if (auto const it{ find(name) }; it != end() && it->holds<T>())
 			{
@@ -338,7 +338,7 @@ namespace ml
 		}
 
 		template <class T
-		> ML_NODISCARD const_iterator find(pmr::string const & name) const
+		> ML_NODISCARD const_iterator find(ds::string const & name) const
 		{
 			if (auto const it{ find(name) }; it != cend() && it->holds<T>())
 			{
@@ -352,7 +352,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD uniform * get(pmr::string const & name)
+		ML_NODISCARD uniform * get(ds::string const & name)
 		{
 			if (auto const it{ find(name) }; it != end())
 			{
@@ -364,7 +364,7 @@ namespace ml
 			}
 		}
 
-		ML_NODISCARD uniform const * get(pmr::string const & name) const
+		ML_NODISCARD uniform const * get(ds::string const & name) const
 		{
 			if (auto const it{ find(name) }; it != end())
 			{
@@ -379,7 +379,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class T
-		> ML_NODISCARD uniform * get(pmr::string const & name)
+		> ML_NODISCARD uniform * get(ds::string const & name)
 		{
 			if (auto const it{ find<T>(name) }; it != end())
 			{
@@ -392,7 +392,7 @@ namespace ml
 		}
 
 		template <class T
-		> ML_NODISCARD uniform const * get(pmr::string const & name) const
+		> ML_NODISCARD uniform const * get(ds::string const & name) const
 		{
 			if (auto const it{ find<T>(name) }; it != cend())
 			{
@@ -407,7 +407,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class T, class Data
-		> uniform_buffer & set(pmr::string const & name, Data const & data)
+		> uniform_buffer & set(ds::string const & name, Data const & data)
 		{
 			if (uniform * u{ get(name) })
 			{
@@ -440,13 +440,13 @@ namespace ml
 			return m_storage.erase(first, last);
 		}
 
-		iterator erase(pmr::string const & name)
+		iterator erase(ds::string const & name)
 		{
 			return m_storage.erase(this->find(name));
 		}
 
 		template <class T
-		> iterator erase(pmr::string const & name)
+		> iterator erase(ds::string const & name)
 		{
 			return m_storage.erase(this->find<T>(name));
 		}

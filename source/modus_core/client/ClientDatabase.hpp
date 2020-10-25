@@ -12,7 +12,7 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		using category_type = typename ds::hashmap<pmr::string, shared<std::any>>;
+		using category_type = typename ds::hashmap<ds::string, shared<std::any>>;
 
 		using categories_type = typename ds::hashmap<typeof<>, category_type>;
 
@@ -34,7 +34,7 @@ namespace ml
 		}
 
 		// get element
-		template <class Type, class Key = pmr::string
+		template <class Type, class Key = ds::string
 		> ML_NODISCARD shared<std::any> & element(Key && key) noexcept
 		{
 			category_type & cat{ this->category<Type>() };
@@ -51,19 +51,19 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Type, class Key = pmr::string
+		template <class Type, class Key = ds::string
 		> ML_NODISCARD Type & get(Key && key) noexcept
 		{
 			return *std::any_cast<Type>(this->element<Type>(ML_forward(key)).get());
 		}
 
-		template <class Type, class Key = pmr::string, class ... Args
+		template <class Type, class Key = ds::string, class ... Args
 		> Type & emplace(Key && key, Args && ... args) noexcept
 		{
 			return this->element<Type>(ML_forward(key))->emplace<Type>(ML_forward(args)...);
 		}
 
-		template <class Type, class Key = pmr::string
+		template <class Type, class Key = ds::string
 		> category_type::iterator erase(Key && key) noexcept
 		{
 			category_type & cat{ this->category<Type>() };
@@ -101,23 +101,23 @@ namespace ml
 
 	// database variable
 	template <class T
-	> struct db_var final
+	> struct db_ref final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using value_type		= typename std::_Remove_cvref_t<T>;
-		using self_type			= typename db_var<value_type>;
+		using self_type			= typename db_ref<value_type>;
 		using pointer			= typename value_type *;
 		using const_pointer		= typename value_type const *;
 		using reference			= typename value_type &;
 		using const_reference	= typename value_type const &;
 
-		~db_var() noexcept
+		~db_ref() noexcept
 		{
 			ML_check(m_db)->erase<T>(m_name);
 		}
 
-		db_var() noexcept
+		db_ref() noexcept
 			: m_db	{}
 			, m_name{}
 			, m_ptr	{}
@@ -125,7 +125,7 @@ namespace ml
 		}
 
 		template <class ... Args
-		> db_var(client_database * const db, pmr::string const & name, Args && ... args)
+		> db_ref(client_database * const db, ds::string const & name, Args && ... args)
 			: m_db	{ ML_check(db) }
 			, m_name{ name }
 			, m_ptr	{ m_db->element<T>(m_name) }
@@ -136,14 +136,14 @@ namespace ml
 			}
 		}
 
-		db_var(self_type const & other)
+		db_ref(self_type const & other)
 			: m_db	{ other.m_db }
 			, m_name{ other.m_name }
 			, m_ptr	{ other.m_ptr }
 		{
 		}
 
-		db_var(self_type && other) noexcept : self_type{}
+		db_ref(self_type && other) noexcept : self_type{}
 		{
 			this->swap(std::move(other));
 		}
@@ -177,7 +177,7 @@ namespace ml
 
 		ML_NODISCARD auto type() const noexcept -> typeof<> { return typeof_v<value_type>; }
 
-		ML_NODISCARD auto name() const noexcept -> pmr::string const & { return m_name; }
+		ML_NODISCARD auto name() const noexcept -> ds::string const & { return m_name; }
 
 		ML_NODISCARD auto database() const noexcept -> client_database * { return m_db; }
 
@@ -211,22 +211,22 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto begin() noexcept { return get().begin(); }
-			
+		
 		ML_NODISCARD auto begin() const noexcept { return get().begin(); }
-			
+		
 		ML_NODISCARD auto cbegin() const noexcept { return get().cbegin(); }
 
 		ML_NODISCARD auto end() noexcept { return get().end(); }
-			
+		
 		ML_NODISCARD auto end() const noexcept { return get().end(); }
-			
+		
 		ML_NODISCARD auto cend() const noexcept { return get().cend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		client_database *	m_db	; // 
-		pmr::string			m_name	; // 
+		ds::string			m_name	; // 
 		unown<std::any>		m_ptr	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

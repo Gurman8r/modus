@@ -1,5 +1,5 @@
-#ifndef _ML_FLAT_SET_HPP_
-#define _ML_FLAT_SET_HPP_
+#ifndef _ML_SET_HPP_
+#define _ML_SET_HPP_
 
 #include <modus_core/detail/Utility.hpp>
 
@@ -592,4 +592,4 @@ namespace ml::ds
 	}
 }
 
-#endif // !_ML_FLAT_SET_HPP_
+#endif // !_ML_SET_HPP_

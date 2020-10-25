@@ -130,7 +130,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto family() const noexcept -> pmr::string const & { return m_family; }
+		ML_NODISCARD auto family() const noexcept -> ds::string const & { return m_family; }
 
 		ML_NODISCARD auto pages() const noexcept -> page_table const & { return m_pages; }
 
@@ -140,7 +140,7 @@ namespace ml
 		font_library	m_library;
 		font_face		m_face;
 		font_stroker	m_stroker;
-		pmr::string		m_family;
+		ds::string		m_family;
 		page_table		m_pages;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

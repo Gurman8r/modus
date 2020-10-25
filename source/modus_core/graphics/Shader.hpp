@@ -28,7 +28,7 @@ namespace ml
 			load_from_file(v, f, g);
 		}
 
-		shader_asset(ds::map<uint32_t, pmr::vector<pmr::string>> const & value) : m_obj{}
+		shader_asset(ds::map<uint32_t, pmr::vector<ds::string>> const & value) : m_obj{}
 		{
 			load_from_memory(value);
 		}
@@ -86,7 +86,7 @@ namespace ml
 				util::get_file_string(g_file));
 		}
 
-		bool load_from_memory(ds::map<uint32_t, pmr::vector<pmr::string>> const & src)
+		bool load_from_memory(ds::map<uint32_t, pmr::vector<ds::string>> const & src)
 		{
 			if (m_obj) { m_obj->revalue(); }
 			else { m_obj = gfx::program::create(); }
@@ -99,7 +99,7 @@ namespace ml
 			return m_obj->link();
 		}
 
-		bool load_from_memory(pmr::string const & v_src, pmr::string const & f_src)
+		bool load_from_memory(ds::string const & v_src, ds::string const & f_src)
 		{
 			if (m_obj) { m_obj->revalue(); }
 			else { m_obj = gfx::program::create(); }
@@ -110,7 +110,7 @@ namespace ml
 			return m_obj->link();
 		}
 
-		bool load_from_memory(pmr::string const & v_src, pmr::string const & f_src, pmr::string const & g_src)
+		bool load_from_memory(ds::string const & v_src, ds::string const & f_src, ds::string const & g_src)
 		{
 			if (m_obj) { m_obj->revalue(); }
 			else { m_obj = gfx::program::create(); }
@@ -139,7 +139,7 @@ namespace ml
 		}
 
 		template <class T
-		> bool set_uniform(pmr::string const & name, T && value) noexcept
+		> bool set_uniform(ds::string const & name, T && value) noexcept
 		{
 			return this->set_uniform(name.c_str(), ML_forward(value));
 		}
@@ -187,7 +187,7 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		using source_storage = ds::array<ds::map<pmr::string, pmr::string>, gfx::shader_MAX>;
+		using source_storage = ds::array<ds::map<ds::string, ds::string>, gfx::shader_MAX>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -226,19 +226,19 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		pmr::string & str(uint32_t i, pmr::string const & name) & noexcept
+		ds::string & str(uint32_t i, ds::string const & name) & noexcept
 		{
 			return this->get(i)[name];
 		}
 
-		cstring c_str(uint32_t i, pmr::string const & name) noexcept
+		cstring c_str(uint32_t i, ds::string const & name) noexcept
 		{
 			return str(i, name).c_str();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool read_file(uint32_t i, pmr::string const & name, fs::path const & path)
+		bool read_file(uint32_t i, ds::string const & name, fs::path const & path)
 		{
 			if (auto const contents{ util::get_file_contents(path) })
 			{

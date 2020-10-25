@@ -9,7 +9,7 @@ namespace ml
 	// plugin details
 	struct ML_NODISCARD plugin_details final
 	{
-		pmr::string name, path, extension;
+		ds::string name, path, extension;
 
 		hash_t id;
 	};

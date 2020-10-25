@@ -5,14 +5,10 @@
 
 struct ImGuiContext;
 
+namespace ml { struct client_runtime; }
+
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	struct client_runtime;
-	struct client_menubar;
-	struct client_dockspace;
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// CLIENT INIT
@@ -43,30 +39,21 @@ namespace ml
 	};
 
 	// CLIENT DOCKSPACE
-	ML_decl_event(client_dock_event)
+	ML_decl_event(imgui_docker_event)
 	{
 		client_runtime * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_dock_event(client_runtime * const ptr) noexcept : ptr{ ptr } {}
-	};
-
-	// CLIENT MENUBAR
-	ML_decl_event(client_menu_event)
-	{
-		client_runtime * const ptr;
-		auto operator->() const noexcept { return ptr; }
-		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_menu_event(client_runtime * const ptr) noexcept : ptr{ ptr } {}
+		constexpr imgui_docker_event(client_runtime * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	// CLIENT GUI
-	ML_decl_event(client_imgui_event)
+	ML_decl_event(imgui_render_event)
 	{
-		ImGuiContext * const ptr;
+		client_runtime * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_imgui_event(ImGuiContext * const ptr) noexcept : ptr{ ptr } {}
+		constexpr imgui_render_event(client_runtime * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

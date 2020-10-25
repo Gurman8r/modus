@@ -3,6 +3,7 @@
 #include <modus_core/client/ClientRuntime.hpp>
 #include <modus_core/client/ClientEvents.hpp>
 #include <modus_core/client/ClientDatabase.hpp>
+#include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/Font.hpp>
 #include <modus_core/graphics/Mesh.hpp>
@@ -56,11 +57,11 @@ namespace ml
 		pmr::vector<shared<gfx::framebuffer>> m_fb{};
 
 		// database
-		db_var<ds::hashmap<pmr::string, font>>					m_fonts		{ get_db(), "fonts" };
-		db_var<ds::hashmap<pmr::string, bitmap>>				m_images	{ get_db(), "images" };
-		db_var<ds::hashmap<pmr::string, shared<gfx::program>>>	m_programs	{ get_db(), "programs" };
-		db_var<ds::hashmap<pmr::string, shared<gfx::shader>>>	m_shaders	{ get_db(), "shaders" };
-		db_var<ds::hashmap<pmr::string, shared<gfx::texture>>>	m_textures	{ get_db(), "textures" };
+		db_ref<	ds::hashmap<pmr::string, font>					> m_fonts	{ get_db(), "fonts" };
+		db_ref<	ds::hashmap<pmr::string, bitmap>				> m_images	{ get_db(), "images" };
+		db_ref<	ds::hashmap<pmr::string, shared<gfx::program>>	> m_programs{ get_db(), "programs" };
+		db_ref<	ds::hashmap<pmr::string, shared<gfx::shader>>	> m_shaders	{ get_db(), "shaders" };
+		db_ref<	ds::hashmap<pmr::string, shared<gfx::texture>>	> m_textures{ get_db(), "textures" };
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -71,9 +72,8 @@ namespace ml
 			subscribe<client_enter_event>();
 			subscribe<client_exit_event>();
 			subscribe<client_idle_event>();
-			subscribe<client_dock_event>();
-			subscribe<client_menu_event>();
-			subscribe<client_imgui_event>();
+			subscribe<imgui_docker_event>();
+			subscribe<imgui_render_event>();
 		}
 
 		void on_event(event && value) override
@@ -83,9 +83,8 @@ namespace ml
 			case client_enter_event	::ID: return on_client_enter((client_enter_event &&)value);
 			case client_exit_event	::ID: return on_client_exit((client_exit_event &&)value);
 			case client_idle_event	::ID: return on_client_idle((client_idle_event &&)value);
-			case client_dock_event	::ID: return on_client_dock((client_dock_event &&)value);
-			case client_menu_event	::ID: return on_client_menu((client_menu_event &&)value);
-			case client_imgui_event	::ID: return on_client_imgui((client_imgui_event &&)value);
+			case imgui_docker_event	::ID: return on_imgui_docker((imgui_docker_event &&)value);
+			case imgui_render_event	::ID: return on_imgui_render((imgui_render_event &&)value);
 			}
 		}
 
@@ -122,50 +121,52 @@ namespace ml
 				gfx::command::bind_framebuffer(nullptr));
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void on_client_dock(client_dock_event && ev)
+		void on_imgui_docker(imgui_docker_event && ev)
 		{
-			if (auto const root{ ImGui::GetID(ev->get_dock_title().c_str()) }
-			; !ImGui::DockBuilderGetNode(root))
+			auto & dockspace{ ev->get_dockspace() };
+			if (ImGuiID const root{ dockspace.GetID() }; !ImGui::DockBuilderGetNode(root))
 			{
 				ImGui::DockBuilderRemoveNode(root);
-				ImGui::DockBuilderAddNode(root, ev->get_dock_flags());
+				ImGui::DockBuilderAddNode(root, dockspace.DockFlags);
 				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, root);
 				ImGui::DockBuilderFinish(root);
 			}
 		}
 
-		void on_client_menu(client_menu_event && ev)
+		void on_imgui_render(imgui_render_event && ev)
 		{
-			// FILE
-			if (ImGui::BeginMenu("file")) {
-				if (ImGui::MenuItem("quit", "alt+f4")) {
-					get_window()->set_should_close(true);
+			// MAIN MENU BAR
+			if (ImGui::BeginMainMenuBar()) {
+				// FILE
+				if (ImGui::BeginMenu("file")) {
+					if (ImGui::MenuItem("quit", "alt+f4")) {
+						get_window()->set_should_close(true);
+					}
+					ImGui::EndMenu();
 				}
-				ImGui::EndMenu();
+				// TOOLS
+				if (ImGui::BeginMenu("tools")) {
+					ImGuiExt::MenuItem(m_panels + database_panel);
+					ImGuiExt::MenuItem(m_panels + terminal_panel);
+					ImGuiExt::MenuItem(m_panels + viewport_panel);
+					ImGui::EndMenu();
+				}
+				// HELP
+				if (ImGui::BeginMenu("help")) {
+					ImGuiExt::MenuItem(m_panels + imgui_demo_panel);
+					ImGuiExt::MenuItem(m_panels + imgui_metrics_panel);
+					ImGuiExt::MenuItem(m_panels + imgui_about_panel);
+					ImGuiExt::MenuItem(m_panels + imgui_style_panel);
+					ImGui::EndMenu();
+				}
+				ImGui::EndMainMenuBar();
 			}
 
-			// TOOLS
-			if (ImGui::BeginMenu("tools")) {
-				ImGuiExt::MenuItem(m_panels[database_panel]);
-				ImGuiExt::MenuItem(m_panels[terminal_panel]);
-				ImGuiExt::MenuItem(m_panels[viewport_panel]);
-				ImGui::EndMenu();
-			}
+			// SANDBOX
+			draw_database_panel(); // DATABASE
+			draw_terminal_panel(); // TERMINAL
+			draw_viewport_panel(); // VIEWPORT
 
-			// HELP
-			if (ImGui::BeginMenu("help")) {
-				ImGuiExt::MenuItem(m_panels[imgui_demo_panel]);
-				ImGuiExt::MenuItem(m_panels[imgui_metrics_panel]);
-				ImGuiExt::MenuItem(m_panels[imgui_about_panel]);
-				ImGuiExt::MenuItem(m_panels[imgui_style_panel]);
-				ImGui::EndMenu();
-			}
-		}
-
-		void on_client_imgui(client_imgui_event && ev)
-		{
 			// IMGUI
 			if (m_panels[imgui_about_panel].IsOpen) {
 				ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].IsOpen);
@@ -179,11 +180,6 @@ namespace ml
 			m_panels[imgui_style_panel](
 				&ImGui::ShowStyleEditor, &ImGui::GetStyle()
 			);
-
-			// SANDBOX
-			draw_terminal_panel	(); // CONSOLE
-			draw_database_panel	(); // DATABASE
-			draw_viewport_panel	(); // VIEWPORT
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

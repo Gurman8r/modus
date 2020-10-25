@@ -17,7 +17,7 @@ namespace ml
 		explicit glfw_window(allocator_type alloc) noexcept;
 
 		explicit glfw_window(
-			pmr::string			const & title,
+			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
@@ -28,7 +28,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		virtual bool open(
-			pmr::string			const & title,
+			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default) override;
@@ -83,7 +83,7 @@ namespace ml
 
 		vec2i get_size() const override;
 
-		pmr::string const & get_title() const override;
+		ds::string const & get_title() const override;
 
 		void * get_user_pointer() const override;
 
@@ -147,7 +147,7 @@ namespace ml
 
 		void set_size(vec2i const & value) override;
 		
-		void set_title(pmr::string const & value) override;
+		void set_title(ds::string const & value) override;
 
 		void set_user_pointer(void * value) override;
 
@@ -204,7 +204,7 @@ namespace ml
 
 	private:
 		allocator_type		m_alloc		; // 
-		pmr::string			m_title		; // 
+		ds::string			m_title		; // 
 		GLFWwindow	*		m_window	; // 
 		GLFWmonitor	*		m_monitor	; // 
 		window_hints_		m_hints		; // 

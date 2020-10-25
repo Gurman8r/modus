@@ -30,14 +30,14 @@ namespace ml
 		{
 		}
 
-		node(pmr::string const & n, allocator_type alloc = {})
+		node(ds::string const & n, allocator_type alloc = {})
 			: m_name	{ alloc }
 			, m_parent	{}
 			, m_children{ alloc }
 		{
 		}
 
-		node(pmr::string const & n, std::initializer_list<node *> const & c, allocator_type alloc = {})
+		node(ds::string const & n, std::initializer_list<node *> const & c, allocator_type alloc = {})
 			: m_name	{ n, alloc }
 			, m_parent	{}
 			, m_children{ alloc }
@@ -45,7 +45,7 @@ namespace ml
 			set_children(c);
 		}
 
-		node(node * p, pmr::string const & n, pmr::vector<node *> const & c, allocator_type alloc = {}) noexcept
+		node(node * p, ds::string const & n, pmr::vector<node *> const & c, allocator_type alloc = {}) noexcept
 			: m_name	{ alloc }
 			, m_parent	{ p }
 			, m_children{ alloc }
@@ -89,7 +89,7 @@ namespace ml
 
 		ML_NODISCARD auto get_children() const noexcept -> pmr::vector<node *> const & { return m_children; }
 
-		ML_NODISCARD auto get_name() const noexcept -> pmr::string { return m_name; }
+		ML_NODISCARD auto get_name() const noexcept -> ds::string { return m_name; }
 
 		ML_NODISCARD auto get_parent() const noexcept -> node * { return m_parent; }
 
@@ -126,7 +126,7 @@ namespace ml
 			}
 		}
 
-		node * find(pmr::string const & name) noexcept
+		node * find(ds::string const & name) noexcept
 		{
 			if (auto const it{ std::find_if(begin(), end(), [&name
 			](auto c) { return c && c->m_name == name; }) }
@@ -158,7 +158,7 @@ namespace ml
 			}
 		}
 
-		void set_name(pmr::string const & value) noexcept
+		void set_name(ds::string const & value) noexcept
 		{
 			m_name = value;
 		}
@@ -191,7 +191,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		pmr::string			m_name		; // 
+		ds::string			m_name		; // 
 		node *				m_parent	; // 
 		pmr::vector<node *>	m_children	; // 
 

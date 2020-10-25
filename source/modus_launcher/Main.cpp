@@ -65,17 +65,18 @@ static auto const default_settings{ R"(
 			"visible"		: false
 		}
 	},
+	"imgui": {
+		"style": "resource/modus_launcher.style",
+		"dockspace": {
+			"alpha"		: 0,
+			"border"	: 0,
+			"padding"	: [ 0, 0 ],
+			"rounding"	: 0,
+			"size"		: [ 0, 0 ]
+		}
+	},
 	"client": {
-		"callbacks"		: true,
-		"gui_style"		: "resource/modus_launcher.style",
-		"menu_enabled"	: true,
-		"dock_enabled"	: true,
-		"dock_title"	: "dockspace",
-		"dock_border"	: 0,
-		"dock_rounding"	: 0,
-		"dock_alpha"	: 0,
-		"dock_padding"	: [ 0, 0 ],
-		"dock_size"		: [ 0, 0 ],
+		"callbacks": true,
 		"plugins": [
 			{ "path": "./plugins/sandbox" }
 		],
@@ -99,13 +100,13 @@ ml::int32_t main()
 {
 	static memory_manager	mem		{ pmr::get_default_resource() };
 	static client_io		io		{ __argc, __argv, load_settings() };
-	static client_database	db		{};
 	static event_bus		bus		{};
 	static render_window	win		{};
-	static client_context	ctx		{ &mem, &io, &db, &bus, &win };
+	static client_database	db		{};
+	static client_context	ctx		{ &mem, &io, &bus, &win, &db };
 	static client_runtime	runtime	{ &ctx };
 
-	return runtime.idle();
+	return set_default_runtime(&runtime)->idle();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

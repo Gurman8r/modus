@@ -62,12 +62,12 @@ files{
 	"%{wks.location}/vendor/source/imgui/backends/imgui_impl_glfw.cpp",
 	"%{wks.location}/vendor/source/imgui/backends/imgui_impl_opengl3.h",
 	"%{wks.location}/vendor/source/imgui/backends/imgui_impl_opengl3.cpp",
-
+	
+	"%{wks.location}/vendor/source/imgui_club/imgui_memory_editor/imgui_memory_editor.h",
 	--"%{wks.location}/vendor/source/ImGuiColorTextEdit/*.h",
 	--"%{wks.location}/vendor/source/ImGuiColorTextEdit/*.cpp",
 	--"%{wks.location}/vendor/source/ImGuizmo/*.h",
 	--"%{wks.location}/vendor/source/ImGuizmo/*.cpp",
-	--"%{wks.location}/vendor/source/imgui_club/imgui_memory_editor/imgui_memory_editor.h",
 	--"%{wks.location}/vendor/source/imgui-node-editor/*.h",
 	--"%{wks.location}/vendor/source/imgui-node-editor/*.cpp",
 	--"%{wks.location}/vendor/source/implot/**.h",

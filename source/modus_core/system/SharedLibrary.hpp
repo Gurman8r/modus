@@ -1,7 +1,7 @@
 #ifndef _ML_SHARED_LIBRARY_HPP_
 #define _ML_SHARED_LIBRARY_HPP_
 
-#include <modus_core/detail/FlatMap.hpp>
+#include <modus_core/detail/Map.hpp>
 #include <modus_core/system/Memory.hpp>
 
 namespace ml
@@ -85,7 +85,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
-		void * get_proc_address(pmr::string const & name) noexcept
+		void * get_proc_address(ds::string const & name) noexcept
 		{
 			return this->get_proc_address(name.c_str());
 		}

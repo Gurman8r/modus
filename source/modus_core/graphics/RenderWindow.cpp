@@ -13,7 +13,7 @@ namespace ml
 	}
 
 	render_window::render_window(
-		pmr::string			const & title,
+		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints,
@@ -31,7 +31,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	bool render_window::open(
-		pmr::string			const & title,
+		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints

@@ -1,7 +1,7 @@
-#ifndef _ML_FLAT_MAP_HPP_
-#define _ML_FLAT_MAP_HPP_
+#ifndef _ML_MAP_HPP_
+#define _ML_MAP_HPP_
 
-#include <modus_core/detail/FlatSet.hpp>
+#include <modus_core/detail/Set.hpp>
 
 namespace ml::ds
 {
@@ -663,4 +663,4 @@ namespace ml::ds
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-#endif // !_ML_FLAT_MAP_HPP_
+#endif // !_ML_MAP_HPP_

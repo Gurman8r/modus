@@ -14,10 +14,10 @@ git submodule add --force https://github.com/pybind/pybind11.git
 git submodule add --force https://github.com/madler/zlib
 
 git submodule add --force -b docking https://github.com/ocornut/imgui.git
-rem git submodule add --force https://github.com/ocornut/imgui_club.git
+git submodule add --force https://github.com/ocornut/imgui_club.git
+git submodule add --force https://github.com/CedricGuillemet/ImGuizmo.git
 rem git submodule add --force https://github.com/BalazsJako/ImGuiColorTextEdit.git
 rem git submodule add --force https://github.com/thedmd/imgui-node-editor.git
-rem git submodule add --force https://github.com/CedricGuillemet/ImGuizmo.git
 
 rem git submodule add --force https://github.com/Gurman8r/assimp.git
 rem git submodule add --force https://github.com/python/cpython.git

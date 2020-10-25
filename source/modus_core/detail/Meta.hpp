@@ -38,19 +38,19 @@ namespace ml::meta
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class Tpl, class Fn, size_t ... Is
-	> constexpr void impl_tuple_expand(Tpl && tp, Fn && fn, std::index_sequence<Is...>) noexcept
+	template <class Tup, class Fn, size_t ... Is
+	> constexpr void impl_tuple_expand(Tup && tp, Fn && fn, std::index_sequence<Is...>) noexcept
 	{
 		ML_forward(fn)(std::get<Is>(ML_forward(tp))...);
 	}
 
-	template <class Tpl, class Fn
-	> constexpr void impl_tuple_expand(Tpl && tp, Fn && fn) noexcept
+	template <class Tup, class Fn
+	> constexpr void impl_tuple_expand(Tup && tp, Fn && fn) noexcept
 	{
 		_ML meta::impl_tuple_expand(
 			ML_forward(tp),
 			ML_forward(fn),
-			std::make_index_sequence<std::tuple_size_v<std::decay_t<Tpl>>>());
+			std::make_index_sequence<std::tuple_size_v<std::decay_t<Tup>>>());
 	}
 
 	template <class Fn, class ... Args
@@ -62,8 +62,8 @@ namespace ml::meta
 		};
 	}
 
-	template <class Tpl, class Fn
-	> constexpr void impl_for_tuple(Tpl && tp, Fn && fn) noexcept
+	template <class Tup, class Fn
+	> constexpr void impl_for_tuple(Tup && tp, Fn && fn) noexcept
 	{
 		_ML meta::impl_tuple_expand(ML_forward(tp), [&fn](auto && ... rest) noexcept
 		{
@@ -74,8 +74,8 @@ namespace ml::meta
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// "unpacks" the contents of a tuple inside a function call
-	template <class Tpl, class Fn
-	> constexpr void tuple_expand(Tpl && tp, Fn && fn) noexcept
+	template <class Tup, class Fn
+	> constexpr void tuple_expand(Tup && tp, Fn && fn) noexcept
 	{
 		_ML meta::impl_tuple_expand(ML_forward(tp), ML_forward(fn));
 	}
@@ -88,8 +88,8 @@ namespace ml::meta
 	}
 
 	// invokes a function on every element of a tuple
-	template <class Tpl, class Fn
-	> constexpr void for_tuple(Tpl && tp, Fn && fn) noexcept
+	template <class Tup, class Fn
+	> constexpr void for_tuple(Tup && tp, Fn && fn) noexcept
 	{
 		_ML meta::impl_for_tuple(ML_forward(tp), ML_forward(fn));
 	}

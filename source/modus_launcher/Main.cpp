@@ -1,6 +1,4 @@
-#include <modus_core/client/ClientRuntime.hpp>
-#include <modus_core/client/ClientDatabase.hpp>
-#include <modus_core/graphics/RenderWindow.hpp>
+#include <modus_core/runtime/Runtime.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -75,7 +73,7 @@ static auto const default_settings{ R"(
 			"size"		: [ 0, 0 ]
 		}
 	},
-	"client": {
+	"runtime": {
 		"callbacks": true,
 		"plugins": [
 			{ "path": "./plugins/sandbox" }
@@ -99,14 +97,15 @@ static auto load_settings(fs::path const & path = SETTINGS_PATH)
 ml::int32_t main()
 {
 	static memory_manager	mem		{};
-	static client_io		io		{ __argc, __argv, load_settings() };
+	static runtime_io		io		{ __argc, __argv, load_settings() };
 	static event_bus		bus		{};
 	static render_window	win		{};
-	static client_database	db		{};
-	static client_context	ctx		{ &mem, &io, &bus, &win, &db };
-	static client_runtime	runtime	{ &ctx };
+	static runtime_api		api		{ &mem, &io, &bus, &win };
+	static runtime_context	runtime	{ &api };
 
-	return set_default_runtime(&runtime)->idle();
+	runtime.set_loop_condition(&render_window::is_open, &win);
+
+	return set_global_runtime(&runtime)->idle();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

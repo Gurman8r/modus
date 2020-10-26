@@ -1,7 +1,7 @@
 #ifndef _ML_PLUGIN_MANAGER_HPP_
 #define _ML_PLUGIN_MANAGER_HPP_
 
-#include <modus_core/client/Plugin.hpp>
+#include <modus_core/runtime/Plugin.hpp>
 #include <modus_core/system/SharedLibrary.hpp>
 
 namespace ml
@@ -23,7 +23,7 @@ namespace ml
 	};
 
 	// plugin manager
-	struct ML_CORE_API plugin_manager final : client_object<plugin_manager>
+	struct ML_CORE_API plugin_manager final : runtime_object<plugin_manager>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -38,7 +38,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit plugin_manager(client_context * context);
+		explicit plugin_manager(runtime_api * api);
 
 		~plugin_manager() noexcept override;
 

@@ -1,14 +1,13 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <modus_core/client/ClientRuntime.hpp>
-#include <modus_core/client/ClientEvents.hpp>
-#include <modus_core/client/ClientDatabase.hpp>
+#include <modus_core/runtime/Runtime.hpp>
+#include <modus_core/runtime/RuntimeEvents.hpp>
+#include <modus_core/detail/HashMap.hpp>
 #include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/Font.hpp>
 #include <modus_core/graphics/Mesh.hpp>
 #include <modus_core/graphics/Shader.hpp>
-#include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/window/Viewport.hpp>
 #include <modus_core/scene/Scene.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -57,11 +56,11 @@ namespace ml
 		pmr::vector<shared<gfx::framebuffer>> m_fb{};
 
 		// database
-		db_ref<	ds::hashmap<pmr::string, font>					> m_fonts	{ get_db(), "fonts" };
-		db_ref<	ds::hashmap<pmr::string, bitmap>				> m_images	{ get_db(), "images" };
-		db_ref<	ds::hashmap<pmr::string, shared<gfx::program>>	> m_programs{ get_db(), "programs" };
-		db_ref<	ds::hashmap<pmr::string, shared<gfx::shader>>	> m_shaders	{ get_db(), "shaders" };
-		db_ref<	ds::hashmap<pmr::string, shared<gfx::texture>>	> m_textures{ get_db(), "textures" };
+		ds::hashmap<pmr::string, font>					m_fonts		{};
+		ds::hashmap<pmr::string, bitmap>				m_images	{};
+		ds::hashmap<pmr::string, shared<gfx::program>>	m_programs	{};
+		ds::hashmap<pmr::string, shared<gfx::shader>>	m_shaders	{};
+		ds::hashmap<pmr::string, shared<gfx::texture>>	m_textures	{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -74,9 +73,6 @@ namespace ml
 			subscribe<client_idle_event>();
 			subscribe<imgui_docker_event>();
 			subscribe<imgui_render_event>();
-			subscribe<window_key_event>();
-			subscribe<window_mouse_event>();
-			subscribe<window_cursor_pos_event>();
 		}
 
 		void on_event(event && value) override
@@ -88,21 +84,6 @@ namespace ml
 			case client_idle_event	::ID: return on_client_idle((client_idle_event &&)value);
 			case imgui_docker_event	::ID: return on_imgui_docker((imgui_docker_event &&)value);
 			case imgui_render_event	::ID: return on_imgui_render((imgui_render_event &&)value);
-
-			case window_key_event::ID: {
-				auto && ev{ (window_key_event &&)value };
-				get_io()->keyboard[ev.key] = ev.action;
-			} break;
-
-			case window_mouse_event::ID: {
-				auto && ev{ (window_mouse_event &&)value };
-				get_io()->mouse[ev.button] = ev.action;
-			} break;
-
-			case window_cursor_pos_event::ID: {
-				auto && ev{ (window_cursor_pos_event &&)value };
-				get_io()->cursor = { ev.x, ev.y };
-			} break;
 			}
 		}
 
@@ -141,7 +122,7 @@ namespace ml
 
 		void on_imgui_docker(imgui_docker_event && ev)
 		{
-			auto & dockspace{ ev->get_dockspace() };
+			auto & dockspace{ ev->get_docker() };
 			if (ImGuiID const root{ dockspace.GetID() }; !ImGui::DockBuilderGetNode(root))
 			{
 				ImGui::DockBuilderRemoveNode(root);
@@ -210,29 +191,29 @@ namespace ml
 				ImGui::SetNextWindowSize({ 960, 329 }, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
-			m_panels[database_panel]([&, &db = *get_db()]() noexcept
+			m_panels[database_panel]([&]() noexcept
 			{
 				ML_defer() { ImGui::EndTabBar(); };
 				if (!ImGui::BeginTabBar("tabs")) { return; }
 
-				// database
-				if (ImGui::BeginTabItem("database")) {
-					ImGui::Columns(2);
-					ImGui::Text("type"); ImGui::NextColumn();
-					ImGui::Text("name"); ImGui::NextColumn();
-					ImGui::Separator();
-					for (auto & [type, category] : db.all())
-					{
-						for (auto & [name, elem] : category)
-						{
-							ImGui::Text("%u", type.hash()); ImGui::NextColumn();
-							ImGui::Text("%s", name.c_str()); ImGui::NextColumn();
-						}
-					}
-					ImGui::Columns(1);
-					ImGui::Separator();
-					ImGui::EndTabItem();
-				}
+				//// database
+				//if (ImGui::BeginTabItem("database")) {
+				//	ImGui::Columns(2);
+				//	ImGui::Text("type"); ImGui::NextColumn();
+				//	ImGui::Text("name"); ImGui::NextColumn();
+				//	ImGui::Separator();
+				//	for (auto & [type, category] : db.all())
+				//	{
+				//		for (auto & [name, elem] : category)
+				//		{
+				//			ImGui::Text("%u", type.hash()); ImGui::NextColumn();
+				//			ImGui::Text("%s", name.c_str()); ImGui::NextColumn();
+				//		}
+				//	}
+				//	ImGui::Columns(1);
+				//	ImGui::Separator();
+				//	ImGui::EndTabItem();
+				//}
 
 				// plugins
 				if (ImGui::BeginTabItem("plugins")) {

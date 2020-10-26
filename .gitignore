@@ -3,6 +3,7 @@
 /bin-lib
 /bin-obj
 /proj
+/project
 __pycache__/
 imgui.ini
 imgui.log

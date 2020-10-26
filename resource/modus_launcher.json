@@ -40,7 +40,7 @@
 			"size"		: [ 0, 0 ]
 		}
 	},
-	"client": {
+	"runtime": {
 		"callbacks": true,
 		"plugins": [
 			{ "path": "./plugins/sandbox" }

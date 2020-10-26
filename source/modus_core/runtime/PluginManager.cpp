@@ -1,12 +1,12 @@
-#include <modus_core/client/PluginManager.hpp>
+#include <modus_core/runtime/PluginManager.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(client_context * ctx)
-		: client_object{ ctx }
-		, m_data		{ ctx->mem->get_allocator() }
+	plugin_manager::plugin_manager(runtime_api * api)
+		: runtime_object{ api }
+		, m_data		{ api->mem->get_allocator() }
 	{
 	}
 

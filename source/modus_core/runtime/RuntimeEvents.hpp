@@ -3,57 +3,53 @@
 
 #include <modus_core/system/Events.hpp>
 
-struct ImGuiContext;
-
-namespace ml { struct client_runtime; }
-
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// CLIENT INIT
+	// ENTER
 	ML_decl_event(client_enter_event)
 	{
-		client_runtime * const ptr;
+		struct runtime_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_enter_event(client_runtime * ptr) noexcept : ptr{ ptr } {}
+		constexpr client_enter_event(struct runtime_context * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	// CLIENT EXIT
+	// EXIT
 	ML_decl_event(client_exit_event)
 	{
-		client_runtime * const ptr;
+		struct runtime_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_exit_event(client_runtime * ptr) noexcept : ptr{ ptr } {}
+		constexpr client_exit_event(struct runtime_context * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	// CLIENT IDLE
+	// IDLE
 	ML_decl_event(client_idle_event)
 	{
-		client_runtime * const ptr;
+		struct runtime_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr client_idle_event(client_runtime * ptr) noexcept : ptr{ ptr } {}
+		constexpr client_idle_event(struct runtime_context * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	// CLIENT DOCKSPACE
+	// IMGUI DOCKER
 	ML_decl_event(imgui_docker_event)
 	{
-		client_runtime * const ptr;
+		struct runtime_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr imgui_docker_event(client_runtime * const ptr) noexcept : ptr{ ptr } {}
+		constexpr imgui_docker_event(struct runtime_context * const ptr) noexcept : ptr{ ptr } {}
 	};
 
-	// CLIENT GUI
+	// IMGUI RENDER
 	ML_decl_event(imgui_render_event)
 	{
-		client_runtime * const ptr;
+		struct runtime_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr imgui_render_event(client_runtime * const ptr) noexcept : ptr{ ptr } {}
+		constexpr imgui_render_event(struct runtime_context * const ptr) noexcept : ptr{ ptr } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

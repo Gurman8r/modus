@@ -24,11 +24,11 @@ namespace ml::gfx
 
 	static render_device * g_device{}; // singleton
 
-	render_device * get_default_device() noexcept {
+	render_device * get_global_device() noexcept {
 		return g_device;
 	}
 
-	render_device * set_default_device(render_device * value) noexcept {
+	render_device * set_global_device(render_device * value) noexcept {
 		return g_device = value;
 	}
 
@@ -48,7 +48,7 @@ namespace ml::gfx
 			}
 		}) };
 
-		if (!g_device) { set_default_device(temp); }
+		if (!g_device) { set_global_device(temp); }
 
 		return temp;
 	}
@@ -57,7 +57,7 @@ namespace ml::gfx
 	{
 		if (!value) { value = g_device; }
 
-		if (g_device == value) { set_default_device(nullptr); }
+		if (g_device == value) { set_global_device(nullptr); }
 
 		delete value;
 	}

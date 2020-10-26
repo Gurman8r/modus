@@ -1,12 +1,14 @@
-#ifndef _ML_CLIENT_DATABASE_HPP_
-#define _ML_CLIENT_DATABASE_HPP_
+#ifndef _ML_DATABASE_HPP_
+#define _ML_DATABASE_HPP_
 
 #include <modus_core/detail/HashMap.hpp>
-#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/Pointer.hpp>
+#include <modus_core/detail/String.hpp>
+#include <modus_core/detail/NonCopyable.hpp>
 
 namespace ml
 {
-	struct client_database final : non_copyable
+	struct simple_database final : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -18,7 +20,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		client_database(allocator_type alloc = {}) noexcept : m_categories{ alloc } {}
+		simple_database(allocator_type alloc = {}) noexcept : m_categories{ alloc } {}
 
 		// get all categories
 		ML_NODISCARD categories_type & all() noexcept
@@ -125,7 +127,7 @@ namespace ml
 		}
 
 		template <class ... Args
-		> db_ref(client_database * const db, ds::string const & name, Args && ... args)
+		> db_ref(simple_database * const db, ds::string const & name, Args && ... args)
 			: m_db	{ ML_check(db) }
 			, m_name{ name }
 			, m_ptr	{ m_db->element<T>(m_name) }
@@ -179,7 +181,7 @@ namespace ml
 
 		ML_NODISCARD auto name() const noexcept -> ds::string const & { return m_name; }
 
-		ML_NODISCARD auto database() const noexcept -> client_database * { return m_db; }
+		ML_NODISCARD auto database() const noexcept -> simple_database * { return m_db; }
 
 		ML_NODISCARD auto use_count() const noexcept -> int32_t { return m_ptr.use_count(); }
 
@@ -225,7 +227,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		client_database *	m_db	; // 
+		simple_database *	m_db	; // 
 		ds::string			m_name	; // 
 		unown<std::any>		m_ptr	; // 
 
@@ -235,4 +237,4 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-#endif // !_ML_CLIENT_DATABASE_HPP_
+#endif // !_ML_DATABASE_HPP_

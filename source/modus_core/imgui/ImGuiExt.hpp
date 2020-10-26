@@ -47,12 +47,9 @@ namespace ml::ImGuiExt
 	template <class BeginFn, class EndFn, class Fn, class ... Args
 	> bool BeginEnd(BeginFn && begin_fn, EndFn && end_fn, Fn && fn, Args && ... args)
 	{
-		ML_defer(&) { std::invoke(ML_forward(end_fn)); };
-		
 		bool const is_open{ std::invoke(ML_forward(begin_fn)) };
-		
+		ML_defer(&) { std::invoke(ML_forward(end_fn)); };
 		if (is_open) { std::invoke(ML_forward(fn), ML_forward(args)...); }
-		
 		return is_open;
 	}
 
@@ -125,17 +122,11 @@ namespace ml::ImGuiExt
 		{
 		}
 
-		bool Begin() noexcept {
-			return IsOpen && ImGui::Begin(Title, &IsOpen, WinFlags);
-		}
+		bool Begin() noexcept { return IsOpen && ImGui::Begin(Title, &IsOpen, WinFlags); }
 
-		void End() noexcept {
-			ImGui::End();
-		}
+		void End() noexcept { ImGui::End(); }
 
-		ML_NODISCARD ImGuiID GetID() const noexcept {
-			return ImGuiExt::GetID(this);
-		}
+		ML_NODISCARD ImGuiID GetID() const noexcept { return ImGuiExt::GetID(this); }
 	};
 
 	// BASIC PANEL ID
@@ -176,10 +167,12 @@ namespace ml::ImGuiExt
 		template <class Fn, class ... Args
 		> bool operator()(Fn && fn, Args && ... args) noexcept
 		{
+			if (!IsOpen) { return false; }
 			ML_ImGui_ScopeID(this);
-			return IsOpen && ImGuiExt::Window
-			(
-				Title, &IsOpen, WinFlags, ML_forward(fn), ML_forward(args)...
+			return ImGuiExt::BeginEnd(
+				std::bind(&Panel::Begin, this),
+				std::bind(&Panel::End, this),
+				ML_forward(fn), ML_forward(args)...
 			);
 		}
 	};
@@ -199,7 +192,7 @@ namespace ml::ImGuiExt
 		vec2		Size		; // 
 		int32_t		DockFlags	; // 
 
-		static constexpr auto DefaultWindowFlags
+		static constexpr auto DockspaceWinFlags
 		{
 			ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse |
@@ -223,7 +216,7 @@ namespace ml::ImGuiExt
 			vec2 const &	padding		= {},
 			float_t			alpha		= {},
 			vec2 const &	docksize	= {},
-			int32_t			winflags	= DefaultWindowFlags,
+			int32_t			winflags	= DockspaceWinFlags,
 			int32_t			dockflags	= ImGuiDockNodeFlags_AutoHideTabBar)
 			: BasicPanel	{ title, open, winflags }
 			, Border		{ border }
@@ -250,8 +243,8 @@ namespace ml::ImGuiExt
 		template <class Fn, class ... Args
 		> bool operator()(ImGuiViewport const * vp, Fn && fn, Args && ... args) noexcept
 		{
-			if (!vp || !IsOpen || !IsDockingEnabled()) { return false; }
-
+			if (!IsOpen || !vp || !IsDockingEnabled()) { return false; }
+			
 			ML_ImGui_ScopeID(this);
 			ImGui::SetNextWindowPos(vp->Pos);
 			ImGui::SetNextWindowSize(vp->Size);
@@ -260,11 +253,9 @@ namespace ml::ImGuiExt
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, Rounding);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, Border);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, Padding);
-
+			
 			bool const is_open{ Begin() }; ML_defer(&) { End(); };
-
 			ImGui::PopStyleVar(3);
-
 			if (is_open)
 			{
 				std::invoke(ML_forward(fn), ML_forward(args)...);
@@ -275,7 +266,6 @@ namespace ml::ImGuiExt
 					ImGuiDockNodeFlags_PassthruCentralNode | DockFlags,
 					nullptr);
 			}
-
 			return is_open;
 		}
 	};

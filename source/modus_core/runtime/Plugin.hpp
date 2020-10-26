@@ -1,7 +1,7 @@
 #ifndef _ML_PLUGIN_HPP_
 #define _ML_PLUGIN_HPP_
 
-#include <modus_core/client/Client.hpp>
+#include <modus_core/runtime/RuntimeAPI.hpp>
 
 #ifndef ML_PLUGIN_API
 #define ML_PLUGIN_API ML_API_EXPORT
@@ -13,7 +13,7 @@ namespace ml
 
 	ML_decl_handle(plugin_id);
 
-	struct ML_CORE_API plugin : client_listener<plugin>
+	struct ML_CORE_API plugin : runtime_listener<plugin>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

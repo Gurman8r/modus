@@ -145,9 +145,9 @@ namespace ml
 {
 	struct memory_manager;
 
-	ML_NODISCARD ML_CORE_API memory_manager * get_default_memory() noexcept;
+	ML_NODISCARD ML_CORE_API memory_manager * get_global_memory() noexcept;
 
-	ML_CORE_API memory_manager * set_default_memory(memory_manager * value) noexcept;
+	ML_CORE_API memory_manager * set_global_memory(memory_manager * value) noexcept;
 
 	// memory manager
 	struct ML_CORE_API memory_manager final : non_copyable
@@ -174,9 +174,9 @@ namespace ml
 			, m_records	{ m_alloc }
 			, m_counter	{}
 		{
-			if (!get_default_memory() && (m_resource == pmr::get_default_resource()))
+			if (!get_global_memory() && (m_resource == pmr::get_default_resource()))
 			{
-				set_default_memory(this);
+				set_global_memory(this);
 			}
 		}
 
@@ -184,9 +184,9 @@ namespace ml
 		{
 			ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
 			
-			if (this == get_default_memory())
+			if (this == get_global_memory())
 			{
-				set_default_memory(nullptr);
+				set_global_memory(nullptr);
 			}
 		}
 
@@ -382,22 +382,22 @@ namespace ml
 
 		ML_NODISCARD void * operator new(size_t size) noexcept
 		{
-			return get_default_memory()->allocate(size);
+			return get_global_memory()->allocate(size);
 		}
 
 		ML_NODISCARD void * operator new[](size_t size) noexcept
 		{
-			return get_default_memory()->allocate(size);
+			return get_global_memory()->allocate(size);
 		}
 
 		void operator delete(void * addr) noexcept
 		{
-			get_default_memory()->deallocate(addr);
+			get_global_memory()->deallocate(addr);
 		}
 
 		void operator delete[](void * addr) noexcept
 		{
-			get_default_memory()->deallocate(addr);
+			get_global_memory()->deallocate(addr);
 		}
 	};
 }
@@ -409,7 +409,7 @@ namespace ml
 	{
 		void operator()(void * addr) const noexcept
 		{
-			get_default_memory()->deallocate(addr);
+			get_global_memory()->deallocate(addr);
 		}
 	};
 
@@ -417,7 +417,7 @@ namespace ml
 	{
 		void operator()(void * addr) const noexcept
 		{
-			get_default_memory()->deallocate(addr);
+			get_global_memory()->deallocate(addr);
 		}
 	};
 
@@ -425,7 +425,7 @@ namespace ml
 	{
 		void operator()(T * addr) const noexcept
 		{
-			get_default_memory()->delete_object<T>(addr);
+			get_global_memory()->delete_object<T>(addr);
 		}
 	};
 }

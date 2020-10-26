@@ -1,5 +1,5 @@
 #include <modus_core/embed/Python.hpp>
-#include <modus_core/graphics/RenderWindow.hpp>
+#include <modus_core/runtime/Runtime.hpp>
 
 PYBIND11_EMBEDDED_MODULE(modus, m)
 {
@@ -9,7 +9,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	m.def("exit", [](py::args) // exit
 	{
-		//plugin_manager::get()->get_window()->set_should_close(true);
+		get_global_runtime()->get_window()->set_should_close(true);
 	});
 	py::module::import("builtins").attr("exit") = m.attr("exit");
 	py::module::import("sys").attr("exit") = m.attr("exit");

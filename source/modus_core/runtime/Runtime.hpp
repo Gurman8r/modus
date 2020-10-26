@@ -1,9 +1,9 @@
 #ifndef _ML_RUNTIME_HPP_
 #define _ML_RUNTIME_HPP_
 
+#include <modus_core/runtime/PluginManager.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/runtime/PluginManager.hpp>
 
 namespace ml
 {

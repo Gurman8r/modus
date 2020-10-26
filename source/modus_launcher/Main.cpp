@@ -1,4 +1,4 @@
-#include <modus_core/runtime/Runtime.hpp>
+#include <modus_core/runtime/RuntimeContext.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -100,7 +100,8 @@ ml::int32_t main()
 	static runtime_io		io		{ __argc, __argv, load_settings() };
 	static event_bus		bus		{};
 	static render_window	win		{};
-	static runtime_api		api		{ &mem, &io, &bus, &win };
+	static simple_database	db		{};
+	static runtime_api		api		{ &mem, &io, &bus, &win, &db };
 	static runtime_context	runtime	{ &api };
 
 	runtime.set_loop_condition(&render_window::is_open, &win);

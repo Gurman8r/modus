@@ -1,96 +1,145 @@
 #ifndef _ML_RUNTIME_HPP_
 #define _ML_RUNTIME_HPP_
 
-#include <modus_core/runtime/PluginManager.hpp>
-#include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/imgui/ImGuiExt.hpp>
+#include <modus_core/detail/Matrix.hpp>
+#include <modus_core/detail/Timer.hpp>
+#include <modus_core/detail/Database.hpp>
+#include <modus_core/system/Events.hpp>
+#include <modus_core/window/Input.hpp>
 
 namespace ml
 {
-	struct runtime_context;
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_NODISCARD ML_CORE_API runtime_context * get_global_runtime() noexcept;
+	struct render_window;
 
-	ML_CORE_API runtime_context * set_global_runtime(runtime_context * value) noexcept;
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime context
-	struct ML_CORE_API runtime_context final : runtime_listener<runtime_context>
+	// runtime io
+	struct ML_NODISCARD runtime_io final
+	{
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+
+		runtime_io(int32_t argc, char ** argv, json const & j, allocator_type alloc = {})
+			: argc			{ argc }
+			, argv			{ argv }
+			, prefs			{ json{ j } }
+			, program_name	{ argv[0] }
+			, program_path	{ fs::current_path() }
+			, content_path	{ j.contains("path") ? j["path"].get<fs::path>() : "./" }
+		{
+		}
+
+		// config
+		int32_t const	argc;
+		char ** const	argv;
+		json			prefs;
+		fs::path const	program_name, program_path, content_path;
+
+		ML_NODISCARD fs::path path2(fs::path const & path) const noexcept
+		{
+			return content_path.native() + path.native();
+		}
+
+		// timers
+		timer const				main_timer	{};
+		timer					loop_timer	{ false };
+		duration				delta_time	{};
+		uint64_t				frame_count	{};
+		float_t					fps			{};
+		float_t					fps_accum	{};
+		size_t					fps_index	{};
+		ds::array<float_t, 120> fps_times	{};
+
+		// input
+		vec2d					cursor		{};
+		mouse_state				mouse		{};
+		keyboard_state			keyboard	{};
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// runtime api
+	struct ML_NODISCARD runtime_api final
+	{
+		memory_manager	* const mem	; // memory
+		runtime_io		* const io	; // io
+		event_bus		* const bus	; // bus
+		render_window	* const win	; // window
+		simple_database * const db	; // database
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// runtime object
+	template <class Derived
+	> struct runtime_object : trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
-		explicit runtime_context(runtime_api * api);
-
-		~runtime_context() noexcept override;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD int32_t idle();
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_plugins() noexcept -> plugin_manager & { return m_plugins; }
-
-		ML_NODISCARD auto get_imgui() const noexcept -> ImGuiContext * { return m_imgui.get(); }
-
-		ML_NODISCARD auto get_docker() noexcept -> ImGuiExt::Dockspace & { return m_dockspace; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD bool check_condition() const noexcept {
-			return std::invoke(m_loopcond);
-		}
-
-		ML_NODISCARD auto const & get_loop_condition() const noexcept {
-			return m_loopcond;
-		}
-
-		template <class Fn, class ... Args
-		> auto & set_loop_condition(Fn && fn, Args && ... args) noexcept {
-			return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		void on_event(event && value) override;
-
-		void do_startup();
-
-		void do_shutdown();
-
-		void do_idle();
-
-		void do_imgui();
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		bool					m_running	; // running
-		ds::method<bool()>		m_loopcond	; // loop condition
-		plugin_manager			m_plugins	; // plugin manager
-		manual<ImGuiContext>	m_imgui		; // imgui context
-		ImGuiExt::Dockspace		m_dockspace	; // imgui dockspace
-
-		ML_NODISCARD static auto process_timers(runtime_io * io) noexcept
+		explicit runtime_object(runtime_api * api) noexcept : m_api{ ML_check(api) }
 		{
-			io->loop_timer.restart();
-			auto const dt{ (float_t)io->delta_time.count() };
-			io->fps_accum += dt - io->fps_times[io->fps_index];
-			io->fps_times[io->fps_index] = dt;
-			io->fps_index = (io->fps_index + 1) % io->fps_times.size();
-			io->fps = (0.f < io->fps_accum)
-				? 1.f / (io->fps_accum / (float_t)io->fps_times.size())
-				: FLT_MAX;
-			return ML_defer_ex(io) {
-				++io->frame_count;
-				io->delta_time = io->loop_timer.elapsed();
-			};
 		}
+
+		virtual ~runtime_object() noexcept override = default;
+
+		ML_NODISCARD auto get_api() const noexcept -> runtime_api * { return m_api; }
+
+		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_api->bus; }
+
+		ML_NODISCARD auto get_db() const noexcept -> simple_database * { return m_api->db; }
+
+		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
+
+		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->mem; }
+
+		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_api->win; }
+
+	private:
+		runtime_api * const m_api;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// runtime listener
+	template <class Derived
+	> struct runtime_listener : trackable, non_copyable, event_listener
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		explicit runtime_listener(runtime_api * api) noexcept
+			: event_listener{ ML_check(api)->bus }
+			, m_api			{ api }
+		{
+			ML_assert("BUS MISMATCH" && get_bus() == m_api->bus);
+		}
+
+		virtual ~runtime_listener() noexcept override = default;
+
+		ML_NODISCARD auto get_api() const noexcept -> runtime_api * { return m_api; }
+
+		using event_listener::get_bus;
+
+		ML_NODISCARD auto get_db() const noexcept -> simple_database * { return m_api->db; }
+		
+		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
+
+		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->mem; }
+
+		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_api->win; }
+
+	protected:
+		virtual void on_event(event &&) override = 0;
+
+	private:
+		runtime_api * const m_api;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-#endif // !_ML_RUNTIME_LOOP_HPP_
+#endif // !_ML_RUNTIME_HPP_

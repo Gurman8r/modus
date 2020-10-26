@@ -1,5 +1,5 @@
 #include <modus_core/embed/Python.hpp>
-#include <modus_core/runtime/Runtime.hpp>
+#include <modus_core/runtime/RuntimeContext.hpp>
 
 PYBIND11_EMBEDDED_MODULE(modus, m)
 {

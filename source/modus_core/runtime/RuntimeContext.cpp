@@ -1,4 +1,4 @@
-#include <modus_core/runtime/Runtime.hpp>
+#include <modus_core/runtime/RuntimeContext.hpp>
 #include <modus_core/runtime/RuntimeEvents.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/embed/Python.hpp>
@@ -45,41 +45,20 @@ namespace ml
 	int32_t runtime_context::idle()
 	{
 		// lock
-		if (m_running || !check_condition()) { return EXIT_FAILURE; }
+		if (m_running || !check_loop_condition()) { return EXIT_FAILURE; }
 		else { m_running = true; } ML_defer(&) { m_running = false; };
 		
 		// enter / exit
 		get_bus()->fire<client_enter_event>(this);
 		ML_defer(&) { get_bus()->fire<client_exit_event>(this); };
-		if (!check_condition()) { return EXIT_FAILURE; }
 
 		// main loop
-		do { do_idle(); } while (check_condition());
+		if (!check_loop_condition()) { return EXIT_FAILURE; }
+		do { do_idle(); } while (check_loop_condition());
 		return EXIT_SUCCESS;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void runtime_context::on_event(event && value)
-	{
-		switch (value)
-		{
-		case window_key_event::ID: {
-			auto && ev{ (window_key_event &&)value };
-			get_io()->keyboard[ev.key] = ev.action;
-		} break;
-
-		case window_mouse_event::ID: {
-			auto && ev{ (window_mouse_event &&)value };
-			get_io()->mouse[ev.button] = ev.action;
-		} break;
-
-		case window_cursor_pos_event::ID: {
-			auto && ev{ (window_cursor_pos_event &&)value };
-			get_io()->cursor = { ev.x, ev.y };
-		} break;
-		}
-	}
 
 	void runtime_context::do_startup()
 	{
@@ -235,22 +214,17 @@ namespace ml
 
 	void runtime_context::do_idle()
 	{
-		// timers
 		auto ML_anon{ process_timers(get_io()) };
 
-		// poll events
-		native_window::poll_events();
+		render_window::poll_events();
 
-		// update
 		get_bus()->fire<client_idle_event>(this);
 
-		// gui
-		ImGui_DoFrame(get_window(), get_imgui(), [&]() noexcept { do_imgui(); });
+		ImGui_DoFrame(get_window(), get_imgui(), [&]() { do_imgui(); });
 
-		// swap buffers
 		if (get_window()->has_hints(window_hints_doublebuffer))
 		{
-			native_window::swap_buffers(get_window()->get_handle());
+			render_window::swap_buffers(get_window()->get_handle());
 		}
 	}
 
@@ -268,6 +242,27 @@ namespace ml
 		});
 
 		get_bus()->fire<imgui_render_event>(this);
+	}
+
+	void runtime_context::on_event(event && value)
+	{
+		switch (value)
+		{
+		case window_key_event::ID: {
+			auto && ev{ (window_key_event &&)value };
+			get_io()->keyboard[ev.key] = ev.action;
+		} break;
+
+		case window_mouse_event::ID: {
+			auto && ev{ (window_mouse_event &&)value };
+			get_io()->mouse[ev.button] = ev.action;
+		} break;
+
+		case window_cursor_pos_event::ID: {
+			auto && ev{ (window_cursor_pos_event &&)value };
+			get_io()->cursor = { ev.x, ev.y };
+		} break;
+		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -176,6 +176,8 @@ namespace ml::ImGuiExt
 			);
 		}
 	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -204,8 +206,8 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoBackground
 		};
 
-		static bool IsDockingEnabled() noexcept {
-			return ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
+		static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept {
+			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
 		}
 
 		Dockspace(
@@ -288,7 +290,7 @@ namespace ml::ImGuiExt
 
 		using PrinterSignature = typename void(LineBuffer const &, size_t);
 
-		struct ML_CORE_API Printer final : ds::method< PrinterSignature >
+		struct ML_CORE_API ML_NODISCARD Printer final : ds::method< PrinterSignature >
 		{
 			using ds::method< PrinterSignature >::method;
 

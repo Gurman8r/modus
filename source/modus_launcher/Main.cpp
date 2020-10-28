@@ -1,4 +1,4 @@
-#include <modus_core/runtime/RuntimeContext.hpp>
+#include <modus_core/runtime/BuiltinRuntime.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -63,18 +63,16 @@ static auto const default_settings{ R"(
 			"visible"		: false
 		}
 	},
-	"imgui": {
-		"style": "resource/modus_launcher.style",
+	"runtime": {
+		"callbacks": true,
+		"guistyle": "resource/modus_launcher.style",
 		"dockspace": {
 			"alpha"		: 0,
 			"border"	: 0,
 			"padding"	: [ 0, 0 ],
 			"rounding"	: 0,
 			"size"		: [ 0, 0 ]
-		}
-	},
-	"runtime": {
-		"callbacks": true,
+		},
 		"plugins": [
 			{ "path": "./plugins/sandbox" }
 		],
@@ -99,14 +97,13 @@ ml::int32_t main()
 	static memory_manager	mem		{};
 	static runtime_io		io		{ __argc, __argv, load_settings() };
 	static event_bus		bus		{};
+	static layer_stack		layers	{ &bus };
 	static render_window	win		{};
 	static simple_database	db		{};
-	static runtime_api		api		{ &mem, &io, &bus, &win, &db };
-	static runtime_context	runtime	{ &api };
+	static runtime_api		api		{ &mem, &io, &bus, &layers, &win, &db };
+	static builtin_runtime	runtime	{ &api };
 
-	runtime.set_loop_condition(&render_window::is_open, &win);
-
-	return set_global_runtime(&runtime)->idle();
+	return runtime.idle();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

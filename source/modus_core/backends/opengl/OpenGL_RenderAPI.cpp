@@ -676,31 +676,31 @@ namespace ml::gfx
 		ML_assert_msg(opengl_init, "failed initializing opengl device");
 
 		// renderer
-		ML_glCheck(m_data.renderer = (cstring)glGetString(GL_RENDERER));
+		ML_glCheck(m_info.renderer = (cstring)glGetString(GL_RENDERER));
 
 		// vendor
-		ML_glCheck(m_data.vendor = (cstring)glGetString(GL_VENDOR));
+		ML_glCheck(m_info.vendor = (cstring)glGetString(GL_VENDOR));
 
 		// version
-		ML_glCheck(m_data.version = (cstring)glGetString(GL_VERSION));
+		ML_glCheck(m_info.version = (cstring)glGetString(GL_VERSION));
 
 		// major version
-		if (glGetIntegerv(GL_MAJOR_VERSION, &m_data.major_version); glGetError() == GL_INVALID_ENUM)
+		if (glGetIntegerv(GL_MAJOR_VERSION, &m_info.major_version); glGetError() == GL_INVALID_ENUM)
 		{
-			m_data.major_version = !m_data.version.empty() ? m_data.version[0] - '0' : 1;
+			m_info.major_version = !m_info.version.empty() ? m_info.version[0] - '0' : 1;
 		}
 
 		// minor version
-		if (glGetIntegerv(GL_MINOR_VERSION, &m_data.minor_version); glGetError() == GL_INVALID_ENUM)
+		if (glGetIntegerv(GL_MINOR_VERSION, &m_info.minor_version); glGetError() == GL_INVALID_ENUM)
 		{
-			m_data.minor_version = !m_data.version.empty() ? m_data.version[2] - '0' : 1;
+			m_info.minor_version = !m_info.version.empty() ? m_info.version[2] - '0' : 1;
 		}
 
 		// extensions
 		{
 			int32_t num{};
 			ML_glCheck(glGetIntegerv(GL_NUM_EXTENSIONS, &num));
-			m_data.extensions.reserve(num);
+			m_info.extensions.reserve(num);
 
 			ds::stringstream ss{};
 			ML_glCheck(ss.str((cstring)glGetString(GL_EXTENSIONS)));
@@ -708,7 +708,7 @@ namespace ml::gfx
 			ds::string line{};
 			while (std::getline(ss, line, ' '))
 			{
-				m_data.extensions.push_back(line);
+				m_info.extensions.push_back(line);
 			}
 		}
 
@@ -716,31 +716,31 @@ namespace ml::gfx
 #if defined(GL_EXT_texture_edge_clamp) \
 || defined(GLEW_EXT_texture_edge_clamp) \
 || defined(GL_SGIS_texture_edge_clamp)
-		m_data.texture_edge_clamp_available = true;
+		m_info.texture_edge_clamp_available = true;
 #endif
 		// max texture slots
-		ML_glCheck(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (int32_t *)&m_data.max_texture_slots));
+		ML_glCheck(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (int32_t *)&m_info.max_texture_slots));
 
 		// max color attachments
-		ML_glCheck(glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, (int32_t *)&m_data.max_color_attachments));
+		ML_glCheck(glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, (int32_t *)&m_info.max_color_attachments));
 
 		// max samples
-		ML_glCheck(glGetIntegerv(GL_MAX_SAMPLES, (int32_t *)&m_data.max_samples));
+		ML_glCheck(glGetIntegerv(GL_MAX_SAMPLES, (int32_t *)&m_info.max_samples));
 
 		// shaders available
 #if defined(GL_ARB_shading_language_100) \
 || defined(GL_ARB_shader_objects) \
 || defined(GL_ARB_vertex_shader) \
 || defined(GL_ARB_fragment_shader)
-		m_data.shaders_available = true;
+		m_info.shaders_available = true;
 
 		// geometry shaders available
 #	ifdef GL_ARB_geometry_shader4
-		m_data.geometry_shaders_available = true;
+		m_info.geometry_shaders_available = true;
 #	endif
 
 		// shading language version
-		ML_glCheck(m_data.shading_language_version = (cstring)glGetString(GL_SHADING_LANGUAGE_VERSION));
+		ML_glCheck(m_info.shading_language_version = (cstring)glGetString(GL_SHADING_LANGUAGE_VERSION));
 #endif
 	}
 
@@ -750,73 +750,47 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	shared<render_context> opengl_render_device::create_context(
-		spec<render_context> const & desc,
-		allocator_type alloc
-	) noexcept
+	shared<render_context> opengl_render_device::create_context(spec<render_context> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_render_context>(alloc, this, desc);
 	}
 
-	shared<vertexarray> opengl_render_device::create_vertexarray(
-		spec<vertexarray> const & desc,
-		allocator_type alloc
-	) noexcept
+	shared<vertexarray> opengl_render_device::create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_vertexarray>(alloc, this, desc);
 	}
 
-	shared<vertexbuffer> opengl_render_device::create_vertexbuffer(
-		spec<vertexbuffer> const & desc, addr_t data,
-		allocator_type alloc
-	) noexcept
+	shared<vertexbuffer> opengl_render_device::create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_vertexbuffer>(alloc, this, desc, data);
 	}
 
-	shared<indexbuffer> opengl_render_device::create_indexbuffer(
-		spec<indexbuffer> const & desc, addr_t data,
-		allocator_type alloc
-	) noexcept
+	shared<indexbuffer> opengl_render_device::create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_indexbuffer>(alloc, this, desc, data);
 	}
 
-	shared<texture2d> opengl_render_device::create_texture2d(
-		spec<texture2d> const & desc, addr_t data,
-		allocator_type alloc
-	) noexcept
+	shared<texture2d> opengl_render_device::create_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_texture2d>(alloc, this, desc, data);
 	}
 
-	shared<texturecube> opengl_render_device::create_texturecube(
-		spec<texturecube> const & desc,
-		allocator_type alloc
-	) noexcept
+	shared<texturecube> opengl_render_device::create_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_texturecube>(alloc, this, desc);
 	}
 
-	shared<framebuffer> opengl_render_device::create_framebuffer(
-		spec<framebuffer> const & desc,
-		allocator_type alloc
-	) noexcept
+	shared<framebuffer> opengl_render_device::create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_framebuffer>(alloc, this, desc);
 	}
 
-	shared<program> opengl_render_device::create_program(
-			allocator_type alloc
-	) noexcept
+	shared<program> opengl_render_device::create_program(allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_program>(alloc, this);
 	}
 
-	shared<shader> opengl_render_device::create_shader(
-		spec<shader> const & desc,
-		allocator_type alloc
-	) noexcept
+	shared<shader> opengl_render_device::create_shader(spec<shader> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_shader>(alloc, this, desc);
 	}
@@ -1939,7 +1913,7 @@ namespace ml::gfx
 			if (m_handle)
 			{
 				int32_t compiled{};
-				ML_glGetShaderCompileStatus(temp, &compiled);
+				ML_glCheck(ML_glGetShaderCompileStatus(temp, &compiled));
 				ML_glCheck(glProgramParameteri(m_handle, GL_PROGRAM_SEPARABLE, true));
 				if (m_log.clear(); compiled)
 				{

@@ -116,11 +116,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_vertexarray, ML_forward(value) };
+				return command{ &render_context::bind_vertexarray, value };
 			}
 			else
 			{
-				return bind_vertexarray(ML_forward(value).get());
+				return command{ &render_context::bind_vertexarray, value.get() };
 			}
 		}
 
@@ -129,11 +129,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_vertexbuffer, ML_forward(value) };
+				return command{ &render_context::bind_vertexbuffer, value };
 			}
 			else
 			{
-				return bind_vertexbuffer(ML_forward(value).get());
+				return command{ &render_context::bind_vertexbuffer, value.get() };
 			}
 		}
 
@@ -142,11 +142,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_indexbuffer, ML_forward(value) };
+				return command{ &render_context::bind_indexbuffer, value };
 			}
 			else
 			{
-				return bind_indexbuffer(ML_forward(value).get());
+				return command{ &render_context::bind_indexbuffer, value.get() };
 			}
 		}
 
@@ -155,11 +155,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_texture, ML_forward(value) };
+				return command{ &render_context::bind_texture, value };
 			}
 			else
 			{
-				return bind_texture(ML_forward(value).get());
+				return command{ &render_context::bind_texture, value.get() };
 			}
 		}
 
@@ -168,11 +168,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_framebuffer, ML_forward(value) };
+				return command{ &render_context::bind_framebuffer, value };
 			}
 			else
 			{
-				return bind_framebuffer(ML_forward(value).get());
+				return command{ &render_context::bind_framebuffer, value.get() };
 			}
 		}
 
@@ -181,11 +181,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_program, ML_forward(value) };
+				return command{ &render_context::bind_program, value };
 			}
 			else
 			{
-				return bind_program(ML_forward(value).get());
+				return command{ &render_context::bind_program, value.get() };
 			}
 		}
 
@@ -194,11 +194,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_shader, ML_forward(value) };
+				return command{ &render_context::bind_shader, value };
 			}
 			else
 			{
-				return bind_shader(ML_forward(value).get());
+				return command{ &render_context::bind_shader, value.get() };
 			}
 		}
 

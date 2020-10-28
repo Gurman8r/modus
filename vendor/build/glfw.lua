@@ -68,7 +68,6 @@ filter{ "configurations:Debug" }
 	symbols "On" 
 	prebuildcommands{
 		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\glew32d%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python39_d%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 	}
 	links{
 		"glew32d",
@@ -79,7 +78,6 @@ filter{ "configurations:Release" }
 	optimize "Speed"
 	prebuildcommands{
 		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\glew32%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
-		"%{ml_copy} %{wks.location}\\vendor\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\python39%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\",
 	}
 	links{
 		"glew32",

@@ -18,7 +18,7 @@ namespace ml::gfx
 
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_render_device> };
 
-		device_properties		m_data	{}; // device settings
+		device_info				m_info	{}; // device settings
 		shared<render_context>	m_ctx	{}; // render context
 
 	public:
@@ -38,59 +38,30 @@ namespace ml::gfx
 
 		object_id get_handle() const noexcept override { return ML_handle(object_id, this); }
 
-		device_properties const & get_info() const noexcept override { return m_data; }
+		device_info const & get_info() const noexcept override { return m_info; }
 
 		typeof<> const & get_self_type() const noexcept override { return s_self_type; }
 
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		shared<render_context> create_context(
-			spec<render_context> const & desc,
-			allocator_type alloc
-		) noexcept override;
+		shared<render_context> create_context(spec<render_context> const & desc, allocator_type alloc) noexcept override;
 
-		shared<vertexarray> create_vertexarray(
-			spec<vertexarray> const & desc,
-			allocator_type alloc
-		) noexcept override;
+		shared<vertexarray> create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept override;
 
-		shared<vertexbuffer> create_vertexbuffer(
-			spec<vertexbuffer> const & desc,
-			addr_t data,
-			allocator_type alloc
-		) noexcept override;
+		shared<vertexbuffer> create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
 
-		shared<indexbuffer> create_indexbuffer(
-			spec<indexbuffer> const & desc,
-			addr_t data,
-			allocator_type alloc
-		) noexcept override;
+		shared<indexbuffer> create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
 
-		shared<texture2d> create_texture2d(
-			spec<texture2d> const & desc,
-			addr_t data,
-			allocator_type alloc
-		) noexcept override;
+		shared<texture2d> create_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept override;
 
-		shared<texturecube> create_texturecube(
-			spec<texturecube> const & desc,
-			allocator_type alloc
-		) noexcept override;
+		shared<texturecube> create_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept override;
 
-		shared<framebuffer> create_framebuffer(
-			spec<framebuffer> const & desc,
-			allocator_type alloc
-		) noexcept override;
+		shared<framebuffer> create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept override;
 
-		shared<program> create_program(
-			allocator_type alloc
-		) noexcept override;
+		shared<program> create_program(allocator_type alloc) noexcept override;
 
-		shared<shader> create_shader(
-			spec<shader> const & desc,
-			allocator_type alloc
-		) noexcept override;
+		shared<shader> create_shader(spec<shader> const & desc, allocator_type alloc) noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

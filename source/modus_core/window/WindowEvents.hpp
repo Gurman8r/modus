@@ -2,6 +2,7 @@
 #define _ML_WINDOW_EVENTS_HPP_
 
 #include <modus_core/system/Events.hpp>
+#include <modus_core/window/Input.hpp>
 
 namespace ml
 {

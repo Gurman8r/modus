@@ -30,18 +30,16 @@
 			"visible"		: false
 		}
 	},
-	"imgui": {
-		"style": "resource/modus_launcher.style",
+	"runtime": {
+		"callbacks": true,
+		"guistyle": "resource/modus_launcher.style",
 		"dockspace": {
 			"alpha"		: 0,
 			"border"	: 0,
 			"padding"	: [ 0, 0 ],
 			"rounding"	: 0,
 			"size"		: [ 0, 0 ]
-		}
-	},
-	"runtime": {
-		"callbacks": true,
+		},
 		"plugins": [
 			{ "path": "./plugins/sandbox" }
 		],

@@ -1,16 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <modus_core/runtime/RuntimeContext.hpp>
-#include <modus_core/runtime/RuntimeEvents.hpp>
 #include <modus_core/detail/HashMap.hpp>
 #include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/Font.hpp>
 #include <modus_core/graphics/Mesh.hpp>
 #include <modus_core/graphics/Shader.hpp>
+#include <modus_core/imgui/ImGuiEvents.hpp>
+#include <modus_core/imgui/ImGuiExt.hpp>
+#include <modus_core/runtime/RuntimeContext.hpp>
+#include <modus_core/runtime/RuntimeEvents.hpp>
+#include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/window/Viewport.hpp>
 #include <modus_core/scene/Scene.hpp>
-#include <modus_core/window/WindowEvents.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -55,11 +57,12 @@ namespace ml
 		color m_clear_color{ 0.223f, 0.f, 0.46f, 1.f };
 		pmr::vector<shared<gfx::framebuffer>> m_fb{};
 
-		// database
+		// data
+		bitmap m_icon{};
 		ds::hashmap<pmr::string, font>					m_fonts		{};
-		ds::hashmap<pmr::string, bitmap>				m_images	{};
+		ds::hashmap<pmr::string, shared<bitmap>>		m_images	{};
+		ds::hashmap<pmr::string, shared<mesh>>			m_meshes	{};
 		ds::hashmap<pmr::string, shared<gfx::program>>	m_programs	{};
-		ds::hashmap<pmr::string, shared<gfx::shader>>	m_shaders	{};
 		ds::hashmap<pmr::string, shared<gfx::texture>>	m_textures	{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -68,9 +71,9 @@ namespace ml
 
 		sandbox(plugin_manager * manager, void * user) noexcept : plugin{ manager, user }
 		{
-			subscribe<client_enter_event>();
-			subscribe<client_exit_event>();
-			subscribe<client_idle_event>();
+			subscribe<runtime_enter_event>();
+			subscribe<runtime_exit_event>();
+			subscribe<runtime_idle_event>();
 			subscribe<imgui_docker_event>();
 			subscribe<imgui_render_event>();
 		}
@@ -79,9 +82,9 @@ namespace ml
 		{
 			switch (value)
 			{
-			case client_enter_event	::ID: return on_client_enter((client_enter_event &&)value);
-			case client_exit_event	::ID: return on_client_exit((client_exit_event &&)value);
-			case client_idle_event	::ID: return on_client_idle((client_idle_event &&)value);
+			case runtime_enter_event::ID: return on_runtime_enter((runtime_enter_event &&)value);
+			case runtime_exit_event	::ID: return on_runtime_exit((runtime_exit_event &&)value);
+			case runtime_idle_event	::ID: return on_runtime_idle((runtime_idle_event &&)value);
 			case imgui_docker_event	::ID: return on_imgui_docker((imgui_docker_event &&)value);
 			case imgui_render_event	::ID: return on_imgui_render((imgui_render_event &&)value);
 			}
@@ -89,21 +92,22 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_client_enter(client_enter_event && ev)
+		void on_runtime_enter(runtime_enter_event && ev)
 		{
-			if (bitmap & img = m_images["icon"] = { get_io()->path2("resource/icon.png") })
-			{
-				get_window()->set_icons(img.width(), img.height(), 1, img.data());
+			// set icon
+			if (m_icon = { get_io()->path2("resource/icon.png") }) {
+				get_window()->set_icons(m_icon.width(), m_icon.height(), 1, m_icon.data());
 			}
 
+			// framebuffers
 			m_fb.push_back(gfx::framebuffer::create({ m_resolution }));
 		}
 
-		void on_client_exit(client_exit_event && ev)
+		void on_runtime_exit(runtime_exit_event && ev)
 		{
 		}
 
-		void on_client_idle(client_idle_event && ev)
+		void on_runtime_idle(runtime_idle_event && ev)
 		{
 			m_term.Output.Dump(m_cout.sstr());
 
@@ -122,11 +126,10 @@ namespace ml
 
 		void on_imgui_docker(imgui_docker_event && ev)
 		{
-			auto & dockspace{ ev->get_docker() };
-			if (ImGuiID const root{ dockspace.GetID() }; !ImGui::DockBuilderGetNode(root))
+			if (ImGuiID const root{ ev->GetID() }; !ImGui::DockBuilderGetNode(root))
 			{
 				ImGui::DockBuilderRemoveNode(root);
-				ImGui::DockBuilderAddNode(root, dockspace.DockFlags);
+				ImGui::DockBuilderAddNode(root, ev->DockFlags);
 				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, root);
 				ImGui::DockBuilderFinish(root);
 			}

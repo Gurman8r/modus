@@ -617,7 +617,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// device data_desc settings
-	struct ML_NODISCARD device_properties final
+	struct ML_NODISCARD device_info final
 	{
 		// version
 		ds::string renderer, vendor, version;
@@ -667,58 +667,29 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual object_id get_handle() const noexcept = 0;
 
-		ML_NODISCARD virtual device_properties const & get_info() const noexcept = 0;
+		ML_NODISCARD virtual device_info const & get_info() const noexcept = 0;
 
 		ML_NODISCARD virtual typeof<> const & get_self_type() const noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual shared<render_context> create_context(
-			spec<render_context> const & desc,
-			allocator_type alloc = {}
-		) noexcept = 0;
+		ML_NODISCARD virtual shared<render_context> create_context(spec<render_context> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<vertexarray> create_vertexarray(
-			spec<vertexarray> const & desc,
-			allocator_type alloc = {}
-		) noexcept = 0;
+		ML_NODISCARD virtual shared<vertexarray> create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<vertexbuffer> create_vertexbuffer(
-			spec<vertexbuffer> const & desc,
-			addr_t data,
-			allocator_type alloc = {}
-		) noexcept = 0;
+		ML_NODISCARD virtual shared<vertexbuffer> create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<indexbuffer> create_indexbuffer(
-			spec<indexbuffer> const & desc,
-			addr_t data,
-			allocator_type alloc = {}
-		) noexcept = 0;
+		ML_NODISCARD virtual shared<indexbuffer> create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<texture2d> create_texture2d(
-			spec<texture2d> const & desc,
-			addr_t data = {},
-			allocator_type alloc = {}
-		) noexcept = 0;
+		ML_NODISCARD virtual shared<texture2d> create_texture2d(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<texturecube> create_texturecube(
-			spec<texturecube> const & desc,
-			allocator_type alloc = {}
-		) noexcept = 0;
+		ML_NODISCARD virtual shared<texturecube> create_texturecube(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<framebuffer> create_framebuffer(
-			spec<framebuffer> const & desc,
-			allocator_type alloc = {}
-		) noexcept = 0;
+		ML_NODISCARD virtual shared<framebuffer> create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<program> create_program(
-			allocator_type alloc = {}
-		) noexcept = 0;
+		ML_NODISCARD virtual shared<program> create_program(allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<shader> create_shader(
-			spec<shader> const & desc,
-			allocator_type alloc = {}
-		) noexcept = 0;
+		ML_NODISCARD virtual shared<shader> create_shader(spec<shader> const & desc, allocator_type alloc = {}) noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

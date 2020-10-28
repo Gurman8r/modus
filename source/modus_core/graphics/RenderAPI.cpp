@@ -22,7 +22,8 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	static render_device * g_device{}; // singleton
+	// global render device
+	static render_device * g_device{};
 
 	render_device * get_global_device() noexcept {
 		return g_device;
@@ -41,7 +42,6 @@ namespace ml::gfx
 			switch (api)
 			{
 			default					: return nullptr;
-			case context_api_unknown: return nullptr;
 			case context_api_opengl	: return new opengl_render_device{ alloc };
 			case context_api_vulkan	: return nullptr;
 			case context_api_directx: return nullptr;

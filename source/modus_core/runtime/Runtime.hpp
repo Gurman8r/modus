@@ -4,15 +4,13 @@
 #include <modus_core/detail/Matrix.hpp>
 #include <modus_core/detail/Timer.hpp>
 #include <modus_core/detail/Database.hpp>
-#include <modus_core/system/Events.hpp>
+#include <modus_core/runtime/Layers.hpp>
 #include <modus_core/window/Input.hpp>
+
+namespace ml { struct render_window; }
 
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	struct render_window;
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// runtime io
@@ -62,11 +60,12 @@ namespace ml
 	// runtime api
 	struct ML_NODISCARD runtime_api final
 	{
-		memory_manager	* const mem	; // memory
-		runtime_io		* const io	; // io
-		event_bus		* const bus	; // bus
-		render_window	* const win	; // window
-		simple_database * const db	; // database
+		memory_manager	* const mem		; // memory
+		runtime_io		* const io		; // io
+		event_bus		* const bus		; // bus
+		layer_stack		* const layers	; // layers
+		render_window	* const win		; // window
+		simple_database * const db		; // database
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -90,6 +89,8 @@ namespace ml
 		ML_NODISCARD auto get_db() const noexcept -> simple_database * { return m_api->db; }
 
 		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
+		
+		ML_NODISCARD auto get_layers() const noexcept -> layer_stack * { return m_api->layers; }
 
 		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->mem; }
 
@@ -125,6 +126,8 @@ namespace ml
 		ML_NODISCARD auto get_db() const noexcept -> simple_database * { return m_api->db; }
 		
 		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
+
+		ML_NODISCARD auto get_layers() const noexcept -> layer_stack * { return m_api->layers; }
 
 		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->mem; }
 

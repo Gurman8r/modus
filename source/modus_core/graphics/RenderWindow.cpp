@@ -17,8 +17,8 @@ namespace ml
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints,
-		allocator_type				alloc,
-		void *						userptr
+		void *						userptr,
+		allocator_type				alloc
 	) noexcept : render_window{ alloc }
 	{
 		ML_assert(this->open(title, vm, cs, hints, userptr));

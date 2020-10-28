@@ -168,27 +168,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource()) noexcept
-			: m_resource{ reinterpret_cast<passthrough_resource *>(mres) }
-			, m_alloc	{ m_resource }
-			, m_records	{ m_alloc }
-			, m_counter	{}
-		{
-			if (!get_global_memory() && (m_resource == pmr::get_default_resource()))
-			{
-				set_global_memory(this);
-			}
-		}
+		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource()) noexcept;
 
-		~memory_manager() noexcept
-		{
-			ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
-			
-			if (this == get_global_memory())
-			{
-				set_global_memory(nullptr);
-			}
-		}
+		~memory_manager() noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

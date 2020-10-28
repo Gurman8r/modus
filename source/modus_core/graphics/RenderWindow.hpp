@@ -19,8 +19,8 @@ namespace ml
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
-			allocator_type				alloc	= {},
-			void *						userptr	= nullptr) noexcept;
+			void *						userptr	= nullptr,
+			allocator_type				alloc	= {}) noexcept;
 
 		virtual ~render_window() noexcept override;
 

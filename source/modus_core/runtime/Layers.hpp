@@ -31,7 +31,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		layer_stack() noexcept
+		layer_stack(event_bus * bus) noexcept : m_bus{ bus }
 		{
 		}
 
@@ -84,6 +84,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
+
 		ML_NODISCARD auto begin() noexcept -> iterator { return m_layers.begin(); }
 		
 		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_layers.begin(); }
@@ -99,8 +101,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		pmr::vector<layer *> m_layers;
-		size_t m_index;
+		event_bus * const		m_bus		; // 
+		pmr::vector<layer *>	m_layers	; // 
+		size_t					m_index		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

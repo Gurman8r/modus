@@ -24,7 +24,7 @@ namespace ml
 	plugin_id plugin_manager::install(fs::path const & path, void * user)
 	{
 		// check exists
-		if (this->is_installed(path))
+		if (this->contains(path))
 		{
 			return nullptr;
 		}

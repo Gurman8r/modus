@@ -4,10 +4,14 @@
 #include <modus_core/detail/Matrix.hpp>
 #include <modus_core/detail/Timer.hpp>
 #include <modus_core/detail/Database.hpp>
-#include <modus_core/runtime/Layers.hpp>
+#include <modus_core/system/Events.hpp>
 #include <modus_core/window/Input.hpp>
 
-namespace ml { struct render_window; }
+namespace ml
+{
+	struct render_window;
+	struct layer_stack;
+}
 
 namespace ml
 {
@@ -16,23 +20,16 @@ namespace ml
 	// runtime io
 	struct ML_NODISCARD runtime_io final
 	{
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
-		runtime_io(int32_t argc, char ** argv, json const & j, allocator_type alloc = {})
-			: argc			{ argc }
-			, argv			{ argv }
-			, prefs			{ json{ j } }
-			, program_name	{ argv[0] }
-			, program_path	{ fs::current_path() }
-			, content_path	{ j.contains("path") ? j["path"].get<fs::path>() : "./" }
-		{
-		}
-
 		// config
 		int32_t const	argc;
 		char ** const	argv;
 		json			prefs;
-		fs::path const	program_name, program_path, content_path;
+
+		// paths
+		fs::path const
+			program_name{ argv[0] },
+			program_path{ fs::current_path() },
+			content_path{ prefs.contains("path") ? prefs["path"].get<fs::path>() : "./" };
 
 		ML_NODISCARD fs::path path2(fs::path const & path) const noexcept
 		{

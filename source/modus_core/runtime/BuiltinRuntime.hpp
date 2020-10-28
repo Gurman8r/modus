@@ -19,12 +19,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_imgui() const noexcept -> ImGuiContext * { return m_imgui.get(); }
-
-		ML_NODISCARD auto get_docker() noexcept -> ImGuiExt::Dockspace & { return m_dock; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	private:
 		void initialize(runtime_api * api);
 
@@ -35,8 +29,6 @@ namespace ml
 		void on_exit() noexcept override;
 
 		void on_idle() override;
-
-		void do_imgui();
 
 		void on_event(event && value) override;
 

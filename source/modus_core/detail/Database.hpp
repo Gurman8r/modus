@@ -18,6 +18,10 @@ namespace ml
 
 		using categories_type = typename ds::hashmap<typeof<>, category_type>;
 
+		using iterator = typename categories_type::iterator;
+
+		using const_iterator = typename categories_type::const_iterator;
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		simple_database(allocator_type alloc = {}) noexcept : m_categories{ alloc } {}
@@ -76,17 +80,17 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto begin() noexcept -> categories_type::iterator { return m_categories.begin(); }
+		ML_NODISCARD auto begin() noexcept -> iterator { return m_categories.begin(); }
 		
-		ML_NODISCARD auto begin() const noexcept -> categories_type::const_iterator { return m_categories.begin(); }
+		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_categories.begin(); }
 		
-		ML_NODISCARD auto cbegin() const noexcept -> categories_type::const_iterator { return m_categories.cbegin(); }
+		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return m_categories.cbegin(); }
 		
-		ML_NODISCARD auto end() noexcept -> categories_type::iterator { return m_categories.end(); }
+		ML_NODISCARD auto end() noexcept -> iterator { return m_categories.end(); }
 		
-		ML_NODISCARD auto end() const noexcept -> categories_type::const_iterator { return m_categories.end(); }
+		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_categories.end(); }
 		
-		ML_NODISCARD auto cend() const noexcept -> categories_type::const_iterator { return m_categories.cend(); }
+		ML_NODISCARD auto cend() const noexcept -> const_iterator { return m_categories.cend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -113,6 +117,7 @@ namespace ml
 		using const_pointer		= typename value_type const *;
 		using reference			= typename value_type &;
 		using const_reference	= typename value_type const &;
+		using rvalue			= typename value_type &&;
 
 		~db_ref() noexcept
 		{
@@ -189,10 +194,7 @@ namespace ml
 		
 		ML_NODISCARD auto lock() const noexcept -> shared<std::any> { return m_ptr.lock(); }
 
-		ML_NODISCARD auto get() const noexcept -> reference {
-			ML_assert(!expired());
-			return *std::any_cast<value_type>(lock().get());
-		}
+		ML_NODISCARD auto get() const noexcept -> reference { return *std::any_cast<value_type>(ML_check(lock().get())); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -200,13 +202,25 @@ namespace ml
 
 		ML_NODISCARD auto operator->() const noexcept -> pointer { return &get(); }
 
+		reference operator=(const_reference value)
+		{
+			return get() = value;
+		}
+
+		reference operator=(rvalue value) noexcept
+		{
+			return get() = std::move(value);
+		}
+
 		template <class I
-		> decltype(auto) operator[](I && index) noexcept {
+		> decltype(auto) operator[](I && index) noexcept
+		{
 			return get()[ML_forward(index)];
 		}
 
 		template <class ... Args
-		> decltype(auto) operator()(Args && ... args) noexcept {
+		> decltype(auto) operator()(Args && ... args) noexcept
+		{
 			return std::invoke(get(), ML_forward(args)...);
 		}
 

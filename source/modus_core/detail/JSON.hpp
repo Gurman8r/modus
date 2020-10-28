@@ -10,9 +10,7 @@
 
 namespace ml
 {
-	ML_alias json1 = typename nlohmann::json;
-
-	ML_alias json2 = typename nlohmann::basic_json
+	ML_alias json = typename nlohmann::basic_json
 	<
 		std::map,
 		std::vector, std::string, bool, int64_t, uint64_t, float64_t,
@@ -20,8 +18,6 @@ namespace ml
 		nlohmann::adl_serializer,
 		std::vector<uint8_t>
 	>;
-
-	ML_alias json = typename json1;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

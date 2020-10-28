@@ -122,7 +122,6 @@ namespace ml
 	ML_alias	uint64_t	= typename ML_uint64	;
 
 	ML_alias	byte_t		= typename ML_byte		;
-	ML_alias	char_t		= typename ML_char		;
 	ML_alias	intmax_t	= typename ML_intmax	;
 	ML_alias	uintmax_t	= typename ML_uintmax	;
 	ML_alias	ulong_t		= typename ML_ulong		;

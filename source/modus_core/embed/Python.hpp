@@ -53,8 +53,7 @@ namespace ml
 
 	inline int32_t Python_DoFile(cstring path) noexcept
 	{
-		auto const file{ ML_check(std::fopen(path, "r")) };
-		return PyRun_AnyFileEx(file, path, true);
+		return PyRun_AnyFileEx(std::fopen(path, "r"), path, true);
 	}
 
 	inline int32_t Python_DoFile(ds::string const & path) noexcept

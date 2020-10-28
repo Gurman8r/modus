@@ -168,7 +168,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource()) noexcept;
+		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource());
 
 		~memory_manager() noexcept;
 

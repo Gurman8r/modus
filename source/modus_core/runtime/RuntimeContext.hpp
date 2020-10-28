@@ -16,7 +16,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using loop_condition_fn = typename ds::method<bool()>;
+		using loop_condition = typename ds::method<bool()>;
 
 		explicit runtime_context(runtime_api * api) noexcept;
 
@@ -57,9 +57,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		bool				m_running	; // running
-		loop_condition_fn	m_loopcond	; // loop condition
-		plugin_manager		m_plugins	; // plugin manager
+		bool			m_running	; // running
+		loop_condition	m_loopcond	; // loop condition
+		plugin_manager	m_plugins	; // plugin manager
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

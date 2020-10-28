@@ -277,15 +277,6 @@
 #   define ML_byte              unsigned char
 #endif
 
-// char
-#ifndef ML_char
-#   if (!ML_has_cxx20)
-#       define ML_char          char
-#   else
-#       define ML_char          char8_t
-#   endif
-#endif
-
 // intmax
 #if (ML_arch == 32)
 #   define ML_intmax            ML_int32

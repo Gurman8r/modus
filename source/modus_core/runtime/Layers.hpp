@@ -12,9 +12,17 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	struct layer : event_listener
+	struct layer : trackable, non_copyable, event_listener
 	{
+		explicit layer(event_bus * bus) noexcept : event_listener{ bus } {}
+
 		virtual ~layer() noexcept override = default;
+
+		virtual void on_attach() = 0;
+
+		virtual void on_detach() = 0;
+
+		virtual void on_update() = 0;
 
 		virtual void on_event(event &&) override = 0;
 	};
@@ -85,6 +93,10 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
+
+		ML_NODISCARD auto get_layers() noexcept -> pmr::vector<layer *> & { return m_layers; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto begin() noexcept -> iterator { return m_layers.begin(); }
 		

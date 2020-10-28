@@ -53,7 +53,7 @@ namespace ml
 			gfx::command::set_clear_color(colors::black),
 			gfx::command::clear(gfx::clear_color));
 
-		ImDrawData * const draw_data{ &ctx->Viewports[0]->DrawDataP };
+		auto const draw_data{ &ctx->Viewports[0]->DrawDataP };
 #if defined(ML_IMPL_RENDERER_OPENGL)
 		ImGui_ImplOpenGL3_RenderDrawData(draw_data);
 #else

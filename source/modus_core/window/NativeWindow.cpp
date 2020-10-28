@@ -60,7 +60,7 @@ namespace ml
 		
 		// make current context
 		make_context_current(get_handle());
-
+		
 		// centered
 		set_position((video_mode::desktop_mode().resolution - vm.resolution) / 2);
 

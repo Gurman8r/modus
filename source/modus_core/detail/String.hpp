@@ -5,13 +5,13 @@
 
 // STRING TEMPLATE
 #define ML_STRING_TEMPLATE(Ch, Tr, Al)				\
-	class Ch = ML_char,								\
+	class Ch = char,								\
 	class Tr = _ML std::char_traits<Ch>,			\
 	class Al = _ML pmr::polymorphic_allocator<Ch>
 
 // BASIC STRING TEMPLATE
 #define ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)	\
-	class Ch = ML_char,								\
+	class Ch = char,								\
 	class Tr = _ML std::char_traits<Ch>,			\
 	class Al = _ML pmr::polymorphic_allocator<Ch>,	\
 	class Str = _ML ds::basic_string<Ch, Tr, Al>

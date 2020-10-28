@@ -15,7 +15,9 @@ namespace ml
 		runtime_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr runtime_enter_event(runtime_context * ptr) noexcept : ptr{ ptr } {}
+		constexpr runtime_enter_event(runtime_context * ptr) noexcept : ptr{ ptr }
+		{
+		}
 	};
 
 	// RUNTIME EXIT
@@ -24,7 +26,9 @@ namespace ml
 		runtime_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr runtime_exit_event(runtime_context * ptr) noexcept : ptr{ ptr } {}
+		constexpr runtime_exit_event(runtime_context * ptr) noexcept : ptr{ ptr }
+		{
+		}
 	};
 
 	// RUNTIME IDLE
@@ -33,7 +37,9 @@ namespace ml
 		runtime_context * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr runtime_idle_event(runtime_context * ptr) noexcept : ptr{ ptr } {}
+		constexpr runtime_idle_event(runtime_context * ptr) noexcept : ptr{ ptr }
+		{
+		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

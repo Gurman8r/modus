@@ -17,26 +17,20 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	memory_manager::memory_manager(pmr::memory_resource * mres) noexcept
+	memory_manager::memory_manager(pmr::memory_resource * mres)
 		: m_resource{ reinterpret_cast<passthrough_resource *>(mres) }
-		, m_alloc{ m_resource }
-		, m_records{ m_alloc }
-		, m_counter{}
+		, m_alloc	{ m_resource }
+		, m_records	{ m_alloc }
+		, m_counter	{}
 	{
-		if (!get_global_memory() && (m_resource == pmr::get_default_resource()))
-		{
-			set_global_memory(this);
-		}
+		if (!get_global_memory()) { set_global_memory(this); }
 	}
 
 	memory_manager::~memory_manager() noexcept
 	{
 		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
 
-		if (this == get_global_memory())
-		{
-			set_global_memory(nullptr);
-		}
+		if (this == get_global_memory()) { set_global_memory(nullptr); }
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

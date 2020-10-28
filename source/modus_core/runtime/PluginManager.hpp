@@ -55,7 +55,7 @@ namespace ml
 			return m_data;
 		}
 
-		ML_NODISCARD bool is_installed(fs::path const & path) const noexcept
+		ML_NODISCARD bool contains(fs::path const & path) const noexcept
 		{
 			return m_data.contains<plugin_id>
 			(

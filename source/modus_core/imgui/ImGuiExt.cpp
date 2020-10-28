@@ -34,7 +34,7 @@ namespace ml::ImGuiExt
 	}
 
 	TextLog::Printer TextLog::Printer::Default{ [
-	](LineBuffer const & lines, size_t i) noexcept
+	](pmr::vector<pmr::string> const & lines, size_t i) noexcept
 	{
 		color c{ colors::white };
 		if (!std::strncmp(lines[i].c_str(), "# ", 2)) {

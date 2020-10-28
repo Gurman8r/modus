@@ -151,7 +151,9 @@ namespace ml
 			m_title.c_str(), // title
 			nullptr, // monitor
 			nullptr // share
-		))) return debug::error("failed opening glfw_window");
+		))) {
+			return debug::error("failed opening glfw_window");
+		}
 
 		// user pointer
 		set_user_pointer(get_handle(), userptr);

@@ -13,6 +13,9 @@ namespace ml
 	// window handle
 	ML_decl_handle(window_handle);
 
+	// error callback
+	ML_alias window_error_callback = void(*)(int32_t, cstring);
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// context api
@@ -128,28 +131,30 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// window context
-	struct ML_NODISCARD window_context final
+	// window context manager
+	struct ML_NODISCARD window_context_manager final
 	{
 		int32_t (*extension_supported)(cstring);
 
-		window_handle (*get_context_current)();
-
-		void * (*get_proc_address)(cstring);
+		window_handle (*get_active_window)();
 
 		pmr::vector<monitor_handle> const & (*get_monitors)();
 
 		monitor_handle (*get_primary_monitor)();
 
+		void * (*get_proc_address)(cstring);
+
 		duration (*get_time)();
 
-		void (*make_context_current)(window_handle);
+		void (*set_active_window)(window_handle);
+
+		window_error_callback (*set_error_callback)(window_error_callback);
+
+		void (*set_swap_interval)(int32_t);
 
 		void (*poll_events)();
 
 		void (*swap_buffers)(window_handle);
-
-		void (*swap_interval)(int32_t);
 
 		cursor_handle (*create_custom_cursor)(size_t, size_t, byte_t const *);
 

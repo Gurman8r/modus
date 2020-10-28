@@ -1,4 +1,4 @@
-#include <modus_core/runtime/BuiltinRuntime.hpp>
+#include <modus_core/runtime/DefaultRuntime.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
@@ -9,34 +9,37 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	builtin_runtime::builtin_runtime(runtime_api * api) noexcept
+	default_runtime::default_runtime(runtime_api * api) noexcept
 		: runtime_context	{ api }
 		, m_imgui			{}
 		, m_dock			{ "##MainDockspace" }
 	{
-		initialize(api);
-	}
-
-	builtin_runtime::~builtin_runtime() noexcept
-	{
-		finalize();
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void builtin_runtime::initialize(runtime_api * api)
-	{
 		// singleton
-		ML_assert(this == get_global_runtime());
+		ML_assert(this == get_global<runtime_context>());
 
 		// events
 		subscribe<window_key_event>();
 		subscribe<window_mouse_event>();
 		subscribe<window_cursor_pos_event>();
-		
+
+		// initialize
+		initialize(api);
+
 		// loop condition
 		set_loop_condition(&render_window::is_open, get_window());
+	}
 
+	default_runtime::~default_runtime() noexcept
+	{
+		ImGui_Shutdown(get_window(), m_imgui.release());
+
+		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void default_runtime::initialize(runtime_api * api)
+	{
 		// preferences
 		ML_assert(api->io->prefs.contains("runtime"));
 		auto & runtime_prefs{ api->io->prefs["runtime"] };
@@ -68,7 +71,6 @@ namespace ml
 			window_prefs["hints"]));
 		if (install_callbacks)
 		{
-			// helper
 			static struct ML_NODISCARD {
 				runtime_api * api;
 				ML_NODISCARD auto operator->() const noexcept
@@ -144,24 +146,17 @@ namespace ml
 		}
 	}
 
-	void builtin_runtime::finalize()
-	{
-		ImGui_Shutdown(get_window(), m_imgui.release());
-
-		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
-	}
-
-	void builtin_runtime::on_enter() noexcept
+	void default_runtime::on_enter() noexcept
 	{
 		get_bus()->fire<runtime_enter_event>(this);
 	}
 
-	void builtin_runtime::on_exit() noexcept
+	void default_runtime::on_exit() noexcept
 	{
 		get_bus()->fire<runtime_exit_event>(this);
 	}
 
-	void builtin_runtime::on_idle()
+	void default_runtime::on_idle()
 	{
 		// update
 		get_bus()->fire<runtime_idle_event>(this);
@@ -182,7 +177,7 @@ namespace ml
 		});
 	}
 
-	void builtin_runtime::on_event(event && value)
+	void default_runtime::on_event(event && value)
 	{
 		switch (value)
 		{

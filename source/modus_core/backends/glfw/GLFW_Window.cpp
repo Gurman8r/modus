@@ -41,6 +41,26 @@ namespace ml
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	window_context_manager glfw_window::default_context_manager
+	{
+		&glfw_window::extension_supported,
+		&glfw_window::get_active_window,
+		&glfw_window::get_monitors,
+		&glfw_window::get_primary_monitor,
+		&glfw_window::get_proc_address,
+		&glfw_window::get_time,
+		&glfw_window::set_active_window,
+		&glfw_window::set_error_callback,
+		&glfw_window::set_swap_interval,
+		&glfw_window::poll_events,
+		&glfw_window::swap_buffers,
+		&glfw_window::create_custom_cursor,
+		&glfw_window::create_standard_cursor,
+		&glfw_window::destroy_cursor
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	glfw_window::glfw_window(allocator_type alloc) noexcept
 		: m_alloc	{ alloc }
@@ -211,6 +231,11 @@ namespace ml
 	window_callbacks const & glfw_window::get_callbacks() const
 	{
 		return m_clbk;
+	}
+
+	window_context_manager const & glfw_window::get_context_manager() const
+	{
+		return default_context_manager;
 	}
 
 	cstring glfw_window::get_clipboard() const
@@ -496,7 +521,12 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	window_handle glfw_window::get_context_current()
+	int32_t glfw_window::extension_supported(cstring value)
+	{
+		return glfwExtensionSupported(value);
+	}
+
+	window_handle glfw_window::get_active_window()
 	{
 		return (window_handle)glfwGetCurrentContext();
 	}
@@ -534,12 +564,7 @@ namespace ml
 		return duration{ glfwGetTime() };
 	}
 
-	int32_t glfw_window::extension_supported(cstring value)
-	{
-		return glfwExtensionSupported(value);
-	}
-
-	void glfw_window::make_context_current(window_handle value)
+	void glfw_window::set_active_window(window_handle value)
 	{
 		glfwMakeContextCurrent((GLFWwindow *)value);
 	}
@@ -554,7 +579,7 @@ namespace ml
 		glfwSwapBuffers((GLFWwindow *)value);
 	}
 
-	void glfw_window::swap_interval(int32_t value)
+	void glfw_window::set_swap_interval(int32_t value)
 	{
 		glfwSwapInterval(value);
 	}
@@ -565,8 +590,6 @@ namespace ml
 			glfwSetErrorCallback(
 				reinterpret_cast<GLFWerrorfun>(fn)));
 	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	cursor_handle glfw_window::create_custom_cursor(size_t w, size_t h, byte_t const * p)
 	{

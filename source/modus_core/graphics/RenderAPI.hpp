@@ -638,11 +638,6 @@ namespace ml::gfx
 		ds::string shading_language_version;
 	};
 
-
-	ML_NODISCARD ML_CORE_API render_device * get_global_device() noexcept;
-
-	ML_CORE_API render_device * set_global_device(render_device * value) noexcept;
-
 	// base device
 	class ML_CORE_API render_device : public non_copyable, public trackable
 	{
@@ -693,6 +688,21 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+	
+	namespace globals
+	{
+		
+	}
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// global render device
+namespace ml::globals
+{
+	template <> ML_NODISCARD ML_CORE_API gfx::render_device * get() noexcept;
+
+	template <> ML_CORE_API gfx::render_device * set(gfx::render_device * value) noexcept;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -878,7 +888,7 @@ namespace ml::gfx
 
 		ML_NODISCARD static auto create(spec_type const & desc, allocator_type alloc = {}) noexcept
 		{
-			return get_global_device()->create_context(desc, alloc);
+			return get_global<render_device>()->create_context(desc, alloc);
 		}
 
 	public:
@@ -1010,7 +1020,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<vertexarray> const & desc = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global_device()->create_vertexarray(desc, alloc);
+			return get_global<render_device>()->create_vertexarray(desc, alloc);
 		}
 
 	public:
@@ -1081,7 +1091,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<vertexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global_device()->create_vertexbuffer(desc, data, alloc);
+			return get_global<render_device>()->create_vertexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1150,7 +1160,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<indexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global_device()->create_indexbuffer(desc, data, alloc);
+			return get_global<render_device>()->create_indexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1331,7 +1341,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global_device()->create_texture2d(desc, data);
+			return get_global<render_device>()->create_texture2d(desc, data);
 		}
 
 		ML_NODISCARD static auto create(bitmap const & img, texture_flags_ flags = texture_flags_default) noexcept
@@ -1419,7 +1429,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return get_global_device()->create_texturecube(desc, alloc);
+			return get_global<render_device>()->create_texturecube(desc, alloc);
 		}
 
 	public:
@@ -1499,7 +1509,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return get_global_device()->create_framebuffer(desc, alloc);
+			return get_global<render_device>()->create_framebuffer(desc, alloc);
 		}
 
 	public:
@@ -1575,7 +1585,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create() noexcept
 		{
-			return get_global_device()->create_program();
+			return get_global<render_device>()->create_program();
 		}
 
 	public:
@@ -1700,7 +1710,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<shader> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return get_global_device()->create_shader(desc, alloc);
+			return get_global<render_device>()->create_shader(desc, alloc);
 		}
 
 	public:

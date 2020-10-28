@@ -14,7 +14,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using self_type = typename glfw_window;
+		static window_context_manager default_context_manager;
 
 		explicit glfw_window(allocator_type alloc) noexcept;
 
@@ -58,6 +58,8 @@ namespace ml
 		int_rect get_bounds() const override;
 
 		window_callbacks const & get_callbacks() const override;
+
+		window_context_manager const & get_context_manager() const override;
 
 		cstring get_clipboard() const override;
 
@@ -161,7 +163,7 @@ namespace ml
 
 		static int32_t extension_supported(cstring value);
 
-		static window_handle get_context_current();
+		static window_handle get_active_window();
 
 		static void * get_proc_address(cstring value);
 		
@@ -171,13 +173,13 @@ namespace ml
 
 		static duration get_time();
 
-		static void make_context_current(window_handle value);
+		static void set_active_window(window_handle value);
 
 		static void poll_events();
 
 		static void swap_buffers(window_handle value);
 
-		static void swap_interval(int32_t value);
+		static void set_swap_interval(int32_t value);
 
 		static window_error_callback set_error_callback(window_error_callback fn);
 

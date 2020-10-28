@@ -6,31 +6,24 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// global runtime context
-	static runtime_context * g_runtime{};
-
-	runtime_context * get_global_runtime() noexcept {
-		return g_runtime;
-	}
-
-	runtime_context * set_global_runtime(runtime_context * value) noexcept {
-		return g_runtime = value;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	runtime_context::runtime_context(runtime_api * api) noexcept
 		: runtime_listener	{ api }
 		, m_running			{}
 		, m_loopcond		{}
 		, m_plugins			{ api }
 	{
-		if (!get_global_runtime()) { set_global_runtime(this); }
+		if (!get_global<runtime_context>())
+		{
+			set_global<runtime_context>(this);
+		}
 	}
 
 	runtime_context::~runtime_context() noexcept
 	{
-		if (this == get_global_runtime()) { set_global_runtime(nullptr); }
+		if (this == get_global<runtime_context>())
+		{
+			set_global<runtime_context>(nullptr);
+		}
 	}
 
 	int32_t runtime_context::idle()
@@ -62,4 +55,20 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+namespace ml::globals
+{
+	// global runtime context
+	static runtime_context * g_runtime_context{};
+
+	template <> runtime_context * get() noexcept
+	{
+		return g_runtime_context;
+	}
+
+	template <> runtime_context * set(runtime_context * value) noexcept
+	{
+		return g_runtime_context = value;
+	}
 }

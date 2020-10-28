@@ -1,4 +1,4 @@
-#include <modus_core/runtime/BuiltinRuntime.hpp>
+#include <modus_core/runtime/DefaultRuntime.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -101,7 +101,7 @@ ml::int32_t main()
 	static render_window	win		{};
 	static simple_database	db		{};
 	static runtime_api		api		{ &mem, &io, &bus, &layers, &win, &db };
-	static builtin_runtime	runtime	{ &api };
+	static default_runtime	runtime	{ &api };
 
 	return runtime.idle();
 }

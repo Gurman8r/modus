@@ -52,7 +52,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit event_listener(event_bus * bus) noexcept : m_bus{ bus }
+		explicit event_listener(event_bus * bus) noexcept : m_bus{ bus }, m_listening{ true }
 		{
 			ML_assert_msg(bus, "INVALID EVENT BUS");
 		}
@@ -64,6 +64,10 @@ namespace ml
 		virtual void on_event(event &&) = 0; // handle event
 
 		ML_NODISCARD event_bus * get_bus() const noexcept { return m_bus; }
+
+		ML_NODISCARD bool is_listening() const noexcept { return m_listening; }
+
+		bool enable_listening(bool value) noexcept { return m_listening = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -96,6 +100,7 @@ namespace ml
 
 	private:
 		event_bus * const m_bus; // 
+		bool m_listening; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -117,7 +122,7 @@ namespace ml
 		{
 		}
 
-		~event_bus() noexcept = default;
+		~event_bus() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -127,7 +132,10 @@ namespace ml
 			{
 				for (auto const listener : (*cat->second))
 				{
-					listener->on_event(ML_forward(ev));
+					if (listener->is_listening())
+					{
+						listener->on_event(ML_forward(ev));
+					}
 				}
 			}
 		}
@@ -142,11 +150,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
-		bool add_listener(hash_t id, event_listener * value) noexcept
+		bool add_listener(hash_t event_id, event_listener * value) noexcept
 		{
 			return value
 				&& this == value->get_bus()
-				&& m_categories[id].insert(value).second;
+				&& m_categories[event_id].insert(value).second;
 		}
 
 		template <class Ev
@@ -159,10 +167,10 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void remove_listener(hash_t id, event_listener * value) noexcept
+		void remove_listener(hash_t event_id, event_listener * value) noexcept
 		{
 			if (!value || (this != value->get_bus())) { return; }
-			else if (auto const cat{ m_categories.find(id) })
+			else if (auto const cat{ m_categories.find(event_id) })
 			{
 				if (auto const listener{ cat->second->find(value) }; listener != cat->second->end())
 				{

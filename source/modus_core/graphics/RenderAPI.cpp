@@ -1,7 +1,5 @@
 #include <modus_core/graphics/RenderAPI.hpp>
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 #ifdef ML_IMPL_RENDERER_OPENGL
 #include <modus_core/backends/opengl/OpenGL_RenderAPI.hpp>
 #endif
@@ -14,30 +12,15 @@
 #include <modus_core/backends/vulkan/Vulkan_RenderAPI.hpp>
 #endif
 
-// etc...
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// global render device
-	static render_device * g_device{};
-
-	render_device * get_global_device() noexcept {
-		return g_device;
-	}
-
-	render_device * set_global_device(render_device * value) noexcept {
-		return g_device = value;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	render_device * render_device::create(int32_t api, allocator_type alloc) noexcept
 	{
-		render_device * temp{ std::invoke([&]() noexcept -> render_device *
+		auto const g{ get_global<render_device>() };
+
+		auto const temp{ std::invoke([&]() noexcept -> render_device *
 		{
 			switch (api)
 			{
@@ -48,19 +31,37 @@ namespace ml::gfx
 			}
 		}) };
 
-		if (!g_device) { set_global_device(temp); }
+		if (!g) { set_global<render_device>(temp); }
 
 		return temp;
 	}
 
 	void render_device::destroy(render_device * value) noexcept
 	{
-		if (!value) { value = g_device; }
+		auto const g{ get_global<render_device>() };
 
-		if (g_device == value) { set_global_device(nullptr); }
+		if (!value) { value = g; }
+
+		if (g == value) { set_global<render_device>(nullptr); }
 
 		delete value;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+namespace ml::globals
+{
+	// global render device
+	static gfx::render_device * g_render_device{};
+
+	template <> gfx::render_device * get() noexcept
+	{
+		return g_render_device;
+	}
+
+	template <> gfx::render_device * set(gfx::render_device * value) noexcept
+	{
+		return g_render_device = value;
+	}
 }

@@ -39,7 +39,7 @@ namespace ml::ds
 
 	// BASIC FLAT MAP
 	template <class _Traits
-	> struct basic_flat_map final
+	> struct basic_flat_map
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

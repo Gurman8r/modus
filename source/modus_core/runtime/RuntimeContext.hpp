@@ -6,12 +6,7 @@
 
 namespace ml
 {
-	struct runtime_context;
-
-	ML_NODISCARD ML_CORE_API runtime_context * get_global_runtime() noexcept;
-
-	ML_CORE_API runtime_context * set_global_runtime(runtime_context * value) noexcept;
-
+	// runtime context
 	struct ML_CORE_API runtime_context : runtime_listener<runtime_context>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -82,6 +77,14 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+	
+	// global runtime context
+	namespace globals
+	{
+		template <> ML_NODISCARD ML_CORE_API runtime_context * get() noexcept;
+	
+		template <> ML_CORE_API runtime_context * set(runtime_context * value) noexcept;
+	}
 }
 
 #endif // !_ML_RUNTIME_CONTEXT_HPP_

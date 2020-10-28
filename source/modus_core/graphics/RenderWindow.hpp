@@ -10,8 +10,6 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using self_type = typename render_window;
-
 		render_window(allocator_type alloc = {}) noexcept;
 
 		render_window(

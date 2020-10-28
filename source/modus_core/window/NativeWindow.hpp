@@ -9,8 +9,6 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using self_type = typename native_window;
-
 		native_window(allocator_type alloc = {}) noexcept;
 
 		native_window(
@@ -53,6 +51,8 @@ namespace ml
 		ML_NODISCARD int_rect get_bounds() const noexcept final;
 
 		ML_NODISCARD window_callbacks const & get_callbacks() const noexcept final;
+
+		ML_NODISCARD window_context_manager const & get_context_manager() const noexcept final;
 
 		ML_NODISCARD cstring get_clipboard() const noexcept final;
 
@@ -160,27 +160,25 @@ namespace ml
 
 		ML_NODISCARD static int32_t extension_supported(cstring value) noexcept;
 
-		ML_NODISCARD static window_handle get_context_current() noexcept;
+		ML_NODISCARD static window_handle get_active_window() noexcept;
 
 		ML_NODISCARD static void * get_proc_address(cstring value) noexcept;
-		
+
 		ML_NODISCARD static pmr::vector<monitor_handle> const & get_monitors() noexcept;
 
 		ML_NODISCARD static monitor_handle get_primary_monitor() noexcept;
 
 		ML_NODISCARD static duration get_time() noexcept;
 
-		static void make_context_current(window_handle value) noexcept;
+		static void set_active_window(window_handle value) noexcept;
 
 		static void poll_events() noexcept;
 
 		static void swap_buffers(window_handle value) noexcept;
 
-		static void swap_interval(int32_t value) noexcept;
+		static void set_swap_interval(int32_t value) noexcept;
 
 		static window_error_callback set_error_callback(window_error_callback fn) noexcept;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD static cursor_handle create_custom_cursor(size_t w, size_t h, byte_t const * p) noexcept;
 

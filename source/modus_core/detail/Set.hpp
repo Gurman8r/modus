@@ -37,7 +37,7 @@ namespace ml::ds
 
 	// BASIC FLAT SET
 	template <class _Traits
-	> struct basic_flat_set final
+	> struct basic_flat_set
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

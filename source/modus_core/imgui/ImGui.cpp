@@ -61,10 +61,10 @@ namespace ml
 
 		if (ctx->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			auto backup_context{ native_window::get_context_current() };
+			auto backup_context{ native_window::get_active_window() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			native_window::make_context_current(backup_context);
+			native_window::set_active_window(backup_context);
 		}
 	}
 

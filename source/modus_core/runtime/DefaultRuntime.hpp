@@ -1,28 +1,24 @@
-#ifndef _ML_BUILTIN_RUNTIME_HPP_
-#define _ML_BUILTIN_RUNTIME_HPP_
+#ifndef _ML_DEFAULT_RUNTIME_HPP_
+#define _ML_DEFAULT_RUNTIME_HPP_
 
 #include <modus_core/runtime/RuntimeContext.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
 
 namespace ml
 {
-	// runtime context
-	struct ML_CORE_API builtin_runtime final : runtime_context
+	// default runtime
+	struct ML_CORE_API default_runtime final : runtime_context
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		explicit default_runtime(runtime_api * api) noexcept;
 
-		explicit builtin_runtime(runtime_api * api) noexcept;
-
-		~builtin_runtime() noexcept override;
+		~default_runtime() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		void initialize(runtime_api * api);
-
-		void finalize();
 
 		void on_enter() noexcept override;
 
@@ -42,4 +38,4 @@ namespace ml
 	};
 }
 
-#endif // !_ML_BUILTIN_RUNTIME_HPP_
+#endif // !_ML_DEFAULT_RUNTIME_HPP_

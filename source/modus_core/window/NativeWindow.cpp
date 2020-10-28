@@ -59,7 +59,7 @@ namespace ml
 		}
 		
 		// make current context
-		make_context_current(get_handle());
+		set_active_window(get_handle());
 		
 		// centered
 		set_position((video_mode::desktop_mode().resolution - vm.resolution) / 2);
@@ -118,6 +118,11 @@ namespace ml
 	window_callbacks const & native_window::get_callbacks() const noexcept
 	{
 		return m_backend->get_callbacks();
+	}
+
+	ML_NODISCARD window_context_manager const & native_window::get_context_manager() const noexcept
+	{
+		return m_backend->get_context_manager();
 	}
 
 	cstring native_window::get_clipboard() const noexcept
@@ -363,9 +368,9 @@ namespace ml
 		return impl_window::extension_supported(value);
 	}
 
-	window_handle native_window::get_context_current() noexcept
+	window_handle native_window::get_active_window() noexcept
 	{
-		return impl_window::get_context_current();
+		return impl_window::get_active_window();
 	}
 
 	void * native_window::get_proc_address(cstring value) noexcept
@@ -388,9 +393,9 @@ namespace ml
 		return impl_window::get_time();
 	}
 
-	void native_window::make_context_current(window_handle value) noexcept
+	void native_window::set_active_window(window_handle value) noexcept
 	{
-		impl_window::make_context_current(value);
+		impl_window::set_active_window(value);
 	}
 
 	void native_window::poll_events() noexcept
@@ -403,17 +408,15 @@ namespace ml
 		impl_window::swap_buffers(value);
 	}
 
-	void native_window::swap_interval(int32_t value) noexcept
+	void native_window::set_swap_interval(int32_t value) noexcept
 	{
-		impl_window::swap_interval(value);
+		impl_window::set_swap_interval(value);
 	}
 
 	window_error_callback native_window::set_error_callback(window_error_callback fn) noexcept
 	{
 		return impl_window::set_error_callback(fn);
 	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	cursor_handle native_window::create_custom_cursor(size_t w, size_t h, byte_t const * p) noexcept
 	{

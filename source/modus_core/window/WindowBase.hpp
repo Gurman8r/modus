@@ -82,7 +82,6 @@ namespace ml
 	ML_alias window_cursor_enter_callback		= void(*)(window_handle, int32_t);
 	ML_alias window_cursor_pos_callback			= void(*)(window_handle, float64_t, float64_t);
 	ML_alias window_drop_callback				= void(*)(window_handle, int32_t, cstring[]);
-	ML_alias window_error_callback				= void(*)(int32_t, cstring);
 	ML_alias window_focus_callback				= void(*)(window_handle, int32_t);
 	ML_alias window_framebuffer_resize_callback	= void(*)(window_handle, int32_t, int32_t);
 	ML_alias window_iconify_callback			= void(*)(window_handle, int32_t);
@@ -106,7 +105,6 @@ namespace ml
 		window_cursor_enter_callback		on_cursor_enter			; // 
 		window_cursor_pos_callback			on_cursor_pos			; // 
 		window_drop_callback				on_drop					; // 
-		window_error_callback				on_error				; // 
 		window_focus_callback				on_focus				; // 
 		window_framebuffer_resize_callback	on_framebuffer_resize	; // 
 		window_iconify_callback				on_iconify				; // 
@@ -130,8 +128,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
-		using self_type = typename window_base;
 
 		virtual ~window_base() noexcept override = default;
 
@@ -166,6 +162,8 @@ namespace ml
 
 		virtual window_callbacks const & get_callbacks() const = 0;
 
+		virtual window_context_manager const & get_context_manager() const = 0;
+
 		virtual cstring get_clipboard() const = 0;
 
 		virtual vec2 get_content_scale() const = 0;
@@ -182,7 +180,7 @@ namespace ml
 
 		ML_NODISCARD bool has_hints(int32_t value) const noexcept
 		{
-			return (value & (int32_t)get_hints()) == value;
+			return ML_flag_read((int32_t)get_hints(), value);
 		}
 
 		virtual int32_t get_input_mode(int32_t) const = 0;
@@ -273,7 +271,7 @@ namespace ml
 
 		static int32_t extension_supported(cstring) = delete;
 
-		static window_handle get_context_current() = delete;
+		static window_handle get_active_window() = delete;
 
 		static void * get_proc_address(cstring) = delete;
 		
@@ -283,17 +281,15 @@ namespace ml
 
 		static duration get_time() = delete;
 
-		static void make_context_current(window_handle) = delete;
+		static void set_active_window(window_handle) = delete;
 
 		static void poll_events() = delete;
 
 		static void swap_buffers(window_handle) = delete;
 
-		static void swap_interval(int32_t) = delete;
+		static void set_swap_interval(int32_t) = delete;
 
 		static window_error_callback set_error_callback(window_error_callback) = delete;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		static cursor_handle create_custom_cursor(size_t, size_t, byte_t const *) = delete;
 

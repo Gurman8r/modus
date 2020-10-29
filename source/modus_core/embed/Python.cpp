@@ -1,5 +1,5 @@
 #include <modus_core/embed/Python.hpp>
-#include <modus_core/runtime/PlayerLoop.hpp>
+#include <modus_core/runtime/MainLoop.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 
 PYBIND11_EMBEDDED_MODULE(modus, m)
@@ -10,16 +10,16 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	m.def("exit", [](py::args) // exit
 	{
-		get_global<player_loop>()->get_window()->set_should_close(true);
+		get_global<main_loop>()->get_window()->set_should_close(true);
 	});
 	py::module::import("builtins").attr("exit") = m.attr("exit");
 	py::module::import("sys").attr("exit") = m.attr("exit");
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	py::class_<non_copyable, std::unique_ptr<non_copyable, no_delete>>(m, "non_copyable");
+	py::class_<non_copyable, ds::manual_ptr<non_copyable>>(m, "non_copyable");
 
-	py::class_<trackable, std::unique_ptr<trackable, no_delete>>(m, "trackable");
+	py::class_<trackable, ds::manual_ptr<trackable>>(m, "trackable");
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

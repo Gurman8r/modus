@@ -43,10 +43,7 @@ namespace ml::gfx
 
 		if (!value) { value = g; }
 
-		if (value == g)
-		{
-			set_global<render_device>(nullptr);
-		}
+		if (value == g) { set_global<render_device>(nullptr); }
 
 		delete value;
 	}

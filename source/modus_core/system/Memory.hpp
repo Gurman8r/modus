@@ -246,14 +246,14 @@ namespace ml
 
 		// make shared
 		template <class T, class ... Args
-		> ML_NODISCARD shared<T> make_ref(Args && ... args) noexcept
+		> ML_NODISCARD ds::shared_ptr<T> make_ref(Args && ... args) noexcept
 		{
 			return std::allocate_shared<T>(m_alloc, ML_forward(args)...);
 		}
 
-		// make unique
+		// make ds::unique_ptr
 		template <class T, class Dx = default_delete<T>, class ... Args
-		> ML_NODISCARD unique<T, Dx> make_scope(Args && ... args) noexcept
+		> ML_NODISCARD ds::unique_ptr<T> make_scoped(Args && ... args) noexcept
 		{
 			return { this->new_object<T>(ML_forward(args)...), Dx{} };
 		}

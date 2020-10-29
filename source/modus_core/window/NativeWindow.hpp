@@ -213,7 +213,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		unique<	window_base	> m_backend; // native_window implementation
+		ds::unique_ptr<	window_base	> m_backend; // native_window implementation
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

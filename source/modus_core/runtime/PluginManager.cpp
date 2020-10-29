@@ -60,7 +60,7 @@ namespace ml
 		{
 			if (auto const p{ m_data.back<plugin_iface>().do_install(this, userptr) })
 			{
-				m_data.back<manual<plugin>>().reset(p);
+				m_data.back<ds::manual_ptr<plugin>>().reset(p);
 
 				return id;
 			}
@@ -76,7 +76,7 @@ namespace ml
 		; i == m_data.npos) { return false; }
 		else
 		{
-			auto const p{ m_data.at<manual<plugin>>(i).release() };
+			auto const p{ m_data.at<ds::manual_ptr<plugin>>(i).release() };
 			m_data.at<plugin_iface>(i).do_uninstall(this, p);
 			m_data.erase(i);
 			return true;

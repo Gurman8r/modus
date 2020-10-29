@@ -89,7 +89,7 @@ namespace ml::gfx
 			return command{ &render_context::clear, mask };
 		}
 
-		ML_NODISCARD static auto draw(shared<vertexarray> const & value) noexcept
+		ML_NODISCARD static auto draw(ds::shared_ptr<vertexarray> const & value) noexcept
 		{
 			return command{ &render_context::draw, value };
 		}

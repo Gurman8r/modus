@@ -11,26 +11,14 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	default_loop::default_loop(runtime_api * api) noexcept
-		: player_loop	{ api }
+		: main_loop		{ api, &render_window::is_open, api->win }
 		, m_imgui		{}
 		, m_dockspace	{ "##MainDockspace" }
 	{
-		// singleton
-		ML_assert(this == get_global<player_loop>());
-
-		// events
-		subscribe<window_key_event>();
-		subscribe<window_mouse_event>();
-		subscribe<window_cursor_pos_event>();
-
-		// loop condition
-		set_loop_condition(&render_window::is_open, api->win);
 	}
 
 	default_loop::~default_loop() noexcept
 	{
-		// singleton
-		ML_assert(this == get_global<player_loop>());
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -39,6 +27,11 @@ namespace ml
 	{
 		// api
 		auto const api{ get_api() };
+
+		// events
+		subscribe<window_key_event>();
+		subscribe<window_mouse_event>();
+		subscribe<window_cursor_pos_event>();
 
 		// preferences
 		ML_assert(api->io->prefs.contains("runtime"));
@@ -127,7 +120,7 @@ namespace ml
 			}
 		}
 
-		// plugins
+		// install plugins
 		if (auto const plugins{ get_global<plugin_manager>() }) {
 			if (runtime_prefs.contains("plugins")) {
 				for (auto const & e : runtime_prefs["plugins"]) {
@@ -136,21 +129,21 @@ namespace ml
 			}
 		}
 
-		// scripts
+		// evaluate scripts
 		if (runtime_prefs.contains("scripts")) {
 			for (auto const & e : runtime_prefs["scripts"]) {
 				Python_DoFile(api->io->path2(e["path"]));
 			}
 		}
 
-		// enter event
-		get_bus()->fire<main_enter_event>(this);
+		// process enter event
+		get_bus()->fire<process_enter_event>(this);
 	}
 
 	void default_loop::on_exit()
 	{
-		// exit event
-		get_bus()->fire<main_exit_event>(this);
+		// process exit event
+		get_bus()->fire<process_exit_event>(this);
 
 		// imgui
 		ImGui_Shutdown(get_window(), m_imgui.release());
@@ -161,11 +154,13 @@ namespace ml
 
 	void default_loop::on_idle()
 	{
+		// timers
+
 		// poll events
 		get_window()->poll_events();
 
-		// idle event
-		get_bus()->fire<main_idle_event>(this);
+		// process idle event
+		get_bus()->fire<process_idle_event>(this);
 
 		// imgui
 		ImGui_DoFrame(get_window(), m_imgui.get(), [&]() noexcept
@@ -178,12 +173,12 @@ namespace ml
 				ImGui::FindWindowByName("##MainMenuBar"));
 			m_dockspace(m_imgui->Viewports[0], [&]() noexcept
 			{
-				// gui dockspace event
-				get_bus()->fire<gui_dockspace_event>(&m_dockspace);
+				// imgui dockspace event
+				get_bus()->fire<imgui_dockspace_event>(&m_dockspace);
 			});
 
-			// gui render event
-			get_bus()->fire<gui_render_event>(m_imgui.get());
+			// imgui render event
+			get_bus()->fire<imgui_render_event>(m_imgui.get());
 		});
 
 		// swap buffers

@@ -2,7 +2,7 @@
 #define _ML_RUNTIME_HPP_
 
 #include <modus_core/detail/Database.hpp>
-#include <modus_core/runtime/Layers.hpp>
+#include <modus_core/detail/Events.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 
 namespace ml
@@ -54,7 +54,6 @@ namespace ml
 		memory_manager	* const mem		; // memory
 		runtime_io		* const io		; // io
 		event_bus		* const bus		; // bus
-		layer_stack		* const layers	; // layers
 		render_window	* const win		; // window
 		simple_database * const db		; // database
 	};
@@ -81,8 +80,6 @@ namespace ml
 
 		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
 		
-		ML_NODISCARD auto get_layers() const noexcept -> layer_stack * { return m_api->layers; }
-
 		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->mem; }
 
 		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_api->win; }
@@ -105,7 +102,7 @@ namespace ml
 			: event_listener{ ML_check(api)->bus }
 			, m_api			{ api }
 		{
-			ML_assert("BUS MISMATCH" && get_bus() == m_api->bus);
+			ML_assert_msg(get_bus() == m_api->bus, "BUS MISMATCH");
 		}
 
 		virtual ~runtime_listener() noexcept override = default;
@@ -117,8 +114,6 @@ namespace ml
 		ML_NODISCARD auto get_db() const noexcept -> simple_database * { return m_api->db; }
 		
 		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
-
-		ML_NODISCARD auto get_layers() const noexcept -> layer_stack * { return m_api->layers; }
 
 		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->mem; }
 

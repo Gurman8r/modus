@@ -2,7 +2,6 @@
 #define _ML_LAYERS_HPP_
 
 #include <modus_core/detail/Events.hpp>
-#include <modus_core/system/Memory.hpp>
 
 namespace ml
 {
@@ -13,7 +12,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	struct layer : trackable, non_copyable, event_listener
+	struct layer : non_copyable, event_listener
 	{
 		explicit layer(event_bus * bus) noexcept : event_listener{ bus } {}
 
@@ -28,7 +27,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	struct layer_stack : trackable, non_copyable
+	struct layer_stack : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -42,7 +41,7 @@ namespace ml
 		{
 		}
 
-		~layer_stack() noexcept override
+		~layer_stack() noexcept
 		{
 			for (auto l : m_layers)
 			{

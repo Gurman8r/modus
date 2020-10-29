@@ -98,14 +98,28 @@ ml::int32_t main()
 	static memory_manager	mem		{};
 	static runtime_io		io		{ __argc, __argv, load_settings() };
 	static event_bus		bus		{};
-	static layer_stack		layers	{ &bus };
 	static render_window	win		{};
 	static simple_database	db		{};
-	static runtime_api		api		{ &mem, &io, &bus, &layers, &win, &db };
+	static runtime_api		api		{ &mem, &io, &bus, &win, &db };
 	static plugin_manager	plugins	{ &api };
 	static default_loop		backend	{ &api };
 
-	return get_global<player_loop>()->process();
+	struct test_loop : main_loop
+	{
+		test_loop(runtime_api * api) : main_loop{ api } {}
+
+		void on_enter() override {}
+
+		void on_exit() override {}
+
+		void on_idle() override {}
+
+		void on_event(event && value) override {}
+	};
+
+	auto test = backend.new_subsystem<test_loop>();
+
+	return get_global<main_loop>()->process();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

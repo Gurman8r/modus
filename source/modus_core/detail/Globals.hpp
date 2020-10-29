@@ -30,6 +30,7 @@ namespace ml
 	template <class T> ML_NODISCARD auto get_global() noexcept
 	{
 		using U = std::_Remove_cvref_t<T>;
+		static_assert(!std::is_same_v<U, void>, "?");
 		return _ML globals::get<U>();
 	}
 
@@ -37,6 +38,7 @@ namespace ml
 	template <class T> auto set_global(void * value) noexcept
 	{
 		using U = std::_Remove_cvref_t<T>;
+		static_assert(!std::is_same_v<U, void>, "?");
 		return _ML globals::set<U>(static_cast<U *>(value));
 	}
 

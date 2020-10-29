@@ -35,7 +35,7 @@ namespace ml
 		}
 
 		hash_t const m_id; // event id
-		bool m_used;
+		bool m_used; // used
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

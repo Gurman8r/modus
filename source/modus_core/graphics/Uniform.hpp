@@ -12,7 +12,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using sampler = typename shared<gfx::texture>;
+		using sampler = typename ds::shared_ptr<gfx::texture>;
 
 		template <class T> static constexpr bool is_sampler_ish
 		{

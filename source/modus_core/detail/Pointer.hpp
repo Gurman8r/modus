@@ -13,29 +13,31 @@ namespace ml
 	};
 
 	// default delete
-	template <class ...> struct default_delete;
+	template <class ... T> struct default_delete;
+}
 
-	// unique pointer
-	template <class T, class Dx = default_delete<T>
-	> struct unique : public std::unique_ptr<T, Dx> {
-		using std::unique_ptr<T, Dx>::unique_ptr;
-	};
-
-	// manual pointer ( no delete )
+// pointer types
+namespace ml::ds
+{
+	// dumb pointer
 	template <class T
-	> using manual = typename unique<T, no_delete>;
+	> ML_alias dumb_ptr = std::add_pointer_t<T>;
 
 	// shared pointer
 	template <class T
-	> struct shared : public std::shared_ptr<T> {
-		using std::shared_ptr<T>::shared_ptr;
-	};
+	> ML_alias shared_ptr = std::shared_ptr<T>;
 
 	// weak pointer
 	template <class T
-	> struct unown : public std::weak_ptr<T> {
-		using std::weak_ptr<T>::weak_ptr;
-	};
+	> ML_alias weak_ptr = std::weak_ptr<T>;
+
+	// unique pointer
+	template <class T, class Dx = default_delete<T>
+	> ML_alias unique_ptr = std::unique_ptr<T, Dx>;
+
+	// non-deleting pointer
+	template <class T
+	> ML_alias manual_ptr = std::unique_ptr<T, no_delete>;
 }
 
 #endif // !_ML_POINTER_HPP_

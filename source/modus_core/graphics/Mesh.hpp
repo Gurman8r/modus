@@ -15,14 +15,14 @@ namespace ml
 		{
 		}
 
-		mesh(pmr::vector<float_t> const & v, gfx::vertex_layout const & l = {})
+		mesh(ds::list<float_t> const & v, gfx::vertex_layout const & l = {})
 			: mesh{}
 		{
 			set_layout(l);
 			add_vertices(v);
 		}
 
-		mesh(pmr::vector<float_t> const & v, pmr::vector<uint32_t> const & i, gfx::vertex_layout const & l = {})
+		mesh(ds::list<float_t> const & v, ds::list<uint32_t> const & i, gfx::vertex_layout const & l = {})
 			: mesh{}
 		{
 			set_layout(l);
@@ -30,12 +30,12 @@ namespace ml
 			set_indices(i);
 		}
 
-		mesh(pmr::vector<vertex> const & verts, gfx::vertex_layout const & l = {})
+		mesh(ds::list<vertex> const & verts, gfx::vertex_layout const & l = {})
 			: mesh{ util::contiguous(verts), l }
 		{
 		}
 
-		mesh(pmr::vector<vertex> const & v, pmr::vector<uint32_t> const & i, gfx::vertex_layout const & l = {})
+		mesh(ds::list<vertex> const & v, ds::list<uint32_t> const & i, gfx::vertex_layout const & l = {})
 			: mesh{ util::contiguous(v), i, l }
 		{
 		}
@@ -73,7 +73,7 @@ namespace ml
 			m_vao->add_vertices(value);
 		}
 
-		void add_vertices(pmr::vector<float_t> const & value) noexcept
+		void add_vertices(ds::list<float_t> const & value) noexcept
 		{
 			if (value.empty())
 			{
@@ -101,7 +101,7 @@ namespace ml
 			m_vao->set_indices(value);
 		}
 
-		void set_indices(pmr::vector<uint32_t> const & value) noexcept
+		void set_indices(ds::list<uint32_t> const & value) noexcept
 		{
 			if (value.empty()) { set_indices(nullptr); }
 			else
@@ -115,9 +115,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static pmr::vector<vertex> load_from_file(fs::path const & path);
+		static ds::list<vertex> load_from_file(fs::path const & path);
 
-		static pmr::vector<vertex> load_from_file(fs::path const & path, int32_t flags);
+		static ds::list<vertex> load_from_file(fs::path const & path, int32_t flags);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -127,7 +127,7 @@ namespace ml
 
 		auto get_indices() const & noexcept -> shared<gfx::indexbuffer> const & { return m_vao->get_indices(); }
 
-		auto get_vertices() const & noexcept -> pmr::vector<shared<gfx::vertexbuffer>> const & { return m_vao->get_vertices(); }
+		auto get_vertices() const & noexcept -> ds::list<shared<gfx::vertexbuffer>> const & { return m_vao->get_vertices(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -13,7 +13,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type			= typename pmr::polymorphic_allocator<byte_t>;
-		using pixels					= typename pmr::vector<byte_t>;
+		using pixels					= typename ds::list<byte_t>;
 		using iterator					= typename pixels::iterator;
 		using const_iterator			= typename pixels::const_iterator;
 		using reverse_iterator			= typename pixels::reverse_iterator;

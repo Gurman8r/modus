@@ -8,14 +8,19 @@ namespace ml
 		: runtime_object{ api }
 		, m_data		{ api->mem->get_allocator() }
 	{
+		if (!get_global<plugin_manager>())
+		{
+			set_global<plugin_manager>(this);
+		}
 	}
 
 	plugin_manager::~plugin_manager() noexcept
 	{
-		// uninstall plugins
-		while (!m_data.get<plugin_id>().empty())
+		uninstall_all();
+
+		if (this == get_global<plugin_manager>())
 		{
-			uninstall(m_data.get<plugin_id>().back());
+			set_global<plugin_manager>(nullptr);
 		}
 	}
 
@@ -79,4 +84,18 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// global plugin manager
+namespace ml::globals
+{
+	static plugin_manager * g_plugin_manager{};
+
+	template <> plugin_manager * get() noexcept {
+		return g_plugin_manager;
+	}
+
+	template <> plugin_manager * set(plugin_manager * value) noexcept {
+		return g_plugin_manager = value;
+	}
 }

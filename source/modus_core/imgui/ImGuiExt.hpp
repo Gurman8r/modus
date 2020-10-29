@@ -286,7 +286,7 @@ namespace ml::ImGuiExt
 
 		using Line = typename ds::string;
 
-		using LineBuffer = typename pmr::vector<Line>;
+		using LineBuffer = typename ds::list<Line>;
 
 		using PrinterSignature = typename void(LineBuffer const &, size_t);
 
@@ -407,7 +407,7 @@ namespace ml::ImGuiExt
 		
 		using CommandProc = typename ds::method< void(Line &&) >;
 		
-		using CommandInfo = typename pmr::vector<ds::string>;
+		using CommandInfo = typename ds::list<ds::string>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -419,7 +419,7 @@ namespace ml::ImGuiExt
 
 		ds::batch_vector<ds::string, CommandInfo, CommandProc> Commands; // commands
 
-		pmr::vector<Line> History; // history
+		ds::list<Line> History; // history
 
 		int32_t HistoryPos; // history pos
 

@@ -30,7 +30,7 @@ namespace ml::ds
 		> using key_storage = typename ds::set<T, thresh, compare_type>;
 
 		template <class T = value_type
-		> using value_storage = typename pmr::vector<T>;
+		> using value_storage = typename ds::list<T>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -104,7 +104,7 @@ namespace ml::ds
 		{
 		}
 
-		basic_flat_map(pmr::vector<key_type> && k, pmr::vector<value_type> && v, allocator_type alloc = {}) noexcept
+		basic_flat_map(ds::list<key_type> && k, ds::list<value_type> && v, allocator_type alloc = {}) noexcept
 			: self_type{ alloc }
 		{
 			for (size_t i = 0, imax = ML_min(k.size(), v.size()); i < imax; ++i)

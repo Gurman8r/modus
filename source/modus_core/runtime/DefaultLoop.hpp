@@ -1,13 +1,13 @@
 #ifndef _ML_DEFAULT_LOOP_HPP_
 #define _ML_DEFAULT_LOOP_HPP_
 
-#include <modus_core/runtime/MainLoop.hpp>
+#include <modus_core/runtime/PlayerLoop.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
 
 namespace ml
 {
 	// default loop
-	struct ML_CORE_API default_loop final : main_loop
+	struct ML_CORE_API default_loop final : player_loop
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -18,12 +18,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		void initialize(runtime_api * api);
-
-		void finalize();
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		void on_enter() override;
 
 		void on_exit() override;
@@ -35,9 +29,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		plugin_manager			m_plugins	; // plugin manager
 		manual<ImGuiContext>	m_imgui		; // imgui context
-		ImGuiExt::Dockspace		m_dock		; // imgui dockspace
+		ImGuiExt::Dockspace		m_dockspace	; // imgui dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -1,7 +1,7 @@
 #ifndef _ML_STRING_HPP_
 #define _ML_STRING_HPP_
 
-#include <modus_core/Common.hpp>
+#include <modus_core/detail/List.hpp>
 
 // STRING TEMPLATE
 #define ML_STRING_TEMPLATE(Ch, Tr, Al)				\

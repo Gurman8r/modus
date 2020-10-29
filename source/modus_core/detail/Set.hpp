@@ -2,6 +2,7 @@
 #define _ML_SET_HPP_
 
 #include <modus_core/detail/Utility.hpp>
+#include <modus_core/detail/List.hpp>
 
 namespace ml::ds
 {
@@ -28,7 +29,7 @@ namespace ml::ds
 		static constexpr size_type thresh{ _Th };
 
 		template <class T = value_type
-		> using storage_type = typename pmr::vector<T>;
+		> using storage_type = typename ds::list<T>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

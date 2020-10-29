@@ -16,7 +16,7 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		using entity_list = typename pmr::vector<shared<entity>>;
+		using entity_list = typename ds::list<shared<entity>>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

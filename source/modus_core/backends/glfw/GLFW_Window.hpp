@@ -161,7 +161,7 @@ namespace ml
 
 		static window_handle get_active_window();
 
-		static pmr::vector<monitor_handle> const & get_monitors();
+		static ds::list<monitor_handle> const & get_monitors();
 
 		static void * get_proc_address(cstring value);
 

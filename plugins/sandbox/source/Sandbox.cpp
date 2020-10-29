@@ -8,7 +8,8 @@
 #include <modus_core/graphics/Shader.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/runtime/MainLoop.hpp>
+#include <modus_core/runtime/PlayerLoop.hpp>
+#include <modus_core/runtime/PluginManager.hpp>
 #include <modus_core/runtime/RuntimeEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/window/Viewport.hpp>
@@ -55,7 +56,7 @@ namespace ml
         // rendering
         vec2 m_resolution{ 1280, 720 };
         color m_clear_color{ 0.223f, 0.f, 0.46f, 1.f };
-        pmr::vector<shared<gfx::framebuffer>> m_fb{};
+        ds::list<shared<gfx::framebuffer>> m_fb{};
 
         // resources
         ds::hashmap<pmr::string, shared<font>>          m_fonts     {};
@@ -75,28 +76,28 @@ namespace ml
 
         sandbox(plugin_manager * manager, void * userptr) noexcept : plugin{ manager, userptr }
         {
-            subscribe<process_enter_event>();
-            subscribe<process_exit_event>();
-            subscribe<process_idle_event>();
-            subscribe<imgui_dockspace_event>();
-            subscribe<imgui_render_event>();
+            subscribe<main_enter_event>();
+            subscribe<main_exit_event>();
+            subscribe<main_idle_event>();
+            subscribe<gui_dockspace_event>();
+            subscribe<gui_render_event>();
         }
 
         void on_event(event && value) override
         {
             switch (value)
             {
-            case process_enter_event    ::ID: return on_process_enter((process_enter_event &&)value);
-            case process_exit_event     ::ID: return on_process_exit((process_exit_event &&)value);
-            case process_idle_event     ::ID: return on_process_idle((process_idle_event &&)value);
-            case imgui_dockspace_event  ::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
-            case imgui_render_event     ::ID: return on_imgui_render((imgui_render_event &&)value);
+            case main_enter_event   ::ID: return on_main_enter((main_enter_event &&)value);
+            case main_exit_event    ::ID: return on_main_exit((main_exit_event &&)value);
+            case main_idle_event    ::ID: return on_main_idle((main_idle_event &&)value);
+            case gui_dockspace_event::ID: return on_gui_dockspace((gui_dockspace_event &&)value);
+            case gui_render_event   ::ID: return on_gui_render((gui_render_event &&)value);
             }
         }
 
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-        void on_process_enter(process_enter_event && ev)
+        void on_main_enter(main_enter_event && ev)
         {
             // set icon
             if (auto & i = m_icon = bitmap{ get_io()->path2("resource/modus_launcher.png"), false })
@@ -108,11 +109,11 @@ namespace ml
             m_fb.push_back(gfx::framebuffer::create({ m_resolution }));
         }
 
-        void on_process_exit(process_exit_event && ev)
+        void on_main_exit(main_exit_event && ev)
         {
         }
 
-        void on_process_idle(process_idle_event && ev)
+        void on_main_idle(main_idle_event && ev)
         {
             m_term.Output.Dump(m_cout.sstr());
 
@@ -129,7 +130,7 @@ namespace ml
                 gfx::command::bind_framebuffer(nullptr));
         }
 
-        void on_imgui_dockspace(imgui_dockspace_event && ev)
+        void on_gui_dockspace(gui_dockspace_event && ev)
         {
             if (ImGuiID const root{ ev->GetID() }; !ImGui::DockBuilderGetNode(root))
             {
@@ -140,7 +141,7 @@ namespace ml
             }
         }
 
-        void on_imgui_render(imgui_render_event && ev)
+        void on_gui_render(gui_render_event && ev)
         {
             // MAIN MENU BAR
             if (ImGui::BeginMainMenuBar()) {

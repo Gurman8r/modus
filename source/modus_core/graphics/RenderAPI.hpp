@@ -31,7 +31,7 @@ namespace ml::gfx
 	template <class ...> struct spec; // object specification
 
 	ML_alias addr_t		= typename void const *			; // data address
-	ML_alias buffer_t	= typename pmr::vector<byte_t>	; // byte buffer
+	ML_alias buffer_t	= typename ds::list<byte_t>	; // byte buffer
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
@@ -558,7 +558,7 @@ namespace ml::gfx
 	// vertex layout
 	struct ML_NODISCARD vertex_layout final
 	{
-		using storage_type				= typename pmr::vector<vertex_element>;
+		using storage_type				= typename ds::list<vertex_element>;
 		using iterator					= typename storage_type::iterator;
 		using const_iterator			= typename storage_type::const_iterator;
 		using reverse_iterator			= typename storage_type::reverse_iterator;
@@ -622,7 +622,7 @@ namespace ml::gfx
 		// version
 		ds::string renderer, vendor, version;
 		int32_t major_version, minor_version;
-		pmr::vector<ds::string> extensions;
+		ds::list<ds::string> extensions;
 
 		// textures
 		bool texture_edge_clamp_available;
@@ -672,9 +672,9 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual shared<vertexarray> create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<vertexbuffer> create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual shared<vertexbuffer> create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual shared<indexbuffer> create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual shared<indexbuffer> create_indexbuffer(spec<indexbuffer> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
 
 		ML_NODISCARD virtual shared<texture2d> create_texture2d(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
 
@@ -1042,7 +1042,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual uint32_t get_mode() const noexcept = 0;
 		
-		ML_NODISCARD virtual pmr::vector<shared<vertexbuffer>> const & get_vertices() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<shared<vertexbuffer>> const & get_vertices() const noexcept = 0;
 
 	public:
 		inline void bind() const noexcept
@@ -1527,7 +1527,7 @@ namespace ml::gfx
 
 		virtual void resize(vec2i const & value) = 0;
 
-		ML_NODISCARD virtual pmr::vector<shared<texture2d>> const & get_color_attachments() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<shared<texture2d>> const & get_color_attachments() const noexcept = 0;
 
 		ML_NODISCARD virtual shared<texture2d> const & get_depth_attachment() const noexcept = 0;
 
@@ -1606,7 +1606,7 @@ namespace ml::gfx
 			return attach(type, 1, &temp, nullptr);
 		}
 
-		inline bool attach(uint32_t type, pmr::vector<ds::string> const & str) noexcept
+		inline bool attach(uint32_t type, ds::list<ds::string> const & str) noexcept
 		{
 			if (str.empty()) { return false; }
 			cstring temp{ str.front().c_str() };
@@ -1623,7 +1623,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual ds::map<uint32_t, object_id> const & get_shaders() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::map<uint32_t, pmr::vector<ds::string>> const & get_source() const noexcept = 0;
+		ML_NODISCARD virtual ds::map<uint32_t, ds::list<ds::string>> const & get_source() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<uniform_id, shared<texture>> const & get_textures() const noexcept = 0;
 
@@ -1680,7 +1680,7 @@ namespace ml::gfx
 	// shader settings
 	template <> struct ML_NODISCARD spec<shader> final
 	{
-		using source_t = pmr::vector<ds::string>;
+		using source_t = ds::list<ds::string>;
 
 		uint32_t	type	{ shader_vertex };
 		source_t	code	{};
@@ -1726,7 +1726,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual ds::string const & get_info_log() const noexcept = 0;
 
-		ML_NODISCARD virtual pmr::vector<ds::string> const & get_source() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<ds::string> const & get_source() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<uniform_id, shared<texture>> const & get_textures() const noexcept = 0;
 

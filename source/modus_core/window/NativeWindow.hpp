@@ -156,7 +156,7 @@ namespace ml
 
 		ML_NODISCARD static window_handle get_active_window() noexcept;
 
-		ML_NODISCARD static pmr::vector<monitor_handle> const & get_monitors() noexcept;
+		ML_NODISCARD static ds::list<monitor_handle> const & get_monitors() noexcept;
 
 		ML_NODISCARD static monitor_handle get_primary_monitor() noexcept;
 

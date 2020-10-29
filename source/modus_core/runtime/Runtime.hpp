@@ -1,18 +1,9 @@
 #ifndef _ML_RUNTIME_HPP_
 #define _ML_RUNTIME_HPP_
 
-#include <modus_core/detail/Matrix.hpp>
-#include <modus_core/detail/Timer.hpp>
 #include <modus_core/detail/Database.hpp>
-#include <modus_core/detail/Events.hpp>
-#include <modus_core/system/Memory.hpp>
-#include <modus_core/window/Input.hpp>
-
-namespace ml
-{
-	struct render_window;
-	struct layer_stack;
-}
+#include <modus_core/runtime/Layers.hpp>
+#include <modus_core/graphics/RenderWindow.hpp>
 
 namespace ml
 {
@@ -21,10 +12,12 @@ namespace ml
 	// runtime io
 	struct ML_NODISCARD runtime_io final
 	{
-		// config
+		// command line
 		int32_t const	argc;
 		char ** const	argv;
-		json			prefs;
+
+		// preferences
+		json prefs;
 
 		// paths
 		fs::path const
@@ -119,7 +112,7 @@ namespace ml
 
 		ML_NODISCARD auto get_api() const noexcept -> runtime_api * { return m_api; }
 
-		using event_listener::get_bus;
+		using event_listener::get_bus; // inherit from event_listener
 
 		ML_NODISCARD auto get_db() const noexcept -> simple_database * { return m_api->db; }
 		

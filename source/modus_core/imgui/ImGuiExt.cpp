@@ -34,7 +34,7 @@ namespace ml::ImGuiExt
 	}
 
 	TextLog::Printer TextLog::Printer::Default{ [
-	](pmr::vector<pmr::string> const & lines, size_t i) noexcept
+	](ds::list<pmr::string> const & lines, size_t i) noexcept
 	{
 		color c{ colors::white };
 		if (!std::strncmp(lines[i].c_str(), "# ", 2)) {
@@ -200,7 +200,7 @@ namespace ml::ImGuiExt
 			}
 
 			// build list of candidates
-			pmr::vector<cstring> candidates{};
+			ds::list<cstring> candidates{};
 			for (auto const & name : Commands.get<ds::string>())
 			{
 				if (!std::strncmp(name.c_str(), first, (size_t)(last - first)))

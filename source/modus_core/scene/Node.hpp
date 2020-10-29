@@ -13,8 +13,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
-		using iterator			= typename pmr::vector<node *>::iterator;
-		using const_iterator	= typename pmr::vector<node *>::const_iterator;
+		using iterator			= typename ds::list<node *>::iterator;
+		using const_iterator	= typename ds::list<node *>::const_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -45,7 +45,7 @@ namespace ml
 			set_children(c);
 		}
 
-		node(node * p, ds::string const & n, pmr::vector<node *> const & c, allocator_type alloc = {}) noexcept
+		node(node * p, ds::string const & n, ds::list<node *> const & c, allocator_type alloc = {}) noexcept
 			: m_name	{ alloc }
 			, m_parent	{ p }
 			, m_children{ alloc }
@@ -85,9 +85,9 @@ namespace ml
 		
 		ML_NODISCARD auto get_child(size_t i) const noexcept -> node const * { return m_children[i]; }
 
-		ML_NODISCARD auto get_children() noexcept -> pmr::vector<node *> & { return m_children; }
+		ML_NODISCARD auto get_children() noexcept -> ds::list<node *> & { return m_children; }
 
-		ML_NODISCARD auto get_children() const noexcept -> pmr::vector<node *> const & { return m_children; }
+		ML_NODISCARD auto get_children() const noexcept -> ds::list<node *> const & { return m_children; }
 
 		ML_NODISCARD auto get_name() const noexcept -> ds::string { return m_name; }
 
@@ -150,7 +150,7 @@ namespace ml
 			}
 		}
 
-		void set_children(pmr::vector<node *> const & value) noexcept
+		void set_children(ds::list<node *> const & value) noexcept
 		{
 			for (node * c : (m_children = value))
 			{
@@ -193,7 +193,7 @@ namespace ml
 	private:
 		ds::string			m_name		; // 
 		node *				m_parent	; // 
-		pmr::vector<node *>	m_children	; // 
+		ds::list<node *>	m_children	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

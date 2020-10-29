@@ -526,9 +526,9 @@ namespace ml
 		return (window_handle)glfwGetCurrentContext();
 	}
 
-	pmr::vector<monitor_handle> const & glfw_window::get_monitors()
+	ds::list<monitor_handle> const & glfw_window::get_monitors()
 	{
-		static pmr::vector<monitor_handle> temp{};
+		static ds::list<monitor_handle> temp{};
 		static ML_scope(&) // once
 		{
 			if (int32_t count{}; GLFWmonitor * *monitors{ glfwGetMonitors(&count) })

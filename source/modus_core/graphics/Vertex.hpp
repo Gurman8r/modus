@@ -127,9 +127,9 @@ namespace ml::util
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_NODISCARD inline auto contiguous(pmr::vector<vertex> const & v) noexcept
+	ML_NODISCARD inline auto contiguous(ds::list<vertex> const & v) noexcept
 	{
-		pmr::vector<float_t> temp{};
+		ds::list<float_t> temp{};
 		if (size_t const imax{ v.size() * vertex::size })
 		{
 			temp.reserve(imax);

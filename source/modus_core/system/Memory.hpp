@@ -4,7 +4,6 @@
 #include <modus_core/detail/BatchVector.hpp>
 #include <modus_core/detail/Debug.hpp>
 #include <modus_core/detail/Pointer.hpp>
-#include <modus_core/detail/Singleton.hpp>
 
 // passthrough resource
 namespace ml

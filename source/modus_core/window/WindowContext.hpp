@@ -138,7 +138,7 @@ namespace ml
 
 		window_handle (*get_active_window)();
 
-		pmr::vector<monitor_handle> const & (*get_monitors)();
+		ds::list<monitor_handle> const & (*get_monitors)();
 
 		monitor_handle (*get_primary_monitor)();
 

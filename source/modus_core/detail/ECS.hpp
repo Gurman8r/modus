@@ -412,7 +412,7 @@ namespace ml::ecs
 
 		struct handle;
 
-		using handle_storage = typename pmr::vector<handle>;
+		using handle_storage = typename ds::list<handle>;
 
 		enum : size_t { id_alive, id_index, id_handle, id_bitset };
 

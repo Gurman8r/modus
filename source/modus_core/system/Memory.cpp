@@ -29,11 +29,9 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
+// global memory manager
 namespace ml::globals
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// global memory manager
 	static memory_manager * g_memory_manager{};
 
 	template <> memory_manager * get() noexcept {
@@ -43,6 +41,4 @@ namespace ml::globals
 	template <> memory_manager * set(memory_manager * value) noexcept {
 		return g_memory_manager = value;
 	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

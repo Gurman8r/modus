@@ -54,11 +54,9 @@ namespace ml::gfx
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
+// global render device
 namespace ml::globals
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// global render device
 	static gfx::render_device * g_render_device{};
 
 	template <> gfx::render_device * get() noexcept {
@@ -68,6 +66,4 @@ namespace ml::globals
 	template <> gfx::render_device * set(gfx::render_device * value) noexcept {
 		return g_render_device = value;
 	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

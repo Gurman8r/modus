@@ -48,7 +48,19 @@ namespace ml
 
 		bool uninstall(plugin_id value);
 
+		void uninstall_all() noexcept
+		{
+			while (!m_data.get<plugin_id>().empty())
+			{
+				uninstall(m_data.get<plugin_id>().back());
+			}
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_storage() const noexcept -> plugin_storage const & {
+			return m_data;
+		}
 
 		ML_NODISCARD bool has_plugin(fs::path const & path) const noexcept
 		{
@@ -60,15 +72,19 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_storage() const noexcept -> plugin_storage const & { return m_data; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	private:
 		plugin_storage m_data; // plugins
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+}
+
+// global plugin manager
+namespace ml::globals
+{
+	template <> ML_NODISCARD ML_CORE_API plugin_manager * get() noexcept;
+
+	template <> ML_CORE_API plugin_manager * set(plugin_manager * value) noexcept;
 }
 
 #endif // !_ML_PLUGIN_MANAGER_HPP_

@@ -1,4 +1,5 @@
 #include <modus_core/runtime/DefaultLoop.hpp>
+#include <modus_core/runtime/PluginManager.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -101,9 +102,10 @@ ml::int32_t main()
 	static render_window	win		{};
 	static simple_database	db		{};
 	static runtime_api		api		{ &mem, &io, &bus, &layers, &win, &db };
-	static default_loop		loop	{ &api };
+	static plugin_manager	plugins	{ &api };
+	static default_loop		backend	{ &api };
 
-	return get_global<main_loop>()->process();
+	return get_global<player_loop>()->process();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

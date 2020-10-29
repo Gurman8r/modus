@@ -2,6 +2,7 @@
 #define _ML_LAYERS_HPP_
 
 #include <modus_core/detail/Events.hpp>
+#include <modus_core/system/Memory.hpp>
 
 namespace ml
 {
@@ -31,7 +32,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using storage_type		= typename pmr::vector<layer *>;
+		using storage_type		= typename ds::list<layer *>;
 		using iterator			= typename storage_type::iterator;
 		using const_iterator	= typename storage_type::const_iterator;
 
@@ -92,7 +93,7 @@ namespace ml
 
 		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
 
-		ML_NODISCARD auto get_layers() noexcept -> pmr::vector<layer *> & { return m_layers; }
+		ML_NODISCARD auto get_layers() noexcept -> ds::list<layer *> & { return m_layers; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -112,7 +113,7 @@ namespace ml
 
 	private:
 		event_bus * const		m_bus		; // 
-		pmr::vector<layer *>	m_layers	; // 
+		ds::list<layer *>	m_layers	; // 
 		size_t					m_index		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

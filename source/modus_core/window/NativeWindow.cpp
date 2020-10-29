@@ -367,7 +367,7 @@ namespace ml
 		return backend_window::get_active_window();
 	}
 
-	pmr::vector<monitor_handle> const & native_window::get_monitors() noexcept
+	ds::list<monitor_handle> const & native_window::get_monitors() noexcept
 	{
 		return backend_window::get_monitors();
 	}

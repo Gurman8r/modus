@@ -277,7 +277,7 @@ namespace ml
 
 		static window_handle get_active_window() = delete;
 		
-		static pmr::vector<monitor_handle> const & get_monitors() = delete;
+		static ds::list<monitor_handle> const & get_monitors() = delete;
 
 		static void * get_proc_address(cstring) = delete;
 

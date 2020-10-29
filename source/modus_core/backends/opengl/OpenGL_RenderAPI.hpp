@@ -197,7 +197,7 @@ namespace ml::gfx
 		vertex_layout						m_layout	{}; // buffer layout
 		uint32_t const						m_mode		{}; // prim type
 		shared<indexbuffer>					m_indices	{}; // index buffer
-		pmr::vector<shared<vertexbuffer>>	m_vertices	{}; // vertex buffers
+		ds::list<shared<vertexbuffer>>	m_vertices	{}; // vertex buffers
 
 	public:
 		opengl_vertexarray(render_device * parent, spec<vertexarray> const & desc, allocator_type alloc);
@@ -223,7 +223,7 @@ namespace ml::gfx
 
 		uint32_t get_mode() const noexcept override { return m_mode; }
 
-		pmr::vector<shared<vertexbuffer>> const & get_vertices() const noexcept override { return m_vertices; }
+		ds::list<shared<vertexbuffer>> const & get_vertices() const noexcept override { return m_vertices; }
 	};
 }
 
@@ -415,7 +415,7 @@ namespace ml::gfx
 		int32_t							m_samples		{}; // 
 		bool							m_stereo		{}; // 
 		uint32_t						m_handle		{}; // handle
-		pmr::vector<shared<texture2d>>	m_attachments	{}; // color attachments
+		ds::list<shared<texture2d>>	m_attachments	{}; // color attachments
 		shared<texture2d>				m_depth			{}; // depth attachment
 
 		
@@ -437,7 +437,7 @@ namespace ml::gfx
 
 		void resize(vec2i const & value) override;
 
-		pmr::vector<shared<texture2d>> const & get_color_attachments() const noexcept override { return m_attachments; }
+		ds::list<shared<texture2d>> const & get_color_attachments() const noexcept override { return m_attachments; }
 
 		shared<texture2d> const & get_depth_attachment() const noexcept override { return m_depth; }
 
@@ -473,7 +473,7 @@ namespace ml::gfx
 		uint32_t									m_handle		{}; // handle
 		ds::string									m_error_log		{}; // error log
 		ds::map<uint32_t, object_id>				m_shaders		{}; // shader cache
-		ds::map<uint32_t, pmr::vector<ds::string>>	m_source		{}; // source cache
+		ds::map<uint32_t, ds::list<ds::string>>	m_source		{}; // source cache
 		ds::map<uniform_id, shared<texture>>		m_textures		{}; // texture cache
 		ds::map<hash_t, uniform_id>					m_uniforms		{}; // uniform cache
 
@@ -520,7 +520,7 @@ namespace ml::gfx
 
 		ds::map<uint32_t, object_id> const & get_shaders() const noexcept override { return m_shaders; }
 
-		ds::map<uint32_t, pmr::vector<ds::string>> const & get_source() const noexcept override { return m_source; }
+		ds::map<uint32_t, ds::list<ds::string>> const & get_source() const noexcept override { return m_source; }
 
 		ds::map<uniform_id, shared<texture>> const & get_textures() const noexcept override { return m_textures; }
 
@@ -557,10 +557,10 @@ namespace ml::gfx
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_shader> };
 
 		uint32_t								m_type		{}; // type
-		pmr::vector<ds::string>				m_code		{}; // code
+		ds::list<ds::string>				m_code		{}; // code
 		uint32_t								m_handle	{}; // handle
 		ds::string								m_log		{}; // error log
-		pmr::vector<ds::string>				m_source	{}; // source
+		ds::list<ds::string>				m_source	{}; // source
 		ds::map<hash_t, uniform_id>				m_attribs	{}; // attributes
 		ds::map<hash_t, uniform_id>				m_uniforms	{}; // uniforms
 		ds::map<uniform_id, shared<texture>>	m_textures	{}; // textures
@@ -599,7 +599,7 @@ namespace ml::gfx
 
 		ds::string const & get_info_log() const noexcept override { return m_log; }
 
-		pmr::vector<ds::string> const & get_source() const noexcept override { return m_source; }
+		ds::list<ds::string> const & get_source() const noexcept override { return m_source; }
 
 		ds::map<uniform_id, shared<texture>> const & get_textures() const noexcept override { return m_textures; }
 

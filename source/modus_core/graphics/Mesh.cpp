@@ -14,7 +14,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	pmr::vector<vertex> mesh::load_from_file(fs::path const & path)
+	ds::list<vertex> mesh::load_from_file(fs::path const & path)
 	{
 		return load_from_file(path,
 			aiProcess_CalcTangentSpace |
@@ -27,9 +27,9 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	pmr::vector<vertex> mesh::load_from_file(fs::path const & path, int32_t flags)
+	ds::list<vertex> mesh::load_from_file(fs::path const & path, int32_t flags)
 	{
-		pmr::vector<vertex> verts{};
+		ds::list<vertex> verts{};
 
 		// open scene
 		Assimp::Importer _ai;

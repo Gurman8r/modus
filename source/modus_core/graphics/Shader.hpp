@@ -28,7 +28,7 @@ namespace ml
 			load_from_file(v, f, g);
 		}
 
-		shader_asset(ds::map<uint32_t, pmr::vector<ds::string>> const & value) : m_obj{}
+		shader_asset(ds::map<uint32_t, ds::list<ds::string>> const & value) : m_obj{}
 		{
 			load_from_memory(value);
 		}
@@ -86,7 +86,7 @@ namespace ml
 				util::get_file_string(g_file));
 		}
 
-		bool load_from_memory(ds::map<uint32_t, pmr::vector<ds::string>> const & src)
+		bool load_from_memory(ds::map<uint32_t, ds::list<ds::string>> const & src)
 		{
 			if (m_obj) { m_obj->revalue(); }
 			else { m_obj = gfx::program::create(); }

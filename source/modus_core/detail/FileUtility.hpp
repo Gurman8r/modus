@@ -8,7 +8,7 @@ namespace ml::util
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// load file contents into vector
-	template <class Ch = char, class Buf = pmr::vector<Ch>
+	template <class Ch = char, class Buf = ds::list<Ch>
 	> ML_NODISCARD static inline std::optional<Buf> get_file_contents(fs::path const & path)
 	{
 		std::basic_ifstream<Ch, std::char_traits<Ch>> file{ path, std::ios_base::binary };

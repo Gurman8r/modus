@@ -34,9 +34,9 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	pmr::vector<video_mode> const & video_mode::get_fullscreen_modes()
+	ds::list<video_mode> const & video_mode::get_fullscreen_modes()
 	{
-		static auto temp{ std::invoke([&temp = pmr::vector<video_mode>{}]()
+		static auto temp{ std::invoke([&temp = ds::list<video_mode>{}]()
 		{
 #ifdef ML_os_windows
 			DEVMODE dm; dm.dmSize = sizeof(dm);

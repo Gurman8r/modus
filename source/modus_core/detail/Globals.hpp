@@ -10,16 +10,16 @@ namespace ml
 	namespace globals
 	{
 		// get global implementation
-		template <class Type> ML_NODISCARD Type * get() noexcept
+		template <class T> T * get() noexcept
 		{
-			static_assert(0, "global get not implemented");
+			static_assert(0, "get global not implemented");
 			return nullptr;
 		}
 
 		// set global implementation
-		template <class Type> Type * set(Type *) noexcept
+		template <class T> T * set(T *) noexcept
 		{
-			static_assert(0, "global set not implemented");
+			static_assert(0, "set global not implemented");
 			return nullptr;
 		}
 	}
@@ -29,13 +29,15 @@ namespace ml
 	// get global
 	template <class T> ML_NODISCARD auto get_global() noexcept
 	{
-		return _ML globals::get<std::_Remove_cvref_t<T>>();
+		using U = std::_Remove_cvref_t<T>;
+		return _ML globals::get<U>();
 	}
 
 	// set global
-	template <class T> auto set_global(T * value) noexcept
+	template <class T> auto set_global(void * value) noexcept
 	{
-		return _ML globals::set<std::_Remove_cvref_t<T>>(value);
+		using U = std::_Remove_cvref_t<T>;
+		return _ML globals::set<U>(static_cast<U *>(value));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

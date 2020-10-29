@@ -2,7 +2,6 @@
 #define _ML_STRING_UTILITY_HPP_
 
 #include <modus_core/detail/String.hpp>
-#include <modus_core/detail/Utility.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -183,9 +182,9 @@ namespace ml::util
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_NODISCARD inline pmr::vector<ds::string> tokenize(ds::string value, ds::string const & delim) noexcept
+	ML_NODISCARD inline ds::list<ds::string> tokenize(ds::string value, ds::string const & delim) noexcept
 	{
-		pmr::vector<ds::string> temp{};
+		ds::list<ds::string> temp{};
 		auto tok{ std::strtok(value.data(), delim.c_str()) };
 		while (tok) {
 			temp.push_back(tok);
@@ -194,7 +193,7 @@ namespace ml::util
 		return temp;
 	}
 
-	ML_NODISCARD inline ds::string detokenize(pmr::vector<ds::string> const & value, ds::string const & delim = " ")
+	ML_NODISCARD inline ds::string detokenize(ds::list<ds::string> const & value, ds::string const & delim = " ")
 	{
 		ds::stringstream ss{};
 		for (auto const & str : value) {
@@ -606,7 +605,7 @@ namespace ml::util
 	}
 
 	template <class Str
-	> ML_NODISCARD ds::string format(ds::string str, pmr::vector<Str> const & values) noexcept
+	> ML_NODISCARD ds::string format(ds::string str, ds::list<Str> const & values) noexcept
 	{
 		for (size_t i = 0; i < values.size(); ++i)
 		{

@@ -48,8 +48,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::manual_ptr<gfx::render_device>		m_dev; // render device
-		ds::shared_ptr<gfx::render_context>	m_ctx; // render context
+		ds::manual<gfx::render_device>	m_dev; // render device
+		ds::shared<gfx::render_context>	m_ctx; // render context
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

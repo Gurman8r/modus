@@ -68,7 +68,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void add_vertices(ds::shared_ptr<gfx::vertexbuffer> const & value) noexcept
+		void add_vertices(ds::shared<gfx::vertexbuffer> const & value) noexcept
 		{
 			m_vao->add_vertices(value);
 		}
@@ -96,7 +96,7 @@ namespace ml
 			m_vao->set_layout(value);
 		}
 
-		void set_indices(ds::shared_ptr<gfx::indexbuffer> const & value) noexcept
+		void set_indices(ds::shared<gfx::indexbuffer> const & value) noexcept
 		{
 			m_vao->set_indices(value);
 		}
@@ -121,18 +121,18 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto get_vao() const & noexcept -> ds::shared_ptr<gfx::vertexarray> const & { return m_vao; }
+		auto get_vao() const & noexcept -> ds::shared<gfx::vertexarray> const & { return m_vao; }
 
 		auto get_layout() const & noexcept -> gfx::vertex_layout const & { return m_vao->get_layout(); }
 
-		auto get_indices() const & noexcept -> ds::shared_ptr<gfx::indexbuffer> const & { return m_vao->get_indices(); }
+		auto get_indices() const & noexcept -> ds::shared<gfx::indexbuffer> const & { return m_vao->get_indices(); }
 
-		auto get_vertices() const & noexcept -> ds::list<ds::shared_ptr<gfx::vertexbuffer>> const & { return m_vao->get_vertices(); }
+		auto get_vertices() const & noexcept -> ds::list<ds::shared<gfx::vertexbuffer>> const & { return m_vao->get_vertices(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::shared_ptr<gfx::vertexarray> m_vao;
+		ds::shared<gfx::vertexarray> m_vao;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

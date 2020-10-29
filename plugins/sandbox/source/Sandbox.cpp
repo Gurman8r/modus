@@ -8,7 +8,7 @@
 #include <modus_core/graphics/Shader.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/runtime/MainLoop.hpp>
+#include <modus_core/runtime/LoopSystem.hpp>
 #include <modus_core/runtime/PluginManager.hpp>
 #include <modus_core/runtime/RuntimeEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -56,19 +56,19 @@ namespace ml
 		// rendering
 		vec2 m_resolution{ 1280, 720 };
 		color m_clear_color{ 0.223f, 0.f, 0.46f, 1.f };
-		ds::list<ds::shared_ptr<gfx::framebuffer>> m_fb{};
+		ds::list<ds::shared<gfx::framebuffer>> m_fb{};
 
 		// icon
 		db_ref<bitmap> m_icon{ get_db(), "icon" };
 
 		// resources
-		ds::hashmap<pmr::string, ds::shared_ptr<font>>			m_fonts     {};
-		ds::hashmap<pmr::string, ds::shared_ptr<bitmap>>		m_images    {};
-		ds::hashmap<pmr::string, ds::shared_ptr<mesh>>			m_meshes    {};
-		ds::hashmap<pmr::string, ds::shared_ptr<gfx::program>>	m_programs  {};
-		ds::hashmap<pmr::string, ds::shared_ptr<scene>>			m_scenes    {};
-		ds::hashmap<pmr::string, ds::shared_ptr<gfx::shader>>	m_shaders   {};
-		ds::hashmap<pmr::string, ds::shared_ptr<gfx::texture>>	m_textures  {};
+		ds::hashmap<ds::string, ds::shared<font>>			m_fonts		{};
+		ds::hashmap<ds::string, ds::shared<bitmap>>			m_images	{};
+		ds::hashmap<ds::string, ds::shared<mesh>>			m_meshes	{};
+		ds::hashmap<ds::string, ds::shared<gfx::program>>	m_programs	{};
+		ds::hashmap<ds::string, ds::shared<scene>>			m_scenes	{};
+		ds::hashmap<ds::string, ds::shared<gfx::shader>>	m_shaders	{};
+		ds::hashmap<ds::string, ds::shared<gfx::texture>>	m_textures	{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -87,11 +87,11 @@ namespace ml
 		{
 			switch (value)
 			{
-			case process_enter_event	::ID: return on_process_enter((process_enter_event &&)value);
-			case process_exit_event		::ID: return on_process_exit((process_exit_event &&)value);
-			case process_idle_event		::ID: return on_process_idle((process_idle_event &&)value);
-			case imgui_dockspace_event	::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
-			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event &&)value);
+			case process_enter_event	::ID: return on_process_enter	((process_enter_event &&)value);
+			case process_exit_event		::ID: return on_process_exit	((process_exit_event &&)value);
+			case process_idle_event		::ID: return on_process_idle	((process_idle_event &&)value);
+			case imgui_dockspace_event	::ID: return on_imgui_dockspace	((imgui_dockspace_event &&)value);
+			case imgui_render_event		::ID: return on_imgui_render	((imgui_render_event &&)value);
 			}
 		}
 
@@ -350,7 +350,7 @@ namespace ml
 
 				// help
 				m_term.AddCommand("help", {}, [&](auto line) {
-					for (auto const & name : m_term.Commands.get<pmr::string>()) {
+					for (auto const & name : m_term.Commands.get<ds::string>()) {
 						debug::puts("- {0}", name);
 					}
 				});

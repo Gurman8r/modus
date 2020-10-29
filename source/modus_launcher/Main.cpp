@@ -102,24 +102,9 @@ ml::int32_t main()
 	static simple_database	db		{};
 	static runtime_api		api		{ &mem, &io, &bus, &win, &db };
 	static plugin_manager	plugins	{ &api };
-	static default_loop		backend	{ &api };
+	static default_loop		loop	{ &api };
 
-	struct test_loop : main_loop
-	{
-		test_loop(runtime_api * api) : main_loop{ api } {}
-
-		void on_enter() override {}
-
-		void on_exit() override {}
-
-		void on_idle() override {}
-
-		void on_event(event && value) override {}
-	};
-
-	auto test = backend.new_subsystem<test_loop>();
-
-	return get_global<main_loop>()->process();
+	return get_global<loop_system>()->process();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

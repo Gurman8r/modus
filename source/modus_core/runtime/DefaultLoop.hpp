@@ -1,13 +1,13 @@
 #ifndef _ML_DEFAULT_LOOP_HPP_
 #define _ML_DEFAULT_LOOP_HPP_
 
-#include <modus_core/runtime/MainLoop.hpp>
+#include <modus_core/runtime/LoopSystem.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
 
 namespace ml
 {
 	// default loop
-	struct ML_CORE_API default_loop final : main_loop
+	struct ML_CORE_API default_loop final : loop_system
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -18,19 +18,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		void on_enter() override;
+		void on_process_enter() override;
 
-		void on_exit() override;
+		void on_process_exit() override;
 
-		void on_idle() override;
+		void on_process_idle() override;
 
 		void on_event(event && value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::manual_ptr<ImGuiContext>	m_imgui		; // imgui context
-		ImGuiExt::Dockspace		m_dockspace	; // imgui dockspace
+		ds::manual<ImGuiContext>	m_imgui		; // imgui context
+		ImGuiExt::Dockspace			m_dockspace	; // imgui dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

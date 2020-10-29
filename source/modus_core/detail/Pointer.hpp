@@ -21,23 +21,23 @@ namespace ml::ds
 {
 	// dumb pointer
 	template <class T
-	> ML_alias dumb_ptr = std::add_pointer_t<T>;
+	> ML_alias dumb = std::add_pointer_t<T>;
 
 	// shared pointer
 	template <class T
-	> ML_alias shared_ptr = std::shared_ptr<T>;
+	> ML_alias shared = std::shared_ptr<T>;
 
 	// weak pointer
 	template <class T
-	> ML_alias weak_ptr = std::weak_ptr<T>;
+	> ML_alias weak = std::weak_ptr<T>;
 
 	// unique pointer
 	template <class T, class Dx = default_delete<T>
-	> ML_alias unique_ptr = std::unique_ptr<T, Dx>;
+	> ML_alias unique = std::unique_ptr<T, Dx>;
 
 	// non-deleting pointer
 	template <class T
-	> ML_alias manual_ptr = std::unique_ptr<T, no_delete>;
+	> ML_alias manual = std::unique_ptr<T, no_delete>;
 }
 
 #endif // !_ML_POINTER_HPP_

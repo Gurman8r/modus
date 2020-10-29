@@ -167,12 +167,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto program() const & noexcept -> ds::shared_ptr<gfx::program> const & { return m_obj; }
+		ML_NODISCARD auto program() const & noexcept -> ds::shared<gfx::program> const & { return m_obj; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::shared_ptr<gfx::program> m_obj;
+		ds::shared<gfx::program> m_obj;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -33,7 +33,7 @@ namespace ml
 			shared_library	,	// library
 			plugin_details	,	// details
 			plugin_iface	,	// interface
-			ds::manual_ptr<plugin>		// instance
+			ds::manual<plugin>		// instance
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

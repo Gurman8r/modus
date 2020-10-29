@@ -3,7 +3,7 @@
 
 #include <modus_core/detail/Events.hpp>
 
-namespace ml { struct main_loop; }
+namespace ml { struct loop_system; }
 
 namespace ml
 {
@@ -12,10 +12,10 @@ namespace ml
 	// PROCESS ENTER
 	ML_decl_event(process_enter_event)
 	{
-		main_loop * const ptr;
+		loop_system * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr process_enter_event(main_loop * ptr) noexcept : ptr{ ptr }
+		constexpr process_enter_event(loop_system * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};
@@ -23,10 +23,10 @@ namespace ml
 	// PROCESS EXIT
 	ML_decl_event(process_exit_event)
 	{
-		main_loop * const ptr;
+		loop_system * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr process_exit_event(main_loop * ptr) noexcept : ptr{ ptr }
+		constexpr process_exit_event(loop_system * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};
@@ -34,10 +34,10 @@ namespace ml
 	// PROCESS IDLE
 	ML_decl_event(process_idle_event)
 	{
-		main_loop * const ptr;
+		loop_system * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr process_idle_event(main_loop * ptr) noexcept : ptr{ ptr }
+		constexpr process_idle_event(loop_system * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};

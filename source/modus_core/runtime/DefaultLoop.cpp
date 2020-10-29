@@ -11,7 +11,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	default_loop::default_loop(runtime_api * api) noexcept
-		: main_loop		{ api, &render_window::is_open, api->win }
+		: loop_system		{ api, &render_window::is_open, api->win }
 		, m_imgui		{}
 		, m_dockspace	{ "##MainDockspace" }
 	{
@@ -23,7 +23,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void default_loop::on_enter()
+	void default_loop::on_process_enter()
 	{
 		// api
 		auto const api{ get_api() };
@@ -140,7 +140,7 @@ namespace ml
 		get_bus()->fire<process_enter_event>(this);
 	}
 
-	void default_loop::on_exit()
+	void default_loop::on_process_exit()
 	{
 		// process exit event
 		get_bus()->fire<process_exit_event>(this);
@@ -152,9 +152,10 @@ namespace ml
 		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
 	}
 
-	void default_loop::on_idle()
+	void default_loop::on_process_idle()
 	{
-		// timers
+		// benchmarks
+		auto ML_anon{ do_global_benchmarks(get_io()) };
 
 		// poll events
 		get_window()->poll_events();

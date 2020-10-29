@@ -1,36 +1,36 @@
-#ifndef _ML_MAIN_LOOP_HPP_
-#define _ML_MAIN_LOOP_HPP_
+#ifndef _ML_LOOP_SYSTEM_HPP_
+#define _ML_LOOP_SYSTEM_HPP_
 
 #include <modus_core/runtime/Runtime.hpp>
 
 namespace ml
 {
-	// main loop
-	struct ML_CORE_API main_loop : runtime_listener<main_loop>
+	// loop system
+	struct ML_CORE_API loop_system : runtime_listener<loop_system>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using loop_condition = typename ds::method<bool()>;
+		using loop_condition	= typename ds::method<bool()>;
 
-		using subsystem = typename ds::shared_ptr<main_loop>;
+		using subsystem			= typename ds::shared<loop_system>;
 
-		using subsystem_list = typename ds::list<subsystem>;
+		using subsystem_list	= typename ds::list<subsystem>;
 
-		using iterator = typename subsystem_list::iterator;
+		using iterator			= typename subsystem_list::iterator;
 		
-		using const_iterator = typename subsystem_list::const_iterator;
+		using const_iterator	= typename subsystem_list::const_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Fn, class Arg0, class ... Args
-		> main_loop(runtime_api * api, Fn && fn, Arg0 && arg0, Args && ... args) noexcept
-			: main_loop{ api, std::bind(ML_forward(fn), ML_forward(arg0), ML_forward(args)...) }
+		> loop_system(runtime_api * api, Fn && fn, Arg0 && arg0, Args && ... args) noexcept
+			: loop_system{ api, std::bind(ML_forward(fn), ML_forward(arg0), ML_forward(args)...) }
 		{
 		}
 
-		main_loop(runtime_api * api, loop_condition const & loopcond = {}) noexcept;
+		loop_system(runtime_api * api, loop_condition const & loopcond = {}) noexcept;
 
-		virtual ~main_loop() noexcept override;
+		virtual ~loop_system() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -57,27 +57,24 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto delete_subsystem(subsystem const & value) -> iterator
-		{
-			if (auto const it{ std::find(begin(), end(), value) }
-			; it == end()) { return it; }
-			else
-			{
-				return m_subsystems.erase(it);
-			}
-		}
-
 		template <class Derived, class ... Args
 		> auto new_subsystem(Args && ... args) noexcept
 		{
-			static_assert(!std::is_same_v<main_loop, Derived>);
+			static_assert(!std::is_same_v<loop_system, Derived>);
 
-			static_assert(std::is_base_of_v<main_loop, Derived>);
+			static_assert(std::is_base_of_v<loop_system, Derived>);
 
 			return std::static_pointer_cast<Derived>(m_subsystems.emplace_back
 			(
 				get_memory()->make_ref<Derived>(get_api(), ML_forward(args)...)
 			));
+		}
+
+		auto delete_subsystem(subsystem const & value) -> iterator
+		{
+			if (auto const it{ std::find(begin(), end(), value) }
+			; it == end()) { return it; }
+			else { return m_subsystems.erase(it); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -111,17 +108,17 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual void on_enter() = 0;
+		virtual void on_process_enter() = 0;
 		
-		virtual void on_exit() = 0;
+		virtual void on_process_exit() = 0;
 
-		virtual void on_idle() = 0;
+		virtual void on_process_idle() = 0;
 
 		virtual void on_event(event &&) override = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static void begin_idle(runtime_io * io) noexcept {
+		ML_NODISCARD static auto do_global_benchmarks(runtime_io * io) noexcept {
 			io->loop_timer.restart();
 			auto const dt{ (float_t)io->delta_time.count() };
 			io->fps_accum += dt - io->fps_times[io->fps_index];
@@ -130,11 +127,10 @@ namespace ml
 			io->fps = (0.f < io->fps_accum)
 				? 1.f / (io->fps_accum / (float_t)io->fps_times.size())
 				: FLT_MAX;
-		}
-
-		static void end_idle(runtime_io * io) noexcept {
-			++io->frame_count;
-			io->delta_time = io->loop_timer.elapsed();
+			return ML_defer_ex(io) {
+				++io->frame_count;
+				io->delta_time = io->loop_timer.elapsed();
+			};
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -151,9 +147,9 @@ namespace ml
 // global player loop
 namespace ml::globals
 {
-	template <> ML_NODISCARD ML_CORE_API main_loop * get() noexcept;
+	template <> ML_NODISCARD ML_CORE_API loop_system * get() noexcept;
 
-	template <> ML_CORE_API main_loop * set(main_loop * value) noexcept;
+	template <> ML_CORE_API loop_system * set(loop_system * value) noexcept;
 }
 
-#endif // !_ML_MAIN_LOOP_HPP_
+#endif // !_ML_LOOP_SYSTEM_HPP_

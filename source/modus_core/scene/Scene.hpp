@@ -16,7 +16,7 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		using entity_list = typename ds::list<ds::shared_ptr<entity>>;
+		using entity_list = typename ds::list<ds::shared<entity>>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -26,9 +26,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::shared_ptr<entity> & create_entity(ds::string const & name, allocator_type alloc = {}) noexcept;
+		ds::shared<entity> & create_entity(ds::string const & name, allocator_type alloc = {}) noexcept;
 
-		void destroy_entity(ds::shared_ptr<entity> const & value) noexcept;
+		void destroy_entity(ds::shared<entity> const & value) noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

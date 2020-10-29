@@ -346,14 +346,14 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+}
 
-	// global memory manager
-	namespace globals
-	{
-		template <> ML_NODISCARD ML_CORE_API memory_manager * get() noexcept;
+// global memory manager
+namespace ml::globals
+{
+	template <> ML_NODISCARD ML_CORE_API memory_manager * get() noexcept;
 
-		template <> ML_CORE_API memory_manager * set(memory_manager * value) noexcept;
-	}
+	template <> ML_CORE_API memory_manager * set(memory_manager * value) noexcept;
 }
 
 // trackable
@@ -366,22 +366,22 @@ namespace ml
 
 		ML_NODISCARD void * operator new(size_t size) noexcept
 		{
-			return globals::get<memory_manager>()->allocate(size);
+			return get_global<memory_manager>()->allocate(size);
 		}
 
 		ML_NODISCARD void * operator new[](size_t size) noexcept
 		{
-			return globals::get<memory_manager>()->allocate(size);
+			return get_global<memory_manager>()->allocate(size);
 		}
 
 		void operator delete(void * addr) noexcept
 		{
-			globals::get<memory_manager>()->deallocate(addr);
+			get_global<memory_manager>()->deallocate(addr);
 		}
 
 		void operator delete[](void * addr) noexcept
 		{
-			globals::get<memory_manager>()->deallocate(addr);
+			get_global<memory_manager>()->deallocate(addr);
 		}
 	};
 }
@@ -393,7 +393,7 @@ namespace ml
 	{
 		void operator()(void * addr) const noexcept
 		{
-			globals::get<memory_manager>()->deallocate(addr);
+			get_global<memory_manager>()->deallocate(addr);
 		}
 	};
 
@@ -401,7 +401,7 @@ namespace ml
 	{
 		void operator()(void * addr) const noexcept
 		{
-			globals::get<memory_manager>()->deallocate(addr);
+			get_global<memory_manager>()->deallocate(addr);
 		}
 	};
 
@@ -409,7 +409,7 @@ namespace ml
 	{
 		void operator()(T * addr) const noexcept
 		{
-			globals::get<memory_manager>()->delete_object<T>(addr);
+			get_global<memory_manager>()->delete_object<T>(addr);
 		}
 	};
 }

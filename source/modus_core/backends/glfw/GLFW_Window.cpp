@@ -41,26 +41,6 @@ namespace ml
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	window_context_manager glfw_window::default_context_manager
-	{
-		&glfw_window::extension_supported,
-		&glfw_window::get_active_window,
-		&glfw_window::get_monitors,
-		&glfw_window::get_primary_monitor,
-		&glfw_window::get_proc_address,
-		&glfw_window::get_time,
-		&glfw_window::set_active_window,
-		&glfw_window::set_error_callback,
-		&glfw_window::set_swap_interval,
-		&glfw_window::poll_events,
-		&glfw_window::swap_buffers,
-		&glfw_window::create_custom_cursor,
-		&glfw_window::create_standard_cursor,
-		&glfw_window::destroy_cursor
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	glfw_window::glfw_window(allocator_type alloc) noexcept
 		: m_alloc	{ alloc }
@@ -176,7 +156,7 @@ namespace ml
 		}
 
 		// user pointer
-		set_user_pointer(get_handle(), userptr);
+		set_user_pointer(userptr);
 		
 		// good
 		return true;
@@ -235,7 +215,24 @@ namespace ml
 
 	window_context_manager const & glfw_window::get_context_manager() const
 	{
-		return default_context_manager;
+		static window_context_manager temp
+		{
+			&glfw_window::extension_supported,
+			&glfw_window::get_active_window,
+			&glfw_window::get_monitors,
+			&glfw_window::get_primary_monitor,
+			&glfw_window::get_proc_address,
+			&glfw_window::get_time,
+			&glfw_window::set_active_window,
+			&glfw_window::set_error_callback,
+			&glfw_window::set_swap_interval,
+			&glfw_window::poll_events,
+			&glfw_window::swap_buffers,
+			&glfw_window::create_custom_cursor,
+			&glfw_window::create_standard_cursor,
+			&glfw_window::destroy_cursor
+		};
+		return temp;
 	}
 
 	cstring glfw_window::get_clipboard() const
@@ -325,6 +322,11 @@ namespace ml
 	ds::string const & glfw_window::get_title() const
 	{
 		return m_title;
+	}
+
+	void * glfw_window::get_user_pointer() const
+	{
+		return glfwGetWindowUserPointer((GLFWwindow *)m_window);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -506,16 +508,9 @@ namespace ml
 		glfwSetWindowTitle(m_window, (m_title = value).c_str());
 	}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void * glfw_window::get_user_pointer(window_handle wh)
+	void * glfw_window::set_user_pointer(void * value)
 	{
-		return glfwGetWindowUserPointer((GLFWwindow *)wh);
-	}
-
-	void * glfw_window::set_user_pointer(window_handle wh, void * value)
-	{
-		glfwSetWindowUserPointer((GLFWwindow *)wh, value);
+		glfwSetWindowUserPointer((GLFWwindow *)m_window, value);
 		return value;
 	}
 
@@ -531,17 +526,12 @@ namespace ml
 		return (window_handle)glfwGetCurrentContext();
 	}
 
-	void * glfw_window::get_proc_address(cstring value)
-	{
-		return glfwGetProcAddress(value);
-	}
-
 	pmr::vector<monitor_handle> const & glfw_window::get_monitors()
 	{
 		static pmr::vector<monitor_handle> temp{};
 		static ML_scope(&) // once
 		{
-			if (int32_t count{}; GLFWmonitor ** monitors{ glfwGetMonitors(&count) })
+			if (int32_t count{}; GLFWmonitor * *monitors{ glfwGetMonitors(&count) })
 			{
 				temp.reserve((size_t)count);
 
@@ -552,6 +542,11 @@ namespace ml
 			}
 		};
 		return temp;
+	}
+
+	void * glfw_window::get_proc_address(cstring value)
+	{
+		return glfwGetProcAddress(value);
 	}
 
 	monitor_handle glfw_window::get_primary_monitor()
@@ -569,6 +564,18 @@ namespace ml
 		glfwMakeContextCurrent((GLFWwindow *)value);
 	}
 
+	window_error_callback glfw_window::set_error_callback(window_error_callback fn)
+	{
+		return reinterpret_cast<window_error_callback>(
+			glfwSetErrorCallback(
+				reinterpret_cast<GLFWerrorfun>(fn)));
+	}
+
+	void glfw_window::set_swap_interval(int32_t value)
+	{
+		glfwSwapInterval(value);
+	}
+
 	void glfw_window::poll_events()
 	{
 		glfwPollEvents();
@@ -579,17 +586,7 @@ namespace ml
 		glfwSwapBuffers((GLFWwindow *)value);
 	}
 
-	void glfw_window::set_swap_interval(int32_t value)
-	{
-		glfwSwapInterval(value);
-	}
-
-	window_error_callback glfw_window::set_error_callback(window_error_callback fn)
-	{
-		return reinterpret_cast<window_error_callback>(
-			glfwSetErrorCallback(
-				reinterpret_cast<GLFWerrorfun>(fn)));
-	}
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	cursor_handle glfw_window::create_custom_cursor(size_t w, size_t h, byte_t const * p)
 	{

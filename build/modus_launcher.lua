@@ -66,7 +66,6 @@ includedirs{
 }
 
 files{
-	"%{wks.location}/assets/**.**",
 	"%{wks.location}/build/%{prj.name}.**",
 	"%{wks.location}/resource/%{prj.name}.**",
 	"%{wks.location}/resource/%{prj.name}/**.**",

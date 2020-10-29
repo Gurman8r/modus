@@ -14,8 +14,6 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static window_context_manager default_context_manager;
-
 		explicit glfw_window(allocator_type alloc) noexcept;
 
 		explicit glfw_window(
@@ -91,6 +89,8 @@ namespace ml
 
 		ds::string const & get_title() const override;
 
+		void * get_user_pointer() const override;
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		bool is_auto_iconify() const override;
@@ -153,11 +153,7 @@ namespace ml
 		
 		void set_title(ds::string const & value) override;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static void * get_user_pointer(window_handle wh);
-
-		static void * set_user_pointer(window_handle wh, void * value);
+		void * set_user_pointer(void * value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -165,9 +161,9 @@ namespace ml
 
 		static window_handle get_active_window();
 
-		static void * get_proc_address(cstring value);
-		
 		static pmr::vector<monitor_handle> const & get_monitors();
+
+		static void * get_proc_address(cstring value);
 
 		static monitor_handle get_primary_monitor();
 
@@ -175,13 +171,13 @@ namespace ml
 
 		static void set_active_window(window_handle value);
 
-		static void poll_events();
-
-		static void swap_buffers(window_handle value);
+		static window_error_callback set_error_callback(window_error_callback fn);
 
 		static void set_swap_interval(int32_t value);
 
-		static window_error_callback set_error_callback(window_error_callback fn);
+		static void poll_events();
+
+		static void swap_buffers(window_handle value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

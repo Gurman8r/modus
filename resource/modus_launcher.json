@@ -1,7 +1,7 @@
 {
 	"path": "../../../",
 	"window": {
-		"title": "modus",
+		"title": "modus launcher",
 		"video": {
 			"resolution"	: [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],

@@ -10,18 +10,16 @@ namespace ml
 	namespace globals
 	{
 		// get global implementation
-		template <class Type
-		> ML_NODISCARD Type * get() noexcept
+		template <class Type> ML_NODISCARD Type * get() noexcept
 		{
-			static_assert(0, "global getter not defined for type");
+			static_assert(0, "global get not implemented");
 			return nullptr;
 		}
 
 		// set global implementation
-		template <class Type
-		> Type * set(Type *) noexcept
+		template <class Type> Type * set(Type *) noexcept
 		{
-			static_assert(0, "global setter not defined for type");
+			static_assert(0, "global set not implemented");
 			return nullptr;
 		}
 	}
@@ -29,17 +27,15 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// get global
-	template <class Type
-	> ML_NODISCARD Type * get_global() noexcept
+	template <class T> ML_NODISCARD auto get_global() noexcept
 	{
-		return _ML globals::get<Type>();
+		return _ML globals::get<std::_Remove_cvref_t<T>>();
 	}
 
 	// set global
-	template <class Type
-	> Type * set_global(Type * value) noexcept
+	template <class T> auto set_global(T * value) noexcept
 	{
-		return _ML globals::set<Type>(value);
+		return _ML globals::set<std::_Remove_cvref_t<T>>(value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -1,7 +1,5 @@
 #include <modus_core/window/VideoMode.hpp>
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 #if defined(ML_os_windows)
 #	include <Windows.h>
 
@@ -9,13 +7,11 @@
 #	error ""
 #endif
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	video_mode const & video_mode::desktop_mode()
+	video_mode const & video_mode::get_desktop_mode()
 	{
 		static auto temp{ std::invoke([&temp = video_mode{}]()
 		{
@@ -38,7 +34,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	pmr::vector<video_mode> const & video_mode::fullscreen_modes()
+	pmr::vector<video_mode> const & video_mode::get_fullscreen_modes()
 	{
 		static auto temp{ std::invoke([&temp = pmr::vector<video_mode>{}]()
 		{

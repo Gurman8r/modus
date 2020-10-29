@@ -146,10 +146,10 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	py::class_<memory_record>(py_mem, "record")
 		.def(py::init<>())
 		.def(py::init<memory_record const &>())
-		.def(py::init([&rec = globals::get<memory_manager>()->get_records()](intptr_t p)
+		.def(py::init([&rec = get_global<memory_manager>()->get_records()](intptr_t p)
 		{
 			if (auto const i{ rec.lookup<memory_manager::id_addr>((byte_t *)p) }; i != rec.npos) {
-				return globals::get<memory_manager>()->get_record_at(i);
+				return get_global<memory_manager>()->get_record_at(i);
 			} else {
 				return memory_record{};
 			}
@@ -180,18 +180,18 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def("set_default_resource", [](intptr_t p) { return (intptr_t)pmr::set_default_resource((pmr::memory_resource *)p); })
 
 		// test resource
-		.def("arena_base"	, []() { return globals::get<memory_manager>()->get_resource()->base(); })
-		.def("arena_count"	, []() { return globals::get<memory_manager>()->get_resource()->count(); })
-		.def("arena_free"	, []() { return globals::get<memory_manager>()->get_resource()->free(); })
-		.def("arena_size"	, []() { return globals::get<memory_manager>()->get_resource()->capacity(); })
-		.def("arena_used"	, []() { return globals::get<memory_manager>()->get_resource()->used(); })
+		.def("arena_base"	, []() { return get_global<memory_manager>()->get_resource()->base(); })
+		.def("arena_count"	, []() { return get_global<memory_manager>()->get_resource()->count(); })
+		.def("arena_free"	, []() { return get_global<memory_manager>()->get_resource()->free(); })
+		.def("arena_size"	, []() { return get_global<memory_manager>()->get_resource()->capacity(); })
+		.def("arena_used"	, []() { return get_global<memory_manager>()->get_resource()->used(); })
 
 		// allocation
-		.def("malloc"	, [](size_t s) { return (intptr_t)globals::get<memory_manager>()->allocate(s); })
-		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)globals::get<memory_manager>()->allocate(c, s); })
-		.def("free"		, [](intptr_t p) { globals::get<memory_manager>()->deallocate((void *)p); })
-		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)globals::get<memory_manager>()->reallocate((void *)p, s); })
-		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)globals::get<memory_manager>()->reallocate((void *)p, o, n); })
+		.def("malloc"	, [](size_t s) { return (intptr_t)get_global<memory_manager>()->allocate(s); })
+		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)get_global<memory_manager>()->allocate(c, s); })
+		.def("free"		, [](intptr_t p) { get_global<memory_manager>()->deallocate((void *)p); })
+		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)get_global<memory_manager>()->reallocate((void *)p, s); })
+		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)get_global<memory_manager>()->reallocate((void *)p, o, n); })
 
 		// getters
 		.def("memget"	, [&memget](intptr_t p) { return memget(p, 1); })
@@ -467,8 +467,8 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def_readwrite("resolution"			, &video_mode::resolution)
 		.def_readwrite("bits_per_pixel"		, &video_mode::bits_per_pixel)
 		.def_readwrite("refresh_rate"		, &video_mode::refresh_rate)
-		.def_static("desktop_mode"			, &video_mode::desktop_mode)
-		.def_static("fullscreen_modes"		, &video_mode::fullscreen_modes)
+		.def_static("desktop_mode"			, &video_mode::get_desktop_mode)
+		.def_static("fullscreen_modes"		, &video_mode::get_fullscreen_modes)
 		;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

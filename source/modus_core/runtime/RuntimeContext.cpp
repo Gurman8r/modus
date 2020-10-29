@@ -1,6 +1,5 @@
 #include <modus_core/runtime/RuntimeContext.hpp>
 #include <modus_core/runtime/RuntimeEvents.hpp>
-#include <modus_core/imgui/ImGui.hpp>
 
 namespace ml
 {
@@ -28,27 +27,18 @@ namespace ml
 
 	int32_t runtime_context::idle()
 	{
-		// run check
+		// check running
 		if (m_running) { return EXIT_FAILURE; }
 		else { m_running = true; } ML_defer(&) { m_running = false; };
 
-		// enter/exit
-		on_enter(); ML_defer(&) { on_exit(); };
-
 		// main loop
+		on_enter(); ML_defer(&) { on_exit(); };
 		if (!check_loop_condition()) { return EXIT_FAILURE; }
 		do {
-
+			
 			auto ML_anon{ do_benchmarks(get_io()) };
 
-			render_window::poll_events();
-			
 			on_idle();
-
-			if (get_window()->has_hints(window_hints_doublebuffer))
-			{
-				render_window::swap_buffers(get_window()->get_handle());
-			}
 
 		} while (check_loop_condition());
 		return EXIT_SUCCESS;
@@ -59,16 +49,18 @@ namespace ml
 
 namespace ml::globals
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// global runtime context
 	static runtime_context * g_runtime_context{};
 
-	template <> runtime_context * get() noexcept
-	{
+	template <> runtime_context * get() noexcept {
 		return g_runtime_context;
 	}
 
-	template <> runtime_context * set(runtime_context * value) noexcept
-	{
+	template <> runtime_context * set(runtime_context * value) noexcept {
 		return g_runtime_context = value;
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

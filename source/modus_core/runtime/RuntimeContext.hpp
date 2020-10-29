@@ -21,16 +21,13 @@ namespace ml
 
 		ML_NODISCARD int32_t idle();
 
-		ML_NODISCARD bool check_loop_condition() const noexcept {
-			return m_loopcond && m_loopcond();
-		}
+		ML_NODISCARD bool check_loop_condition() const noexcept { return m_loopcond && m_loopcond(); }
 
-		ML_NODISCARD auto const & get_loop_condition() const noexcept {
-			return m_loopcond;
-		}
+		ML_NODISCARD auto get_loop_condition() const noexcept -> loop_condition const & { return m_loopcond; }
 
 		template <class Fn, class ... Args
-		> auto & set_loop_condition(Fn && fn, Args && ... args) noexcept {
+		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition &
+		{
 			return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...);
 		}
 
@@ -77,14 +74,14 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-	
-	// global runtime context
-	namespace globals
-	{
-		template <> ML_NODISCARD ML_CORE_API runtime_context * get() noexcept;
-	
-		template <> ML_CORE_API runtime_context * set(runtime_context * value) noexcept;
-	}
+}
+
+// global runtime context
+namespace ml::globals
+{
+	template <> ML_NODISCARD ML_CORE_API runtime_context * get() noexcept;
+
+	template <> ML_CORE_API runtime_context * set(runtime_context * value) noexcept;
 }
 
 #endif // !_ML_RUNTIME_CONTEXT_HPP_

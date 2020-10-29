@@ -10,7 +10,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// video mode
-	struct ML_CORE_API video_mode final
+	struct ML_NODISCARD ML_CORE_API video_mode final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -20,9 +20,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static video_mode const & desktop_mode();
+		ML_NODISCARD static video_mode const & get_desktop_mode();
 
-		ML_NODISCARD static pmr::vector<video_mode> const & fullscreen_modes();
+		ML_NODISCARD static pmr::vector<video_mode> const & get_fullscreen_modes();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

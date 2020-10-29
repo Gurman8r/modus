@@ -1,4 +1,4 @@
-#include <modus_core/runtime/DefaultRuntime.hpp>
+#include <modus_core/runtime/BuiltinRuntime.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -34,7 +34,7 @@ static auto const default_settings{ R"(
 {
 	"path": "../../../",
 	"window": {
-		"title": "modus",
+		"title": "modus launcher",
 		"video": {
 			"resolution"	: [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
@@ -83,7 +83,7 @@ static auto const default_settings{ R"(
 }
 )"_json };
 
-static auto load_settings(fs::path const & path = SETTINGS_PATH)
+auto load_settings(fs::path const & path = SETTINGS_PATH) noexcept
 {
 	std::ifstream f{ path }; ML_defer(&f) { f.close(); };
 
@@ -101,7 +101,7 @@ ml::int32_t main()
 	static render_window	win		{};
 	static simple_database	db		{};
 	static runtime_api		api		{ &mem, &io, &bus, &layers, &win, &db };
-	static default_runtime	runtime	{ &api };
+	static builtin_runtime	runtime	{ &api };
 
 	return runtime.idle();
 }

@@ -178,7 +178,7 @@ namespace ml
 
 		virtual window_hints_ get_hints() const = 0;
 
-		ML_NODISCARD bool has_hints(int32_t value) const noexcept
+		ML_NODISCARD inline bool has_hints(int32_t value) const noexcept
 		{
 			return ML_flag_read((int32_t)get_hints(), value);
 		}
@@ -198,6 +198,8 @@ namespace ml
 		virtual vec2i get_size() const = 0;
 
 		virtual ds::string const & get_title() const = 0;
+
+		virtual void * get_user_pointer() const = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -261,6 +263,8 @@ namespace ml
 
 		virtual void set_title(ds::string const &) = 0;
 
+		virtual void * set_user_pointer(void *) = 0;
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		static void * get_user_pointer(window_handle) = delete;
@@ -272,10 +276,10 @@ namespace ml
 		static int32_t extension_supported(cstring) = delete;
 
 		static window_handle get_active_window() = delete;
-
-		static void * get_proc_address(cstring) = delete;
 		
 		static pmr::vector<monitor_handle> const & get_monitors() = delete;
+
+		static void * get_proc_address(cstring) = delete;
 
 		static monitor_handle get_primary_monitor() = delete;
 
@@ -283,13 +287,15 @@ namespace ml
 
 		static void set_active_window(window_handle) = delete;
 
+		static window_error_callback set_error_callback(window_error_callback) = delete;
+
+		static void set_swap_interval(int32_t) = delete;
+
 		static void poll_events() = delete;
 
 		static void swap_buffers(window_handle) = delete;
 
-		static void set_swap_interval(int32_t) = delete;
-
-		static window_error_callback set_error_callback(window_error_callback) = delete;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		static cursor_handle create_custom_cursor(size_t, size_t, byte_t const *) = delete;
 
@@ -317,7 +323,7 @@ namespace ml
 		virtual window_resize_callback				set_resize_callback				(window_resize_callback) = 0;
 		virtual window_scroll_callback				set_scroll_callback				(window_scroll_callback) = 0;
 
-		void clear_callbacks() noexcept
+		inline void clear_callbacks() noexcept
 		{
 			set_char_callback				(nullptr);
 			set_char_mods_callback			(nullptr);

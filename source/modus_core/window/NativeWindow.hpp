@@ -84,6 +84,8 @@ namespace ml
 
 		ML_NODISCARD ds::string const & get_title() const noexcept final;
 
+		ML_NODISCARD void * get_user_pointer() const noexcept final;
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD bool is_auto_iconify() const noexcept final;
@@ -146,15 +148,7 @@ namespace ml
 		
 		void set_title(ds::string const & value) noexcept final;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD static void * get_user_pointer(window_handle handle) noexcept;
-
-		ML_NODISCARD void * get_user_pointer() const noexcept { return get_user_pointer(get_handle()); }
-
-		static void * set_user_pointer(window_handle handle, void * value) noexcept;
-
-		void * set_user_pointer(void * value) noexcept { return set_user_pointer(get_handle(), value); }
+		void * set_user_pointer(void * value) noexcept final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -162,23 +156,33 @@ namespace ml
 
 		ML_NODISCARD static window_handle get_active_window() noexcept;
 
-		ML_NODISCARD static void * get_proc_address(cstring value) noexcept;
-
 		ML_NODISCARD static pmr::vector<monitor_handle> const & get_monitors() noexcept;
 
 		ML_NODISCARD static monitor_handle get_primary_monitor() noexcept;
+
+		ML_NODISCARD static void * get_proc_address(cstring value) noexcept;
 
 		ML_NODISCARD static duration get_time() noexcept;
 
 		static void set_active_window(window_handle value) noexcept;
 
+		static window_error_callback set_error_callback(window_error_callback fn) noexcept;
+
+		static void set_swap_interval(int32_t value) noexcept;
+
 		static void poll_events() noexcept;
 
 		static void swap_buffers(window_handle value) noexcept;
 
-		static void set_swap_interval(int32_t value) noexcept;
+		inline void swap_buffers() const noexcept
+		{
+			if (has_hints(window_hints_doublebuffer))
+			{
+				swap_buffers(get_handle());
+			}
+		}
 
-		static window_error_callback set_error_callback(window_error_callback fn) noexcept;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD static cursor_handle create_custom_cursor(size_t w, size_t h, byte_t const * p) noexcept;
 

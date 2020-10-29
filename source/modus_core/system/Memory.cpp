@@ -31,16 +31,18 @@ namespace ml
 
 namespace ml::globals
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// global memory manager
 	static memory_manager * g_memory_manager{};
 
-	template <> memory_manager * get() noexcept
-	{
+	template <> memory_manager * get() noexcept {
 		return g_memory_manager;
 	}
 
-	template <> memory_manager * set(memory_manager * value) noexcept
-	{
+	template <> memory_manager * set(memory_manager * value) noexcept {
 		return g_memory_manager = value;
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

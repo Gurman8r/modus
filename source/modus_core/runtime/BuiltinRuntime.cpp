@@ -1,4 +1,4 @@
-#include <modus_core/runtime/DefaultRuntime.hpp>
+#include <modus_core/runtime/BuiltinRuntime.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
@@ -9,36 +9,28 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	default_runtime::default_runtime(runtime_api * api) noexcept
+	builtin_runtime::builtin_runtime(runtime_api * api) noexcept
 		: runtime_context	{ api }
 		, m_imgui			{}
-		, m_dock			{ "##MainDockspace" }
+		, m_docker			{ "##MainDockspace" }
 	{
-		// singleton
-		ML_assert(this == get_global<runtime_context>());
-
-		// events
 		subscribe<window_key_event>();
 		subscribe<window_mouse_event>();
 		subscribe<window_cursor_pos_event>();
 
-		// initialize
 		initialize(api);
 
-		// loop condition
 		set_loop_condition(&render_window::is_open, get_window());
 	}
 
-	default_runtime::~default_runtime() noexcept
+	builtin_runtime::~builtin_runtime() noexcept
 	{
-		ImGui_Shutdown(get_window(), m_imgui.release());
-
-		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
+		finalize();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void default_runtime::initialize(runtime_api * api)
+	void builtin_runtime::initialize(runtime_api * api)
 	{
 		// preferences
 		ML_assert(api->io->prefs.contains("runtime"));
@@ -113,51 +105,56 @@ namespace ml
 		ML_assert(ImGui_Startup(api->win, install_callbacks));
 		if (runtime_prefs.contains("dockspace")) {
 			auto & dock_prefs{ runtime_prefs["dockspace"] };
-			dock_prefs["alpha"].get_to(m_dock.Alpha);
-			dock_prefs["border"].get_to(m_dock.Border);
-			dock_prefs["padding"].get_to(m_dock.Padding);
-			dock_prefs["rounding"].get_to(m_dock.Rounding);
-			dock_prefs["size"].get_to(m_dock.Size);
+			dock_prefs["alpha"].get_to(m_docker.Alpha);
+			dock_prefs["border"].get_to(m_docker.Border);
+			dock_prefs["padding"].get_to(m_docker.Padding);
+			dock_prefs["rounding"].get_to(m_docker.Rounding);
+			dock_prefs["size"].get_to(m_docker.Size);
 		}
 		if (runtime_prefs.contains("guistyle")) {
 			auto & guistyle{ runtime_prefs["guistyle"] };
-			if (guistyle.is_string())
-			{
+			if (guistyle.is_string()) {
 				ImGui_LoadStyle(api->io->path2(guistyle));
 			}
 		}
 
 		// install plugins
-		if (runtime_prefs.contains("plugins"))
-		{
-			for (auto const & e : runtime_prefs["plugins"])
-			{
+		if (runtime_prefs.contains("plugins")) {
+			for (auto const & e : runtime_prefs["plugins"]) {
 				get_plugins().install(e["path"]);
 			}
 		}
 
 		// execute scripts
-		if (runtime_prefs.contains("scripts"))
-		{
-			for (auto const & e : runtime_prefs["scripts"])
-			{
+		if (runtime_prefs.contains("scripts")) {
+			for (auto const & e : runtime_prefs["scripts"]) {
 				Python_DoFile(api->io->path2(e["path"]));
 			}
 		}
 	}
 
-	void default_runtime::on_enter() noexcept
+	void builtin_runtime::finalize()
+	{
+		ImGui_Shutdown(get_window(), m_imgui.release());
+
+		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
+	}
+
+	void builtin_runtime::on_enter()
 	{
 		get_bus()->fire<runtime_enter_event>(this);
 	}
 
-	void default_runtime::on_exit() noexcept
+	void builtin_runtime::on_exit()
 	{
 		get_bus()->fire<runtime_exit_event>(this);
 	}
 
-	void default_runtime::on_idle()
+	void builtin_runtime::on_idle()
 	{
+		// poll events
+		get_window()->poll_events();
+
 		// update
 		get_bus()->fire<runtime_idle_event>(this);
 
@@ -166,18 +163,21 @@ namespace ml
 		{
 			ML_ImGui_ScopeID(this);
 
-			ML_flag_write(m_dock.WinFlags, ImGuiWindowFlags_MenuBar, ImGui::FindWindowByName("##MainMenuBar"));
+			ML_flag_write(m_docker.WinFlags, ImGuiWindowFlags_MenuBar, ImGui::FindWindowByName("##MainMenuBar"));
 			
-			m_dock(m_imgui->Viewports[0], [&]() noexcept
+			m_docker(m_imgui->Viewports[0], [&]() noexcept
 			{
-				get_bus()->fire<imgui_dockspace_event>(&m_dock);
+				get_bus()->fire<imgui_docker_event>(&m_docker);
 			});
 
 			get_bus()->fire<imgui_render_event>(m_imgui.get());
 		});
+
+		// swap buffers
+		get_window()->swap_buffers();
 	}
 
-	void default_runtime::on_event(event && value)
+	void builtin_runtime::on_event(event && value)
 	{
 		switch (value)
 		{

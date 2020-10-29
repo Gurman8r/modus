@@ -18,8 +18,6 @@ namespace ml::gfx
 
 	render_device * render_device::create(int32_t api, allocator_type alloc) noexcept
 	{
-		auto const g{ get_global<render_device>() };
-
 		auto const temp{ std::invoke([&]() noexcept -> render_device *
 		{
 			switch (api)
@@ -31,7 +29,10 @@ namespace ml::gfx
 			}
 		}) };
 
-		if (!g) { set_global<render_device>(temp); }
+		if (!get_global<render_device>())
+		{
+			set_global<render_device>(temp);
+		}
 
 		return temp;
 	}
@@ -42,7 +43,10 @@ namespace ml::gfx
 
 		if (!value) { value = g; }
 
-		if (g == value) { set_global<render_device>(nullptr); }
+		if (value == g)
+		{
+			set_global<render_device>(nullptr);
+		}
 
 		delete value;
 	}
@@ -52,16 +56,18 @@ namespace ml::gfx
 
 namespace ml::globals
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// global render device
 	static gfx::render_device * g_render_device{};
 
-	template <> gfx::render_device * get() noexcept
-	{
+	template <> gfx::render_device * get() noexcept {
 		return g_render_device;
 	}
 
-	template <> gfx::render_device * set(gfx::render_device * value) noexcept
-	{
+	template <> gfx::render_device * set(gfx::render_device * value) noexcept {
 		return g_render_device = value;
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

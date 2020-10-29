@@ -50,18 +50,17 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD plugin_storage const & get_storage() const noexcept
-		{
-			return m_data;
-		}
-
-		ML_NODISCARD bool contains(fs::path const & path) const noexcept
+		ML_NODISCARD bool has_plugin(fs::path const & path) const noexcept
 		{
 			return m_data.contains<plugin_id>
 			(
 				(plugin_id)hashof(shared_library::format_path(path).string())
 			);
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_storage() const noexcept -> plugin_storage const & { return m_data; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

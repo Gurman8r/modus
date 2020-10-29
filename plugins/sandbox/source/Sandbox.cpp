@@ -58,13 +58,15 @@ namespace ml
 		pmr::vector<shared<gfx::framebuffer>> m_fb{};
 
 		// data
+		db_ref<bitmap> m_icon{ get_db(), "icon" };
+
 		ds::hashmap<pmr::string, shared<font>>			m_fonts		{};
 		ds::hashmap<pmr::string, shared<bitmap>>		m_images	{};
 		ds::hashmap<pmr::string, shared<mesh>>			m_meshes	{};
 		ds::hashmap<pmr::string, shared<gfx::program>>	m_programs	{};
+		ds::hashmap<pmr::string, shared<scene>>			m_scenes	{};
+		ds::hashmap<pmr::string, shared<gfx::shader>>	m_shaders	{};
 		ds::hashmap<pmr::string, shared<gfx::texture>>	m_textures	{};
-
-		db_ref<bitmap> m_icon{ get_db(), "icon" };
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -75,7 +77,7 @@ namespace ml
 			subscribe<runtime_enter_event>();
 			subscribe<runtime_exit_event>();
 			subscribe<runtime_idle_event>();
-			subscribe<imgui_dockspace_event>();
+			subscribe<imgui_docker_event>();
 			subscribe<imgui_render_event>();
 		}
 
@@ -83,11 +85,11 @@ namespace ml
 		{
 			switch (value)
 			{
-			case runtime_enter_event	::ID: return on_runtime_enter((runtime_enter_event &&)value);
-			case runtime_exit_event		::ID: return on_runtime_exit((runtime_exit_event &&)value);
-			case runtime_idle_event		::ID: return on_runtime_idle((runtime_idle_event &&)value);
-			case imgui_dockspace_event	::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
-			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event &&)value);
+			case runtime_enter_event::ID: return on_runtime_enter((runtime_enter_event &&)value);
+			case runtime_exit_event	::ID: return on_runtime_exit((runtime_exit_event &&)value);
+			case runtime_idle_event	::ID: return on_runtime_idle((runtime_idle_event &&)value);
+			case imgui_docker_event	::ID: return on_imgui_docker((imgui_docker_event &&)value);
+			case imgui_render_event	::ID: return on_imgui_render((imgui_render_event &&)value);
 			}
 		}
 
@@ -96,7 +98,7 @@ namespace ml
 		void on_runtime_enter(runtime_enter_event && ev)
 		{
 			// set icon
-			if (auto & i = m_icon = bitmap{ get_io()->path2("resource/icon.png") })
+			if (auto & i = m_icon = bitmap{ get_io()->path2("resource/modus_launcher.png"), false })
 			{
 				get_window()->set_icons(i.width(), i.height(), 1, i.data());
 			}
@@ -127,7 +129,7 @@ namespace ml
 				gfx::command::bind_framebuffer(nullptr));
 		}
 
-		void on_imgui_dockspace(imgui_dockspace_event && ev)
+		void on_imgui_docker(imgui_docker_event && ev)
 		{
 			if (ImGuiID const root{ ev->GetID() }; !ImGui::DockBuilderGetNode(root))
 			{

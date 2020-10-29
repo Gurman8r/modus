@@ -21,13 +21,13 @@ namespace ml::gfx
 			}
 		};
 
-		do_execute(ML_forward(arg0), ML_forward(ctx));
+		do_execute(ML_forward(arg0), ML_forward(ctx)); // arg0
 
 		if constexpr (0 < sizeof...(args))
 		{
-			meta::for_args([&](auto && cmd) noexcept
+			meta::for_args([&](auto && arg) noexcept
 			{
-				do_execute(ML_forward(cmd), ML_forward(ctx));
+				do_execute(ML_forward(arg), ML_forward(ctx)); // args...
 			}
 			, ML_forward(args)...);
 		}

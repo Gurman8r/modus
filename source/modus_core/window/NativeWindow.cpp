@@ -1,22 +1,16 @@
 #include <modus_core/window/NativeWindow.hpp>
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 #ifdef ML_IMPL_WINDOW_GLFW
 #include <modus_core/backends/glfw/GLFW_Window.hpp>
-using impl_window = _ML glfw_window;
+using backend_window = _ML glfw_window;
 #endif
-
-// etc...
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	native_window::native_window(allocator_type alloc) noexcept
-		: m_backend{ new impl_window{ alloc } }
+		: m_backend{ new backend_window{ alloc } }
 	{
 		ML_assert_msg(m_backend, "failed creating native_window implementation");
 	}
@@ -36,6 +30,8 @@ namespace ml
 	native_window::~native_window() noexcept
 	{
 		clear_callbacks();
+
+		set_error_callback(nullptr);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -62,7 +58,7 @@ namespace ml
 		set_active_window(get_handle());
 		
 		// centered
-		set_position((video_mode::desktop_mode().resolution - vm.resolution) / 2);
+		set_position((video_mode::get_desktop_mode().resolution - vm.resolution) / 2);
 
 		// maximized
 		if (has_hints(window_hints_maximized)) { maximize(); }
@@ -120,7 +116,7 @@ namespace ml
 		return m_backend->get_callbacks();
 	}
 
-	ML_NODISCARD window_context_manager const & native_window::get_context_manager() const noexcept
+	window_context_manager const & native_window::get_context_manager() const noexcept
 	{
 		return m_backend->get_context_manager();
 	}
@@ -198,6 +194,11 @@ namespace ml
 	ds::string const & native_window::get_title() const noexcept
 	{
 		return m_backend->get_title();
+	}
+
+	void * native_window::get_user_pointer() const noexcept
+	{
+		return m_backend->get_user_pointer();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -349,88 +350,83 @@ namespace ml
 		m_backend->set_title(value);
 	}
 	
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void * native_window::get_user_pointer(window_handle handle) noexcept
+	void * native_window::set_user_pointer(void * value) noexcept
 	{
-		return impl_window::get_user_pointer(handle);
-	}
-
-	void * native_window::set_user_pointer(window_handle handle, void * value) noexcept
-	{
-		return impl_window::set_user_pointer(handle, value);
+		return m_backend->set_user_pointer(value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	int32_t native_window::extension_supported(cstring value) noexcept
 	{
-		return impl_window::extension_supported(value);
+		return backend_window::extension_supported(value);
 	}
 
 	window_handle native_window::get_active_window() noexcept
 	{
-		return impl_window::get_active_window();
-	}
-
-	void * native_window::get_proc_address(cstring value) noexcept
-	{
-		return impl_window::get_proc_address(value);
+		return backend_window::get_active_window();
 	}
 
 	pmr::vector<monitor_handle> const & native_window::get_monitors() noexcept
 	{
-		return impl_window::get_monitors();
+		return backend_window::get_monitors();
+	}
+
+	void * native_window::get_proc_address(cstring value) noexcept
+	{
+		return backend_window::get_proc_address(value);
 	}
 
 	monitor_handle native_window::get_primary_monitor() noexcept
 	{
-		return impl_window::get_primary_monitor();
+		return backend_window::get_primary_monitor();
 	}
 
 	duration native_window::get_time() noexcept
 	{
-		return impl_window::get_time();
+		return backend_window::get_time();
 	}
 
 	void native_window::set_active_window(window_handle value) noexcept
 	{
-		impl_window::set_active_window(value);
-	}
-
-	void native_window::poll_events() noexcept
-	{
-		impl_window::poll_events();
-	}
-
-	void native_window::swap_buffers(window_handle value) noexcept
-	{
-		impl_window::swap_buffers(value);
-	}
-
-	void native_window::set_swap_interval(int32_t value) noexcept
-	{
-		impl_window::set_swap_interval(value);
+		backend_window::set_active_window(value);
 	}
 
 	window_error_callback native_window::set_error_callback(window_error_callback fn) noexcept
 	{
-		return impl_window::set_error_callback(fn);
+		return backend_window::set_error_callback(fn);
 	}
+
+	void native_window::set_swap_interval(int32_t value) noexcept
+	{
+		backend_window::set_swap_interval(value);
+	}
+
+	void native_window::poll_events() noexcept
+	{
+		backend_window::poll_events();
+	}
+
+	void native_window::swap_buffers(window_handle value) noexcept
+	{
+		backend_window::swap_buffers(value);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	cursor_handle native_window::create_custom_cursor(size_t w, size_t h, byte_t const * p) noexcept
 	{
-		return impl_window::create_custom_cursor(w, h, p);
+		return backend_window::create_custom_cursor(w, h, p);
 	}
 
 	cursor_handle native_window::create_standard_cursor(int32_t value) noexcept
 	{
-		return impl_window::create_standard_cursor(value);
+		return backend_window::create_standard_cursor(value);
 	}
 
 	void native_window::destroy_cursor(cursor_handle value) noexcept
 	{
-		impl_window::destroy_cursor(value);
+		backend_window::destroy_cursor(value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -1,43 +1,41 @@
 #ifndef _ML_RUNTIME_EVENTS_HPP_
 #define _ML_RUNTIME_EVENTS_HPP_
 
-#include <modus_core/system/Events.hpp>
-
-namespace ml { struct runtime_context; }
+#include <modus_core/detail/Events.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// RUNTIME ENTER
-	ML_decl_event(runtime_enter_event)
+	// PROCESS ENTER
+	ML_decl_event(process_enter_event)
 	{
-		runtime_context * const ptr;
+		struct main_loop * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr runtime_enter_event(runtime_context * ptr) noexcept : ptr{ ptr }
+		constexpr process_enter_event(struct main_loop * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};
 
-	// RUNTIME EXIT
-	ML_decl_event(runtime_exit_event)
+	// PROCESS EXIT
+	ML_decl_event(process_exit_event)
 	{
-		runtime_context * const ptr;
+		struct main_loop * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr runtime_exit_event(runtime_context * ptr) noexcept : ptr{ ptr }
+		constexpr process_exit_event(struct main_loop * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};
 
-	// RUNTIME IDLE
-	ML_decl_event(runtime_idle_event)
+	// PROCESS IDLE
+	ML_decl_event(process_idle_event)
 	{
-		runtime_context * const ptr;
+		struct main_loop * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr runtime_idle_event(runtime_context * ptr) noexcept : ptr{ ptr }
+		constexpr process_idle_event(struct main_loop * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};

@@ -18,7 +18,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit plugin(plugin_manager * manager, void * user = nullptr) noexcept;
+		explicit plugin(plugin_manager * manager, void * userptr = nullptr) noexcept;
 
 		virtual ~plugin() noexcept override = default;
 

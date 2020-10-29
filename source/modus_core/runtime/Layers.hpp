@@ -1,7 +1,7 @@
 #ifndef _ML_LAYERS_HPP_
 #define _ML_LAYERS_HPP_
 
-#include <modus_core/system/Events.hpp>
+#include <modus_core/detail/Events.hpp>
 
 namespace ml
 {

@@ -44,7 +44,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		plugin_id install(fs::path const & path, void * user = nullptr);
+		plugin_id install(fs::path const & path, void * userptr = nullptr);
 
 		bool uninstall(plugin_id value);
 

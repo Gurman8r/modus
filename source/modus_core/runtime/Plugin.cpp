@@ -4,10 +4,10 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin::plugin(plugin_manager * manager, void * user) noexcept
+	plugin::plugin(plugin_manager * manager, void * userptr) noexcept
 		: runtime_listener	{ ML_check(manager)->get_api() }
 		, m_manager			{ manager }
-		, m_userptr			{ user }
+		, m_userptr			{ userptr }
 	{
 	}
 

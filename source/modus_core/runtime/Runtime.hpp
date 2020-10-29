@@ -4,7 +4,8 @@
 #include <modus_core/detail/Matrix.hpp>
 #include <modus_core/detail/Timer.hpp>
 #include <modus_core/detail/Database.hpp>
-#include <modus_core/system/Events.hpp>
+#include <modus_core/detail/Events.hpp>
+#include <modus_core/system/Memory.hpp>
 #include <modus_core/window/Input.hpp>
 
 namespace ml

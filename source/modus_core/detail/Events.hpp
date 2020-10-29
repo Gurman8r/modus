@@ -1,8 +1,9 @@
 #ifndef _ML_EVENTS_HPP_
 #define _ML_EVENTS_HPP_
 
+#include <modus_core/detail/Debug.hpp>
 #include <modus_core/detail/Map.hpp>
-#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/NonCopyable.hpp>
 
 // event declarator helper
 #define ML_decl_event(Type) \
@@ -20,14 +21,21 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	// EVENT BASE
-	struct event : non_copyable
+	struct ML_NODISCARD event : non_copyable
 	{
 		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_id; }
 
+		bool use() noexcept { return !m_used && (m_used = true); }
+
+		bool used() const noexcept { return m_used; }
+
 	protected:
-		constexpr explicit event(hash_t id) noexcept : m_id{ id } {}
+		constexpr explicit event(hash_t id) noexcept : m_id{ id }, m_used{}
+		{
+		}
 
 		hash_t const m_id; // event id
+		bool m_used;
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -65,7 +73,7 @@ namespace ml
 
 		ML_NODISCARD event_bus * get_bus() const noexcept { return m_bus; }
 
-		ML_NODISCARD bool is_listening() const noexcept { return m_listening; }
+		ML_NODISCARD bool listening_enabled() const noexcept { return m_listening; }
 
 		bool enable_listening(bool value) noexcept { return m_listening = value; }
 
@@ -99,8 +107,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		event_bus * const m_bus; // 
-		bool m_listening; // 
+		event_bus * const	m_bus		; // bus
+		bool				m_listening	; // listening
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -108,7 +116,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// EVENT BUS
-	struct event_bus final : trackable, non_copyable
+	struct event_bus : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -122,17 +130,17 @@ namespace ml
 		{
 		}
 
-		~event_bus() noexcept override = default;
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void fire(event && ev) noexcept
 		{
-			if (auto const cat{ m_categories.find(ev) })
+			if (ev.used()) { return; }
+			else if (auto const cat{ m_categories.find(ev) })
 			{
 				for (auto const listener : (*cat->second))
 				{
-					if (listener->is_listening())
+					if (ev.used()) { return; }
+					else if (listener->listening_enabled())
 					{
 						listener->on_event(ML_forward(ev));
 					}

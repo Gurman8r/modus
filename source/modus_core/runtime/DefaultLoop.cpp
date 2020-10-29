@@ -1,4 +1,4 @@
-#include <modus_core/runtime/BuiltinRuntime.hpp>
+#include <modus_core/runtime/DefaultLoop.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
@@ -9,35 +9,39 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	builtin_runtime::builtin_runtime(runtime_api * api) noexcept
-		: runtime_context	{ api }
-		, m_imgui			{}
-		, m_docker			{ "##MainDockspace" }
+	default_loop::default_loop(runtime_api * api) noexcept
+		: main_loop	{ api }
+		, m_plugins	{ api }
+		, m_imgui	{}
+		, m_dock	{ "##MainDockspace" }
 	{
-		subscribe<window_key_event>();
-		subscribe<window_mouse_event>();
-		subscribe<window_cursor_pos_event>();
-
 		initialize(api);
-
-		set_loop_condition(&render_window::is_open, get_window());
 	}
 
-	builtin_runtime::~builtin_runtime() noexcept
+	default_loop::~default_loop() noexcept
 	{
 		finalize();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void builtin_runtime::initialize(runtime_api * api)
+	void default_loop::initialize(runtime_api * api)
 	{
+		// events
+		subscribe<window_key_event>();
+		subscribe<window_mouse_event>();
+		subscribe<window_cursor_pos_event>();
+
+		// loop condition
+		set_condition(&render_window::is_open, api->win);
+
 		// preferences
 		ML_assert(api->io->prefs.contains("runtime"));
 		auto & runtime_prefs{ api->io->prefs["runtime"] };
 		bool const install_callbacks{ runtime_prefs["callbacks"] };
 
 		// python
+		ML_assert(!Py_IsInitialized());
 		PyObject_SetArenaAllocator(([&temp = PyObjectArenaAllocator{}](auto mres) noexcept {
 			temp.ctx = mres;
 			temp.alloc = [](auto mres, size_t s) {
@@ -105,23 +109,23 @@ namespace ml
 		ML_assert(ImGui_Startup(api->win, install_callbacks));
 		if (runtime_prefs.contains("dockspace")) {
 			auto & dock_prefs{ runtime_prefs["dockspace"] };
-			dock_prefs["alpha"].get_to(m_docker.Alpha);
-			dock_prefs["border"].get_to(m_docker.Border);
-			dock_prefs["padding"].get_to(m_docker.Padding);
-			dock_prefs["rounding"].get_to(m_docker.Rounding);
-			dock_prefs["size"].get_to(m_docker.Size);
+			dock_prefs["alpha"].get_to(m_dock.Alpha);
+			dock_prefs["border"].get_to(m_dock.Border);
+			dock_prefs["padding"].get_to(m_dock.Padding);
+			dock_prefs["rounding"].get_to(m_dock.Rounding);
+			dock_prefs["size"].get_to(m_dock.Size);
 		}
 		if (runtime_prefs.contains("guistyle")) {
-			auto & guistyle{ runtime_prefs["guistyle"] };
-			if (guistyle.is_string()) {
-				ImGui_LoadStyle(api->io->path2(guistyle));
+			auto & style_prefs{ runtime_prefs["guistyle"] };
+			if (style_prefs.is_string()) {
+				ImGui_LoadStyle(api->io->path2(style_prefs));
 			}
 		}
 
 		// install plugins
 		if (runtime_prefs.contains("plugins")) {
 			for (auto const & e : runtime_prefs["plugins"]) {
-				get_plugins().install(e["path"]);
+				m_plugins.install(e["path"]);
 			}
 		}
 
@@ -133,51 +137,47 @@ namespace ml
 		}
 	}
 
-	void builtin_runtime::finalize()
+	void default_loop::finalize()
 	{
 		ImGui_Shutdown(get_window(), m_imgui.release());
 
 		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
 	}
 
-	void builtin_runtime::on_enter()
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void default_loop::on_enter()
 	{
-		get_bus()->fire<runtime_enter_event>(this);
+		get_bus()->fire<process_enter_event>(this);
 	}
 
-	void builtin_runtime::on_exit()
+	void default_loop::on_exit()
 	{
-		get_bus()->fire<runtime_exit_event>(this);
+		get_bus()->fire<process_exit_event>(this);
 	}
 
-	void builtin_runtime::on_idle()
+	void default_loop::on_idle()
 	{
-		// poll events
-		get_window()->poll_events();
-
-		// update
-		get_bus()->fire<runtime_idle_event>(this);
+		// idle
+		get_bus()->fire<process_idle_event>(this);
 
 		// imgui
 		ImGui_DoFrame(get_window(), m_imgui.get(), [&]() noexcept
 		{
 			ML_ImGui_ScopeID(this);
 
-			ML_flag_write(m_docker.WinFlags, ImGuiWindowFlags_MenuBar, ImGui::FindWindowByName("##MainMenuBar"));
+			ML_flag_write(m_dock.WinFlags, ImGuiWindowFlags_MenuBar, ImGui::FindWindowByName("##MainMenuBar"));
 			
-			m_docker(m_imgui->Viewports[0], [&]() noexcept
+			m_dock(m_imgui->Viewports[0], [&]() noexcept
 			{
-				get_bus()->fire<imgui_docker_event>(&m_docker);
+				get_bus()->fire<imgui_dockspace_event>(&m_dock);
 			});
 
 			get_bus()->fire<imgui_render_event>(m_imgui.get());
 		});
-
-		// swap buffers
-		get_window()->swap_buffers();
 	}
 
-	void builtin_runtime::on_event(event && value)
+	void default_loop::on_event(event && value)
 	{
 		switch (value)
 		{

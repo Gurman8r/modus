@@ -1,19 +1,19 @@
-#ifndef _ML_BUILTIN_RUNTIME_HPP_
-#define _ML_BUILTIN_RUNTIME_HPP_
+#ifndef _ML_DEFAULT_LOOP_HPP_
+#define _ML_DEFAULT_LOOP_HPP_
 
-#include <modus_core/runtime/RuntimeContext.hpp>
+#include <modus_core/runtime/MainLoop.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
 
 namespace ml
 {
-	// default backend
-	struct ML_CORE_API builtin_runtime final : runtime_context
+	// default loop
+	struct ML_CORE_API default_loop final : main_loop
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit builtin_runtime(runtime_api * api) noexcept;
+		explicit default_loop(runtime_api * api) noexcept;
 
-		~builtin_runtime() noexcept override;
+		~default_loop() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -21,6 +21,8 @@ namespace ml
 		void initialize(runtime_api * api);
 
 		void finalize();
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void on_enter() override;
 
@@ -33,11 +35,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
+		plugin_manager			m_plugins	; // plugin manager
 		manual<ImGuiContext>	m_imgui		; // imgui context
-		ImGuiExt::Dockspace		m_docker	; // imgui dockspace
+		ImGuiExt::Dockspace		m_dock		; // imgui dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
-#endif // !_ML_BUILTIN_RUNTIME_HPP_
+#endif // !_ML_DEFAULT_LOOP_HPP_

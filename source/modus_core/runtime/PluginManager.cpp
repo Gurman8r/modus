@@ -21,7 +21,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_id plugin_manager::install(fs::path const & path, void * user)
+	plugin_id plugin_manager::install(fs::path const & path, void * userptr)
 	{
 		// check exists
 		if (this->has_plugin(path))
@@ -53,7 +53,7 @@ namespace ml
 		}) })
 		// load plugin
 		{
-			if (auto const p{ m_data.back<plugin_iface>().do_install(this, user) })
+			if (auto const p{ m_data.back<plugin_iface>().do_install(this, userptr) })
 			{
 				m_data.back<manual<plugin>>().reset(p);
 

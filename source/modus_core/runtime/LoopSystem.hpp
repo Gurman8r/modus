@@ -18,13 +18,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		loop_system(runtime_api * api, loop_condition const & loopcond = {}) noexcept;
-
 		template <class Fn, class Arg0, class ... Args
 		> loop_system(runtime_api * api, Fn && fn, Arg0 && arg0, Args && ... args) noexcept
 			: loop_system{ api, std::bind(ML_forward(fn), ML_forward(arg0), ML_forward(args)...) }
 		{
 		}
+
+		loop_system(runtime_api * api, loop_condition const & loopcond = {}) noexcept;
 
 		virtual ~loop_system() noexcept override;
 
@@ -36,59 +36,97 @@ namespace ml
 
 			on_process_enter(); ML_defer(&) { on_process_exit(); };
 
-			if (!check_condition()) { return EXIT_FAILURE * 2; }
+			if (!test_condition()) { return EXIT_FAILURE * 2; }
 
-			do { on_process_idle(); } while (check_condition());
+			do { on_process_idle(); } while (test_condition());
 
 			return EXIT_SUCCESS;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool check_condition() const noexcept {
-			return m_loopcond && m_loopcond();
-		}
-
-		ML_NODISCARD auto get_condition() const noexcept -> loop_condition const & {
+		ML_NODISCARD auto get_condition() const noexcept -> loop_condition const &
+		{
 			return m_loopcond;
 		}
 
 		template <class Fn, class ... Args
-		> auto set_condition(Fn && fn, Args && ... args) noexcept -> loop_condition & {
-			return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...);
+		> auto set_condition(Fn && fn, Args && ... args) noexcept -> loop_condition &
+		{
+			if constexpr (0 == sizeof...(args))
+			{
+				return m_loopcond = ML_forward(fn);
+			}
+			else
+			{
+				return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...);
+			}
+		}
+
+		ML_NODISCARD bool test_condition() const noexcept
+		{
+			return m_loopcond && m_loopcond();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_subsystems() noexcept -> subsystem_list & {
+		auto add_subsystem(subsystem const & value) -> iterator
+		{
+			if (this == value.get() || has_subsystem(value)) { return end(); }
+			else
+			{
+				return m_subsystems.emplace(end(), value);
+			}
+		}
+
+		auto delete_subsystem(subsystem const & value) -> iterator
+		{
+			if (auto const it{ find_subsystem(value) }; it == end()) { return end(); }
+			else
+			{
+				return m_subsystems.erase(it);
+			}
+		}
+
+		ML_NODISCARD auto find_subsystem(subsystem const & value) noexcept -> iterator
+		{
+			return std::find(begin(), end(), value);
+		}
+
+		ML_NODISCARD auto find_subsystem(subsystem const & value) const noexcept -> const_iterator
+		{
+			return std::find(begin(), end(), value);
+		}
+
+		ML_NODISCARD auto get_subsystems() noexcept -> subsystem_list &
+		{
 			return m_subsystems;
 		}
 
-		ML_NODISCARD auto get_subsystems() const noexcept -> subsystem_list const & {
+		ML_NODISCARD auto get_subsystems() const noexcept -> subsystem_list const &
+		{
 			return m_subsystems;
+		}
+
+		bool has_subsystem(subsystem const & value) const noexcept
+		{
+			return end() == find_subsystem(value);
 		}
 
 		template <class Derived, class ... Args
 		> auto new_subsystem(Args && ... args) noexcept -> ds::shared<Derived>
 		{
-			static_assert(!std::is_same_v<loop_system, Derived>);
-
-			static_assert(std::is_base_of_v<loop_system, Derived>);
-
 			return std::static_pointer_cast<Derived>(m_subsystems.emplace_back
 			(
 				get_memory()->make_ref<Derived>(get_api(), ML_forward(args)...)
 			));
 		}
 
-		auto delete_subsystem(subsystem const & value) -> iterator
-		{
-			if (auto const it{ std::find(begin(), end(), value) }; it == end()) { return it; }
-			else
-			{
-				return m_subsystems.erase(it);
-			}
-		}
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto operator[](size_t i) noexcept -> subsystem & { return m_subsystems[i]; }
+
+		ML_NODISCARD auto operator[](size_t i) const noexcept -> subsystem const & { return m_subsystems[i]; }
 
 		ML_NODISCARD auto begin() noexcept -> iterator { return m_subsystems.begin(); }
 
@@ -105,35 +143,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		bool lock() noexcept {
-			return !m_locked && (m_locked = true);
-		}
+		bool lock() noexcept { return !m_locked && (m_locked = true); }
 
-		bool unlock() noexcept {
-			return m_locked && !(m_locked = false);
-		}
+		bool unlock() noexcept { return m_locked && !(m_locked = false); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual void on_process_enter()
-		{
-			for (auto & e : *this) { e->on_process_enter(); }
-		}
+		virtual void on_process_enter() { for (auto & e : *this) { e->on_process_enter(); } }
 
-		virtual void on_process_exit()
-		{
-			for (auto & e : *this) { e->on_process_exit(); }
-		}
+		virtual void on_process_exit() { for (auto & e : *this) { e->on_process_exit(); } }
 
-		virtual void on_process_idle()
-		{
-			for (auto & e : *this) { e->on_process_idle(); }
-		}
+		virtual void on_process_idle() { for (auto & e : *this) { e->on_process_idle(); } }
 
-		virtual void on_event(event && ev) override
-		{
-			for (auto & e : *this) { e->on_event(ML_forward(ev)); }
-		}
+		virtual void on_event(event && ev) override { for (auto & e : *this) { e->on_event(ML_forward(ev)); } }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

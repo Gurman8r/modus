@@ -106,7 +106,7 @@ ml::int32_t main()
 
 	auto backend{ loopsys.new_subsystem<builtin_runtime>() };
 
-	loopsys.set_bypass(backend);
+	loopsys.set_condition(backend->get_condition());
 
 	return loopsys.process();
 }

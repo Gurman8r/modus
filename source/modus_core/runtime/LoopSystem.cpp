@@ -6,7 +6,6 @@ namespace ml
 
 	loop_system::loop_system(runtime_api * api, loop_condition const & loopcond) noexcept
 		: runtime_listener	{ api }
-		, m_bypass			{}
 		, m_locked			{}
 		, m_loopcond		{ loopcond }
 		, m_subsystems		{ api->mem->get_allocator() }

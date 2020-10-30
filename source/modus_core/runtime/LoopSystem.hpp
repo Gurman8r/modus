@@ -11,7 +11,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using loop_condition	= typename ds::method<bool()>;
-		using bypass			= typename ds::weak<loop_system>;
 		using subsystem			= typename ds::shared<loop_system>;
 		using subsystem_list	= typename ds::list<subsystem>;
 		using iterator			= typename subsystem_list::iterator;
@@ -46,56 +45,27 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_bypass() const noexcept -> subsystem
-		{
-			return m_bypass.lock();
+		ML_NODISCARD bool check_condition() const noexcept {
+			return m_loopcond && m_loopcond();
 		}
 
-		bool has_bypass() const noexcept
-		{
-			return !m_bypass.expired();
-		}
-
-		void set_bypass(subsystem const & value)
-		{
-			if (value && this != value.get()) { m_bypass = value; }
-			else { m_bypass.reset(); }
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_condition() noexcept -> loop_condition &
-		{
-			return !has_bypass() ? m_loopcond : get_bypass()->get_condition();
-		}
-
-		ML_NODISCARD auto get_condition() const noexcept -> loop_condition const &
-		{
-			return !has_bypass() ? m_loopcond : get_bypass()->get_condition();
+		ML_NODISCARD auto get_condition() const noexcept -> loop_condition const & {
+			return m_loopcond;
 		}
 
 		template <class Fn, class ... Args
-		> auto set_condition(Fn && fn, Args && ... args) noexcept -> loop_condition &
-		{
-			return get_condition() = std::bind(ML_forward(fn), ML_forward(args)...);
-		}
-
-		ML_NODISCARD bool check_condition() const noexcept
-		{
-			auto const & loopcond{ get_condition() };
-			return loopcond && std::invoke(loopcond);
+		> auto set_condition(Fn && fn, Args && ... args) noexcept -> loop_condition & {
+			return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_subsystems() noexcept -> subsystem_list &
-		{
-			return !has_bypass() ? m_subsystems : get_bypass()->get_subsystems();
+		ML_NODISCARD auto get_subsystems() noexcept -> subsystem_list & {
+			return m_subsystems;
 		}
 
-		ML_NODISCARD auto get_subsystems() const noexcept -> subsystem_list const &
-		{
-			return !has_bypass() ? m_subsystems : get_bypass()->get_subsystems();
+		ML_NODISCARD auto get_subsystems() const noexcept -> subsystem_list const & {
+			return m_subsystems;
 		}
 
 		template <class Derived, class ... Args
@@ -105,7 +75,7 @@ namespace ml
 
 			static_assert(std::is_base_of_v<loop_system, Derived>);
 
-			return std::static_pointer_cast<Derived>(get_subsystems().emplace_back
+			return std::static_pointer_cast<Derived>(m_subsystems.emplace_back
 			(
 				get_memory()->make_ref<Derived>(get_api(), ML_forward(args)...)
 			));
@@ -116,65 +86,58 @@ namespace ml
 			if (auto const it{ std::find(begin(), end(), value) }; it == end()) { return it; }
 			else
 			{
-				return get_subsystems().erase(it);
+				return m_subsystems.erase(it);
 			}
 		}
 
-		ML_NODISCARD auto begin() noexcept -> iterator { return get_subsystems().begin(); }
+		ML_NODISCARD auto begin() noexcept -> iterator { return m_subsystems.begin(); }
 
-		ML_NODISCARD auto begin() const noexcept -> const_iterator { return get_subsystems().begin(); }
+		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_subsystems.begin(); }
 		
-		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return get_subsystems().cbegin(); }
+		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return m_subsystems.cbegin(); }
 
-		ML_NODISCARD auto end() noexcept -> iterator { return get_subsystems().end(); }
+		ML_NODISCARD auto end() noexcept -> iterator { return m_subsystems.end(); }
 
-		ML_NODISCARD auto end() const noexcept -> const_iterator { return get_subsystems().end(); }
+		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_subsystems.end(); }
 
-		ML_NODISCARD auto cend() const noexcept -> const_iterator { return get_subsystems().cend(); }
+		ML_NODISCARD auto cend() const noexcept -> const_iterator { return m_subsystems.cend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		bool lock() noexcept
-		{
-			return !has_bypass() ? !m_locked && (m_locked = true) : get_bypass()->lock();
+		bool lock() noexcept {
+			return !m_locked && (m_locked = true);
 		}
 
-		bool unlock() noexcept
-		{
-			return !has_bypass() ? m_locked && !(m_locked = false) : get_bypass()->unlock();
+		bool unlock() noexcept {
+			return m_locked && !(m_locked = false);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		virtual void on_process_enter()
 		{
-			if (has_bypass()) { get_bypass()->on_process_enter(); }
-			else for (auto & e : *this) { e->on_process_enter(); }
+			for (auto & e : *this) { e->on_process_enter(); }
 		}
 
 		virtual void on_process_exit()
 		{
-			if (has_bypass()) { get_bypass()->on_process_exit(); }
-			else for (auto & e : *this) { e->on_process_exit(); }
+			for (auto & e : *this) { e->on_process_exit(); }
 		}
 
 		virtual void on_process_idle()
 		{
-			if (has_bypass()) { get_bypass()->on_process_idle(); }
-			else for (auto & e : *this) { e->on_process_idle(); }
+			for (auto & e : *this) { e->on_process_idle(); }
 		}
 
 		virtual void on_event(event && ev) override
 		{
-			if (has_bypass()) { get_bypass()->on_event(ML_forward(ev)); }
-			else for (auto & e : *this) { e->on_event(ML_forward(ev)); }
+			for (auto & e : *this) { e->on_event(ML_forward(ev)); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		bypass			m_bypass	; // bypass
 		bool			m_locked	; // running
 		loop_condition	m_loopcond	; // loop condition
 		subsystem_list	m_subsystems; // subsystem list

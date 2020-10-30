@@ -60,7 +60,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime object
+	// base runtime object
 	template <class Derived
 	> struct runtime_object : trackable, non_copyable
 	{
@@ -92,7 +92,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime listener
+	// base runtime listener
 	template <class Derived
 	> struct runtime_listener : trackable, non_copyable, event_listener
 	{

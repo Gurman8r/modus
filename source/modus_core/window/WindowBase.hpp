@@ -267,12 +267,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static void * get_user_pointer(window_handle) = delete;
-
-		static void * set_user_pointer(window_handle, void *) = delete;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		static int32_t extension_supported(cstring) = delete;
 
 		static window_handle get_active_window() = delete;

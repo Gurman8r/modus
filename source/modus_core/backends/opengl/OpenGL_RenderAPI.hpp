@@ -19,7 +19,7 @@ namespace ml::gfx
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_render_device> };
 
 		device_info				m_info	{}; // device settings
-		ds::shared<render_context>	m_ctx	{}; // render context
+		ds::ref<render_context>	m_ctx	{}; // render context
 
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -30,9 +30,9 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void set_context(ds::shared<render_context> const & value) noexcept override { m_ctx = value; }
+		void set_context(ds::ref<render_context> const & value) noexcept override { m_ctx = value; }
 
-		ds::shared<render_context> const & get_context() const noexcept override { return m_ctx; }
+		ds::ref<render_context> const & get_context() const noexcept override { return m_ctx; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -45,23 +45,23 @@ namespace ml::gfx
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::shared<render_context> create_context(spec<render_context> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<render_context> create_context(spec<render_context> const & desc, allocator_type alloc) noexcept override;
 
-		ds::shared<vertexarray> create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<vertexarray> create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept override;
 
-		ds::shared<vertexbuffer> create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
+		ds::ref<vertexbuffer> create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
 
-		ds::shared<indexbuffer> create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
+		ds::ref<indexbuffer> create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
 
-		ds::shared<texture2d> create_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept override;
+		ds::ref<texture2d> create_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept override;
 
-		ds::shared<texturecube> create_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<texturecube> create_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept override;
 
-		ds::shared<framebuffer> create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<framebuffer> create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept override;
 
-		ds::shared<program> create_program(allocator_type alloc) noexcept override;
+		ds::ref<program> create_program(allocator_type alloc) noexcept override;
 
-		ds::shared<shader> create_shader(spec<shader> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<shader> create_shader(spec<shader> const & desc, allocator_type alloc) noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -134,7 +134,7 @@ namespace ml::gfx
 
 		void clear(uint32_t mask) override;
 
-		void draw(ds::shared<vertexarray> const & value) override;
+		void draw(ds::ref<vertexarray> const & value) override;
 
 		void draw_arrays(uint32_t prim, size_t first, size_t count) override;
 
@@ -193,11 +193,11 @@ namespace ml::gfx
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_vertexarray> };
 
-		uint32_t							m_handle	{}; // handle
-		vertex_layout						m_layout	{}; // buffer layout
-		uint32_t const						m_mode		{}; // prim type
-		ds::shared<indexbuffer>					m_indices	{}; // index buffer
-		ds::list<ds::shared<vertexbuffer>>	m_vertices	{}; // vertex buffers
+		uint32_t						m_handle	{}; // handle
+		vertex_layout					m_layout	{}; // buffer layout
+		uint32_t const					m_mode		{}; // prim type
+		ds::ref<indexbuffer>			m_indices	{}; // index buffer
+		ds::list<ds::ref<vertexbuffer>>	m_vertices	{}; // vertex buffers
 
 	public:
 		opengl_vertexarray(render_device * parent, spec<vertexarray> const & desc, allocator_type alloc);
@@ -211,19 +211,19 @@ namespace ml::gfx
 		typeof<> const & get_self_type() const noexcept override { return s_self_type; }
 
 	public:
-		void add_vertices(ds::shared<vertexbuffer> const & value) override;
+		void add_vertices(ds::ref<vertexbuffer> const & value) override;
 
 		void set_layout(vertex_layout const & value) override { m_layout = value; }
 
-		void set_indices(ds::shared<indexbuffer> const & value) override;
+		void set_indices(ds::ref<indexbuffer> const & value) override;
 
 		vertex_layout const & get_layout() const noexcept override { return m_layout; }
 
-		ds::shared<indexbuffer> const & get_indices() const noexcept override { return m_indices; }
+		ds::ref<indexbuffer> const & get_indices() const noexcept override { return m_indices; }
 
 		uint32_t get_mode() const noexcept override { return m_mode; }
 
-		ds::list<ds::shared<vertexbuffer>> const & get_vertices() const noexcept override { return m_vertices; }
+		ds::list<ds::ref<vertexbuffer>> const & get_vertices() const noexcept override { return m_vertices; }
 	};
 }
 
@@ -259,6 +259,8 @@ namespace ml::gfx
 		buffer_t const & get_buffer() const noexcept override { return m_buffer; }
 
 		size_t get_count() const noexcept override { return m_buffer.size() / sizeof(float_t); }
+		
+		size_t get_size() const noexcept override { return m_buffer.size(); }
 
 		uint32_t get_usage() const noexcept override { return m_usage; }
 	};
@@ -296,6 +298,8 @@ namespace ml::gfx
 		buffer_t const & get_buffer() const noexcept override { return m_buffer; }
 
 		size_t get_count() const noexcept override { return m_buffer.size() / sizeof(uint32_t); }
+
+		size_t get_size() const noexcept override { return m_buffer.size(); }
 
 		uint32_t get_usage() const noexcept override { return m_usage; }
 	};
@@ -415,8 +419,8 @@ namespace ml::gfx
 		int32_t							m_samples		{}; // 
 		bool							m_stereo		{}; // 
 		uint32_t						m_handle		{}; // handle
-		ds::list<ds::shared<texture2d>>	m_attachments	{}; // color attachments
-		ds::shared<texture2d>				m_depth			{}; // depth attachment
+		ds::list<ds::ref<texture2d>>	m_attachments	{}; // color attachments
+		ds::ref<texture2d>				m_depth			{}; // depth attachment
 
 		
 	public:
@@ -431,15 +435,15 @@ namespace ml::gfx
 		typeof<> const & get_self_type() const noexcept override { return s_self_type; }
 
 	public:
-		bool attach(ds::shared<texture2d> const & value) override;
+		bool attach(ds::ref<texture2d> const & value) override;
 
-		bool detach(ds::shared<texture2d> const & value) override;
+		bool detach(ds::ref<texture2d> const & value) override;
 
 		void resize(vec2i const & value) override;
 
-		ds::list<ds::shared<texture2d>> const & get_color_attachments() const noexcept override { return m_attachments; }
+		ds::list<ds::ref<texture2d>> const & get_color_attachments() const noexcept override { return m_attachments; }
 
-		ds::shared<texture2d> const & get_depth_attachment() const noexcept override { return m_depth; }
+		ds::ref<texture2d> const & get_depth_attachment() const noexcept override { return m_depth; }
 
 		vec2i const & get_size() const noexcept { return m_size; }
 
@@ -470,12 +474,12 @@ namespace ml::gfx
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_program> };
 
-		uint32_t									m_handle		{}; // handle
-		ds::string									m_error_log		{}; // error log
-		ds::map<uint32_t, object_id>				m_shaders		{}; // shader cache
+		uint32_t								m_handle		{}; // handle
+		ds::string								m_error_log		{}; // error log
+		ds::map<uint32_t, object_id>			m_shaders		{}; // shader cache
 		ds::map<uint32_t, ds::list<ds::string>>	m_source		{}; // source cache
-		ds::map<uniform_id, ds::shared<texture>>		m_textures		{}; // texture cache
-		ds::map<hash_t, uniform_id>					m_uniforms		{}; // uniform cache
+		ds::map<uniform_id, ds::ref<texture>>	m_textures		{}; // texture cache
+		ds::map<hash_t, uniform_id>				m_uniforms		{}; // uniform cache
 
 		// uniform binder
 		struct ML_NODISCARD program_uniform_binder final
@@ -522,12 +526,12 @@ namespace ml::gfx
 
 		ds::map<uint32_t, ds::list<ds::string>> const & get_source() const noexcept override { return m_source; }
 
-		ds::map<uniform_id, ds::shared<texture>> const & get_textures() const noexcept override { return m_textures; }
+		ds::map<uniform_id, ds::ref<texture>> const & get_textures() const noexcept override { return m_textures; }
 
 		ds::map<hash_t, uniform_id> const & get_uniforms() const noexcept override { return m_uniforms; }
 
 	public:
-		void do_cache_texture(uniform_id loc, ds::shared<texture> const & value) noexcept override
+		void do_cache_texture(uniform_id loc, ds::ref<texture> const & value) noexcept override
 		{
 			static auto const max_texture_slots
 			{
@@ -557,13 +561,13 @@ namespace ml::gfx
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_shader> };
 
 		uint32_t								m_type		{}; // type
-		ds::list<ds::string>				m_code		{}; // code
+		ds::list<ds::string>					m_code		{}; // code
 		uint32_t								m_handle	{}; // handle
 		ds::string								m_log		{}; // error log
-		ds::list<ds::string>				m_source	{}; // source
+		ds::list<ds::string>					m_source	{}; // source
 		ds::map<hash_t, uniform_id>				m_attribs	{}; // attributes
 		ds::map<hash_t, uniform_id>				m_uniforms	{}; // uniforms
-		ds::map<uniform_id, ds::shared<texture>>	m_textures	{}; // textures
+		ds::map<uniform_id, ds::ref<texture>>	m_textures	{}; // textures
 
 		struct ML_NODISCARD shader_uniform_binder final
 		{
@@ -601,12 +605,12 @@ namespace ml::gfx
 
 		ds::list<ds::string> const & get_source() const noexcept override { return m_source; }
 
-		ds::map<uniform_id, ds::shared<texture>> const & get_textures() const noexcept override { return m_textures; }
+		ds::map<uniform_id, ds::ref<texture>> const & get_textures() const noexcept override { return m_textures; }
 
 		uint32_t get_type() const noexcept override { return m_type; }
 
 	protected:
-		void do_cache(uniform_id loc, ds::shared<texture> const & value) override
+		void do_cache(uniform_id loc, ds::ref<texture> const & value) override
 		{
 			static auto const max_texture_slots
 			{
@@ -642,7 +646,7 @@ namespace ml::gfx
 
 		void do_upload(uniform_id loc, mat4f const & value, bool transpose = false) override;
 
-		void do_upload(uniform_id loc, ds::shared<texture> const & value, uint32_t slot = 0) override;
+		void do_upload(uniform_id loc, ds::ref<texture> const & value, uint32_t slot = 0) override;
 	};
 }
 

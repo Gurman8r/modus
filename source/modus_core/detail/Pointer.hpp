@@ -19,17 +19,13 @@ namespace ml
 // pointer types
 namespace ml::ds
 {
-	// dumb pointer
-	template <class T
-	> ML_alias dumb = std::add_pointer_t<T>;
-
 	// shared pointer
 	template <class T
-	> ML_alias shared = std::shared_ptr<T>;
+	> ML_alias ref = std::shared_ptr<T>;
 
 	// weak pointer
 	template <class T
-	> ML_alias weak = std::weak_ptr<T>;
+	> ML_alias unown = std::weak_ptr<T>;
 
 	// unique pointer
 	template <class T, class Dx = default_delete<T>

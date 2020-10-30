@@ -10,7 +10,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::shared<gfx::texture2d> graphic{};
+		ds::ref<gfx::texture2d> graphic{};
 
 		float_rect bounds{};
 		

@@ -10,23 +10,25 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using loop_condition	= typename ds::method<bool()>;
-		using subsystem			= typename ds::shared<loop_system>;
-		using subsystem_list	= typename ds::list<subsystem>;
-		using iterator			= typename subsystem_list::iterator;
-		using const_iterator	= typename subsystem_list::const_iterator;
+		using loop_condition			= typename ds::method<bool()>;
+		using subsystem					= typename ds::ref<loop_system>;
+		using subsystem_list			= typename ds::list<subsystem>;
+		using iterator					= typename subsystem_list::iterator;
+		using const_iterator			= typename subsystem_list::const_iterator;
+		using reverse_iterator			= typename subsystem_list::reverse_iterator;
+		using const_reverse_iterator	= typename subsystem_list::const_reverse_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		loop_system(runtime_api * api, loop_condition const & loopcond = {}) noexcept;
+
+		virtual ~loop_system() noexcept override;
+		
 		template <class Fn, class Arg0, class ... Args
 		> loop_system(runtime_api * api, Fn && fn, Arg0 && arg0, Args && ... args) noexcept
 			: loop_system{ api, std::bind(ML_forward(fn), ML_forward(arg0), ML_forward(args)...) }
 		{
 		}
-
-		loop_system(runtime_api * api, loop_condition const & loopcond = {}) noexcept;
-
-		virtual ~loop_system() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -70,63 +72,114 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto add_subsystem(subsystem const & value) -> iterator
+		bool is_valid_subsystem(subsystem const & value) const noexcept
 		{
-			if (this == value.get() || has_subsystem(value)) { return end(); }
-			else
-			{
-				return m_subsystems.emplace(end(), value);
-			}
+			return value
+				&& this != value.get()
+				&& get_api() == value->get_api();
 		}
 
-		auto delete_subsystem(subsystem const & value) -> iterator
+		bool contains(subsystem const & value) const noexcept
 		{
-			if (auto const it{ find_subsystem(value) }; it == end()) { return end(); }
-			else
-			{
-				return m_subsystems.erase(it);
-			}
+			return is_valid_subsystem(value) && (find(value) != end());
 		}
 
-		ML_NODISCARD auto find_subsystem(subsystem const & value) noexcept -> iterator
+		template <class Derived = loop_system, class ... Args
+		> auto emplace(Args && ... args) noexcept -> ds::ref<Derived>
 		{
-			return std::find(begin(), end(), value);
-		}
+			static_assert(std::is_base_of_v<loop_system, Derived>, "?");
 
-		ML_NODISCARD auto find_subsystem(subsystem const & value) const noexcept -> const_iterator
-		{
-			return std::find(begin(), end(), value);
-		}
-
-		ML_NODISCARD auto get_subsystems() noexcept -> subsystem_list &
-		{
-			return m_subsystems;
-		}
-
-		ML_NODISCARD auto get_subsystems() const noexcept -> subsystem_list const &
-		{
-			return m_subsystems;
-		}
-
-		bool has_subsystem(subsystem const & value) const noexcept
-		{
-			return end() == find_subsystem(value);
-		}
-
-		template <class Derived, class ... Args
-		> auto new_subsystem(Args && ... args) noexcept -> ds::shared<Derived>
-		{
 			return std::static_pointer_cast<Derived>(m_subsystems.emplace_back
 			(
 				get_memory()->make_ref<Derived>(get_api(), ML_forward(args)...)
 			));
 		}
 
+		auto erase(const_iterator it) -> iterator
+		{
+			return (it == end()) ? end() : m_subsystems.erase(it);
+		}
+
+		auto erase(subsystem const & value) noexcept -> iterator
+		{
+			return erase(find(value));
+		}
+
+		ML_NODISCARD auto find(subsystem const & value) noexcept -> iterator
+		{
+			return is_valid_subsystem(value) ? std::find(begin(), end(), value) : end();
+		}
+
+		ML_NODISCARD auto find(subsystem const & value) const noexcept -> const_iterator
+		{
+			return is_valid_subsystem(value) ? std::find(begin(), end(), value) : end();
+		}
+
+		auto insert(subsystem const & value) noexcept -> subsystem
+		{
+			if (!is_valid_subsystem(value))
+			{
+				return nullptr;
+			}
+			else if (auto const it{ find(value) }; it != end())
+			{
+				return (*it);
+			}
+			else
+			{
+				return m_subsystems.emplace_back(value);
+			}
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto operator[](size_t i) noexcept -> subsystem & { return m_subsystems[i]; }
+		void reserve(size_t capacity) { m_subsystems.reserve(capacity); }
 
-		ML_NODISCARD auto operator[](size_t i) const noexcept -> subsystem const & { return m_subsystems[i]; }
+		void resize(size_t capacity) { m_subsystems.resize(capacity); }
+
+		void shrink_to_fit() { m_subsystems.shrink_to_fit(); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto operator[](size_t const i) noexcept -> subsystem & { return m_subsystems[i]; }
+
+		ML_NODISCARD auto operator[](size_t const i) const noexcept -> subsystem const & { return m_subsystems[i]; }
+
+		ML_NODISCARD auto at(size_t const i) noexcept -> subsystem & { return m_subsystems.at(i); }
+
+		ML_NODISCARD auto at(size_t const i) const noexcept -> subsystem const & { return m_subsystems.at(i); }
+
+		ML_NODISCARD auto back() noexcept -> subsystem & { return m_subsystems.back(); }
+
+		ML_NODISCARD auto back() const noexcept -> subsystem const & { return m_subsystems.back(); }
+
+		ML_NODISCARD bool empty() const noexcept { return m_subsystems.empty(); }
+
+		ML_NODISCARD auto data() noexcept -> subsystem * { return m_subsystems.data(); }
+		
+		ML_NODISCARD auto data() const noexcept -> subsystem const * { return m_subsystems.data(); }
+
+		ML_NODISCARD auto front() noexcept -> subsystem & { return m_subsystems.front(); }
+
+		ML_NODISCARD auto front() const noexcept -> subsystem const & { return m_subsystems.front(); }
+		
+		ML_NODISCARD auto size() const noexcept -> size_t { return m_subsystems.size(); }
+		
+		ML_NODISCARD auto max_size() const noexcept -> size_t { return m_subsystems.max_size(); }
+
+		ML_NODISCARD auto subsystems() noexcept -> subsystem_list & { return m_subsystems; }
+
+		ML_NODISCARD auto subsystems() const noexcept -> subsystem_list const & { return m_subsystems; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD operator subsystem_list & () noexcept { return m_subsystems; }
+
+		ML_NODISCARD operator subsystem_list const & () const noexcept { return m_subsystems; }
+
+		ML_NODISCARD operator subsystem_list && () noexcept { return std::move(m_subsystems); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto begin() noexcept -> iterator { return m_subsystems.begin(); }
 
@@ -139,6 +192,18 @@ namespace ml
 		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_subsystems.end(); }
 
 		ML_NODISCARD auto cend() const noexcept -> const_iterator { return m_subsystems.cend(); }
+
+		ML_NODISCARD auto rbegin() noexcept -> reverse_iterator { return m_subsystems.rbegin(); }
+
+		ML_NODISCARD auto rbegin() const noexcept -> const_reverse_iterator { return m_subsystems.rbegin(); }
+
+		ML_NODISCARD auto crbegin() const noexcept -> const_reverse_iterator { return m_subsystems.crbegin(); }
+
+		ML_NODISCARD auto rend() noexcept -> reverse_iterator { return m_subsystems.rend(); }
+
+		ML_NODISCARD auto rend() const noexcept -> const_reverse_iterator { return m_subsystems.rend(); }
+
+		ML_NODISCARD auto crend() const noexcept -> const_reverse_iterator { return m_subsystems.crend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

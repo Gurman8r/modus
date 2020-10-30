@@ -104,7 +104,7 @@ ml::int32_t main()
 	static loop_system		loopsys	{ &api };
 	static plugin_manager	plugins	{ &api };
 
-	auto backend{ loopsys.new_subsystem<builtin_runtime>() };
+	auto backend{ loopsys.emplace<builtin_runtime>() };
 
 	loopsys.set_condition(backend->get_condition());
 

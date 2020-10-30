@@ -33,7 +33,7 @@ namespace ml
 			shared_library	,	// library
 			plugin_details	,	// details
 			plugin_iface	,	// interface
-			ds::manual<plugin>		// instance
+			ds::manual<plugin>	// instance
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -48,17 +48,10 @@ namespace ml
 
 		bool uninstall(plugin_id value);
 
-		void uninstall_all() noexcept
-		{
-			while (!m_data.get<plugin_id>().empty())
-			{
-				uninstall(m_data.get<plugin_id>().back());
-			}
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_storage() const noexcept -> plugin_storage const & {
+		ML_NODISCARD auto get_storage() const noexcept -> plugin_storage const &
+		{
 			return m_data;
 		}
 
@@ -70,10 +63,17 @@ namespace ml
 			);
 		}
 
+		void uninstall_all() noexcept
+		{
+			auto & ids{ m_data.get<plugin_id>() };
+
+			while (!ids.empty()) { uninstall(ids.back()); }
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		plugin_storage m_data; // plugins
+		plugin_storage m_data; // plugin data
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

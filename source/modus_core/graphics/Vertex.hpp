@@ -99,17 +99,17 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		vec3 & position(vec3 const & value) noexcept
+		vec3 & position() noexcept
 		{
 			return *reinterpret_cast<vec3 *>(&m_data[0]);
 		}
 
-		vec3 & normal(vec3 const & value) noexcept
+		vec3 & normal() noexcept
 		{
 			return *reinterpret_cast<vec3 *>(&m_data[3]);
 		}
 
-		vec2 & texcoord(vec2 const & value) noexcept
+		vec2 & texcoord() noexcept
 		{
 			return *reinterpret_cast<vec2 *>(&m_data[6]);
 		}

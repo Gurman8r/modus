@@ -246,7 +246,7 @@ namespace ml
 
 		// make shared
 		template <class T, class ... Args
-		> ML_NODISCARD ds::shared<T> make_ref(Args && ... args) noexcept
+		> ML_NODISCARD ds::ref<T> make_ref(Args && ... args) noexcept
 		{
 			return std::allocate_shared<T>(m_alloc, ML_forward(args)...);
 		}

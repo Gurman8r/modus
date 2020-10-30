@@ -5,7 +5,6 @@
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/Font.hpp>
 #include <modus_core/graphics/Mesh.hpp>
-#include <modus_core/graphics/Shader.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
 #include <modus_core/runtime/LoopSystem.hpp>
@@ -50,25 +49,25 @@ namespace ml
 		};
 
 		// command line
-		basic_stream_sniper<>   m_cout{ &std::cout };
-		ImGuiExt::Terminal      m_term{};
+		basic_stream_sniper<>	m_cout{ &std::cout };
+		ImGuiExt::Terminal		m_term{};
 
 		// rendering
 		vec2 m_resolution{ 1280, 720 };
 		color m_clear_color{ 0.223f, 0.f, 0.46f, 1.f };
-		ds::list<ds::shared<gfx::framebuffer>> m_fb{};
+		ds::list<ds::ref<gfx::framebuffer>> m_fb{};
 
 		// icon
 		db_ref<bitmap> m_icon{ get_db(), "icon" };
 
 		// resources
-		ds::hashmap<ds::string, ds::shared<font>>			m_fonts		{};
-		ds::hashmap<ds::string, ds::shared<bitmap>>			m_images	{};
-		ds::hashmap<ds::string, ds::shared<mesh>>			m_meshes	{};
-		ds::hashmap<ds::string, ds::shared<gfx::program>>	m_programs	{};
-		ds::hashmap<ds::string, ds::shared<scene>>			m_scenes	{};
-		ds::hashmap<ds::string, ds::shared<gfx::shader>>	m_shaders	{};
-		ds::hashmap<ds::string, ds::shared<gfx::texture>>	m_textures	{};
+		ds::hashmap<ds::string, ds::ref<font>>			m_fonts		{};
+		ds::hashmap<ds::string, ds::ref<bitmap>>		m_images	{};
+		ds::hashmap<ds::string, ds::ref<mesh>>			m_meshes	{};
+		ds::hashmap<ds::string, ds::ref<gfx::program>>	m_programs	{};
+		ds::hashmap<ds::string, ds::ref<scene>>			m_scenes	{};
+		ds::hashmap<ds::string, ds::ref<gfx::shader>>	m_shaders	{};
+		ds::hashmap<ds::string, ds::ref<gfx::texture>>	m_textures	{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -18,7 +18,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ds::shared<entity> & scene::create_entity(ds::string const & name, allocator_type alloc) noexcept
+	ds::ref<entity> & scene::create_entity(ds::string const & name, allocator_type alloc) noexcept
 	{
 		auto & temp{ m_entities.emplace_back(
 			std::allocate_shared<entity>(alloc, this, m_registry.create())
@@ -28,7 +28,7 @@ namespace ml
 		return temp;
 	}
 
-	void scene::destroy_entity(ds::shared<entity> const & value) noexcept
+	void scene::destroy_entity(ds::ref<entity> const & value) noexcept
 	{
 		if (auto const it{ std::find(m_entities.begin(), m_entities.end(), value) }
 		; it != m_entities.end())

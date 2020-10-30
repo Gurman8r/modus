@@ -750,47 +750,47 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ds::shared<render_context> opengl_render_device::create_context(spec<render_context> const & desc, allocator_type alloc) noexcept
+	ds::ref<render_context> opengl_render_device::create_context(spec<render_context> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_render_context>(alloc, this, desc);
 	}
 
-	ds::shared<vertexarray> opengl_render_device::create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
+	ds::ref<vertexarray> opengl_render_device::create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_vertexarray>(alloc, this, desc);
 	}
 
-	ds::shared<vertexbuffer> opengl_render_device::create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
+	ds::ref<vertexbuffer> opengl_render_device::create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_vertexbuffer>(alloc, this, desc, data);
 	}
 
-	ds::shared<indexbuffer> opengl_render_device::create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
+	ds::ref<indexbuffer> opengl_render_device::create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_indexbuffer>(alloc, this, desc, data);
 	}
 
-	ds::shared<texture2d> opengl_render_device::create_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept
+	ds::ref<texture2d> opengl_render_device::create_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_texture2d>(alloc, this, desc, data);
 	}
 
-	ds::shared<texturecube> opengl_render_device::create_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
+	ds::ref<texturecube> opengl_render_device::create_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_texturecube>(alloc, this, desc);
 	}
 
-	ds::shared<framebuffer> opengl_render_device::create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
+	ds::ref<framebuffer> opengl_render_device::create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_framebuffer>(alloc, this, desc);
 	}
 
-	ds::shared<program> opengl_render_device::create_program(allocator_type alloc) noexcept
+	ds::ref<program> opengl_render_device::create_program(allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_program>(alloc, this);
 	}
 
-	ds::shared<shader> opengl_render_device::create_shader(spec<shader> const & desc, allocator_type alloc) noexcept
+	ds::ref<shader> opengl_render_device::create_shader(spec<shader> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_shader>(alloc, this, desc);
 	}
@@ -1030,7 +1030,7 @@ namespace ml::gfx
 		ML_glCheck(glClear(temp));
 	}
 
-	void opengl_render_context::draw(ds::shared<vertexarray> const & value)
+	void opengl_render_context::draw(ds::ref<vertexarray> const & value)
 	{
 		// could be moved into header file
 
@@ -1206,7 +1206,7 @@ namespace ml::gfx
 		return (bool)m_handle;
 	}
 
-	void opengl_vertexarray::add_vertices(ds::shared<vertexbuffer> const & value)
+	void opengl_vertexarray::add_vertices(ds::ref<vertexbuffer> const & value)
 	{
 		if (!m_handle || !value) { return; }
 		
@@ -1250,7 +1250,7 @@ namespace ml::gfx
 		}
 	}
 
-	void opengl_vertexarray::set_indices(ds::shared<indexbuffer> const & value)
+	void opengl_vertexarray::set_indices(ds::ref<indexbuffer> const & value)
 	{
 		bind();
 
@@ -1636,7 +1636,7 @@ namespace ml::gfx
 		return (bool)m_handle;
 	}
 
-	bool opengl_framebuffer::attach(ds::shared<texture2d> const & value)
+	bool opengl_framebuffer::attach(ds::ref<texture2d> const & value)
 	{
 		static auto const max_color_attachments
 		{
@@ -1653,7 +1653,7 @@ namespace ml::gfx
 		return false;
 	}
 
-	bool opengl_framebuffer::detach(ds::shared<texture2d> const & value)
+	bool opengl_framebuffer::detach(ds::ref<texture2d> const & value)
 	{
 		if (auto const it{ std::find(m_attachments.begin(), m_attachments.end(), value) }
 		; it != m_attachments.end())
@@ -1986,7 +1986,7 @@ namespace ml::gfx
 		ML_glCheck(glProgramUniformMatrix4fv(m_handle, ML_handle(int32_t, loc), 1, transpose, value));
 	}
 	
-	void opengl_shader::do_upload(uniform_id loc, ds::shared<texture> const & value, uint32_t slot)
+	void opengl_shader::do_upload(uniform_id loc, ds::ref<texture> const & value, uint32_t slot)
 	{
 		get_context()->bind_texture(value.get(), slot);
 

@@ -49,7 +49,7 @@ namespace ml
 
 	private:
 		ds::manual<gfx::render_device>	m_dev; // render device
-		ds::shared<gfx::render_context>	m_ctx; // render context
+		ds::ref<gfx::render_context>	m_ctx; // render context
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

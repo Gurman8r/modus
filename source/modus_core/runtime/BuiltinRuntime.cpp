@@ -11,10 +11,11 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	builtin_runtime::builtin_runtime(runtime_api * api) noexcept
-		: loop_system	{ api, &render_window::is_open, api->win }
+		: loop_system	{ api }
 		, m_imgui		{}
 		, m_dockspace	{ "##MainDockspace" }
 	{
+		set_condition(&render_window::is_open, api->win);
 	}
 
 	builtin_runtime::~builtin_runtime() noexcept

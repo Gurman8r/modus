@@ -174,46 +174,46 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		bool lock() noexcept {
+		void process_enter(bool recursive) noexcept
+		{
+			if (m_on_enter) { m_on_enter(); }
+			if (recursive) { for (auto & e : *this) { e->process_enter(recursive); } }
+		}
+
+		void process_exit(bool recursive) noexcept
+		{
+			if (m_on_exit) { m_on_exit(); }
+			if (recursive) { for (auto & e : *this) { e->process_exit(recursive); } }
+		}
+
+		void process_idle(bool recursive) noexcept
+		{
+			if (m_on_idle) { m_on_idle(); }
+			if (recursive) { for (auto & e : *this) { e->process_idle(recursive); } }
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	private:
+		bool lock() noexcept
+		{
 			return !m_locked && (m_locked = true);
 		}
 
-		bool unlock() noexcept {
+		bool unlock() noexcept
+		{
 			return m_locked && !(m_locked = false);
-		}
-
-		void process_enter(bool recursive) noexcept {
-			if (m_on_enter) { m_on_enter(); }
-			if (recursive) { for (auto & e : *this) {
-				e->process_enter(recursive);
-			} }
-		}
-
-		void process_exit(bool recursive) noexcept {
-			if (m_on_exit) { m_on_exit(); }
-			if (recursive) { for (auto & e : *this) {
-				e->process_exit(recursive);
-			} }
-		}
-
-		void process_idle(bool recursive) noexcept {
-			if (m_on_idle) { m_on_idle(); }
-			if (recursive) { for (auto & e : *this) {
-				e->process_idle(recursive);
-			} }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		bool			m_locked	; // process lock
-		loop_condition	m_loopcond	; // loop condition
 		subsystem_list	m_subsystems; // subsystem list
-
-		loop_callback 
-			m_on_enter,	// enter
-			m_on_exit,	// exit
-			m_on_idle;	// idle
+		loop_condition	m_loopcond	; // loop condition
+		loop_callback	m_on_enter	, // enter callback
+						m_on_exit	, // exit callback
+						m_on_idle	; // idle callback
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

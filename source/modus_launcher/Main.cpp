@@ -1,4 +1,4 @@
-#include <modus_core/runtime/DefaultLoop.hpp>
+#include <modus_core/runtime/BuiltinRuntime.hpp>
 #include <modus_core/runtime/PluginManager.hpp>
 
 using namespace ml;
@@ -101,10 +101,14 @@ ml::int32_t main()
 	static render_window	win		{};
 	static simple_database	db		{};
 	static runtime_api		api		{ &mem, &io, &bus, &win, &db };
+	static loop_system		loopsys	{ &api };
 	static plugin_manager	plugins	{ &api };
-	static default_loop		loop	{ &api };
 
-	return get_global<loop_system>()->process();
+	auto backend{ loopsys.new_subsystem<builtin_runtime>() };
+
+	loopsys.set_bypass(backend);
+
+	return loopsys.process();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

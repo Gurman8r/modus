@@ -1,4 +1,4 @@
-#include <modus_core/runtime/DefaultLoop.hpp>
+#include <modus_core/runtime/BuiltinRuntime.hpp>
 #include <modus_core/runtime/PluginManager.hpp>
 #include <modus_core/runtime/RuntimeEvents.hpp>
 #include <modus_core/embed/Python.hpp>
@@ -10,20 +10,20 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	default_loop::default_loop(runtime_api * api) noexcept
-		: loop_system		{ api, &render_window::is_open, api->win }
+	builtin_runtime::builtin_runtime(runtime_api * api) noexcept
+		: loop_system	{ api, &render_window::is_open, api->win }
 		, m_imgui		{}
 		, m_dockspace	{ "##MainDockspace" }
 	{
 	}
 
-	default_loop::~default_loop() noexcept
+	builtin_runtime::~builtin_runtime() noexcept
 	{
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void default_loop::on_process_enter()
+	void builtin_runtime::on_process_enter()
 	{
 		// api
 		auto const api{ get_api() };
@@ -140,7 +140,7 @@ namespace ml
 		get_bus()->fire<process_enter_event>(this);
 	}
 
-	void default_loop::on_process_exit()
+	void builtin_runtime::on_process_exit()
 	{
 		// process exit event
 		get_bus()->fire<process_exit_event>(this);
@@ -152,10 +152,10 @@ namespace ml
 		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
 	}
 
-	void default_loop::on_process_idle()
+	void builtin_runtime::on_process_idle()
 	{
 		// benchmarks
-		auto ML_anon{ do_global_benchmarks(get_io()) };
+		auto ML_anon{ do_benchmarks(get_io()) };
 
 		// poll events
 		get_window()->poll_events();
@@ -186,7 +186,7 @@ namespace ml
 		get_window()->swap_buffers();
 	}
 
-	void default_loop::on_event(event && value)
+	void builtin_runtime::on_event(event && value)
 	{
 		switch (value)
 		{

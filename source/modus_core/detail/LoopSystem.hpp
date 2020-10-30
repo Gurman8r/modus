@@ -174,18 +174,15 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		bool lock() noexcept
-		{
+		bool lock() noexcept {
 			return !m_locked && (m_locked = true);
 		}
 
-		bool unlock() noexcept
-		{
+		bool unlock() noexcept {
 			return m_locked && !(m_locked = false);
 		}
 
-		void process_enter(bool recursive) noexcept
-		{
+		void process_enter(bool recursive) noexcept {
 			if (m_on_enter) { m_on_enter(); }
 			if (recursive) {
 				for (auto & e : *this) {
@@ -194,8 +191,7 @@ namespace ml
 			}
 		}
 
-		void process_exit(bool recursive) noexcept
-		{
+		void process_exit(bool recursive) noexcept {
 			if (m_on_exit) { m_on_exit(); }
 			if (recursive) {
 				for (auto & e : *this) {
@@ -204,8 +200,7 @@ namespace ml
 			}
 		}
 
-		void process_idle(bool recursive) noexcept
-		{
+		void process_idle(bool recursive) noexcept {
 			if (m_on_idle) { m_on_idle(); }
 			if (recursive) {
 				for (auto & e : *this) {

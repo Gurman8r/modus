@@ -174,27 +174,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		void process_enter(bool recursive) noexcept
-		{
-			if (m_on_enter) { m_on_enter(); }
-			if (recursive) { for (auto & e : *this) { e->process_enter(recursive); } }
-		}
-
-		void process_exit(bool recursive) noexcept
-		{
-			if (m_on_exit) { m_on_exit(); }
-			if (recursive) { for (auto & e : *this) { e->process_exit(recursive); } }
-		}
-
-		void process_idle(bool recursive) noexcept
-		{
-			if (m_on_idle) { m_on_idle(); }
-			if (recursive) { for (auto & e : *this) { e->process_idle(recursive); } }
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
 		bool lock() noexcept
 		{
 			return !m_locked && (m_locked = true);
@@ -203,6 +182,36 @@ namespace ml
 		bool unlock() noexcept
 		{
 			return m_locked && !(m_locked = false);
+		}
+
+		void process_enter(bool recursive) noexcept
+		{
+			if (m_on_enter) { m_on_enter(); }
+			if (recursive) {
+				for (auto & e : *this) {
+					e->process_enter(recursive);
+				}
+			}
+		}
+
+		void process_exit(bool recursive) noexcept
+		{
+			if (m_on_exit) { m_on_exit(); }
+			if (recursive) {
+				for (auto & e : *this) {
+					e->process_exit(recursive);
+				}
+			}
+		}
+
+		void process_idle(bool recursive) noexcept
+		{
+			if (m_on_idle) { m_on_idle(); }
+			if (recursive) {
+				for (auto & e : *this) {
+					e->process_idle(recursive);
+				}
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

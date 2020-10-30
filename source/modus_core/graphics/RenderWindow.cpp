@@ -6,9 +6,9 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	render_window::render_window(allocator_type alloc) noexcept
-		: native_window{ alloc }
-		, m_dev	{}
-		, m_ctx	{}
+		: default_window{ alloc }
+		, m_dev			{}
+		, m_ctx			{}
 	{
 	}
 
@@ -45,7 +45,7 @@ namespace ml
 		}
 
 		// open render_window
-		if (!native_window::open(title, vm, cs, hints, userptr)) {
+		if (!default_window::open(title, vm, cs, hints, userptr)) {
 			return debug::error("failed opening render_window");
 		}
 

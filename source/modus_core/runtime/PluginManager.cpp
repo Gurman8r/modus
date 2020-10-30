@@ -1,27 +1,20 @@
 #include <modus_core/runtime/PluginManager.hpp>
+#include <modus_core/runtime/Application.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(runtime_api * api)
-		: runtime_object{ api }
-		, m_data		{ api->mem->get_allocator() }
+	plugin_manager::plugin_manager(application * app)
+		: runtime_object{ app->get_api() }
+		, m_app			{ app }
+		, m_data		{ app->get_memory()->get_allocator() }
 	{
-		if (!get_global<plugin_manager>())
-		{
-			set_global<plugin_manager>(this);
-		}
 	}
 
 	plugin_manager::~plugin_manager() noexcept
 	{
 		uninstall_all();
-
-		if (this == get_global<plugin_manager>())
-		{
-			set_global<plugin_manager>(nullptr);
-		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -50,8 +43,8 @@ namespace ml
 					},
 					plugin_iface
 					{
-						lib.proc<plugin *, plugin_manager *, void *>("ml_plugin_attach"),
-						lib.proc<void, plugin_manager *, plugin *>("ml_plugin_detach"),
+						lib.proc<plugin *, plugin_manager *, void *>("ml_plugin_install"),
+						lib.proc<void, plugin_manager *, plugin *>("ml_plugin_uninstall"),
 					},
 					nullptr
 				));
@@ -84,18 +77,4 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-// global plugin manager
-namespace ml::globals
-{
-	static plugin_manager * g_plugin_manager{};
-
-	template <> plugin_manager * get() noexcept {
-		return g_plugin_manager;
-	}
-
-	template <> plugin_manager * set(plugin_manager * value) noexcept {
-		return g_plugin_manager = value;
-	}
 }

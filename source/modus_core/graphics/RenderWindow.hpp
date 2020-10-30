@@ -1,12 +1,13 @@
 #ifndef _ML_RENDER_WINDOW_HPP_
 #define _ML_RENDER_WINDOW_HPP_
 
-#include <modus_core/window/NativeWindow.hpp>
+#include <modus_core/window/DefaultWindow.hpp>
 #include <modus_core/graphics/RenderCommand.hpp>
 
 namespace ml
 {
-	struct ML_CORE_API render_window : native_window
+	// render window
+	struct ML_CORE_API render_window : default_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

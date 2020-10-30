@@ -1,5 +1,4 @@
-#include <modus_core/runtime/BuiltinRuntime.hpp>
-#include <modus_core/runtime/PluginManager.hpp>
+#include <modus_core/runtime/DefaultApp.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -95,20 +94,19 @@ auto load_settings(fs::path const & path = SETTINGS_PATH) noexcept
 
 ml::int32_t main()
 {
-	static memory_manager	mem		{};
+	static memory_manager	memory	{};
 	static runtime_io		io		{ __argc, __argv, load_settings() };
 	static event_bus		bus		{};
-	static render_window	win		{};
-	static simple_database	db		{};
-	static runtime_api		api		{ &mem, &io, &bus, &win, &db };
-	static loop_system		loopsys	{ &api };
-	static plugin_manager	plugins	{ &api };
+	static render_window	window	{};
+	static loop_system		loopsys	{};
+	static basic_database	db		{};
+	static runtime_api		runtime	{ &memory, &io, &bus, &window, &loopsys, &db };
 
-	auto backend{ loopsys.emplace<builtin_runtime>() };
+	auto app{ loopsys.new_subsystem<default_app>(&runtime) };
 
-	loopsys.set_condition(backend->get_condition());
+	loopsys.bind_condition(app->get_condition());
 
-	return loopsys.process();
+	return loopsys();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -38,7 +38,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit plugin_manager(runtime_api * api);
+		explicit plugin_manager(application * app);
 
 		~plugin_manager() noexcept override;
 
@@ -47,21 +47,6 @@ namespace ml
 		plugin_id install(fs::path const & path, void * userptr = nullptr);
 
 		bool uninstall(plugin_id value);
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_storage() const noexcept -> plugin_storage const &
-		{
-			return m_data;
-		}
-
-		ML_NODISCARD bool has_plugin(fs::path const & path) const noexcept
-		{
-			return m_data.contains<plugin_id>
-			(
-				(plugin_id)hashof(shared_library::format_path(path).string())
-			);
-		}
 
 		void uninstall_all() noexcept
 		{
@@ -72,19 +57,28 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD auto get_application() const noexcept -> application * { return m_app; }
+
+		ML_NODISCARD auto get_data()  noexcept -> plugin_storage & { return m_data; }
+
+		ML_NODISCARD auto get_data() const noexcept -> plugin_storage const & { return m_data; }
+
+		ML_NODISCARD bool has_plugin(fs::path const & path) const noexcept
+		{
+			return m_data.contains<plugin_id>
+			(
+				(plugin_id)hashof(shared_library::format_path(path).string())
+			);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	private:
-		plugin_storage m_data; // plugin data
+		application * const	m_app	; // application
+		plugin_storage		m_data	; // plugin data
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-}
-
-// global plugin manager
-namespace ml::globals
-{
-	template <> ML_NODISCARD ML_CORE_API plugin_manager * get() noexcept;
-
-	template <> ML_CORE_API plugin_manager * set(plugin_manager * value) noexcept;
 }
 
 #endif // !_ML_PLUGIN_MANAGER_HPP_

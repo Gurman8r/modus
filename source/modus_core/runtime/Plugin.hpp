@@ -9,6 +9,8 @@
 
 namespace ml
 {
+	struct application;
+
 	struct plugin_manager;
 
 	ML_decl_handle(plugin_id);
@@ -17,11 +19,13 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit plugin(plugin_manager * manager, void * userptr = nullptr) noexcept;
+		explicit plugin(plugin_manager * manager, void * userptr = nullptr);
 
 		virtual ~plugin() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_application() const noexcept -> application * { return m_app; }
 
 		ML_NODISCARD auto get_manager() const noexcept -> plugin_manager * { return m_manager; }
 
@@ -37,8 +41,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		plugin_manager * const	m_manager	; // manager pointer
-		void *					m_userptr	; // user pointer
+		application * const		m_app		; // application
+		plugin_manager * const	m_manager	; // manager
+		void *					m_userptr	; // user
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

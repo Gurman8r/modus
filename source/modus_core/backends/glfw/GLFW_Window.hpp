@@ -2,7 +2,7 @@
 #ifndef _ML_GLFW_WINDOW_HPP_
 #define _ML_GLFW_WINDOW_HPP_
 
-#include <modus_core/window/WindowBase.hpp>
+#include <modus_core/window/BaseWindow.hpp>
 
 struct GLFWwindow;
 struct GLFWmonitor;
@@ -10,7 +10,7 @@ struct GLFWmonitor;
 namespace ml
 {
 	// glfw window implementation
-	struct glfw_window final : window_base
+	struct glfw_window final : base_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

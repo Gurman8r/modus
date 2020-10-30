@@ -1,5 +1,5 @@
-#ifndef _ML_WINDOW_BASE_HPP_
-#define _ML_WINDOW_BASE_HPP_
+#ifndef _ML_BASE_WINDOW_HPP_
+#define _ML_BASE_WINDOW_HPP_
 
 #include <modus_core/detail/Duration.hpp>
 #include <modus_core/window/Input.hpp>
@@ -122,14 +122,14 @@ namespace ml
 
 namespace ml
 {
-	// window implementation base
-	struct ML_CORE_API window_base : trackable, non_copyable
+	// base window
+	struct ML_CORE_API base_window : trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		virtual ~window_base() noexcept override = default;
+		virtual ~base_window() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
@@ -342,4 +342,4 @@ namespace ml
 	};
 }
 
-#endif // !_ML_WINDOW_BASE_HPP_
+#endif // !_ML_BASE_WINDOW_HPP_

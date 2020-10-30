@@ -3,6 +3,7 @@
 
 #include <modus_core/detail/Database.hpp>
 #include <modus_core/detail/Events.hpp>
+#include <modus_core/detail/LoopSystem.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 
 namespace ml
@@ -13,8 +14,8 @@ namespace ml
 	struct ML_NODISCARD runtime_io final
 	{
 		// command line
-		int32_t const	argc;
-		char ** const	argv;
+		int32_t const argc;
+		char ** const argv;
 
 		// preferences
 		json prefs;
@@ -51,11 +52,12 @@ namespace ml
 	// runtime api
 	struct ML_NODISCARD runtime_api final
 	{
-		memory_manager	* const mem		; // memory
-		runtime_io		* const io		; // io
-		event_bus		* const bus		; // bus
-		render_window	* const win		; // window
-		simple_database * const db		; // database
+		memory_manager	* const memory		; // memory manager
+		runtime_io		* const io			; // runtime io
+		event_bus		* const bus			; // event bus
+		render_window	* const window		; // render window
+		loop_system		* const loopsys		; // loop system
+		basic_database	* const db			; // database
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -76,13 +78,15 @@ namespace ml
 
 		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_api->bus; }
 
-		ML_NODISCARD auto get_db() const noexcept -> simple_database * { return m_api->db; }
+		ML_NODISCARD auto get_db() const noexcept -> basic_database * { return m_api->db; }
 
 		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
 		
-		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->mem; }
+		ML_NODISCARD auto get_loopsys() const noexcept -> loop_system * { return m_api->loopsys; }
+		
+		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->memory; }
 
-		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_api->win; }
+		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_api->window; }
 
 	private:
 		runtime_api * const m_api;
@@ -111,13 +115,15 @@ namespace ml
 
 		using event_listener::get_bus; // inherit from event_listener
 
-		ML_NODISCARD auto get_db() const noexcept -> simple_database * { return m_api->db; }
+		ML_NODISCARD auto get_db() const noexcept -> basic_database * { return m_api->db; }
 		
 		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
 
-		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->mem; }
+		ML_NODISCARD auto get_loopsys() const noexcept -> loop_system * { return m_api->loopsys; }
 
-		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_api->win; }
+		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->memory; }
+
+		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_api->window; }
 
 	protected:
 		virtual void on_event(event &&) override = 0;

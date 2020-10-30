@@ -1,17 +1,20 @@
-#ifndef _ML_NATIVE_WINDOW_HPP_
-#define _ML_NATIVE_WINDOW_HPP_
+#ifndef _ML_DEFAULT_WINDOW_HPP_
+#define _ML_DEFAULT_WINDOW_HPP_
 
-#include <modus_core/window/WindowBase.hpp>
+#include <modus_core/window/BaseWindow.hpp>
 
 namespace ml
 {
-	struct ML_CORE_API native_window : window_base
+	// default window
+	struct ML_CORE_API default_window : base_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		native_window(allocator_type alloc = {}) noexcept;
+		default_window(base_window * backend) noexcept;
 
-		native_window(
+		default_window(allocator_type alloc = {}) noexcept;
+
+		default_window(
 			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
@@ -19,7 +22,7 @@ namespace ml
 			void *						userptr	= nullptr,
 			allocator_type				alloc	= {}) noexcept;
 		
-		virtual ~native_window() noexcept override;
+		virtual ~default_window() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -213,10 +216,10 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::unique<	window_base	> m_backend; // native_window implementation
+		ds::unique<base_window> m_backend; // backend implementation
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
-#endif // !_ML_NATIVE_WINDOW_HPP_
+#endif // !_ML_DEFAULT_WINDOW_HPP_

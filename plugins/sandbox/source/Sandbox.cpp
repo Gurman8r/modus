@@ -7,8 +7,7 @@
 #include <modus_core/graphics/Mesh.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/runtime/LoopSystem.hpp>
-#include <modus_core/runtime/PluginManager.hpp>
+#include <modus_core/runtime/Application.hpp>
 #include <modus_core/runtime/RuntimeEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/window/Viewport.hpp>
@@ -58,7 +57,7 @@ namespace ml
 		ds::list<ds::ref<gfx::framebuffer>> m_fb{};
 
 		// icon
-		db_ref<bitmap> m_icon{ get_db(), "icon" };
+		db_var<bitmap> m_icon{ get_db(), "icon" };
 
 		// resources
 		ds::hashmap<ds::string, ds::ref<font>>			m_fonts		{};
@@ -230,7 +229,8 @@ namespace ml
 					ImGui::TextDisabled("path"); ImGui::NextColumn();
 					ImGui::TextDisabled("ID"); ImGui::NextColumn();
 					ImGui::Separator();
-					auto const & details{ get_manager()->get_storage().get<plugin_details>() };
+					auto const & storage{ get_manager()->get_data() };
+					auto const & details{ storage.get<plugin_details>() };
 					for (auto const & e : details)
 					{
 						ImGui::Text(e.name.c_str()); ImGui::NextColumn();
@@ -425,12 +425,12 @@ namespace ml
 
 extern "C"
 {
-	ML_PLUGIN_API ml::plugin * ml_plugin_attach(ml::plugin_manager * manager, void * userptr)
+	ML_PLUGIN_API ml::plugin * ml_plugin_install(ml::plugin_manager * manager, void * userptr)
 	{
 		return manager->get_memory()->new_object<ml::sandbox>(manager, userptr);
 	}
 
-	ML_PLUGIN_API void ml_plugin_detach(ml::plugin_manager * manager, ml::plugin * ptr)
+	ML_PLUGIN_API void ml_plugin_uninstall(ml::plugin_manager * manager, ml::plugin * ptr)
 	{
 		manager->get_memory()->delete_object((ml::sandbox *)ptr);
 	}

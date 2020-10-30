@@ -106,9 +106,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	protected:
+		event_bus * const m_bus; // event bus
+
 	private:
-		event_bus * const	m_bus		; // bus
-		bool				m_listening	; // listening
+		bool m_listening; // listening enabled
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

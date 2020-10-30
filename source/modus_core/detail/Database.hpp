@@ -8,7 +8,8 @@
 
 namespace ml
 {
-	struct simple_database final : non_copyable
+	// basic database
+	struct basic_database final : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -24,7 +25,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		simple_database(allocator_type alloc = {}) noexcept : m_categories{ alloc } {}
+		basic_database(allocator_type alloc = {}) noexcept : m_categories{ alloc } {}
 
 		// get all categories
 		ML_NODISCARD categories_type & all() noexcept
@@ -103,28 +104,26 @@ namespace ml
 
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	// database variable
 	template <class T
-	> struct db_ref final
+	> struct db_var final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using value_type		= typename std::_Remove_cvref_t<T>;
-		using self_type			= typename db_ref<value_type>;
+		using self_type			= typename db_var<value_type>;
 		using pointer			= typename value_type *;
 		using const_pointer		= typename value_type const *;
 		using reference			= typename value_type &;
 		using const_reference	= typename value_type const &;
 		using rvalue			= typename value_type &&;
 
-		~db_ref() noexcept
+		~db_var() noexcept
 		{
 			ML_check(m_db)->erase<T>(m_name);
 		}
 
-		db_ref() noexcept
+		db_var() noexcept
 			: m_db	{}
 			, m_name{}
 			, m_ptr	{}
@@ -132,7 +131,7 @@ namespace ml
 		}
 
 		template <class ... Args
-		> db_ref(simple_database * const db, ds::string const & name, Args && ... args)
+		> db_var(basic_database * const db, ds::string const & name, Args && ... args)
 			: m_db	{ ML_check(db) }
 			, m_name{ name }
 			, m_ptr	{ m_db->element<T>(m_name) }
@@ -143,14 +142,14 @@ namespace ml
 			}
 		}
 
-		db_ref(self_type const & other)
+		db_var(self_type const & other)
 			: m_db	{ other.m_db }
 			, m_name{ other.m_name }
 			, m_ptr	{ other.m_ptr }
 		{
 		}
 
-		db_ref(self_type && other) noexcept : self_type{}
+		db_var(self_type && other) noexcept : self_type{}
 		{
 			this->swap(std::move(other));
 		}
@@ -186,7 +185,7 @@ namespace ml
 
 		ML_NODISCARD auto name() const noexcept -> ds::string const & { return m_name; }
 
-		ML_NODISCARD auto database() const noexcept -> simple_database * { return m_db; }
+		ML_NODISCARD auto database() const noexcept -> basic_database * { return m_db; }
 
 		ML_NODISCARD auto use_count() const noexcept -> int32_t { return m_ptr.use_count(); }
 
@@ -241,14 +240,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		simple_database *	m_db	; // 
+		basic_database *	m_db	; // 
 		ds::string			m_name	; // 
 		ds::unown<std::any>	m_ptr	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_DATABASE_HPP_

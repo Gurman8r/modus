@@ -100,11 +100,11 @@ ml::int32_t main()
 	static render_window	window	{};
 	static loop_system		loopsys	{};
 	static basic_database	db		{};
-	static runtime_api		runtime	{ &memory, &io, &bus, &window, &loopsys, &db };
+	static runtime_api		api		{ &memory, &io, &bus, &window, &loopsys, &db };
 
-	auto app{ loopsys.new_subsystem<default_app>(&runtime) };
+	auto app{ loopsys.new_subsystem<default_app>(&api) };
 
-	loopsys.bind_condition(app->get_condition());
+	loopsys.set_loop_condition(app->get_loop_condition());
 
 	return loopsys();
 }

@@ -3,12 +3,9 @@
 
 // WIP
 
-#include <modus_core/detail/Matrix.hpp>
+#include <modus_core/graphics/Transform.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-#include <glm/glm/glm.hpp>
-#include <glm/glm/gtc/matrix_transform.hpp>
 
 namespace ml::testing
 {

@@ -69,7 +69,7 @@ namespace ml
 		// not open
 		if (!m_handle) { return nullptr; }
 
-		// load symbol
+		// load procedure
 		return m_proc.find_or_add_fn(hashof(name, util::strlen(name)), [&]() noexcept
 		{
 #if defined(ML_os_windows)

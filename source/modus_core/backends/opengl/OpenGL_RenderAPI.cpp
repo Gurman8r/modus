@@ -744,9 +744,7 @@ namespace ml::gfx
 #endif
 	}
 
-	opengl_render_device::~opengl_render_device()
-	{
-	}
+	opengl_render_device::~opengl_render_device() {}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -805,10 +803,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_render_context::opengl_render_context(
-		render_device * parent,
-		spec_type const & desc,
-		allocator_type alloc)
+	opengl_render_context::opengl_render_context(render_device * parent, spec_type const & desc, allocator_type alloc)
 		: render_context{ parent }
 		, m_data{ desc }
 	{

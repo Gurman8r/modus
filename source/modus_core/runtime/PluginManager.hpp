@@ -9,17 +9,19 @@ namespace ml
 	// plugin details
 	struct ML_NODISCARD plugin_details final
 	{
-		ds::string name, path, extension;
-
 		hash_t id;
+
+		ds::string name, path, extension;
 	};
 
-	// plugin interface
-	struct ML_NODISCARD plugin_iface final
+	// plugin installer
+	struct ML_NODISCARD plugin_installer final
 	{
-		plugin * (*do_install)(plugin_manager *, void *);
+		plugin * (*install)(plugin_manager *, void *); // creates plugin
 
-		void (*do_uninstall)(plugin_manager *, plugin *);
+		void (*uninstall)(plugin_manager *, plugin *); // destroys plugin
+
+		constexpr operator bool() const noexcept { return install && uninstall; }
 	};
 
 	// plugin manager
@@ -29,11 +31,11 @@ namespace ml
 
 		using plugin_storage = typename ds::batch_vector
 		<
-			plugin_id		,	// id
-			shared_library	,	// library
-			plugin_details	,	// details
-			plugin_iface	,	// interface
-			ds::manual<plugin>	// instance
+			plugin_id			,	// id
+			shared_library		,	// library
+			plugin_details		,	// details
+			plugin_installer	,	// installer
+			ds::manual<plugin>		// plugin
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

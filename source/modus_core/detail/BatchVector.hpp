@@ -139,8 +139,6 @@ namespace ml::ds
 
 		ML_NODISCARD decltype(auto) data() && noexcept { return std::move(m_data); }
 
-		ML_NODISCARD decltype(auto) data() const && noexcept { return std::move(m_data); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <size_t I> ML_NODISCARD decltype(auto) get() & noexcept
@@ -158,11 +156,6 @@ namespace ml::ds
 			return std::move(std::get<I>(m_data));
 		}
 
-		template <size_t I> ML_NODISCARD decltype(auto) get() const && noexcept
-		{
-			return std::move(std::get<I>(m_data));
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class T> ML_NODISCARD decltype(auto) get() & noexcept
@@ -176,11 +169,6 @@ namespace ml::ds
 		}
 
 		template <class T> ML_NODISCARD decltype(auto) get() && noexcept
-		{
-			return std::move(std::get<ds::list<T>>(m_data));
-		}
-
-		template <class T> ML_NODISCARD decltype(auto) get() const && noexcept
 		{
 			return std::move(std::get<ds::list<T>>(m_data));
 		}
@@ -580,40 +568,12 @@ namespace ml::ds
 			});
 		}
 
-		template <size_t ... Is, class Fn
-		> void for_indices(Fn && fn) const noexcept
-		{
-			this->expand<Is...>([&](auto const && ... vs) noexcept
-			{
-				meta::for_args([&](auto const & v) noexcept
-				{
-					std::invoke(ML_forward(fn), v);
-				}
-				, ML_forward(vs)...);
-			});
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		template <class ... Ts, class Fn
 		> void for_types(Fn && fn) noexcept
 		{
 			this->expand<Ts...>([&](auto && ... vs) noexcept
 			{
 				meta::for_args([&](auto & v) noexcept
-				{
-					std::invoke(ML_forward(fn), v);
-				}
-				, ML_forward(vs)...);
-			});
-		}
-
-		template <class ... Ts, class Fn
-		> void for_types(Fn && fn) const noexcept
-		{
-			this->expand<Ts...>([&](auto const && ... vs) noexcept
-			{
-				meta::for_args([&](auto const & v) noexcept
 				{
 					std::invoke(ML_forward(fn), v);
 				}

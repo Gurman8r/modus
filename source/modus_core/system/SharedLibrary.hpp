@@ -14,7 +14,7 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 		
-		using symbol_table = typename ds::map<hash_t, void *>;
+		using procedure_table = typename ds::map<hash_t, void *>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -127,7 +127,7 @@ namespace ml
 
 		ML_NODISCARD auto path() const noexcept -> fs::path const & { return m_path; }
 
-		ML_NODISCARD auto procedures() const noexcept -> symbol_table const & { return m_proc; }
+		ML_NODISCARD auto procedures() const noexcept -> procedure_table const & { return m_proc; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -191,7 +191,7 @@ namespace ml
 		library_handle	m_handle; // handle
 		fs::path		m_path	; // path
 		hash_t			m_hash	; // hash
-		symbol_table	m_proc	; // procedures
+		procedure_table	m_proc	; // procedures
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

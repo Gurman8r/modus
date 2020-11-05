@@ -616,7 +616,7 @@ namespace ml::gfx
 // render device
 namespace ml::gfx
 {
-	// device data_desc settings
+	// device data_desc specification
 	struct ML_NODISCARD device_info final
 	{
 		// version
@@ -695,9 +695,9 @@ namespace ml::gfx
 // global render device
 namespace ml::globals
 {
-	template <> ML_NODISCARD ML_CORE_API gfx::render_device * get() noexcept;
+	ML_decl_global(gfx::render_device) get() noexcept;
 
-	template <> ML_CORE_API gfx::render_device * set(gfx::render_device * value) noexcept;
+	ML_decl_global(gfx::render_device) set(gfx::render_device * value) noexcept;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -738,7 +738,7 @@ namespace ml::gfx
 
 		ML_NODISCARD inline auto get_device() const noexcept -> render_device * { return m_parent; }
 
-		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const & { return ML_check(m_parent)->get_context(); }
+		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const & { return m_parent->get_context(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -835,7 +835,7 @@ namespace ml::gfx
 // render context
 namespace ml::gfx
 {
-	// render context settings
+	// render context specification
 	template <> struct ML_NODISCARD spec<render_context> final
 	{
 		int32_t		api				{ context_api_unknown };
@@ -992,7 +992,7 @@ namespace ml::gfx
 // vertexarray
 namespace ml::gfx
 {
-	// vertexarray settings
+	// vertexarray specification
 	template <> struct ML_NODISCARD spec<vertexarray> final
 	{
 		uint32_t	prim{ primitive_triangles };
@@ -1062,7 +1062,7 @@ namespace ml::gfx
 // vertexbuffer
 namespace ml::gfx
 {
-	// vertexbuffer settings
+	// vertexbuffer specification
 	template <> struct ML_NODISCARD spec<vertexbuffer> final
 	{
 		uint32_t	usage	{ usage_static };
@@ -1131,7 +1131,7 @@ namespace ml::gfx
 // indexbuffer
 namespace ml::gfx
 {
-	// indexbuffer settings
+	// indexbuffer specification
 	template <> struct ML_NODISCARD spec<indexbuffer> final
 	{
 		uint32_t	usage	{ usage_static };
@@ -1311,7 +1311,7 @@ namespace ml::gfx
 // texture2d
 namespace ml::gfx
 {
-	// texture2d settings
+	// texture2d specification
 	template <> struct ML_NODISCARD spec<texture2d> final
 	{
 		vec2i			size	{};
@@ -1398,7 +1398,7 @@ namespace ml::gfx
 // texturecube
 namespace ml::gfx
 {
-	// texturecube settings
+	// texturecube specification
 	template <> struct ML_NODISCARD spec<texturecube> final
 	{
 		vec2i			size	{};
@@ -1464,7 +1464,7 @@ namespace ml::gfx
 // framebuffer
 namespace ml::gfx
 {
-	// framebuffer settings
+	// framebuffer specification
 	template <> struct ML_NODISCARD spec<framebuffer> final
 	{
 		vec2i			size			{};
@@ -1619,7 +1619,7 @@ namespace ml::gfx
 
 		virtual bool detach(uint32_t type) = 0;
 
-		ML_NODISCARD virtual bool link() = 0;
+		virtual bool link() = 0;
 
 		virtual bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) = 0;
 
@@ -1681,7 +1681,7 @@ namespace ml::gfx
 // shader
 namespace ml::gfx
 {
-	// shader settings
+	// shader specification
 	template <> struct ML_NODISCARD spec<shader> final
 	{
 		using source_t = ds::list<ds::string>;
@@ -1750,7 +1750,8 @@ namespace ml::gfx
 		inline void bind_textures() noexcept
 		{
 			uint32_t slot{};
-			get_textures().for_each([&](uniform_id loc, ds::ref<texture> const & tex) noexcept
+			get_textures().for_each([&
+			](uniform_id loc, ds::ref<texture> const & tex) noexcept
 			{
 				do_upload(loc, tex, slot++);
 			});

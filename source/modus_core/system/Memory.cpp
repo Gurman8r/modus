@@ -18,7 +18,7 @@ namespace ml
 
 	memory_manager::~memory_manager() noexcept
 	{
-		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
+		ML_assert_msg(m_records.empty(), "MEMORY LEAKS DETECTED");
 
 		if (this == get_global<memory_manager>())
 		{
@@ -34,11 +34,13 @@ namespace ml::globals
 {
 	static memory_manager * g_memory_manager{};
 
-	template <> memory_manager * get() noexcept {
+	ML_impl_global(memory_manager) get() noexcept
+	{
 		return g_memory_manager;
 	}
 
-	template <> memory_manager * set(memory_manager * value) noexcept {
+	ML_impl_global(memory_manager) set(memory_manager * value) noexcept
+	{
 		return g_memory_manager = value;
 	}
 }

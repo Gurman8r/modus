@@ -49,18 +49,24 @@ namespace ml
 			return debug::error("failed opening render_window");
 		}
 
-		// create device
+		// create render device
 		if (m_dev.reset(gfx::render_device::create(cs.api)); !m_dev)
 		{
 			return debug::error("failed creating device");
 		}
 
-		// create context
-		m_dev->set_context(m_ctx = m_dev->create_context({
-			cs.api, cs.major, cs.minor, cs.profile,
-			cs.depth_bits, cs.stencil_bits,
-			cs.multisample, cs.srgb_capable
-			}));
+		// create render context
+		m_dev->set_context(m_ctx = m_dev->create_context(
+		{
+			cs.api,
+			cs.major,
+			cs.minor,
+			cs.profile,
+			cs.depth_bits,
+			cs.stencil_bits,
+			cs.multisample,
+			cs.srgb_capable
+		}));
 
 		// setup states
 		execute(

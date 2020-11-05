@@ -56,11 +56,13 @@ namespace ml::globals
 {
 	static gfx::render_device * g_render_device{};
 
-	template <> gfx::render_device * get() noexcept {
+	ML_impl_global(gfx::render_device) get() noexcept
+	{
 		return g_render_device;
 	}
 
-	template <> gfx::render_device * set(gfx::render_device * value) noexcept {
+	ML_impl_global(gfx::render_device) set(gfx::render_device * value) noexcept
+	{
 		return g_render_device = value;
 	}
 }

@@ -48,8 +48,11 @@ namespace ml::ImGuiExt
 	> bool BeginEnd(BeginFn && begin_fn, EndFn && end_fn, Fn && fn, Args && ... args)
 	{
 		bool const is_open{ std::invoke(ML_forward(begin_fn)) };
+		
 		ML_defer(&) { std::invoke(ML_forward(end_fn)); };
+		
 		if (is_open) { std::invoke(ML_forward(fn), ML_forward(args)...); }
+		
 		return is_open;
 	}
 
@@ -99,16 +102,15 @@ namespace ml::ImGuiExt
 // PANELS
 namespace ml::ImGuiExt
 {
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// BASIC PANEL
 	template <class Derived
 	> struct ML_NODISCARD BasicPanel
 	{
-		cstring		Title;
-		bool		IsOpen;
-		int32_t		WinFlags;
+		cstring		Title		; // title
+		bool		IsOpen		; // is open
+		int32_t		WinFlags	; // window flags
 
 		BasicPanel(cstring title, bool open = false, int32_t winflags = ImGuiWindowFlags_None) noexcept
 			: Title		{ title }
@@ -409,6 +411,8 @@ namespace ml::ImGuiExt
 		
 		using CommandInfo = typename ds::list<ds::string>;
 
+		using CommandData = typename ds::batch_vector<ds::string, CommandInfo, CommandProc>;
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ds::string User, Host, Path, Mode; // session
@@ -417,7 +421,7 @@ namespace ml::ImGuiExt
 
 		TextLog Output; // output
 
-		ds::batch_vector<ds::string, CommandInfo, CommandProc> Commands; // commands
+		CommandData Commands; // commands
 
 		ds::list<Line> History; // history
 
@@ -477,18 +481,14 @@ namespace ml::ImGuiExt
 		> ML_NODISCARD CommandInfo * GetInfo(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
-			else {
-				return std::addressof(Commands.at<CommandInfo>(*i));
-			}
+			else { return std::addressof(Commands.at<CommandInfo>(*i)); }
 		}
 
 		template <class Name = ds::string
 		> ML_NODISCARD CommandProc * GetProc(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
-			else {
-				return std::addressof(Commands.at<CommandProc>(*i));
-			}
+			else { return std::addressof(Commands.at<CommandProc>(*i)); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

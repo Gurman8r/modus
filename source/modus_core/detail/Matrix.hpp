@@ -32,7 +32,6 @@ namespace ml::ds
 		using const_pointer				= typename storage_type::const_pointer;
 		using const_reference			= typename storage_type::const_reference;
 		using rvalue					= typename storage_type::rvalue;
-		using const_rvalue				= typename storage_type::const_rvalue;
 		using iterator					= typename storage_type::iterator;
 		using const_iterator			= typename storage_type::const_iterator;
 		using reverse_iterator			= typename storage_type::reverse_iterator;
@@ -111,8 +110,6 @@ namespace ml::ds
 
 		constexpr operator storage_type && () && noexcept { return std::move(m_data); }
 
-		constexpr operator storage_type const && () const && noexcept { return std::move(m_data); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		constexpr operator pointer() noexcept { return m_data; }
@@ -127,8 +124,6 @@ namespace ml::ds
 
 		constexpr auto operator*() && noexcept -> rvalue { return std::move(*m_data); }
 
-		constexpr auto operator*() const && noexcept -> const_rvalue { return std::move(*m_data); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		constexpr auto at(size_t const i) & noexcept -> reference { return m_data.at(i); }
@@ -136,8 +131,6 @@ namespace ml::ds
 		constexpr auto at(size_t const i) const & noexcept -> const_reference { return m_data.at(i); }
 
 		constexpr auto at(size_t const i) && noexcept -> rvalue { return std::move(m_data.at(i)); }
-
-		constexpr auto at(size_t const i) const && noexcept -> const_rvalue { return std::move(m_data.at(i)); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -147,8 +140,6 @@ namespace ml::ds
 
 		constexpr auto at(size_t const x, size_t const y) && noexcept -> rvalue { return std::move(at(y * _W + x)); }
 
-		constexpr auto at(size_t const x, size_t const y) const && noexcept -> const_rvalue { return std::move(at(y * _W + x)); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		constexpr auto back() & noexcept -> reference { return m_data.back(); }
@@ -157,8 +148,6 @@ namespace ml::ds
 
 		constexpr auto back() && noexcept -> rvalue { return std::move(m_data.back()); }
 
-		constexpr auto back() const && noexcept -> const_rvalue { return std::move(m_data.back()); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		constexpr auto front() & noexcept -> reference { return m_data.front(); }
@@ -166,8 +155,6 @@ namespace ml::ds
 		constexpr auto front() const & noexcept -> const_reference { return m_data.front(); }
 
 		constexpr auto front() && noexcept -> rvalue { return std::move(m_data.front()); }
-
-		constexpr auto front() const && noexcept -> const_rvalue { return std::move(m_data.front()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
@@ -578,13 +565,6 @@ namespace std
 		return std::move(value.at(I));
 	}
 
-	template <size_t I, class T, size_t W, size_t H
-	> ML_NODISCARD constexpr T const && get(_ML ds::matrix<T, W, H> const && value) noexcept
-	{
-		static_assert(I < W * H, "matrix index out of bounds");
-		return std::move(value.at(I));
-	}
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <size_t X, size_t Y, class T, size_t W, size_t H
@@ -603,13 +583,6 @@ namespace std
 
 	template <size_t X, size_t Y, class T, size_t W, size_t H
 	> ML_NODISCARD constexpr T && get(_ML ds::matrix<T, W, H> && value) noexcept
-	{
-		static_assert(X * Y < W * H, "matrix index out of bounds");
-		return std::move(value.at(X, Y));
-	}
-
-	template <size_t X, size_t Y, class T, size_t W, size_t H
-	> ML_NODISCARD constexpr T const && get(_ML ds::matrix<T, W, H> const && value) noexcept
 	{
 		static_assert(X * Y < W * H, "matrix index out of bounds");
 		return std::move(value.at(X, Y));

@@ -43,7 +43,6 @@ namespace ml
 		using const_pointer				= typename rgba_type::const_pointer;
 		using const_reference			= typename rgba_type::const_reference;
 		using rvalue					= typename rgba_type::rvalue;
-		using const_rvalue				= typename rgba_type::const_rvalue;
 		using iterator					= typename rgba_type::iterator;
 		using const_iterator			= typename rgba_type::const_iterator;
 		using reverse_iterator			= typename rgba_type::reverse_iterator;
@@ -103,8 +102,6 @@ namespace ml
 		constexpr operator rgba_type const & () const & noexcept { return m_data; }
 
 		operator rgba_type && () && noexcept { return std::move(m_data); }
-
-		constexpr operator rgba_type const && () const && noexcept { return std::move(m_data); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

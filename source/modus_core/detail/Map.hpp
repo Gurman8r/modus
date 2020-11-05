@@ -59,7 +59,6 @@ namespace ml::ds
 		using key_reference						= typename key_storage::reference;
 		using key_const_reference				= typename key_storage::const_reference;
 		using key_rvalue						= typename key_storage::rvalue;
-		using key_const_rvalue					= typename key_storage::const_rvalue;
 		using key_iterator						= typename key_storage::iterator;
 		using key_const_iterator				= typename key_storage::const_iterator;
 		using key_reverse_iterator				= typename key_storage::reverse_iterator;
@@ -70,7 +69,6 @@ namespace ml::ds
 		using value_reference					= typename value_storage::reference;
 		using value_const_reference				= typename value_storage::const_reference;
 		using value_rvalue						= typename value_type &&;
-		using value_const_rvalue				= typename value_type const &&;
 		using value_iterator					= typename value_storage::iterator;
 		using value_const_iterator				= typename value_storage::const_iterator;
 		using value_reverse_iterator			= typename value_storage::reverse_iterator;
@@ -85,7 +83,6 @@ namespace ml::ds
 		using reference_pair					= typename std::pair<key_reference, value_reference>;
 		using const_reference_pair				= typename std::pair<key_const_reference, value_const_reference>;
 		using rvalue_pair						= typename std::pair<key_rvalue, value_rvalue>;
-		using const_rvalue_pair					= typename std::pair<key_const_rvalue, value_const_rvalue>;
 
 		using iterator_pair						= typename std::pair<key_iterator, value_iterator>;
 		using const_iterator_pair				= typename std::pair<key_const_iterator, value_const_iterator>;

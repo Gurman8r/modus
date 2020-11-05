@@ -31,11 +31,13 @@ namespace ml::globals
 {
 	static application * g_application{};
 
-	template <> application * get() noexcept {
+	ML_impl_global(application) get() noexcept
+	{
 		return g_application;
 	}
 
-	template <> application * set(application * value) noexcept {
+	ML_impl_global(application) set(application * value) noexcept
+	{
 		return g_application = value;
 	}
 }

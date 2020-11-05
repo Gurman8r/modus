@@ -57,7 +57,6 @@ namespace ml::ds
 		using reference						= typename storage_type::reference;
 		using const_reference				= typename storage_type::const_reference;
 		using rvalue						= typename value_type &&;
-		using const_rvalue					= typename value_type const &&;
 		
 		using iterator						= typename storage_type::iterator;
 		using const_iterator				= typename storage_type::const_iterator;

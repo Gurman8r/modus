@@ -37,9 +37,9 @@ namespace ml
 // global application
 namespace ml::globals
 {
-	template <> ML_NODISCARD ML_CORE_API application * get() noexcept;
+	ML_decl_global(application) get() noexcept;
 
-	template <> ML_CORE_API application * set(application * value) noexcept;
+	ML_decl_global(application) set(application * value) noexcept;
 }
 
 #endif // !_ML_MAIN_LOOP_HPP_

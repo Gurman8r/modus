@@ -24,6 +24,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		virtual ~loop_system() noexcept = default;
+
 		loop_system(allocator_type alloc = {}) noexcept
 			: m_locked		{}
 			, m_subsystems	{ alloc }
@@ -34,63 +36,85 @@ namespace ml
 		{
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		explicit loop_system(loop_system && other, allocator_type alloc = {}) noexcept
+			: loop_system{ alloc }
+		{
+			this->swap(std::move(other));
+		}
 
-		ML_NODISCARD int32_t operator()() noexcept { return process(); }
+		void swap(loop_system & other) noexcept
+		{
+			if (this != std::addressof(other))
+			{
+				std::swap(m_locked, other.m_locked);
+				m_subsystems.swap(other.m_subsystems);
+				m_loopcond.swap(m_loopcond);
+				m_on_enter.swap(m_on_enter);
+				m_on_exit.swap(m_on_exit);
+				m_on_idle.swap(m_on_idle);
+			}
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD int32_t process(bool recursive = true) noexcept
 		{
-			if (!lock()) { return EXIT_FAILURE * 1; } ML_defer(&) { unlock(); };
+			if (!do_lock()) { return EXIT_FAILURE * 1; }
+			
+			ML_defer(&) { do_unlock(); };
 
-			process_enter(recursive); ML_defer(&) { process_exit(recursive); };
+			do_invoke(&loop_system::m_on_enter, recursive);
 
-			if (!check_condition()) { return EXIT_FAILURE * 2; }
+			ML_defer(&) { do_invoke(&loop_system::m_on_exit, recursive); };
 
-			do { process_idle(recursive); } while (check_condition());
+			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
+			
+			do { do_invoke(&loop_system::m_on_idle, recursive); } while (check_loop_condition());
 
 			return EXIT_SUCCESS;
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD bool check_condition() const noexcept { return m_loopcond && m_loopcond(); }
-
-		ML_NODISCARD auto get_condition() const noexcept -> loop_condition const & { return m_loopcond; }
-
-		ML_NODISCARD auto get_enter() const noexcept -> loop_callback const & { return m_on_enter; }
-
-		ML_NODISCARD auto get_exit() const noexcept -> loop_callback const & { return m_on_exit; }
-
-		ML_NODISCARD auto get_idle() const noexcept -> loop_callback const & { return m_on_idle; }
+		ML_NODISCARD int32_t operator()(bool recursive = true) noexcept
+		{
+			return process(recursive);
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD bool check_loop_condition() const noexcept { return m_loopcond && m_loopcond(); }
+
+		ML_NODISCARD auto get_loop_condition() const noexcept -> loop_condition const & { return m_loopcond; }
+
+		ML_NODISCARD auto get_enter_callback() const noexcept -> loop_callback const & { return m_on_enter; }
+
+		ML_NODISCARD auto get_exit_callback() const noexcept -> loop_callback const & { return m_on_exit; }
+
+		ML_NODISCARD auto get_idle_callback() const noexcept -> loop_callback const & { return m_on_idle; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		template <class Fn, class ... Args
-		> auto bind_condition(Fn && fn, Args && ... args) noexcept -> loop_condition &
+		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition &
 		{
-			if constexpr (0 == sizeof...(args)) { return m_loopcond = ML_forward(fn); }
-			else { return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...); }
+			return this->do_bind(&loop_system::m_loopcond, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
-		> auto bind_enter(Fn && fn, Args && ... args) -> loop_callback &
+		> auto set_enter_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			if constexpr (0 == sizeof...(args)) { return m_on_enter = ML_forward(fn); }
-			else { return m_on_enter = std::bind(ML_forward(fn), ML_forward(args)...); }
+			return this->do_bind(&loop_system::m_on_enter, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
-		> auto bind_exit(Fn && fn, Args && ... args) -> loop_callback &
+		> auto set_exit_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			if constexpr (0 == sizeof...(args)) { return m_on_exit = ML_forward(fn); }
-			else { return m_on_exit = std::bind(ML_forward(fn), ML_forward(args)...); }
+			return this->do_bind(&loop_system::m_on_exit, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
-		> auto bind_idle(Fn && fn, Args && ... args) -> loop_callback &
+		> auto set_idle_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			if constexpr (0 == sizeof...(args)) { return m_on_idle = ML_forward(fn); }
-			else { return m_on_idle = std::bind(ML_forward(fn), ML_forward(args)...); }
+			return this->do_bind(&loop_system::m_on_idle, ML_forward(fn), ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -103,7 +127,7 @@ namespace ml
 
 		ML_NODISCARD auto operator[](size_t const i) & noexcept -> subsystem & { return m_subsystems[i]; }
 
-		ML_NODISCARD auto operator[](size_t const i) const && noexcept -> subsystem const & { return m_subsystems[i]; }
+		ML_NODISCARD auto operator[](size_t const i) const & noexcept -> subsystem const & { return m_subsystems[i]; }
 
 		ML_NODISCARD auto operator[](size_t const i) && noexcept -> subsystem & { return std::move(m_subsystems[i]); }
 
@@ -174,45 +198,48 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		bool lock() noexcept {
+		// lock internal
+		bool do_lock() noexcept
+		{
 			return !m_locked && (m_locked = true);
 		}
 
-		bool unlock() noexcept {
+		// unlock internal
+		bool do_unlock() noexcept
+		{
 			return m_locked && !(m_locked = false);
 		}
 
-		void process_enter(bool recursive) noexcept {
-			if (m_on_enter) { m_on_enter(); }
-			if (recursive) {
-				for (auto & e : *this) {
-					e->process_enter(recursive);
-				}
+		// bind internal
+		template <class Member, class Fn, class ... Args
+		> auto do_bind(Member loop_system::*mp, Fn && fn, Args && ... args) noexcept -> Member &
+		{
+			if constexpr (0 == sizeof...(args))
+			{
+				return (this->*mp) = ML_forward(fn);
+			}
+			else
+			{
+				return (this->*mp) = std::bind(ML_forward(fn), ML_forward(args)...);
 			}
 		}
 
-		void process_exit(bool recursive) noexcept {
-			if (m_on_exit) { m_on_exit(); }
-			if (recursive) {
-				for (auto & e : *this) {
-					e->process_exit(recursive);
-				}
-			}
-		}
+		// invoke internal
+		bool do_invoke(loop_callback loop_system::*fn, bool recursive) noexcept
+		{
+			bool const good{ fn && this->*fn };
+			
+			if (good) { (this->*fn)(); }
+			
+			if (recursive) for (auto & e : *this) { e->do_invoke(fn, recursive); }
 
-		void process_idle(bool recursive) noexcept {
-			if (m_on_idle) { m_on_idle(); }
-			if (recursive) {
-				for (auto & e : *this) {
-					e->process_idle(recursive);
-				}
-			}
+			return good;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		bool			m_locked	; // process lock
+		bool			m_locked	; // process locked
 		subsystem_list	m_subsystems; // subsystem list
 		loop_condition	m_loopcond	; // loop condition
 		loop_callback	m_on_enter	, // enter callback

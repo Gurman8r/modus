@@ -78,8 +78,6 @@ namespace ml
 
 		ML_NODISCARD auto sstr() && noexcept -> sstream_type && { return std::move(m_str); }
 
-		ML_NODISCARD auto sstr() const && noexcept -> sstream_type const && { return std::move(m_str); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:

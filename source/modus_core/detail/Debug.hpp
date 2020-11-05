@@ -48,10 +48,12 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // check message
-#define ML_check_msg(expr, msg) ([](auto && x) noexcept {	\
-		ML_assert_ext(x, msg, __FILE__, __LINE__);			\
-		return ML_forward(x);								\
-	})(expr)
+#define ML_check_msg(expr, msg) ([](auto && x) noexcept	\
+	{													\
+		ML_assert_ext(x, msg, __FILE__, __LINE__);		\
+		return ML_forward(x);							\
+	}													\
+	)(expr)
 
 // check
 #define ML_check(expr) \

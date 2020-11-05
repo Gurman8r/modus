@@ -350,9 +350,9 @@ namespace ml
 // global memory manager
 namespace ml::globals
 {
-	template <> ML_NODISCARD ML_CORE_API memory_manager * get() noexcept;
+	ML_decl_global(memory_manager) get() noexcept;
 
-	template <> ML_CORE_API memory_manager * set(memory_manager * value) noexcept;
+	ML_decl_global(memory_manager) set(memory_manager * value) noexcept;
 }
 
 // trackable

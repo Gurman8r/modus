@@ -13,14 +13,17 @@ namespace ml
 		, m_imgui		{}
 		, m_dockspace	{ "##MainDockspace" }
 	{
-		bind_condition(&render_window::is_open, api->window);
-		bind_enter(&default_app::on_enter, this);
-		bind_exit(&default_app::on_exit, this);
-		bind_idle(&default_app::on_idle, this);
+		ML_assert(this == get_global<application>());
+
+		set_loop_condition(&render_window::is_open, get_window());
+		set_enter_callback(&default_app::on_enter, this);
+		set_exit_callback(&default_app::on_exit, this);
+		set_idle_callback(&default_app::on_idle, this);
 	}
 
 	default_app::~default_app() noexcept
 	{
+		ML_assert(this == get_global<application>());
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

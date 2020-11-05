@@ -25,17 +25,12 @@ namespace ml
 	{
 		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_id; }
 
-		bool use() noexcept { return !m_used && (m_used = true); }
-
-		bool used() const noexcept { return m_used; }
-
 	protected:
-		constexpr explicit event(hash_t id) noexcept : m_id{ id }, m_used{}
+		constexpr explicit event(hash_t id) noexcept : m_id{ id }
 		{
 		}
 
 		hash_t const m_id; // event id
-		bool m_used; // used
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -70,6 +65,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		virtual void on_event(event &&) = 0; // handle event
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD event_bus * get_bus() const noexcept { return m_bus; }
 
@@ -136,13 +133,11 @@ namespace ml
 
 		void fire(event && ev) noexcept
 		{
-			if (ev.used()) { return; }
-			else if (auto const cat{ m_categories.find(ev) })
+			if (auto const cat{ m_categories.find(ev) })
 			{
 				for (auto const listener : (*cat->second))
 				{
-					if (ev.used()) { return; }
-					else if (listener->listening_enabled())
+					if (listener->listening_enabled())
 					{
 						listener->on_event(ML_forward(ev));
 					}

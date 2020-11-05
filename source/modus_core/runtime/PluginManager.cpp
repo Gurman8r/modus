@@ -36,12 +36,12 @@ namespace ml
 					std::move(lib),
 					plugin_details
 					{
+						lib.hash_code(),
 						(ds::string)lib.path().stem().string(),
 						(ds::string)lib.path().string(),
-						(ds::string)lib.path().extension().string(),
-						lib.hash_code()
+						(ds::string)lib.path().extension().string()
 					},
-					plugin_iface
+					plugin_installer
 					{
 						lib.proc<plugin *, plugin_manager *, void *>("ml_plugin_install"),
 						lib.proc<void, plugin_manager *, plugin *>("ml_plugin_uninstall"),
@@ -51,7 +51,7 @@ namespace ml
 		}) })
 		// load plugin
 		{
-			if (auto const p{ m_data.back<plugin_iface>().do_install(this, userptr) })
+			if (auto const p{ m_data.back<plugin_installer>().install(this, userptr) })
 			{
 				m_data.back<ds::manual<plugin>>().reset(p);
 
@@ -70,7 +70,7 @@ namespace ml
 		else
 		{
 			auto const p{ m_data.at<ds::manual<plugin>>(i).release() };
-			m_data.at<plugin_iface>(i).do_uninstall(this, p);
+			m_data.at<plugin_installer>(i).uninstall(this, p);
 			m_data.erase(i);
 			return true;
 		}

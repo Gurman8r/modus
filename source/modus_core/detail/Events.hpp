@@ -81,28 +81,14 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		template <class Ev
-		> bool subscribe() noexcept
+		template <class Ev> bool subscribe() noexcept
 		{
 			return ML_check(m_bus)->add_listener<Ev>(this);
 		}
 
-		template <class ... Args
-		> bool subscribe(Args && ... args) noexcept
+		template <class Ev> void unsubscribe() noexcept
 		{
-			return ML_check(m_bus)->add_listener(ML_forward(args)..., this);
-		}
-
-		template <class Ev
-		> void unsubscribe() noexcept
-		{
-			return ML_check(m_bus)->remove_listener<Ev>(this);
-		}
-
-		template <class ... Args
-		> void unsubscribe(Args && ... args) noexcept
-		{
-			return ML_check(m_bus)->remove_listener(ML_forward(args)..., this);
+			ML_check(m_bus)->remove_listener<Ev>(this);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -224,7 +210,8 @@ namespace ml
 	// ~event_listener
 	inline event_listener::~event_listener() noexcept
 	{
-		unsubscribe(); // remove listener from all events
+		// remove listener from all events
+		ML_check(m_bus)->remove_listener(this);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

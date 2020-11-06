@@ -6,11 +6,11 @@
 
 #include <Windows.h>
 
-extern INT main();
+extern INT main(INT, PZPSTR);
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, INT nCmdShow)
 {
-	return main();
+	return main(__argc, __argv);
 }
 
 #endif // ML_os_windows

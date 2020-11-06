@@ -83,24 +83,24 @@ static auto const default_settings{ R"(
 }
 )"_json };
 
+json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
+{
+	std::ifstream f{ path }; ML_defer(&f) { f.close(); };
+
+	return f ? json::parse(f) : default_settings;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int main()
+int main(int argc, char ** argv)
 {
-	auto load_settings = [](fs::path const & path = SETTINGS_PATH) noexcept
-	{
-		std::ifstream f{ path }; ML_defer(&f) { f.close(); };
-
-		return f ? json::parse(f) : default_settings;
-	};
-
-	static memory_manager	memory	{};
-	static runtime_io		io		{ __argc, __argv, load_settings() };
-	static basic_database	db		{};
-	static event_bus		bus		{};
-	static render_window	window	{};
-	static loop_system		loopsys	{};
-	static runtime_context	context	{ &memory, &io, &db, &bus, &window, &loopsys };
+	static memory_manager	memory		{};
+	static runtime_io		io			{ { argv, argv + argc }, load_settings() };
+	static simple_database	database	{};
+	static event_bus		bus			{};
+	static render_window	window		{};
+	static loop_system		loopsys		{};
+	static runtime_context	context		{ &memory, &io, &database, &bus, &window, &loopsys };
 
 	return loopsys.new_subsystem<default_app>(&context)->process();
 }

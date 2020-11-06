@@ -6,8 +6,8 @@
 
 namespace ml
 {
-	// basic database
-	struct basic_database final : non_copyable
+	// simple database
+	struct simple_database final : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -23,7 +23,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		basic_database(allocator_type alloc = {}) noexcept : m_categories{ alloc }
+		simple_database(allocator_type alloc = {}) noexcept : m_categories{ alloc }
 		{
 		}
 
@@ -107,8 +107,7 @@ namespace ml
 namespace ml
 {
 	// database variable
-	template <class T
-	> struct db_var final
+	template <class T> struct db_var final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -133,7 +132,7 @@ namespace ml
 		}
 
 		template <class ... Args
-		> db_var(basic_database * const db, ds::string const & name, Args && ... args)
+		> db_var(simple_database * const db, ds::string const & name, Args && ... args)
 			: m_db	{ ML_check(db) }
 			, m_name{ name }
 			, m_ptr	{ m_db->element<T>(m_name) }
@@ -187,7 +186,7 @@ namespace ml
 
 		ML_NODISCARD auto name() const noexcept -> ds::string const & { return m_name; }
 
-		ML_NODISCARD auto database() const noexcept -> basic_database * { return m_db; }
+		ML_NODISCARD auto database() const noexcept -> simple_database * { return m_db; }
 
 		ML_NODISCARD auto use_count() const noexcept -> int32_t { return m_ptr.use_count(); }
 
@@ -242,7 +241,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		basic_database *	m_db	; // 
+		simple_database *	m_db	; // 
 		ds::string			m_name	; // 
 		ds::unown<std::any>	m_ptr	; // 
 

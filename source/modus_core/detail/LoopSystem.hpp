@@ -232,26 +232,26 @@ namespace ml
 		}
 
 		// bind internal
-		template <class Member, class Fn, class ... Args
-		> auto do_bind(Member loop_system::*mp, Fn && fn, Args && ... args) noexcept -> Member &
+		template <class Mp, class Fn, class ... Args
+		> auto do_bind(Mp loop_system::*mp, Fn && fn, Args && ... args) noexcept -> Mp &
 		{
 			if constexpr (0 == sizeof...(args))
 			{
-				return (this->*mp) = ML_forward(fn);
+				return this->*mp = ML_forward(fn);
 			}
 			else
 			{
-				return (this->*mp) = std::bind(ML_forward(fn), ML_forward(args)...);
+				return this->*mp = std::bind(ML_forward(fn), ML_forward(args)...);
 			}
 		}
 
 		// invoke internal
-		template <class Member
-		> bool do_invoke(Member loop_system::*mp, bool recursive) noexcept
+		template <class Mp
+		> bool do_invoke(Mp loop_system::*mp, bool recursive) noexcept
 		{
 			bool const good{ this->*mp };
 
-			if (good) { std::invoke(this->*mp); }
+			if (this->*mp) { std::invoke(this->*mp); }
 			
 			if (recursive) for (auto & e : *this) { e->do_invoke(mp, recursive); }
 

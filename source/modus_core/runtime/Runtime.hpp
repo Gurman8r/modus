@@ -11,16 +11,8 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// runtime io
-	struct ML_NODISCARD runtime_io final : trackable, non_copyable
+	struct ML_NODISCARD runtime_io final
 	{
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-
-		runtime_io(int32_t argc, char ** argv, json const & j = {}, allocator_type alloc = {})
-			: args	{ argv, argv + argc, alloc }
-			, prefs	{ json{ j } }
-		{
-		}
-
 		ds::list<ds::string> args; // command line
 		
 		json prefs; // preferences
@@ -59,7 +51,7 @@ namespace ml
 	{
 		memory_manager	* const memory		; // memory manager
 		runtime_io		* const io			; // runtime I/O
-		basic_database	* const db			; // database
+		simple_database	* const database	; // database
 		event_bus		* const bus			; // event bus
 		render_window	* const window		; // render window
 		loop_system		* const loopsys		; // loop system
@@ -90,7 +82,7 @@ namespace ml
 
 		ML_NODISCARD auto get_context() const noexcept -> runtime_context * { return m_context; }
 
-		ML_NODISCARD auto get_db() const noexcept -> basic_database * { return m_context->db; }
+		ML_NODISCARD auto get_database() const noexcept -> simple_database * { return m_context->database; }
 		
 		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_context->io; }
 

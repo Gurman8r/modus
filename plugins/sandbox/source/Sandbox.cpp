@@ -57,7 +57,7 @@ namespace ml
 		ds::list<ds::ref<gfx::framebuffer>> m_fb{};
 
 		// icon
-		db_var<bitmap> m_icon{ get_db(), "icon" };
+		db_var<bitmap> m_icon{ get_database(), "icon" };
 
 		// resources
 		ds::hashmap<ds::string, ds::ref<font>>			m_fonts		{};

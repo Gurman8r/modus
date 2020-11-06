@@ -252,7 +252,7 @@ namespace ml
 
 		// make unique
 		template <class T, class Dx = default_delete<T>, class ... Args
-		> ML_NODISCARD ds::unique<T> make_scoped(Args && ... args) noexcept
+		> ML_NODISCARD ds::scoped<T> make_scoped(Args && ... args) noexcept
 		{
 			return { this->new_object<T>(ML_forward(args)...), Dx{} };
 		}

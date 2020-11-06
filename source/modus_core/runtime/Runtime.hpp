@@ -11,18 +11,23 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// runtime io
-	struct ML_NODISCARD runtime_io final
+	struct ML_NODISCARD runtime_io final : trackable, non_copyable
 	{
-		// command line
-		int32_t const argc;
-		char ** const argv;
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		// preferences
-		json prefs;
+		runtime_io(int32_t argc, char ** argv, json const & j = {}, allocator_type alloc = {})
+			: args	{ argv, argv + argc, alloc }
+			, prefs	{ json{ j } }
+		{
+		}
+
+		ds::list<ds::string> args; // command line
+		
+		json prefs; // preferences
 
 		// paths
 		fs::path const
-			program_name{ argv[0] },
+			program_name{ args[0] },
 			program_path{ fs::current_path() },
 			content_path{ prefs.contains("path") ? prefs["path"].get<fs::path>() : "./" };
 
@@ -53,11 +58,11 @@ namespace ml
 	struct ML_NODISCARD runtime_context final
 	{
 		memory_manager	* const memory		; // memory manager
-		runtime_io		* const io			; // runtime io
+		runtime_io		* const io			; // runtime I/O
+		basic_database	* const db			; // database
 		event_bus		* const bus			; // event bus
 		render_window	* const window		; // render window
 		loop_system		* const loopsys		; // loop system
-		basic_database	* const database	; // database
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -66,11 +71,6 @@ namespace ml
 	template <class Derived
 	> struct runtime_object : trackable, non_copyable, event_listener
 	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		runtime_context * const m_context; // runtime context
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
@@ -83,16 +83,14 @@ namespace ml
 
 		virtual ~runtime_object() noexcept override = default;
 
-		virtual void on_event(event &&) override = 0;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		virtual void on_event(event &&) override = 0; // event_listener::on_event
 
 	public:
 		using event_listener::get_bus; // event_listener::get_bus
 
 		ML_NODISCARD auto get_context() const noexcept -> runtime_context * { return m_context; }
 
-		ML_NODISCARD auto get_db() const noexcept -> basic_database * { return m_context->database; }
+		ML_NODISCARD auto get_db() const noexcept -> basic_database * { return m_context->db; }
 		
 		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_context->io; }
 
@@ -101,6 +99,9 @@ namespace ml
 		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_context->memory; }
 
 		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_context->window; }
+
+	private:
+		runtime_context * const m_context; // runtime context
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

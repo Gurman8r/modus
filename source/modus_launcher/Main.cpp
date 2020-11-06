@@ -83,30 +83,26 @@ static auto const default_settings{ R"(
 }
 )"_json };
 
-json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
-{
-	std::ifstream f{ path }; ML_defer(&f) { f.close(); };
-
-	return f ? json::parse(f) : default_settings;
-}
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-ml::int32_t main()
+int main()
 {
-	static memory_manager	memory		{};
-	static runtime_io		io			{ __argc, __argv, load_settings() };
-	static event_bus		bus			{};
-	static render_window	window		{};
-	static loop_system		loopsys		{};
-	static basic_database	database	{};
-	static runtime_context	context		{ &memory, &io, &bus, &window, &loopsys, &database };
+	auto load_settings = [](fs::path const & path = SETTINGS_PATH) noexcept
+	{
+		std::ifstream f{ path }; ML_defer(&f) { f.close(); };
 
-	auto app{ loopsys.new_subsystem<default_app>(&context) };
+		return f ? json::parse(f) : default_settings;
+	};
 
-	loopsys.set_loop_condition(app->get_loop_condition());
+	static memory_manager	memory	{};
+	static runtime_io		io		{ __argc, __argv, load_settings() };
+	static basic_database	db		{};
+	static event_bus		bus		{};
+	static render_window	window	{};
+	static loop_system		loopsys	{};
+	static runtime_context	context	{ &memory, &io, &db, &bus, &window, &loopsys };
 
-	return loopsys();
+	return loopsys.new_subsystem<default_app>(&context)->process();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

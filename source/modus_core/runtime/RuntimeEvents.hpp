@@ -9,35 +9,35 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// RUNTIME ENTER
-	ML_decl_event(runtime_enter_event)
+	// APPLICATION ENTER
+	ML_decl_event(app_enter_event)
 	{
 		application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr runtime_enter_event(application * ptr) noexcept : ptr{ ptr }
+		constexpr app_enter_event(application * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};
 
-	// RUNTIME EXIT
-	ML_decl_event(runtime_exit_event)
+	// APPLICATION EXIT
+	ML_decl_event(app_exit_event)
 	{
 		application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr runtime_exit_event(application * ptr) noexcept : ptr{ ptr }
+		constexpr app_exit_event(application * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};
 
-	// RUNTIME IDLE
-	ML_decl_event(runtime_idle_event)
+	// APPLICATION IDLE
+	ML_decl_event(app_idle_event)
 	{
 		application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr runtime_idle_event(application * ptr) noexcept : ptr{ ptr }
+		constexpr app_idle_event(application * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};

@@ -17,11 +17,11 @@ namespace ml
 	// plugin installer
 	struct ML_NODISCARD plugin_installer final
 	{
-		plugin * (*install)(plugin_manager *, void *); // creates plugin
+		plugin * (*install)(plugin_manager *, void *); // create plugin
 
-		void (*uninstall)(plugin_manager *, plugin *); // destroys plugin
+		void (*uninstall)(plugin_manager *, plugin *); // destroy plugin
 
-		ML_NODISCARD constexpr operator bool() const noexcept // validity check
+		ML_NODISCARD constexpr operator bool() const noexcept
 		{
 			return install && uninstall;
 		}

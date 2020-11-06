@@ -81,32 +81,26 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD int32_t process(bool recursive = true) noexcept
-		{
-			// lock
-			if (!do_lock()) { return EXIT_FAILURE * 1; }
-			
-			// unlock
-			ML_defer(&) { do_unlock(); };
-
-			// enter
-			do_invoke(&loop_system::m_on_enter, recursive);
-
-			// exit
-			ML_defer(&) { do_invoke(&loop_system::m_on_exit, recursive); };
-
-			// idle
-			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
-			do { do_invoke(&loop_system::m_on_idle, recursive); }
-			while (check_loop_condition());
-			
-			// good
-			return EXIT_SUCCESS;
-		}
-
 		ML_NODISCARD int32_t operator()(bool recursive = true) noexcept
 		{
 			return this->process(recursive);
+		}
+
+		ML_NODISCARD int32_t process(bool recursive = true) noexcept
+		{
+			// lock / unlock
+			if (!do_lock()) { return EXIT_FAILURE * 1; }
+			ML_defer(&) { do_unlock(); };
+
+			// enter / exit
+			do_invoke(&loop_system::m_on_enter, recursive);
+			ML_defer(&) { do_invoke(&loop_system::m_on_exit, recursive); };
+			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
+
+			// idle
+			do { do_invoke(&loop_system::m_on_idle, recursive); }
+			while (check_loop_condition());
+			return EXIT_SUCCESS;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -159,7 +153,7 @@ namespace ml
 			return (this == value.get()) ? end() : std::find(begin(), end(), value);
 		}
 
-		bool has_subsystem(subsystem const & value) const noexcept
+		ML_NODISCARD bool has_subsystem(subsystem const & value) const noexcept
 		{
 			return find_subsystem(value) != end();
 		}
@@ -252,10 +246,11 @@ namespace ml
 		}
 
 		// invoke internal
-		bool do_invoke(loop_callback loop_system::*mp, bool recursive) noexcept
+		template <class Member
+		> bool do_invoke(Member loop_system::*mp, bool recursive) noexcept
 		{
-			bool const good{ mp && this->*mp };
-			
+			bool const good{ this->*mp };
+
 			if (good) { std::invoke(this->*mp); }
 			
 			if (recursive) for (auto & e : *this) { e->do_invoke(mp, recursive); }

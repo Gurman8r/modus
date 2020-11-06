@@ -74,9 +74,9 @@ namespace ml
 
 		sandbox(plugin_manager * manager, void * userptr) noexcept : plugin{ manager, userptr }
 		{
-			subscribe<runtime_enter_event>();
-			subscribe<runtime_exit_event>();
-			subscribe<runtime_idle_event>();
+			subscribe<app_enter_event>();
+			subscribe<app_exit_event>();
+			subscribe<app_idle_event>();
 			subscribe<imgui_dockspace_event>();
 			subscribe<imgui_render_event>();
 		}
@@ -85,9 +85,9 @@ namespace ml
 		{
 			switch (value)
 			{
-			case runtime_enter_event	::ID: return on_runtime_enter	((runtime_enter_event &&)value);
-			case runtime_exit_event		::ID: return on_runtime_exit	((runtime_exit_event &&)value);
-			case runtime_idle_event		::ID: return on_runtime_idle	((runtime_idle_event &&)value);
+			case app_enter_event		::ID: return on_app_enter	((app_enter_event &&)value);
+			case app_exit_event			::ID: return on_app_exit	((app_exit_event &&)value);
+			case app_idle_event			::ID: return on_app_idle	((app_idle_event &&)value);
 			case imgui_dockspace_event	::ID: return on_imgui_dockspace	((imgui_dockspace_event &&)value);
 			case imgui_render_event		::ID: return on_imgui_render	((imgui_render_event &&)value);
 			}
@@ -95,7 +95,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_runtime_enter(runtime_enter_event && ev)
+		void on_app_enter(app_enter_event && ev)
 		{
 			// set icon
 			if (auto & i = m_icon = bitmap{ get_io()->path2("resource/modus_launcher.png"), false })
@@ -107,11 +107,11 @@ namespace ml
 			m_fb.push_back(gfx::framebuffer::create({ m_resolution }));
 		}
 
-		void on_runtime_exit(runtime_exit_event && ev)
+		void on_app_exit(app_exit_event && ev)
 		{
 		}
 
-		void on_runtime_idle(runtime_idle_event && ev)
+		void on_app_idle(app_idle_event && ev)
 		{
 			m_term.Output.Dump(m_cout.sstr());
 

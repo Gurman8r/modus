@@ -60,6 +60,10 @@ namespace ml
 			ML_assert_msg(bus, "INVALID EVENT BUS");
 		}
 
+		explicit event_listener(event_listener const & other) noexcept : event_listener{ other.m_bus }
+		{
+		}
+
 		virtual ~event_listener() noexcept; // EOF
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

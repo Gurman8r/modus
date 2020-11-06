@@ -64,12 +64,12 @@ namespace ml
 		if (install_callbacks)
 		{
 			static struct ML_NODISCARD {
-				runtime_context * runtime;
+				runtime_context * context;
 				ML_NODISCARD auto operator->() const noexcept
 				{
-					return ML_check(runtime)->bus;
+					return ML_check(context)->bus;
 				}
-			} helper; helper.runtime = ctx;
+			} helper; helper.context = ctx;
 
 			ctx->window->set_char_callback([](auto w, auto ... x) { helper->fire<window_char_event>(x...); });
 			ctx->window->set_char_mods_callback([](auto w, auto ... x) { helper->fire<window_char_mods_event>(x...); });
@@ -139,13 +139,13 @@ namespace ml
 		}
 
 		// enter event
-		ctx->bus->fire<runtime_enter_event>(this);
+		ctx->bus->fire<app_enter_event>(this);
 	}
 
 	void default_app::on_exit(runtime_context * const ctx)
 	{
 		// exit event
-		ctx->bus->fire<runtime_exit_event>(this);
+		ctx->bus->fire<app_exit_event>(this);
 
 		// uninstall plugins
 		get_plugins().uninstall_all();
@@ -166,7 +166,7 @@ namespace ml
 		ctx->window->poll_events();
 
 		// idle event
-		ctx->bus->fire<runtime_idle_event>(this);
+		ctx->bus->fire<app_idle_event>(this);
 
 		// imgui
 		ImGui_DoFrame(ctx->window, m_imgui.get(), [&]() noexcept

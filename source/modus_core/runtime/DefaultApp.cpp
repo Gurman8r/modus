@@ -124,7 +124,7 @@ namespace ml
 			auto & plugin_prefs{ runtime_prefs["plugins"] };
 			for (auto const & e : plugin_prefs)
 			{
-				get_plugins().install(e["path"]);
+				get_plugins()->install(e["path"]);
 			}
 		}
 
@@ -148,7 +148,7 @@ namespace ml
 		ctx->bus->fire<app_exit_event>(this);
 
 		// uninstall plugins
-		get_plugins().uninstall_all();
+		get_plugins()->uninstall_all();
 
 		// imgui
 		ImGui_Shutdown(ctx->window, m_imgui.release());

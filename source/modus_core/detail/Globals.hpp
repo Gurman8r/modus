@@ -57,6 +57,42 @@ namespace ml
 		return _ML_GLOBALS set<U>(static_cast<U *>(value));
 	}
 
+	// release global
+	template <class T> auto release_global() noexcept
+	{
+		auto const temp{ _ML get_global<T>() };
+		_ML set_global<T>(nullptr);
+		return temp;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// global wrapper
+	template <class T> struct global_wrapper final
+	{
+		using type = typename std::_Remove_cvref_t<T>;
+
+		static_assert(!std::is_same_v<type, void>, "?");
+
+		using self_type = typename global_wrapper<type>;
+
+		constexpr global_wrapper() noexcept = default;
+
+		ML_NODISCARD auto get() const noexcept { return _ML get_global<type>(); }
+
+		auto set(void * value) const noexcept { return _ML set_global<type>(value); }
+
+		auto release() const noexcept { return _ML release_global<type>(); }
+
+		auto operator=(void * value) const noexcept { return _ML set_global<type>(value); }
+
+		ML_NODISCARD auto operator->() const noexcept { return _ML get_global<type>(); }
+
+		ML_NODISCARD auto & operator *() const noexcept { return *_ML get_global<type>(); }
+
+		ML_NODISCARD operator type * () const noexcept { return _ML get_global<type>(); }
+	};
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 

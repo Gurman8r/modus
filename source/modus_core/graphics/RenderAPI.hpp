@@ -2,6 +2,7 @@
 #define _ML_RENDER_API_HPP_
 
 #include <modus_core/detail/Method.hpp>
+#include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Map.hpp>
 #include <modus_core/graphics/Bitmap.hpp>
 #include <modus_core/window/WindowContext.hpp>

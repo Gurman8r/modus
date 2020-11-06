@@ -1,4 +1,4 @@
-#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {

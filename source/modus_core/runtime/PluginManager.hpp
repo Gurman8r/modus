@@ -2,43 +2,97 @@
 #define _ML_PLUGIN_MANAGER_HPP_
 
 #include <modus_core/runtime/Plugin.hpp>
-#include <modus_core/system/SharedLibrary.hpp>
+#include <modus_core/detail/SharedLibrary.hpp>
 
+// DETAILS
 namespace ml
 {
 	// plugin details
-	struct ML_NODISCARD plugin_details final
+	struct ML_NODISCARD plugin_details final : trackable
 	{
-		hash_t id;
+	public:
+		hash_t hash; // hash code
 
-		ds::string name, path, extension;
+		ds::string name, path, ext; // file info
+
+		plugin_details(plugin_details const &) = default;
+		plugin_details(plugin_details &&) noexcept = default;
+		plugin_details & operator=(plugin_details const &) = default;
+		plugin_details & operator=(plugin_details &&) noexcept = default;
+
+	private:
+		friend plugin_manager;
+
+		explicit plugin_details(shared_library const & lib) noexcept
+			: hash	{ lib.hash() }
+			, name	{ lib.path().stem().string() }
+			, path	{ lib.path().string() }
+			, ext	{ lib.path().extension().string() }
+		{
+		}
 	};
+}
 
+// INSTALLER
+namespace ml
+{
 	// plugin installer
-	struct ML_NODISCARD plugin_installer final
+	struct ML_NODISCARD plugin_installer final : trackable
 	{
-		plugin * (*install)(plugin_manager *, void *); // install plugin
+	public:
+		// create plugin
+		ds::method< plugin * (plugin_manager *, void *)
+		> create;
 
-		void (*uninstall)(plugin_manager *, plugin *); // uninstall plugin
+		// destroy plugin
+		ds::method< void (plugin_manager *, plugin *)
+		> destroy;
+
+		plugin_installer(plugin_installer const &) = default;
+		plugin_installer(plugin_installer &&) noexcept = default;
+		plugin_installer & operator=(plugin_installer const &) = default;
+		plugin_installer & operator=(plugin_installer &&) noexcept = default;
+		
+	private:
+		friend plugin_manager;
+
+		explicit plugin_installer(shared_library & lib) noexcept
+			: create{ lib.get_proc<plugin *, plugin_manager *, void *>("ml_plugin_install") }
+			, destroy{ lib.get_proc<void, plugin_manager *, plugin *>("ml_plugin_uninstall") }
+		{
+		}
 	};
+}
 
+// MANAGER
+namespace ml
+{
 	// plugin manager
 	struct ML_CORE_API plugin_manager final : runtime_object<plugin_manager>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
-		friend application;
+	public:
+		using runtime_base = runtime_object<plugin_manager>;
 
-		explicit plugin_manager(application * const app) noexcept;
+		ML_NODISCARD auto get_app() const noexcept { return m_app; }
 
-		~plugin_manager() noexcept override;
+		using runtime_base::get_bus;
 
-		void on_event(event &&) override {} // unused
+		using runtime_base::get_context;
+
+		using runtime_base::get_db;
+
+		using runtime_base::get_io;
+
+		using runtime_base::get_loopsys;
+
+		using runtime_base::get_memory;
+
+		using runtime_base::get_window;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
 		using plugin_storage = typename ds::batch_vector
 		<
 			plugin_id			,	// id
@@ -48,48 +102,75 @@ namespace ml
 			ds::manual<plugin>		// plugin
 		>;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		plugin_id install(fs::path const & path, void * userptr = nullptr);
-
-		bool uninstall(plugin_id value);
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD bool has_plugin(fs::path const & path) const noexcept
+		static auto make_id(fs::path const & path) noexcept
 		{
-			return m_data.contains<plugin_id>
-			(
-				(plugin_id)hashof(shared_library::format_path(path).string())
-			);
+			return (plugin_id)hashof(shared_library::format_path(path).string());
 		}
+
+		plugin_id install(fs::path const & path, void * userptr = nullptr) noexcept; // install plugin
+
+		bool uninstall(plugin_id value) noexcept; // uninstall plugin
 
 		void uninstall_all() noexcept
 		{
-			auto & ids{ m_data.get<plugin_id>() };
-
+			auto & ids{ get_data<plugin_id>() };
+			
 			while (!ids.empty()) { uninstall(ids.back()); }
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		ML_NODISCARD bool contains(plugin_id id) const noexcept
+		{
+			return m_data.contains<plugin_id>(id);
+		}
 
-		ML_NODISCARD auto get_application() const noexcept -> application * { return m_app; }
+		ML_NODISCARD bool contains(fs::path const & path) const noexcept
+		{
+			return m_data.contains<plugin_id>(make_id(path));
+		}
+
+		ML_NODISCARD bool contains(shared_library const & value) const noexcept
+		{
+			return m_data.contains<shared_library>(value);
+		}
+
+		ML_NODISCARD bool contains(plugin const * value) const noexcept
+		{
+			using P = ds::manual<plugin>;
+			return m_data.end<P>() != m_data.find_if<P>([value](P const & e) noexcept
+			{
+				return value == e.get();
+			});
+		}
+
+		ML_NODISCARD bool contains(ds::manual<plugin> const & value) const noexcept
+		{
+			return m_data.contains<ds::manual<plugin>>(value);
+		}
 
 		ML_NODISCARD auto get_data() noexcept -> plugin_storage & { return m_data; }
 
 		ML_NODISCARD auto get_data() const noexcept -> plugin_storage const & { return m_data; }
 
 		template <class T
-		> ML_NODISCARD auto get_data() & noexcept -> auto & { return m_data.get<T>(); }
+		> ML_NODISCARD auto get_data() & noexcept -> ds::list<T> & { return m_data.get<T>(); }
 
 		template <class T
-		> ML_NODISCARD auto get_data() const & noexcept -> auto const & { return m_data.get<T>(); }
+		> ML_NODISCARD auto get_data() const & noexcept -> ds::list<T> const & { return m_data.get<T>(); }
 
 		template <class T
-		> ML_NODISCARD auto get_data(size_t i) & noexcept -> auto & { return m_data.at<T>(i); }
+		> ML_NODISCARD auto get_data(size_t i) & noexcept -> T & { return m_data.at<T>(i); }
 
 		template <class T
-		> ML_NODISCARD auto get_data(size_t i) const & noexcept -> auto const & { return m_data.at<T>(i); }
+		> ML_NODISCARD auto get_data(size_t i) const & noexcept -> T const & { return m_data.at<T>(i); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	protected:
+		friend application;
+
+		explicit plugin_manager(application * const app) noexcept;
+
+		~plugin_manager() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

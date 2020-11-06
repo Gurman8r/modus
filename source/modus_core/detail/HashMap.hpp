@@ -1,7 +1,7 @@
 #ifndef _ML_HASH_MAP_HPP_
 #define _ML_HASH_MAP_HPP_
 
-// WIP
+// WIP / PLACEHOLDER
 
 #include <modus_core/detail/Utility.hpp>
 
@@ -9,13 +9,13 @@ namespace ml::ds
 {
 	// hashmap
 	template <
-		class Key	,
-		class Value	,
-		class Hash	= std::hash<Key>,
-		class Equal	= std::equal_to<Key>
-	> struct hashmap : public pmr::unordered_map<Key, Value, Hash, Equal>
+		class Key,
+		class Val,
+		class Hasher = std::hash<Key>,
+		class Equals = std::equal_to<Key>
+	> struct hashmap : public pmr::unordered_map<Key, Val, Hasher, Equals>
 	{
-		using pmr::unordered_map<Key, Value, Hash, Equal>::unordered_map;
+		using pmr::unordered_map<Key, Val, Hasher, Equals>::unordered_map;
 	};
 }
 

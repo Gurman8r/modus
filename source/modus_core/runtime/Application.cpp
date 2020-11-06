@@ -5,7 +5,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	application::application(runtime_context * const ctx) noexcept
-		: runtime_object{ ctx }
+		: runtime_base	{ ctx }
 		, loop_system	{ get_memory()->get_allocator() }
 		, m_plugins		{ this }
 	{
@@ -19,7 +19,7 @@ namespace ml
 	{
 		if (this == get_global<application>())
 		{
-			set_global<application>(nullptr);
+			release_global<application>();
 		}
 	}
 

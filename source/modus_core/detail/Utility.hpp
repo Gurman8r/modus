@@ -6,7 +6,6 @@
 #include <modus_core/detail/Globals.hpp>
 #include <modus_core/detail/JSON.hpp>
 #include <modus_core/detail/Meta.hpp>
-#include <modus_core/detail/Pointer.hpp>
 #include <modus_core/detail/Singleton.hpp>
 #include <modus_core/detail/TypeInfo.hpp>
 

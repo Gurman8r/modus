@@ -2,7 +2,7 @@
 #define _ML_SHARED_LIBRARY_HPP_
 
 #include <modus_core/detail/Map.hpp>
-#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {
@@ -14,13 +14,18 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 		
-		using procedure_table = typename ds::map<hash_t, void *>;
+		using proc_table = typename ds::map<hash_t, void *>;
+
+		template <class Ret> using proc_result = typename std::conditional_t
+		<
+			std::is_same_v<Ret, void>, void, std::optional<Ret>
+		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static constexpr auto default_extension // native library extension
+		static constexpr auto default_extension // native file type
 		{
-#if defined(ML_os_windows)
+#ifdef ML_os_windows
 			L".dll"
 #else
 			L".so"
@@ -29,13 +34,20 @@ namespace ml
 
 		static fs::path format_path(fs::path const & path) noexcept
 		{
-			return !path.extension().empty() ? path : path.native() + default_extension;
+			return (path.empty()
+				? path
+				: (!path.extension().empty()
+					? path
+					: path.native() + default_extension));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		shared_library(allocator_type alloc = {}) noexcept
-			: m_handle{}, m_path{}, m_hash{}, m_proc{ alloc }
+			: m_handle	{}
+			, m_hash	{}
+			, m_path	{}
+			, m_procs	{ alloc }
 		{
 		}
 
@@ -51,7 +63,7 @@ namespace ml
 			this->swap(std::move(value));
 		}
 
-		~shared_library() noexcept
+		~shared_library() noexcept override
 		{
 			this->close();
 		}
@@ -71,7 +83,7 @@ namespace ml
 				std::swap(m_handle, value.m_handle);
 				std::swap(m_hash, value.m_hash);
 				m_path.swap(value.m_path);
-				m_proc.swap(value.m_proc);
+				m_procs.swap(value.m_procs);
 			}
 		}
 
@@ -81,31 +93,28 @@ namespace ml
 
 		bool close();
 
-		void * get_proc_address(cstring name);
+		void * get_proc(cstring name);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
-		void * get_proc_address(ds::string const & name) noexcept
+
+		void * get_proc(ds::string const & name) noexcept
 		{
-			return this->get_proc_address(name.c_str());
+			return this->get_proc(name.c_str());
 		}
 
-		template <class Ret, class ... Args, class ID
-		> auto proc(ID && name) noexcept
+		template <class Ret, class ... Args, class Name
+		> auto get_proc(Name && name) noexcept
 		{
 			return reinterpret_cast<Ret(*)(Args...)>
 			(
-				this->get_proc_address(ML_forward(name))
+				this->get_proc(ML_forward(name))
 			);
 		}
 
-		template <class Ret, class ... Args, class ID
-		> auto call(ID && name, Args && ... args) noexcept -> std::conditional_t
-		<
-			!std::is_same_v<Ret, void>, std::optional<Ret>, void
-		>
+		template <class Ret, class ... Args, class Name
+		> auto run_proc(Name && name, Args && ... args) noexcept -> proc_result<Ret>
 		{
-			if (auto const fn{ this->proc<Ret, Args...>(ML_forward(name)) })
+			if (auto const fn{ this->get_proc<Ret, Args...>(ML_forward(name)) })
 			{
 				return std::invoke(fn, ML_forward(args)...);
 			}
@@ -123,11 +132,11 @@ namespace ml
 
 		ML_NODISCARD auto handle() const noexcept -> library_handle { return m_handle; }
 
-		ML_NODISCARD auto hash_code() const noexcept -> hash_t { return m_hash; }
+		ML_NODISCARD auto hash() const noexcept -> hash_t { return m_hash; }
 
 		ML_NODISCARD auto path() const noexcept -> fs::path const & { return m_path; }
 
-		ML_NODISCARD auto procedures() const noexcept -> procedure_table const & { return m_proc; }
+		ML_NODISCARD auto procedures() const noexcept -> proc_table const & { return m_procs; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -145,7 +154,7 @@ namespace ml
 			else
 			{
 				static_assert(std::is_same_v<U, hash_t>);
-				return util::compare(hash_code(), value);
+				return util::compare(m_hash, value);
 			}
 		}
 
@@ -189,9 +198,9 @@ namespace ml
 
 	private:
 		library_handle	m_handle; // handle
-		fs::path		m_path	; // path
 		hash_t			m_hash	; // hash
-		procedure_table	m_proc	; // procedures
+		fs::path		m_path	; // path
+		proc_table		m_procs	; // procedures
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -42,9 +42,7 @@ namespace ml
 		{
 			enum : hash_t { ID = hashof_v<Derived> };
 
-			constexpr event_helper() noexcept : event{ ID }
-			{
-			}
+			constexpr event_helper() noexcept : event{ ID } {}
 		};
 	}
 
@@ -57,7 +55,7 @@ namespace ml
 
 		explicit event_listener(event_bus * bus) noexcept : m_bus{ bus }, m_listening{ true }
 		{
-			ML_assert_msg(bus, "INVALID EVENT BUS");
+			ML_assert_msg(m_bus, "INVALID EVENT BUS");
 		}
 
 		explicit event_listener(event_listener const & other) noexcept : event_listener{ other.m_bus }
@@ -93,10 +91,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
-		event_bus * const m_bus; // event bus
-
 	private:
+		event_bus * const m_bus; // event bus
+		
 		bool m_listening; // listening enabled
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -115,74 +112,59 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		event_bus(allocator_type alloc = {}) noexcept : m_categories{ alloc }
+		template <class Ev> static constexpr bool is_valid_event
 		{
-		}
+			std::is_base_of_v<event, Ev> && !std::is_same_v<event, Ev>
+		};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void fire(event && ev) noexcept
+		event_bus(allocator_type alloc = {}) noexcept : m_categories{ alloc } {}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Ev, class ... Args
+		> void fire(Args && ... args) noexcept
 		{
-			if (auto const cat{ m_categories.find(ev) })
+			static_assert(is_valid_event<Ev>, "invalid event type");
+
+			if (auto const cat{ m_categories.find(Ev::ID) })
 			{
-				for (auto const listener : (*cat->second))
+				for (auto const it : (*cat->second))
 				{
-					if (listener->listening_enabled())
+					if (it->listening_enabled())
 					{
-						listener->on_event(ML_forward(ev));
+						it->on_event(Ev{ ML_forward(args)... });
 					}
 				}
 			}
 		}
 
-		template <class Ev, class ... Args
-		> void fire(Args && ... args) noexcept
-		{
-			static_assert(std::is_base_of_v<event, Ev>, "invalid event type");
-
-			this->fire(Ev{ ML_forward(args)... });
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
-		bool add_listener(hash_t event_id, event_listener * value) noexcept
-		{
-			return value
-				&& this == value->get_bus()
-				&& m_categories[event_id].insert(value).second;
-		}
-
 		template <class Ev
 		> bool add_listener(event_listener * value) noexcept
 		{
-			static_assert(std::is_base_of_v<event, Ev>, "invalid event type");
+			static_assert(is_valid_event<Ev>, "invalid event type");
 
-			return this->add_listener(Ev::ID, value);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void remove_listener(hash_t event_id, event_listener * value) noexcept
-		{
-			if (!value || (this != value->get_bus())) { return; }
-			else if (auto const cat{ m_categories.find(event_id) })
-			{
-				if (auto const listener{ cat->second->find(value) }; listener != cat->second->end())
-				{
-					cat->second->erase(listener);
-				}
-			}
+			return value
+				&& this == value->get_bus()
+				&& m_categories[Ev::ID].insert(value).second;
 		}
 
 		template <class Ev
 		> void remove_listener(event_listener * value) noexcept
 		{
-			static_assert(std::is_base_of_v<event, Ev>, "invalid event type");
+			static_assert(is_valid_event<Ev>, "invalid event type");
 
-			this->remove_listener(Ev::ID, value);
+			if (!value || (this != value->get_bus())) { return; }
+			else if (auto const cat{ m_categories.find(Ev::ID) })
+			{
+				if (auto const it{ cat->second->find(value) }
+				; it != cat->second->end())
+				{
+					cat->second->erase(it);
+				}
+			}
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void remove_listener(event_listener * value) noexcept
 		{
@@ -190,9 +172,9 @@ namespace ml
 
 			m_categories.for_each([&](hash_t, category_type & cat) noexcept
 			{
-				if (auto const listener{ cat.find(value) }; listener != cat.end())
+				if (auto const it{ cat.find(value) }; it != cat.end())
 				{
-					cat.erase(listener);
+					cat.erase(it);
 				}
 			});
 		}

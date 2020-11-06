@@ -107,6 +107,60 @@ namespace ml
 	};
 }
 
+// deleters
+namespace ml
+{
+	// no delete
+	struct no_delete final
+	{
+		constexpr no_delete() noexcept = default;
+
+		template <class U> void operator()(U *) const noexcept {}
+	};
+
+	// default delete
+	template <class T = void> struct default_delete final
+	{
+		using type = std::_Remove_cvref_t<T>;
+
+		constexpr default_delete() noexcept = default;
+
+		template <class U> void operator()(U * value) const noexcept
+		{
+			auto const g{ _ML get_global<memory_manager>() };
+
+			if constexpr (std::is_same_v<type, void>)
+			{
+				g->deallocate(value);
+			}
+			else
+			{
+				g->delete_object(static_cast<type *>(value));
+			}
+		}
+	};
+}
+
+// smart pointers
+namespace ml::ds
+{
+	// shared pointer
+	template <class Type
+	> ML_alias ref = std::shared_ptr<Type>;
+
+	// weak pointer
+	template <class Type
+	> ML_alias unown = std::weak_ptr<Type>;
+
+	// unique pointer
+	template <class Type, class Dx = default_delete<Type>
+	> ML_alias scoped = std::unique_ptr<Type, Dx>;
+
+	// non-deleting pointer
+	template <class Type
+	> ML_alias manual = std::unique_ptr<Type, no_delete>;
+}
+
 // memory record
 namespace ml
 {
@@ -243,22 +297,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// make shared
-		template <class T, class ... Args
-		> ML_NODISCARD ds::ref<T> make_ref(Args && ... args) noexcept
-		{
-			return std::allocate_shared<T>(m_alloc, ML_forward(args)...);
-		}
-
-		// make unique
-		template <class T, class Dx = default_delete<T>, class ... Args
-		> ML_NODISCARD ds::scoped<T> make_scoped(Args && ... args) noexcept
-		{
-			return { this->new_object<T>(ML_forward(args)...), Dx{} };
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		// get allocator
 		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_alloc; }
 
@@ -380,34 +418,6 @@ namespace ml
 		void operator delete[](void * addr) noexcept
 		{
 			get_global<memory_manager>()->deallocate(addr);
-		}
-	};
-}
-
-// default deleters
-namespace ml
-{
-	template <> struct default_delete<> final
-	{
-		void operator()(void * addr) const noexcept
-		{
-			get_global<memory_manager>()->deallocate(addr);
-		}
-	};
-
-	template <> struct default_delete<void> final
-	{
-		void operator()(void * addr) const noexcept
-		{
-			get_global<memory_manager>()->deallocate(addr);
-		}
-	};
-
-	template <class T> struct default_delete<T> final
-	{
-		void operator()(T * addr) const noexcept
-		{
-			get_global<memory_manager>()->delete_object<T>(addr);
 		}
 	};
 }

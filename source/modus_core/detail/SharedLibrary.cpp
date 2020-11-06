@@ -1,4 +1,4 @@
-#include <modus_core/system/SharedLibrary.hpp>
+#include <modus_core/detail/SharedLibrary.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -25,9 +25,7 @@ namespace ml
 	{
 		if (m_handle || path.empty()) { return false; }
 
-		m_path = format_path(path);
-
-		m_hash = hashof(m_path.string());
+		m_hash = hashof((m_path = format_path(path)).string());
 
 		return m_handle = (library_handle)std::invoke([&]() noexcept
 		{
@@ -43,13 +41,11 @@ namespace ml
 		});
 	}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	bool shared_library::close()
 	{
 		if (!m_handle) { return false; }
 
-		m_path.clear(); m_proc.clear(); m_hash = {};
+		m_path.clear(); m_hash = {}; m_procs.clear();
 
 #if defined(ML_os_windows)
 		return ::FreeLibrary((HINSTANCE)m_handle);
@@ -62,15 +58,13 @@ namespace ml
 #endif
 	}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void * shared_library::get_proc_address(cstring name)
+	void * shared_library::get_proc(cstring name)
 	{
 		// not open
 		if (!m_handle) { return nullptr; }
 
 		// load procedure
-		return m_proc.find_or_add_fn(hashof(name, util::strlen(name)), [&]() noexcept
+		return m_procs.find_or_add_fn(hashof(name, util::strlen(name)), [&]()
 		{
 #if defined(ML_os_windows)
 			return ::GetProcAddress((HINSTANCE)m_handle, name);

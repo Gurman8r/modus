@@ -2,7 +2,7 @@
 #define _ML_SCENE_HPP_
 
 #include <modus_core/Export.hpp>
-#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Matrix.hpp>
 #include <entt/entt.hpp>
 

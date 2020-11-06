@@ -57,7 +57,7 @@ namespace ml
 		ds::list<ds::ref<gfx::framebuffer>> m_fb{};
 
 		// icon
-		db_var<bitmap> m_icon{ get_database(), "icon" };
+		db_var<bitmap> m_icon{ get_db(), "icon" };
 
 		// resources
 		ds::hashmap<ds::string, ds::ref<font>>			m_fonts		{};
@@ -214,7 +214,7 @@ namespace ml
 					{
 						ImGui::Text(e.name.c_str()); ImGui::NextColumn();
 						ImGui::Text(e.path.c_str()); ImGui::NextColumn();
-						ImGui::Text("%u", e.id); ImGui::NextColumn();
+						ImGui::Text("%u", e.hash); ImGui::NextColumn();
 					}
 					ImGui::Columns(1);
 					ImGui::Separator();

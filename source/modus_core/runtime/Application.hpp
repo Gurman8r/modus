@@ -6,8 +6,29 @@
 namespace ml
 {
 	// application
-	struct ML_CORE_API application : runtime_object<application>, loop_system
+	struct ML_CORE_API application : runtime_listener<application>, loop_system
 	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
+		using runtime_base = runtime_listener<application>;
+
+		using runtime_base::get_bus;
+
+		using runtime_base::get_context;
+
+		using runtime_base::get_db;
+
+		using runtime_base::get_io;
+
+		using runtime_base::get_loopsys;
+
+		using runtime_base::get_memory;
+
+		using runtime_base::get_window;
+
+		ML_NODISCARD auto get_plugins() const noexcept { return const_cast<plugin_manager *>(&m_plugins); }
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
@@ -15,19 +36,12 @@ namespace ml
 
 		virtual ~application() noexcept override;
 
-		virtual void on_event(event &&) = 0;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	public:
-		ML_NODISCARD auto get_plugins() noexcept -> plugin_manager & { return m_plugins; }
-
-		ML_NODISCARD auto get_plugins() const noexcept -> plugin_manager const & { return m_plugins; }
+		using runtime_base::on_event; // handle event
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		plugin_manager m_plugins; // plugin manager
+		plugin_manager m_plugins;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

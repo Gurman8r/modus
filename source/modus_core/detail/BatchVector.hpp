@@ -820,6 +820,32 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		template <size_t I, class Pr
+		> ML_NODISCARD iterator_i<I> find_if(Pr && pr) noexcept
+		{
+			return std::find_if(this->begin<I>(), this->end<I>(), ML_forward(pr));
+		}
+
+		template <size_t I, class Pr
+		> ML_NODISCARD const_iterator_i<I> find_if(Pr && pr) const noexcept
+		{
+			return std::find_if(this->cbegin<I>(), this->cend<I>(), ML_forward(pr));
+		}
+
+		template <class T, class Pr
+		> ML_NODISCARD iterator_t<T> find_if(Pr && pr) noexcept
+		{
+			return std::find_if(this->begin<T>(), this->end<T>(), ML_forward(pr));
+		}
+
+		template <class T, class Pr
+		> ML_NODISCARD const_iterator_t<T> find_if(Pr && pr) const noexcept
+		{
+			return std::find_if(this->cbegin<T>(), this->cend<T>(), ML_forward(pr));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		template <size_t I, class U = value_i<I>
 		> ML_NODISCARD bool binary_search(U && value) const noexcept
 		{
@@ -837,13 +863,13 @@ namespace ml::ds
 		template <size_t I, class U = value_i<I>
 		> ML_NODISCARD bool contains(U && value) const noexcept
 		{
-			return this->find<I>(ML_forward(value)) != this->end<I>();
+			return this->end<T>() != this->find<I>(ML_forward(value));
 		}
 
 		template <class T, class U = T
 		> ML_NODISCARD bool contains(U && value) const noexcept
 		{
-			return this->find<T>(ML_forward(value)) != this->end<T>();
+			return this->end<T>() != this->find<T>(ML_forward(value));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

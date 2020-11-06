@@ -2,7 +2,7 @@
 #define _ML_BITMAP_HPP_
 
 #include <modus_core/Export.hpp>
-#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Color.hpp>
 #include <modus_core/detail/Rect.hpp>
 

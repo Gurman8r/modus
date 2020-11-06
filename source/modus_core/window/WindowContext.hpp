@@ -2,22 +2,27 @@
 #define _ML_WINDOW_CONTEXT_HPP_
 
 #include <modus_core/detail/Timer.hpp>
-#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/Memory.hpp>
 #include <modus_core/window/Cursor.hpp>
 #include <modus_core/window/Monitor.hpp>
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// TYPES
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	// window handle
 	ML_decl_handle(window_handle);
 
 	// error callback
 	ML_alias window_error_callback = void(*)(int32_t, cstring);
+}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// API
+namespace ml
+{
 	// context api
 	enum context_api_ : int32_t
 	{
@@ -52,9 +57,13 @@ namespace ml
 		case context_api_directx: j = "directx"	; break;
 		}
 	}
+}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// PROFILE
+namespace ml
+{
 	// context profile
 	enum context_profile_ : int32_t
 	{
@@ -89,9 +98,13 @@ namespace ml
 		case context_profile_debug	: j = "debug"	; break;
 		}
 	}
+}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// SETTINGS
+namespace ml
+{
 	// context settings
 	struct ML_NODISCARD context_settings final
 	{
@@ -128,9 +141,13 @@ namespace ml
 		j["multisample"	] = v.multisample;
 		j["srgb_capable"] = v.srgb_capable;
 	}
+}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// MANAGER
+namespace ml
+{
 	// window context manager
 	struct ML_NODISCARD window_context_manager final
 	{
@@ -162,8 +179,8 @@ namespace ml
 
 		void (*destroy_cursor)(cursor_handle);
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #endif // !_ML_WINDOW_CONTEXT_HPP_

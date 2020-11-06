@@ -4,7 +4,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <modus_core/detail/Color.hpp>
-#include <modus_core/system/Memory.hpp>
+#include <modus_core/detail/Memory.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -50,16 +50,6 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <imgui-node-editor/imgui_node_editor.h>
 
-namespace ml
-{
-	template <> struct default_delete<ax::NodeEditor::EditorContext>
-	{
-		void operator()(ax::NodeEditor::EditorContext * ptr)
-		{
-			ax::NodeEditor::DestroyEditor(ptr);
-		}
-	};
-}
 #endif
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

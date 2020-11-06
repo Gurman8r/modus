@@ -2,7 +2,7 @@
 #define _ML_DATABASE_HPP_
 
 #include <modus_core/detail/HashMap.hpp>
-#include <modus_core/detail/String.hpp>
+#include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {

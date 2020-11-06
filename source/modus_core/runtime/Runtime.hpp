@@ -49,87 +49,58 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime api
-	struct ML_NODISCARD runtime_api final
+	// runtime context
+	struct ML_NODISCARD runtime_context final
 	{
 		memory_manager	* const memory		; // memory manager
 		runtime_io		* const io			; // runtime io
 		event_bus		* const bus			; // event bus
 		render_window	* const window		; // render window
 		loop_system		* const loopsys		; // loop system
-		basic_database	* const db			; // database
+		basic_database	* const database	; // database
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// base runtime object
+	// runtime object
 	template <class Derived
-	> struct runtime_object : trackable, non_copyable
+	> struct runtime_object : trackable, non_copyable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit runtime_object(runtime_api * api) noexcept : m_api{ ML_check(api) }
+	private:
+		runtime_context * const m_context; // runtime context
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	protected:
+		explicit runtime_object(runtime_context * const ctx) noexcept
+			: event_listener{ ML_check(ctx)->bus }
+			, m_context		{ ctx }
 		{
+			ML_assert_msg(get_bus() == get_context()->bus, "RUNTIME BUS MISMATCH");
 		}
 
 		virtual ~runtime_object() noexcept override = default;
 
-		ML_NODISCARD auto get_api() const noexcept -> runtime_api * { return m_api; }
-
-		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_api->bus; }
-
-		ML_NODISCARD auto get_db() const noexcept -> basic_database * { return m_api->db; }
-
-		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
-		
-		ML_NODISCARD auto get_loopsys() const noexcept -> loop_system * { return m_api->loopsys; }
-		
-		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->memory; }
-
-		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_api->window; }
-
-	private:
-		runtime_api * const m_api;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// base runtime listener
-	template <class Derived
-	> struct runtime_listener : trackable, non_copyable, event_listener
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		explicit runtime_listener(runtime_api * api) noexcept
-			: event_listener{ ML_check(api)->bus }
-			, m_api			{ api }
-		{
-			ML_assert_msg(get_bus() == m_api->bus, "BUS MISMATCH");
-		}
-
-		virtual ~runtime_listener() noexcept override = default;
-
-		ML_NODISCARD auto get_api() const noexcept -> runtime_api * { return m_api; }
-
-		using event_listener::get_bus; // inherit from event_listener
-
-		ML_NODISCARD auto get_db() const noexcept -> basic_database * { return m_api->db; }
-		
-		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_api->io; }
-
-		ML_NODISCARD auto get_loopsys() const noexcept -> loop_system * { return m_api->loopsys; }
-
-		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_api->memory; }
-
-		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_api->window; }
-
-	protected:
 		virtual void on_event(event &&) override = 0;
 
-	private:
-		runtime_api * const m_api;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
+		using event_listener::get_bus; // event_listener::get_bus
+
+		ML_NODISCARD auto get_context() const noexcept -> runtime_context * { return m_context; }
+
+		ML_NODISCARD auto get_db() const noexcept -> basic_database * { return m_context->database; }
+		
+		ML_NODISCARD auto get_io() const noexcept -> runtime_io * { return m_context->io; }
+
+		ML_NODISCARD auto get_loopsys() const noexcept -> loop_system * { return m_context->loopsys; }
+
+		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_context->memory; }
+
+		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_context->window; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

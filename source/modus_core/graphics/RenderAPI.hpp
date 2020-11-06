@@ -13,17 +13,17 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	class	render_device	; // 
-	class	render_context	; // 
-	class	vertexarray		; // 
-	class	vertexbuffer	; // 
-	class	indexbuffer		; // 
-	class	texture			; // 
-	class	texture2d		; // 
-	class	texturecube		; // 
-	class	framebuffer		; // 
-	class	program			; // 
-	class	shader			; // WIP
+	struct	render_device	; // 
+	struct	render_context	; // 
+	struct	vertexarray		; // 
+	struct	vertexbuffer	; // 
+	struct	indexbuffer		; // 
+	struct	texture			; // 
+	struct	texture2d		; // 
+	struct	texturecube		; // 
+	struct	framebuffer		; // 
+	struct	program			; // 
+	struct	shader			; // WIP
 
 	ML_decl_handle(	object_id	)	; // object handle
 	ML_decl_handle(	uniform_id	)	; // register handle
@@ -31,7 +31,7 @@ namespace ml::gfx
 	template <class ...> struct spec; // object specification
 
 	ML_alias addr_t		= typename void const *			; // data address
-	ML_alias buffer_t	= typename ds::list<byte_t>	; // byte buffer
+	ML_alias buffer_t	= typename ds::list<byte_t>		; // byte buffer
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
@@ -616,7 +616,7 @@ namespace ml::gfx
 // render device
 namespace ml::gfx
 {
-	// device data_desc specification
+	// render device info
 	struct ML_NODISCARD device_info final
 	{
 		// version
@@ -638,8 +638,14 @@ namespace ml::gfx
 		ds::string shading_language_version;
 	};
 
-	// base device
-	class ML_CORE_API render_device : public non_copyable, public trackable
+	// render device specification
+	template <> struct ML_NODISCARD spec<render_device> final
+	{
+		int32_t api;
+	};
+
+	// base render device
+	struct ML_CORE_API render_device : trackable, non_copyable
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -648,7 +654,9 @@ namespace ml::gfx
 
 		virtual ~render_device() override = default;
 
-		ML_NODISCARD static render_device * create(int32_t api, allocator_type alloc = {}) noexcept;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD static render_device * create(spec<render_device> const & desc, allocator_type alloc = {}) noexcept;
 
 		static void destroy(render_device * value) noexcept;
 
@@ -707,7 +715,7 @@ namespace ml::gfx
 {
 	// base render object
 	template <class Derived
-	> class render_object : public non_copyable, public trackable
+	> class render_object : trackable, non_copyable
 	{
 	private:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -874,7 +882,7 @@ namespace ml::gfx
 
 
 	// base render context
-	class ML_CORE_API render_context : public render_object<render_context>
+	struct ML_CORE_API render_context : public render_object<render_context>
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1010,7 +1018,7 @@ namespace ml::gfx
 
 
 	// base vertexarray
-	class ML_CORE_API vertexarray : public render_object<vertexarray>
+	struct ML_CORE_API vertexarray : public render_object<vertexarray>
 	{
 	public:
 		ML_NODISCARD static auto create(spec<vertexarray> const & desc = {}, allocator_type alloc = {}) noexcept
@@ -1081,7 +1089,7 @@ namespace ml::gfx
 
 
 	// base vertexbuffer
-	class ML_CORE_API vertexbuffer : public render_object<vertexbuffer>
+	struct ML_CORE_API vertexbuffer : public render_object<vertexbuffer>
 	{
 	public:
 		ML_NODISCARD static auto create(spec<vertexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
@@ -1152,7 +1160,7 @@ namespace ml::gfx
 
 
 	// base indexbuffer
-	class ML_CORE_API indexbuffer : public render_object<indexbuffer>
+	struct ML_CORE_API indexbuffer : public render_object<indexbuffer>
 	{
 	public:
 		ML_NODISCARD static auto create(spec<indexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
@@ -1265,7 +1273,7 @@ namespace ml::gfx
 	}
 
 	// base texture
-	class ML_CORE_API texture : public render_object<texture>
+	struct ML_CORE_API texture : public render_object<texture>
 	{
 	public:
 		explicit texture(render_device * parent) noexcept : render_object{ parent }
@@ -1335,7 +1343,7 @@ namespace ml::gfx
 
 
 	// base texture2d
-	class ML_CORE_API texture2d : public texture
+	struct ML_CORE_API texture2d : public texture
 	{
 	public:
 		ML_NODISCARD static auto create(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept
@@ -1423,7 +1431,7 @@ namespace ml::gfx
 
 
 	// base texturecube
-	class ML_CORE_API texturecube : public texture
+	struct ML_CORE_API texturecube : public texture
 	{
 	public:
 		ML_NODISCARD static auto create(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept
@@ -1503,7 +1511,7 @@ namespace ml::gfx
 
 
 	// base framebuffer
-	class ML_CORE_API framebuffer : public render_object<framebuffer>
+	struct ML_CORE_API framebuffer : public render_object<framebuffer>
 	{
 	public:
 		ML_NODISCARD static auto create(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept
@@ -1579,7 +1587,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// base program
-	class ML_CORE_API program : public render_object<program>
+	struct ML_CORE_API program : public render_object<program>
 	{
 	public:
 		ML_NODISCARD static auto create() noexcept
@@ -1704,7 +1712,7 @@ namespace ml::gfx
 
 
 	// base shader
-	class ML_CORE_API shader : public render_object<shader>
+	struct ML_CORE_API shader : public render_object<shader>
 	{
 	public:
 		ML_NODISCARD static auto create(spec<shader> const & desc, allocator_type alloc = {}) noexcept

@@ -3,41 +3,41 @@
 
 #include <modus_core/detail/Events.hpp>
 
-namespace ml { struct loop_system; }
+namespace ml { struct application; }
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// PROCESS ENTER
-	ML_decl_event(process_enter_event)
+	// RUNTIME ENTER
+	ML_decl_event(runtime_enter_event)
 	{
-		loop_system * const ptr;
+		application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr process_enter_event(loop_system * ptr) noexcept : ptr{ ptr }
+		constexpr runtime_enter_event(application * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};
 
-	// PROCESS EXIT
-	ML_decl_event(process_exit_event)
+	// RUNTIME EXIT
+	ML_decl_event(runtime_exit_event)
 	{
-		loop_system * const ptr;
+		application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr process_exit_event(loop_system * ptr) noexcept : ptr{ ptr }
+		constexpr runtime_exit_event(application * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};
 
-	// PROCESS IDLE
-	ML_decl_event(process_idle_event)
+	// RUNTIME IDLE
+	ML_decl_event(runtime_idle_event)
 	{
-		loop_system * const ptr;
+		application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr process_idle_event(loop_system * ptr) noexcept : ptr{ ptr }
+		constexpr runtime_idle_event(application * ptr) noexcept : ptr{ ptr }
 		{
 		}
 	};

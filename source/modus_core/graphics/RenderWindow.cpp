@@ -50,7 +50,7 @@ namespace ml
 		}
 
 		// create render device
-		if (m_dev.reset(gfx::render_device::create(cs.api)); !m_dev)
+		if (m_dev.reset(gfx::render_device::create({ cs.api })); !m_dev)
 		{
 			return debug::error("failed creating device");
 		}

@@ -7,11 +7,14 @@
 
 namespace ml::ds
 {
-	// list ( WIP / PLACEHOLDER )
+	// list
 	template <
 		class Ty,
 		class Al = pmr::polymorphic_allocator<Ty>
-	> ML_alias list = typename pmr::vector<Ty>;
+	> ML_alias list = typename std::vector
+	<
+		Ty, Al
+	>;
 }
 
 #endif // !_ML_LIST_HPP_

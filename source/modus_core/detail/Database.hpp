@@ -2,9 +2,7 @@
 #define _ML_DATABASE_HPP_
 
 #include <modus_core/detail/HashMap.hpp>
-#include <modus_core/detail/Pointer.hpp>
 #include <modus_core/detail/String.hpp>
-#include <modus_core/detail/NonCopyable.hpp>
 
 namespace ml
 {
@@ -25,7 +23,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		basic_database(allocator_type alloc = {}) noexcept : m_categories{ alloc } {}
+		basic_database(allocator_type alloc = {}) noexcept : m_categories{ alloc }
+		{
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		// get all categories
 		ML_NODISCARD categories_type & all() noexcept

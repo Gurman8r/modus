@@ -2,7 +2,6 @@
 #define _ML_LOOP_SYSTEM_HPP_
 
 #include <modus_core/detail/List.hpp>
-#include <modus_core/detail/Pointer.hpp>
 #include <modus_core/detail/Method.hpp>
 
 namespace ml
@@ -36,10 +35,35 @@ namespace ml
 		{
 		}
 
+		explicit loop_system(loop_system const & other, allocator_type alloc = {})
+			: m_locked		{}
+			, m_subsystems	{ other.m_subsystems, alloc }
+			, m_loopcond	{ other.m_loopcond }
+			, m_on_enter	{ other.m_on_enter }
+			, m_on_exit		{ other.m_on_exit }
+			, m_on_idle		{ other.m_on_idle }
+		{
+		}
+
 		explicit loop_system(loop_system && other, allocator_type alloc = {}) noexcept
 			: loop_system{ alloc }
 		{
 			this->swap(std::move(other));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		loop_system & operator=(loop_system const & other) noexcept
+		{
+			loop_system temp{ other };
+			this->swap(temp);
+			return (*this);
+		}
+
+		loop_system & operator=(loop_system && other) noexcept
+		{
+			this->swap(std::move(other));
+			return (*this);
 		}
 
 		void swap(loop_system & other) noexcept
@@ -59,24 +83,30 @@ namespace ml
 
 		ML_NODISCARD int32_t process(bool recursive = true) noexcept
 		{
+			// lock
 			if (!do_lock()) { return EXIT_FAILURE * 1; }
 			
+			// unlock
 			ML_defer(&) { do_unlock(); };
 
+			// enter
 			do_invoke(&loop_system::m_on_enter, recursive);
 
+			// exit
 			ML_defer(&) { do_invoke(&loop_system::m_on_exit, recursive); };
 
+			// idle
 			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
+			do { do_invoke(&loop_system::m_on_idle, recursive); }
+			while (check_loop_condition());
 			
-			do { do_invoke(&loop_system::m_on_idle, recursive); } while (check_loop_condition());
-
+			// good
 			return EXIT_SUCCESS;
 		}
 
 		ML_NODISCARD int32_t operator()(bool recursive = true) noexcept
 		{
-			return process(recursive);
+			return this->process(recursive);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -119,30 +149,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto subsystems() & noexcept -> subsystem_list & { return m_subsystems; }
-
-		ML_NODISCARD auto subsystems() const & noexcept -> subsystem_list const & { return m_subsystems; }
-
-		ML_NODISCARD auto subsystems() && noexcept -> subsystem_list && { return std::move(m_subsystems); }
-
-		ML_NODISCARD auto operator[](size_t const i) & noexcept -> subsystem & { return m_subsystems[i]; }
-
-		ML_NODISCARD auto operator[](size_t const i) const & noexcept -> subsystem const & { return m_subsystems[i]; }
-
-		ML_NODISCARD auto operator[](size_t const i) && noexcept -> subsystem & { return std::move(m_subsystems[i]); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		auto delete_subsystem(iterator it) -> iterator
-		{
-			return (it == end()) ? it : m_subsystems.erase(it);
-		}
-
-		auto delete_subsystem(subsystem const & value) noexcept -> iterator
-		{
-			return delete_subsystem(find_subsystem(value));
-		}
-
 		ML_NODISCARD auto find_subsystem(subsystem const & value) noexcept -> iterator
 		{
 			return (this == value.get()) ? end() : std::find(begin(), end(), value);
@@ -168,6 +174,27 @@ namespace ml
 				std::make_shared<Derived>(ML_forward(args)...)
 			));
 		}
+
+		auto delete_subsystem(subsystem const & value) noexcept -> iterator
+		{
+			if (auto const it{ find_subsystem(value) }
+			; it == end()) { return it; }
+			else { return m_subsystems.erase(it); }
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto subsystems() & noexcept -> subsystem_list & { return m_subsystems; }
+
+		ML_NODISCARD auto subsystems() const & noexcept -> subsystem_list const & { return m_subsystems; }
+
+		ML_NODISCARD auto subsystems() && noexcept -> subsystem_list && { return std::move(m_subsystems); }
+
+		ML_NODISCARD auto operator[](size_t const i) & noexcept -> subsystem & { return m_subsystems[i]; }
+
+		ML_NODISCARD auto operator[](size_t const i) const & noexcept -> subsystem const & { return m_subsystems[i]; }
+
+		ML_NODISCARD auto operator[](size_t const i) && noexcept -> subsystem & { return std::move(m_subsystems[i]); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -225,13 +252,13 @@ namespace ml
 		}
 
 		// invoke internal
-		bool do_invoke(loop_callback loop_system::*fn, bool recursive) noexcept
+		bool do_invoke(loop_callback loop_system::*mp, bool recursive) noexcept
 		{
-			bool const good{ fn && this->*fn };
+			bool const good{ mp && this->*mp };
 			
-			if (good) { (this->*fn)(); }
+			if (good) { std::invoke(this->*mp); }
 			
-			if (recursive) for (auto & e : *this) { e->do_invoke(fn, recursive); }
+			if (recursive) for (auto & e : *this) { e->do_invoke(mp, recursive); }
 
 			return good;
 		}

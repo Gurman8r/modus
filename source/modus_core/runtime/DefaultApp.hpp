@@ -11,42 +11,42 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit default_app(runtime_api * api) noexcept;
+		explicit default_app(runtime_context * const ctx) noexcept;
 
 		~default_app() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		void on_enter();
+		void on_enter(runtime_context * const ctx);
 
-		void on_exit();
+		void on_exit(runtime_context * const ctx);
 
-		void on_idle();
+		void on_idle(runtime_context * const ctx);
 
 		void on_event(event && value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::manual<ImGuiContext>	m_imgui		; // imgui context
+		ds::manual<ImGuiContext>	m_imgui		; // imgui ctx
 		ImGuiExt::Dockspace			m_dockspace	; // imgui dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static auto default_benchmarks(runtime_io & io) noexcept
+		ML_NODISCARD static auto idle_benchmarks(runtime_io * io) noexcept
 		{
-			io.loop_timer.restart();
-			auto const dt{ (float_t)io.delta_time.count() };
-			io.fps_accum += dt - io.fps_times[io.fps_index];
-			io.fps_times[io.fps_index] = dt;
-			io.fps_index = (io.fps_index + 1) % io.fps_times.size();
-			io.fps = (0.f < io.fps_accum)
-				? 1.f / (io.fps_accum / (float_t)io.fps_times.size())
+			io->loop_timer.restart();
+			auto const dt{ (float_t)io->delta_time.count() };
+			io->fps_accum += dt - io->fps_times[io->fps_index];
+			io->fps_times[io->fps_index] = dt;
+			io->fps_index = (io->fps_index + 1) % io->fps_times.size();
+			io->fps = (0.f < io->fps_accum)
+				? 1.f / (io->fps_accum / (float_t)io->fps_times.size())
 				: FLT_MAX;
-			return ML_defer_ex(&io) {
-				++io.frame_count;
-				io.delta_time = io.loop_timer.elapsed();
+			return ML_defer_ex(io) {
+				++io->frame_count;
+				io->delta_time = io->loop_timer.elapsed();
 			};
 		}
 

@@ -8,10 +8,10 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// device
+// render device
 namespace ml::gfx
 {
-	class opengl_render_device final : public render_device
+	struct opengl_render_device final : render_device
 	{
 	private:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -69,11 +69,11 @@ namespace ml::gfx
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// context
+// render context
 namespace ml::gfx
 {
 	// opengl context
-	class opengl_render_context final : public render_context
+	struct opengl_render_context final : render_context
 	{
 	private:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -188,7 +188,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// opengl vertexarray
-	class opengl_vertexarray final : public vertexarray
+	struct opengl_vertexarray final : vertexarray
 	{
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_vertexarray> };
@@ -233,7 +233,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// opengl vertexbuffer
-	class opengl_vertexbuffer final : public vertexbuffer
+	struct opengl_vertexbuffer final : vertexbuffer
 	{
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_vertexbuffer> };
@@ -272,7 +272,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// opengl indexbuffer
-	class opengl_indexbuffer final : public indexbuffer
+	struct opengl_indexbuffer final : indexbuffer
 	{
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_indexbuffer> };
@@ -311,7 +311,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// opengl texture2d
-	class opengl_texture2d final : public texture2d
+	struct opengl_texture2d final : texture2d
 	{
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_texture2d> };
@@ -364,7 +364,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// opengl texturecube
-	class opengl_texturecube : public texturecube
+	struct opengl_texturecube : texturecube
 	{
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_texturecube> };
@@ -405,7 +405,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// opengl framebuffer
-	class opengl_framebuffer final : public framebuffer
+	struct opengl_framebuffer final : framebuffer
 	{
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_framebuffer> };
@@ -469,7 +469,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// opengl program
-	class opengl_program final : public program
+	struct opengl_program final : program
 	{
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_program> };
@@ -555,7 +555,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// opengl shader
-	class opengl_shader final : public shader
+	struct opengl_shader final : shader
 	{
 	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_shader> };

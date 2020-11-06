@@ -83,7 +83,7 @@ static auto const default_settings{ R"(
 }
 )"_json };
 
-auto load_settings(fs::path const & path = SETTINGS_PATH) noexcept
+json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
 {
 	std::ifstream f{ path }; ML_defer(&f) { f.close(); };
 
@@ -94,15 +94,15 @@ auto load_settings(fs::path const & path = SETTINGS_PATH) noexcept
 
 ml::int32_t main()
 {
-	static memory_manager	memory	{};
-	static runtime_io		io		{ __argc, __argv, load_settings() };
-	static event_bus		bus		{};
-	static render_window	window	{};
-	static loop_system		loopsys	{};
-	static basic_database	db		{};
-	static runtime_api		api		{ &memory, &io, &bus, &window, &loopsys, &db };
+	static memory_manager	memory		{};
+	static runtime_io		io			{ __argc, __argv, load_settings() };
+	static event_bus		bus			{};
+	static render_window	window		{};
+	static loop_system		loopsys		{};
+	static basic_database	database	{};
+	static runtime_context	context		{ &memory, &io, &bus, &window, &loopsys, &database };
 
-	auto app{ loopsys.new_subsystem<default_app>(&api) };
+	auto app{ loopsys.new_subsystem<default_app>(&context) };
 
 	loopsys.set_loop_condition(app->get_loop_condition());
 

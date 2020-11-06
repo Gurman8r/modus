@@ -37,7 +37,7 @@ namespace ml
 		template <class Arg0, class ... Args
 		> void execute(Arg0 && arg0, Args && ... args) const noexcept
 		{
-			gfx::execute(m_ctx, ML_forward(arg0), ML_forward(args)...);
+			gfx::execute(get_render_context(), ML_forward(arg0), ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -49,8 +49,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::manual<gfx::render_device>	m_dev; // render device
-		ds::ref<gfx::render_context>	m_ctx; // render context
+		ds::manual<	gfx::render_device	> m_dev; // render device
+		ds::ref<	gfx::render_context	> m_ctx; // render context
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

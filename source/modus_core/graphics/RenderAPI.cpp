@@ -16,11 +16,11 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	render_device * render_device::create(int32_t api, allocator_type alloc) noexcept
+	render_device * render_device::create(spec<render_device> const & desc, allocator_type alloc) noexcept
 	{
 		auto const temp{ std::invoke([&]() noexcept -> render_device *
 		{
-			switch (api)
+			switch (desc.api)
 			{
 			default					: return nullptr;
 			case context_api_opengl	: return new opengl_render_device{ alloc };

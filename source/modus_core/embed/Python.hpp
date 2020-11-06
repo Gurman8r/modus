@@ -3,7 +3,6 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <modus_core/Export.hpp>
 #include <modus_core/detail/Matrix.hpp>
 #include <modus_core/detail/Events.hpp>
 
@@ -16,10 +15,17 @@
 #endif
 
 #include <Python.h>
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// PYBIND11
+
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 #include <pybind11/functional.h>
 #include <pybind11/iostream.h>
+
+namespace ml { namespace py = pybind11; } // ml::py::
 
 namespace pybind11
 {
@@ -44,27 +50,6 @@ namespace pybind11
 	static void from_json(_ML json const & j, handle & v)
 	{
 		v = module::import("json").attr("loads")(j.dump());
-	}
-}
-
-namespace ml
-{
-	namespace py = pybind11;
-
-	inline int32_t Python_DoFile(cstring path) noexcept
-	{
-		return PyRun_AnyFileEx(std::fopen(path, "r"), path, true);
-	}
-
-	inline int32_t Python_DoFile(ds::string const & path) noexcept
-	{
-		return Python_DoFile(path.c_str());
-	}
-
-	inline int32_t Python_DoFile(fs::path const & path) noexcept
-	{
-		auto const str{ path.string() };
-		return Python_DoFile(str.c_str());
 	}
 }
 

@@ -74,9 +74,9 @@ namespace ml
 
 		sandbox(plugin_manager * manager, void * userptr) noexcept : plugin{ manager, userptr }
 		{
-			subscribe<process_enter_event>();
-			subscribe<process_exit_event>();
-			subscribe<process_idle_event>();
+			subscribe<runtime_enter_event>();
+			subscribe<runtime_exit_event>();
+			subscribe<runtime_idle_event>();
 			subscribe<imgui_dockspace_event>();
 			subscribe<imgui_render_event>();
 		}
@@ -85,9 +85,9 @@ namespace ml
 		{
 			switch (value)
 			{
-			case process_enter_event	::ID: return on_process_enter	((process_enter_event &&)value);
-			case process_exit_event		::ID: return on_process_exit	((process_exit_event &&)value);
-			case process_idle_event		::ID: return on_process_idle	((process_idle_event &&)value);
+			case runtime_enter_event	::ID: return on_runtime_enter	((runtime_enter_event &&)value);
+			case runtime_exit_event		::ID: return on_runtime_exit	((runtime_exit_event &&)value);
+			case runtime_idle_event		::ID: return on_runtime_idle	((runtime_idle_event &&)value);
 			case imgui_dockspace_event	::ID: return on_imgui_dockspace	((imgui_dockspace_event &&)value);
 			case imgui_render_event		::ID: return on_imgui_render	((imgui_render_event &&)value);
 			}
@@ -95,7 +95,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_process_enter(process_enter_event && ev)
+		void on_runtime_enter(runtime_enter_event && ev)
 		{
 			// set icon
 			if (auto & i = m_icon = bitmap{ get_io()->path2("resource/modus_launcher.png"), false })
@@ -107,11 +107,11 @@ namespace ml
 			m_fb.push_back(gfx::framebuffer::create({ m_resolution }));
 		}
 
-		void on_process_exit(process_exit_event && ev)
+		void on_runtime_exit(runtime_exit_event && ev)
 		{
 		}
 
-		void on_process_idle(process_idle_event && ev)
+		void on_runtime_idle(runtime_idle_event && ev)
 		{
 			m_term.Output.Dump(m_cout.sstr());
 
@@ -203,25 +203,6 @@ namespace ml
 				ML_defer() { ImGui::EndTabBar(); };
 				if (!ImGui::BeginTabBar("tabs")) { return; }
 
-				//// database
-				//if (ImGui::BeginTabItem("database")) {
-				//	ImGui::Columns(2);
-				//	ImGui::Text("type"); ImGui::NextColumn();
-				//	ImGui::Text("name"); ImGui::NextColumn();
-				//	ImGui::Separator();
-				//	for (auto & [type, category] : db.all())
-				//	{
-				//		for (auto & [name, elem] : category)
-				//		{
-				//			ImGui::Text("%u", type.hash()); ImGui::NextColumn();
-				//			ImGui::Text("%s", name.c_str()); ImGui::NextColumn();
-				//		}
-				//	}
-				//	ImGui::Columns(1);
-				//	ImGui::Separator();
-				//	ImGui::EndTabItem();
-				//}
-
 				// plugins
 				if (ImGui::BeginTabItem("plugins")) {
 					ImGui::Columns(3);
@@ -229,9 +210,7 @@ namespace ml
 					ImGui::TextDisabled("path"); ImGui::NextColumn();
 					ImGui::TextDisabled("ID"); ImGui::NextColumn();
 					ImGui::Separator();
-					auto const & storage{ get_manager()->get_data() };
-					auto const & details{ storage.get<plugin_details>() };
-					for (auto const & e : details)
+					for (auto const & e : get_manager()->get_data<plugin_details>())
 					{
 						ImGui::Text(e.name.c_str()); ImGui::NextColumn();
 						ImGui::Text(e.path.c_str()); ImGui::NextColumn();

@@ -5,13 +5,13 @@
 
 namespace ml::ds
 {
-	// tuple< vector<T>... >
+	// tuple<vector<Ts>...>
 	template <class ... _Ts
 	> struct batch_vector final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using self_type			= typename batch_vector<_Ts...>;
+		using self_type			= typename _ML ds::batch_vector<_Ts...>;
 		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
 		using value_types		= typename meta::list<_Ts...>;
 		using value_tuple		= typename meta::tuple<value_types>;

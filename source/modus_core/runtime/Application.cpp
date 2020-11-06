@@ -4,10 +4,10 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	application::application(runtime_api * api)
-		: runtime_listener	{ api }
-		, loop_system		{ api->memory->get_allocator() }
-		, m_plugins			{ this }
+	application::application(runtime_context * const ctx) noexcept
+		: runtime_object{ ctx }
+		, loop_system	{ get_memory()->get_allocator() }
+		, m_plugins		{ this }
 	{
 		if (!get_global<application>())
 		{

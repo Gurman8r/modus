@@ -6,29 +6,28 @@
 namespace ml
 {
 	// application
-	struct ML_CORE_API application : runtime_listener<application>, loop_system
+	struct ML_CORE_API application : runtime_object<application>, loop_system
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit application(runtime_api * api);
+	protected:
+		explicit application(runtime_context * const ctx) noexcept;
 
 		virtual ~application() noexcept override;
 
+		virtual void on_event(event &&) = 0;
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		ML_NODISCARD auto get_plugins() noexcept -> plugin_manager & { return m_plugins; }
 
 		ML_NODISCARD auto get_plugins() const noexcept -> plugin_manager const & { return m_plugins; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
-		virtual void on_event(event &&) = 0;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	private:
-		plugin_manager m_plugins;
+		plugin_manager m_plugins; // plugin manager
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

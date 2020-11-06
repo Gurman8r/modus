@@ -7,7 +7,7 @@
 
 namespace ml::ds
 {
-	// hashmap ( WIP / PLACEHOLDER )
+	// hashmap
 	template <
 		class Key	,
 		class Value	,

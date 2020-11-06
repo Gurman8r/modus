@@ -8,42 +8,35 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	default_app::default_app(runtime_api * api) noexcept
-		: application	{ api }
+	default_app::default_app(runtime_context * const ctx) noexcept
+		: application	{ ctx }
 		, m_imgui		{}
 		, m_dockspace	{ "##MainDockspace" }
 	{
-		ML_assert(this == get_global<application>());
-
-		set_loop_condition(&render_window::is_open, get_window());
-		set_enter_callback(&default_app::on_enter, this);
-		set_exit_callback(&default_app::on_exit, this);
-		set_idle_callback(&default_app::on_idle, this);
-	}
-
-	default_app::~default_app() noexcept
-	{
-		ML_assert(this == get_global<application>());
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void default_app::on_enter()
-	{
-		// api
-		auto const api{ get_api() };
-
 		// events
 		subscribe<window_key_event>();
 		subscribe<window_mouse_event>();
 		subscribe<window_cursor_pos_event>();
 
+		// loopsys
+		set_loop_condition(&render_window::is_open, ctx->window);
+		set_enter_callback(&default_app::on_enter, this, ctx);
+		set_exit_callback(&default_app::on_exit, this, ctx);
+		set_idle_callback(&default_app::on_idle, this, ctx);
+	}
+
+	default_app::~default_app() noexcept {}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void default_app::on_enter(runtime_context * const ctx)
+	{
 		// preferences
-		ML_assert(api->io->prefs.contains("runtime"));
-		auto & runtime_prefs{ api->io->prefs["runtime"] };
+		ML_assert(ctx->io->prefs.contains("runtime"));
+		auto & runtime_prefs{ ctx->io->prefs["runtime"] };
 		bool const install_callbacks{ runtime_prefs["callbacks"] };
 
-		// python
+		// PYTHON
 		ML_assert(!Py_IsInitialized());
 		PyObject_SetArenaAllocator(([&temp = PyObjectArenaAllocator{}](auto mres) noexcept {
 			temp.ctx = mres;
@@ -54,16 +47,16 @@ namespace ml
 				return ((pmr::memory_resource *)mres)->deallocate(p, s);
 			};
 			return &temp;
-		})(api->memory->get_resource()));
-		Py_SetProgramName(api->io->program_name.c_str());
-		Py_SetPythonHome(api->io->content_path.c_str());
+		})(ctx->memory->get_resource()));
+		Py_SetProgramName(ctx->io->program_name.c_str());
+		Py_SetPythonHome(ctx->io->content_path.c_str());
 		Py_InitializeEx(1);
 		ML_assert(Py_IsInitialized());
 
-		// window
-		ML_assert(api->io->prefs.contains("window"));
-		auto & window_prefs{ api->io->prefs["window"] };
-		ML_assert(api->window->open(
+		// WINDOW
+		ML_assert(ctx->io->prefs.contains("window"));
+		auto & window_prefs{ ctx->io->prefs["window"] };
+		ML_assert(ctx->window->open(
 			window_prefs["title"],
 			window_prefs["video"],
 			window_prefs["context"],
@@ -71,45 +64,45 @@ namespace ml
 		if (install_callbacks)
 		{
 			static struct ML_NODISCARD {
-				runtime_api * api;
+				runtime_context * runtime;
 				ML_NODISCARD auto operator->() const noexcept
 				{
-					return ML_check(api)->bus;
+					return ML_check(runtime)->bus;
 				}
-			} helper; helper.api = api;
+			} helper; helper.runtime = ctx;
 
-			api->window->set_char_callback([](auto w, auto ... x) { helper->fire<window_char_event>(x...); });
-			api->window->set_char_mods_callback([](auto w, auto ... x) { helper->fire<window_char_mods_event>(x...); });
-			api->window->set_close_callback([](auto w, auto ... x) { helper->fire<window_close_event>(x...); });
-			api->window->set_cursor_enter_callback([](auto w, auto ... x) { helper->fire<window_cursor_enter_event>(x...); });
-			api->window->set_cursor_pos_callback([](auto w, auto ... x) { helper->fire<window_cursor_pos_event>(x...); });
-			api->window->set_content_scale_callback([](auto w, auto ... x) { helper->fire<window_content_scale_event>(x...); });
-			api->window->set_drop_callback([](auto w, auto ... x) { helper->fire<window_drop_event>(x...); });
-			api->window->set_error_callback([](auto ... x) { helper->fire<window_error_event>(x...); });
-			api->window->set_focus_callback([](auto w, auto ... x) { helper->fire<window_focus_event>(x...); });
-			api->window->set_framebuffer_resize_callback([](auto w, auto ... x) { helper->fire<window_framebuffer_resize_event>(x...); });
-			api->window->set_iconify_callback([](auto w, auto ... x) { helper->fire<window_iconify_event>(x...); });
-			api->window->set_key_callback([](auto w, auto ... x) { helper->fire<window_key_event>(x...); });
-			api->window->set_maximize_callback([](auto w, auto ... x) { helper->fire<window_maximize_event>(x...); });
-			api->window->set_mouse_callback([](auto w, auto ... x) { helper->fire<window_mouse_event>(x...); });
-			api->window->set_position_callback([](auto w, auto ... x) { helper->fire<window_position_event>(x...); });
-			api->window->set_refresh_callback([](auto w, auto ... x) { helper->fire<window_refresh_event>(x...); });
-			api->window->set_resize_callback([](auto w, auto ... x) { helper->fire<window_resize_event>(x...); });
-			api->window->set_scroll_callback([](auto w, auto ... x) { helper->fire<window_scroll_event>(x...); });
+			ctx->window->set_char_callback([](auto w, auto ... x) { helper->fire<window_char_event>(x...); });
+			ctx->window->set_char_mods_callback([](auto w, auto ... x) { helper->fire<window_char_mods_event>(x...); });
+			ctx->window->set_close_callback([](auto w, auto ... x) { helper->fire<window_close_event>(x...); });
+			ctx->window->set_cursor_enter_callback([](auto w, auto ... x) { helper->fire<window_cursor_enter_event>(x...); });
+			ctx->window->set_cursor_pos_callback([](auto w, auto ... x) { helper->fire<window_cursor_pos_event>(x...); });
+			ctx->window->set_content_scale_callback([](auto w, auto ... x) { helper->fire<window_content_scale_event>(x...); });
+			ctx->window->set_drop_callback([](auto w, auto ... x) { helper->fire<window_drop_event>(x...); });
+			ctx->window->set_error_callback([](auto ... x) { helper->fire<window_error_event>(x...); });
+			ctx->window->set_focus_callback([](auto w, auto ... x) { helper->fire<window_focus_event>(x...); });
+			ctx->window->set_framebuffer_resize_callback([](auto w, auto ... x) { helper->fire<window_framebuffer_resize_event>(x...); });
+			ctx->window->set_iconify_callback([](auto w, auto ... x) { helper->fire<window_iconify_event>(x...); });
+			ctx->window->set_key_callback([](auto w, auto ... x) { helper->fire<window_key_event>(x...); });
+			ctx->window->set_maximize_callback([](auto w, auto ... x) { helper->fire<window_maximize_event>(x...); });
+			ctx->window->set_mouse_callback([](auto w, auto ... x) { helper->fire<window_mouse_event>(x...); });
+			ctx->window->set_position_callback([](auto w, auto ... x) { helper->fire<window_position_event>(x...); });
+			ctx->window->set_refresh_callback([](auto w, auto ... x) { helper->fire<window_refresh_event>(x...); });
+			ctx->window->set_resize_callback([](auto w, auto ... x) { helper->fire<window_resize_event>(x...); });
+			ctx->window->set_scroll_callback([](auto w, auto ... x) { helper->fire<window_scroll_event>(x...); });
 		}
 
-		// imgui
+		// IMGUI
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, void * u) { return ((memory_manager *)u)->allocate(s); },
 			[](void * p, void * u) { return ((memory_manager *)u)->deallocate(p); },
-			api->memory);
+			ctx->memory);
 		m_imgui.reset(ML_check(ImGui::CreateContext()));
 		m_imgui->IO.LogFilename = "";
 		m_imgui->IO.IniFilename = "";
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-		ML_assert(ImGui_Startup(api->window, install_callbacks));
+		ML_assert(ImGui_Startup(ctx->window, install_callbacks));
 		if (runtime_prefs.contains("dockspace")) {
 			auto & dock_prefs{ runtime_prefs["dockspace"] };
 			dock_prefs["alpha"].get_to(m_dockspace.Alpha);
@@ -120,57 +113,63 @@ namespace ml
 		}
 		if (runtime_prefs.contains("guistyle")) {
 			auto & style_prefs{ runtime_prefs["guistyle"] };
-			if (style_prefs.is_string()) {
-				ImGui_LoadStyle(api->io->path2(style_prefs));
+			if (style_prefs.is_string())
+			{
+				ImGui_LoadStyle(ctx->io->path2(style_prefs));
 			}
 		}
 
-		// install plugins
+		// PLUGINS
 		if (runtime_prefs.contains("plugins")) {
-			for (auto const & e : runtime_prefs["plugins"]) {
+			auto & plugin_prefs{ runtime_prefs["plugins"] };
+			for (auto const & e : plugin_prefs)
+			{
 				get_plugins().install(e["path"]);
 			}
 		}
 
-		// evaluate scripts
+		// SCRIPTS
 		if (runtime_prefs.contains("scripts")) {
-			for (auto const & e : runtime_prefs["scripts"]) {
-				Python_DoFile(api->io->path2(e["path"]));
+			auto & script_prefs{ runtime_prefs["scripts"] };
+			for (auto const & e : script_prefs)
+			{
+				auto const path{ ctx->io->path2(e["path"]).string() };
+				PyRun_AnyFileExFlags(std::fopen(path.c_str(), "r"), path.c_str(), true, nullptr);
 			}
 		}
 
-		// process enter event
-		get_bus()->fire<process_enter_event>(this);
+		// enter event
+		ctx->bus->fire<runtime_enter_event>(this);
 	}
 
-	void default_app::on_exit()
+	void default_app::on_exit(runtime_context * const ctx)
 	{
-		// process exit event
-		get_bus()->fire<process_exit_event>(this);
+		// exit event
+		ctx->bus->fire<runtime_exit_event>(this);
 
 		// uninstall plugins
 		get_plugins().uninstall_all();
 
 		// imgui
-		ImGui_Shutdown(get_window(), m_imgui.release());
+		ImGui_Shutdown(ctx->window, m_imgui.release());
 
 		// python
 		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
 	}
 
-	void default_app::on_idle()
+	void default_app::on_idle(runtime_context * const ctx)
 	{
 		// benchmarks
-		auto ML_anon{ default_benchmarks(*get_io()) };
+		auto ML_anon{ idle_benchmarks(ctx->io) };
 
 		// poll events
-		get_window()->poll_events();
+		ctx->window->poll_events();
 
-		// process idle event
-		get_bus()->fire<process_idle_event>(this);
+		// idle event
+		ctx->bus->fire<runtime_idle_event>(this);
 
 		// imgui
-		ImGui_DoFrame(get_window(), m_imgui.get(), [&]() noexcept
+		ImGui_DoFrame(ctx->window, m_imgui.get(), [&]() noexcept
 		{
 			ML_ImGui_ScopeID(this);
 
@@ -181,15 +180,15 @@ namespace ml
 			m_dockspace(m_imgui->Viewports[0], [&]() noexcept
 			{
 				// imgui dockspace event
-				get_bus()->fire<imgui_dockspace_event>(&m_dockspace);
+				ctx->bus->fire<imgui_dockspace_event>(&m_dockspace);
 			});
 
 			// imgui render event
-			get_bus()->fire<imgui_render_event>(m_imgui.get());
+			ctx->bus->fire<imgui_render_event>(m_imgui.get());
 		});
 
 		// swap buffers
-		get_window()->swap_buffers();
+		ctx->window->swap_buffers();
 	}
 
 	void default_app::on_event(event && value)

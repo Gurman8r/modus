@@ -9,9 +9,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	m.def("exit", [](py::args) // exit
 	{
-		auto const app{ ML_check(get_global<application>()) };
-		auto const win{ ML_check(app->get_window()) };
-		win->set_should_close(true);
+		get_global<application>()->get_window()->set_should_close(true);
 	});
 	py::module::import("builtins").attr("exit") = m.attr("exit");
 	py::module::import("sys").attr("exit") = m.attr("exit");

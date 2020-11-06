@@ -5,16 +5,16 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(application * app)
-		: runtime_object{ app->get_api() }
+	plugin_manager::plugin_manager(application * const app) noexcept
+		: runtime_object{ app->get_context() }
 		, m_app			{ app }
-		, m_data		{ app->get_memory()->get_allocator() }
+		, m_data		{ get_memory()->get_allocator() }
 	{
 	}
 
 	plugin_manager::~plugin_manager() noexcept
 	{
-		uninstall_all();
+		this->uninstall_all();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -27,13 +27,12 @@ namespace ml
 			return nullptr;
 		}
 		// load library
-		else if (auto const id{ std::invoke([&, &lib = shared_library{ path }]() -> plugin_id
+		else if (plugin_id const id{ std::invoke([&, &lib = shared_library{ path }]() noexcept
 		{
 			return (!lib || m_data.contains<shared_library>(lib)) ? nullptr
 				: std::get<plugin_id &>(m_data.push_back
 				(
 					(plugin_id)lib.hash_code(),
-					std::move(lib),
 					plugin_details
 					{
 						lib.hash_code(),
@@ -46,6 +45,7 @@ namespace ml
 						lib.proc<plugin *, plugin_manager *, void *>("ml_plugin_install"),
 						lib.proc<void, plugin_manager *, plugin *>("ml_plugin_uninstall"),
 					},
+					std::move(lib),
 					nullptr
 				));
 		}) })

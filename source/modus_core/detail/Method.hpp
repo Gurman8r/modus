@@ -7,7 +7,7 @@
 
 namespace ml::ds
 {
-	// method ( WIP / PLACEHOLDER )
+	// method
 	template <class Signature
 	> struct method : public std::function<Signature>
 	{

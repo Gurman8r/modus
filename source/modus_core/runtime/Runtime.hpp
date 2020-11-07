@@ -79,7 +79,7 @@ namespace ml
 
 		ML_NODISCARD auto get_context() const noexcept { return m_context; }
 
-		ML_NODISCARD auto get_db() const noexcept { return m_context->database; }
+		ML_NODISCARD auto get_database() const noexcept { return m_context->database; }
 
 		ML_NODISCARD auto get_io() const noexcept { return m_context->io; }
 
@@ -109,7 +109,6 @@ namespace ml
 			: event_listener{ ML_check(context)->bus }
 			, m_context		{ context }
 		{
-			ML_assert("BUS MISMATCH" && get_bus() == get_context()->bus);
 		}
 
 		using event_listener::on_event; // event_listener
@@ -119,7 +118,7 @@ namespace ml
 
 		ML_NODISCARD auto get_context() const noexcept { return m_context; }
 
-		ML_NODISCARD auto get_db() const noexcept { return m_context->database; }
+		ML_NODISCARD auto get_database() const noexcept { return m_context->database; }
 		
 		ML_NODISCARD auto get_io() const noexcept { return m_context->io; }
 

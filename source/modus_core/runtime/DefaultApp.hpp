@@ -28,8 +28,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::manual<ImGuiContext>	m_imgui	; // imgui
-		ImGuiExt::Dockspace			m_dock	; // dockspace
+		ds::manual<ImGuiContext>	m_imgui		; // imgui
+		ImGuiExt::Dockspace			m_docker	; // dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

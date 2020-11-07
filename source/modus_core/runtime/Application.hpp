@@ -22,7 +22,7 @@ namespace ml
 
 		using runtime_base::get_context;
 
-		using runtime_base::get_db;
+		using runtime_base::get_database;
 
 		using runtime_base::get_io;
 

@@ -5,8 +5,8 @@
 #include <modus_core/detail/Map.hpp>
 #include <modus_core/detail/NonCopyable.hpp>
 
-// event declarator helper
-#define ML_decl_event(Type) \
+// event helper
+#define ML_event(Type) \
 	struct Type final : _ML impl::event_helper<Type>
 
 namespace ml

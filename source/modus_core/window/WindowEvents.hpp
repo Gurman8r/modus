@@ -8,7 +8,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_char_event)
+	ML_event(window_char_event)
 	{
 		uint32_t const value;
 
@@ -20,7 +20,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_char_mods_event)
+	ML_event(window_char_mods_event)
 	{
 		uint32_t const value;
 		int32_t const mods;
@@ -33,7 +33,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_close_event)
+	ML_event(window_close_event)
 	{
 
 		constexpr window_close_event() noexcept
@@ -43,7 +43,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_content_scale_event)
+	ML_event(window_content_scale_event)
 	{
 		float_t const x, y;
 
@@ -55,7 +55,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_drop_event)
+	ML_event(window_drop_event)
 	{
 		int32_t const count;
 		cstring const * const paths;
@@ -68,7 +68,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_cursor_enter_event)
+	ML_event(window_cursor_enter_event)
 	{
 		int32_t const entered;
 
@@ -80,7 +80,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_cursor_pos_event)
+	ML_event(window_cursor_pos_event)
 	{
 		float64_t const x, y;
 
@@ -92,7 +92,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_error_event)
+	ML_event(window_error_event)
 	{
 		int32_t const code;
 		cstring const desc;
@@ -105,7 +105,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_focus_event)
+	ML_event(window_focus_event)
 	{
 		int32_t const focused;
 
@@ -117,7 +117,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_framebuffer_resize_event)
+	ML_event(window_framebuffer_resize_event)
 	{
 		int32_t const width, height;
 
@@ -129,7 +129,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_iconify_event)
+	ML_event(window_iconify_event)
 	{
 		int32_t const iconified;
 
@@ -141,7 +141,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_key_event)
+	ML_event(window_key_event)
 	{
 		int32_t const key, scan, action, mods;
 
@@ -189,7 +189,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_maximize_event)
+	ML_event(window_maximize_event)
 	{
 		int32_t const maximized;
 
@@ -201,7 +201,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_mouse_event)
+	ML_event(window_mouse_event)
 	{
 		int32_t const button, action, mods;
 
@@ -226,7 +226,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_position_event)
+	ML_event(window_position_event)
 	{
 		int32_t const x, y;
 
@@ -238,7 +238,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_refresh_event)
+	ML_event(window_refresh_event)
 	{
 		constexpr window_refresh_event() noexcept
 		{
@@ -247,7 +247,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_scroll_event)
+	ML_event(window_scroll_event)
 	{
 		float64_t const x, y;
 
@@ -259,7 +259,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_decl_event(window_resize_event)
+	ML_event(window_resize_event)
 	{
 		int32_t const width, height;
 

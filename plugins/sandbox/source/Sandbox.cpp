@@ -57,7 +57,7 @@ namespace ml
 		ds::list<ds::ref<gfx::framebuffer>> m_fb{};
 
 		// icon
-		db_var<bitmap> m_icon{ get_db(), "icon" };
+		db_var<bitmap> m_icon{ get_database(), "icon" };
 
 		// resources
 		ds::hashmap<ds::string, ds::ref<font>>			m_fonts		{};
@@ -85,9 +85,9 @@ namespace ml
 		{
 			switch (value)
 			{
-			case app_enter_event		::ID: return on_app_enter	((app_enter_event &&)value);
-			case app_exit_event			::ID: return on_app_exit	((app_exit_event &&)value);
-			case app_idle_event			::ID: return on_app_idle	((app_idle_event &&)value);
+			case app_enter_event		::ID: return on_app_enter		((app_enter_event &&)value);
+			case app_exit_event			::ID: return on_app_exit		((app_exit_event &&)value);
+			case app_idle_event			::ID: return on_app_idle		((app_idle_event &&)value);
 			case imgui_dockspace_event	::ID: return on_imgui_dockspace	((imgui_dockspace_event &&)value);
 			case imgui_render_event		::ID: return on_imgui_render	((imgui_render_event &&)value);
 			}

@@ -10,7 +10,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// APPLICATION ENTER
-	ML_decl_event(app_enter_event)
+	ML_event(app_enter_event)
 	{
 		application * const ptr;
 		auto operator->() const noexcept { return ptr; }
@@ -21,7 +21,7 @@ namespace ml
 	};
 
 	// APPLICATION EXIT
-	ML_decl_event(app_exit_event)
+	ML_event(app_exit_event)
 	{
 		application * const ptr;
 		auto operator->() const noexcept { return ptr; }
@@ -32,7 +32,7 @@ namespace ml
 	};
 
 	// APPLICATION IDLE
-	ML_decl_event(app_idle_event)
+	ML_event(app_idle_event)
 	{
 		application * const ptr;
 		auto operator->() const noexcept { return ptr; }

@@ -6,6 +6,24 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// ImGui::PushID(...); ML_defer() { ImGui::PopID(); };
+#define ImGuiExt_ScopeID(...) \
+	auto ML_anon = _ML ImGuiExt::ImplScopeID{ ##__VA_ARGS__ }
+
+// SCOPE-ID
+namespace ml::ImGuiExt
+{
+	struct ML_NODISCARD ImplScopeID final
+	{
+		template <class ... Args
+		> ImplScopeID(Args && ... args) noexcept { ImGui::PushID(ML_forward(args)...); }
+
+		~ImplScopeID() noexcept { ImGui::PopID(); }
+	};
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // TOOLTIPS
 namespace ml::ImGuiExt
 {
@@ -170,7 +188,7 @@ namespace ml::ImGuiExt
 		> bool operator()(Fn && fn, Args && ... args) noexcept
 		{
 			if (!IsOpen) { return false; }
-			ML_ImGui_ScopeID(this);
+			ImGuiExt_ScopeID(this);
 			return ImGuiExt::BeginEnd(
 				std::bind(&Panel::Begin, this),
 				std::bind(&Panel::End, this),
@@ -249,7 +267,7 @@ namespace ml::ImGuiExt
 		{
 			if (!IsOpen || !vp || !IsDockingEnabled()) { return false; }
 			
-			ML_ImGui_ScopeID(this);
+			ImGuiExt_ScopeID(this);
 			ImGui::SetNextWindowPos(vp->Pos);
 			ImGui::SetNextWindowSize(vp->Size);
 			ImGui::SetNextWindowViewport(vp->ID);

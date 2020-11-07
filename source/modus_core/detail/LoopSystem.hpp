@@ -145,54 +145,19 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool contains(loop_system const * value) const noexcept
-		{
-			return end() != find_if([value](subsystem const & e) noexcept
-			{
-				return value == e.get();
-			});
-		}
-
-		ML_NODISCARD bool contains(subsystem const & value) const noexcept
-		{
-			return end() != find(value);
-		}
-
-		ML_NODISCARD auto find(subsystem const & value) noexcept -> iterator
-		{
-			return std::find(begin(), end(), value);
-		}
-
-		ML_NODISCARD auto find(subsystem const & value) const noexcept -> const_iterator
-		{
-			return std::find(cbegin(), cend(), value);
-		}
-
-		template <class Pr
-		> ML_NODISCARD auto find_if(Pr && pr) noexcept -> iterator
-		{
-			return std::find_if(begin(), end(), ML_forward(pr));
-		}
-
-		template <class Pr
-		> ML_NODISCARD auto find_if(Pr && pr) const noexcept -> const_iterator
-		{
-			return std::find_if(cbegin(), cend(), ML_forward(pr));
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		auto add_subsystem(subsystem const & value) noexcept -> subsystem
 		{
 			if (this == value.get()) { return nullptr; }
-			else if (auto const it{ find(value) }; it != end()) { return *it; }
+			else if (auto const it{ find_subsystem(value) }
+			; it != m_subsystems.end()) { return *it; }
 			else { return m_subsystems.emplace_back(value); }
 		}
 
 		auto delete_subsystem(subsystem const & value) noexcept -> iterator
 		{
-			if (this == value.get()) { return end(); }
-			else if (auto const it{ find(value) }; it == end()) { return it; }
+			if (this == value.get()) { return m_subsystems.end(); }
+			else if (auto const it{ find_subsystem(value) }
+			; it == m_subsystems.end()) { return it; }
 			else { return m_subsystems.erase(it); }
 		}
 
@@ -209,6 +174,43 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD bool has_subsystem(loop_system const * value) const noexcept
+		{
+			return m_subsystems.end() != find_subsystem_if([value](subsystem const & e) noexcept
+			{
+				return value == e.get();
+			});
+		}
+
+		ML_NODISCARD bool has_subsystem(subsystem const & value) const noexcept
+		{
+			return m_subsystems.end() != find_subsystem(value);
+		}
+
+		ML_NODISCARD auto find_subsystem(subsystem const & value) noexcept -> iterator
+		{
+			return std::find(m_subsystems.begin(), m_subsystems.end(), value);
+		}
+
+		ML_NODISCARD auto find_subsystem(subsystem const & value) const noexcept -> const_iterator
+		{
+			return std::find(m_subsystems.cbegin(), m_subsystems.cend(), value);
+		}
+
+		template <class Pr
+		> ML_NODISCARD auto find_subsystem_if(Pr && pr) noexcept -> iterator
+		{
+			return std::find_if(m_subsystems.begin(), m_subsystems.end(), ML_forward(pr));
+		}
+
+		template <class Pr
+		> ML_NODISCARD auto find_subsystem_if(Pr && pr) const noexcept -> const_iterator
+		{
+			return std::find_if(m_subsystems.cbegin(), m_subsystems.cend(), ML_forward(pr));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ML_NODISCARD auto subsystems() & noexcept -> subsystem_list & { return m_subsystems; }
 
 		ML_NODISCARD auto subsystems() const & noexcept -> subsystem_list const & { return m_subsystems; }
@@ -221,46 +223,23 @@ namespace ml
 
 		ML_NODISCARD auto operator[](size_t const i) && noexcept -> subsystem & { return std::move(m_subsystems[i]); }
 
-		ML_NODISCARD auto begin() noexcept -> iterator { return m_subsystems.begin(); }
-
-		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_subsystems.begin(); }
-		
-		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return m_subsystems.cbegin(); }
-
-		ML_NODISCARD auto end() noexcept -> iterator { return m_subsystems.end(); }
-
-		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_subsystems.end(); }
-
-		ML_NODISCARD auto cend() const noexcept -> const_iterator { return m_subsystems.cend(); }
-
-		ML_NODISCARD auto rbegin() noexcept -> reverse_iterator { return m_subsystems.rbegin(); }
-
-		ML_NODISCARD auto rbegin() const noexcept -> const_reverse_iterator { return m_subsystems.rbegin(); }
-
-		ML_NODISCARD auto crbegin() const noexcept -> const_reverse_iterator { return m_subsystems.crbegin(); }
-
-		ML_NODISCARD auto rend() noexcept -> reverse_iterator { return m_subsystems.rend(); }
-
-		ML_NODISCARD auto rend() const noexcept -> const_reverse_iterator { return m_subsystems.rend(); }
-
-		ML_NODISCARD auto crend() const noexcept -> const_reverse_iterator { return m_subsystems.crend(); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		// execute member procedure
+		// execute member pointer
 		template <bool Recursive = false, class D, class C, class ... Args
 		> static void exec(D C::*mp, C * self, Args && ... args)
 		{
 			static_assert(std::is_base_of_v<loop_system, C>, "?");
 
-			ML_assert(self && mp);
-
-			if (self->*mp) { std::invoke(self->*mp, ML_forward(args)...); }
-
-			if constexpr (Recursive) for (subsystem & e : *self)
+			if (!self || !mp) { return; } else if (self->*mp)
 			{
-				loop_system::exec<true>(mp, reinterpret_cast<C *>(e.get()), ML_forward(args)...);
+				std::invoke(self->*mp, ML_forward(args)...);
+			}
+
+			if constexpr (Recursive) for (subsystem & e : self->m_subsystems)
+			{
+				loop_system::exec<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
 			}
 		}
 

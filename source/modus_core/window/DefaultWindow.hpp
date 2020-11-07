@@ -177,14 +177,6 @@ namespace ml
 
 		static void swap_buffers(window_handle value) noexcept;
 
-		inline void swap_buffers() const noexcept
-		{
-			if (has_hints(window_hints_doublebuffer))
-			{
-				swap_buffers(get_handle());
-			}
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD static cursor_handle create_custom_cursor(size_t w, size_t h, byte_t const * p) noexcept;

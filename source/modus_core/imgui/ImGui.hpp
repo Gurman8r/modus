@@ -41,37 +41,13 @@
 #include <imgui/imgui_internal.h>
 #include <imgui_club/imgui_memory_editor/imgui_memory_editor.h>
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 #ifdef ML_IMPL_IMGUI_EXTRAS
 #include <ImGuizmo/ImGuizmo.h>
 #include <ImGuizmo/ImSequencer.h>
 #include <ImGuizmo/ImCurveEdit.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <imgui-node-editor/imgui_node_editor.h>
-
 #endif
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// ImGui::PushID(...); ML_defer() { ImGui::PopID(); };
-#define ML_ImGui_ScopeID(...) \
-	auto ML_anon = _ML impl::imgui_scoped_id{ ##__VA_ARGS__ }
-
-namespace ml::impl
-{
-	struct ML_NODISCARD imgui_scoped_id final
-	{
-		template <class ... Args
-		> imgui_scoped_id(Args && ... args) noexcept {
-			ImGui::PushID(ML_forward(args)...);
-		}
-
-		~imgui_scoped_id() noexcept {
-			ImGui::PopID();
-		}
-	};
-}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

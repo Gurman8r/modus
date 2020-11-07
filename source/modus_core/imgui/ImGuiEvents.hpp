@@ -10,7 +10,7 @@ namespace ml::ImGuiExt { struct Dockspace; }
 namespace ml
 {
 	// IMGUI DOCKSPACE
-	ML_decl_event(imgui_dockspace_event)
+	ML_event(imgui_dockspace_event)
 	{
 		ImGuiExt::Dockspace * const ptr;
 		auto operator->() const noexcept { return ptr; }
@@ -21,7 +21,7 @@ namespace ml
 	};
 
 	// IMGUI RENDER
-	ML_decl_event(imgui_render_event)
+	ML_event(imgui_render_event)
 	{
 		ImGuiContext * const ptr;
 		auto operator->() const noexcept { return ptr; }

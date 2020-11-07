@@ -11,7 +11,7 @@ namespace ml
 	default_app::default_app(runtime_context * const ctx) noexcept
 		: application	{ ctx }
 		, m_imgui		{}
-		, m_dock		{ "##MainDockspace" }
+		, m_docker		{ "##MainDockspace" }
 	{
 		// loopsys
 		set_loop_condition(&render_window::is_open, ctx->window);
@@ -42,7 +42,6 @@ namespace ml
 				ctx->io->cursor = { ev.x, ev.y };
 			} break;
 			}
-
 		}, ctx);
 	}
 
@@ -124,11 +123,11 @@ namespace ml
 		ML_assert(ImGui_Startup(ctx->window, install_callbacks));
 		if (runtime_prefs.contains("dockspace")) {
 			auto & dock_prefs{ runtime_prefs["dockspace"] };
-			dock_prefs["alpha"].get_to(m_dock.Alpha);
-			dock_prefs["border"].get_to(m_dock.Border);
-			dock_prefs["padding"].get_to(m_dock.Padding);
-			dock_prefs["rounding"].get_to(m_dock.Rounding);
-			dock_prefs["size"].get_to(m_dock.Size);
+			dock_prefs["alpha"].get_to(m_docker.Alpha);
+			dock_prefs["border"].get_to(m_docker.Border);
+			dock_prefs["padding"].get_to(m_docker.Padding);
+			dock_prefs["rounding"].get_to(m_docker.Rounding);
+			dock_prefs["size"].get_to(m_docker.Size);
 		}
 		if (runtime_prefs.contains("guistyle")) {
 			auto & style_prefs{ runtime_prefs["guistyle"] };
@@ -197,7 +196,7 @@ namespace ml
 		};
 
 		// poll events
-		ctx->window->poll_events();
+		render_window::poll_events();
 
 		// idle event
 		ctx->bus->fire<app_idle_event>(this);
@@ -205,24 +204,27 @@ namespace ml
 		// imgui
 		ImGui_DoFrame(ctx->window, m_imgui.get(), [&]() noexcept
 		{
-			ML_ImGui_ScopeID(this);
+			ImGuiExt_ScopeID(this);
 
+			// imgui dockspace
 			ML_flag_write(
-				m_dock.WinFlags,
+				m_docker.WinFlags,
 				ImGuiWindowFlags_MenuBar,
 				ImGui::FindWindowByName("##MainMenuBar"));
-			m_dock(m_imgui->Viewports[0], [&]() noexcept
+			m_docker(m_imgui->Viewports[0], [&]() noexcept
 			{
-				// imgui dockspace event
-				ctx->bus->fire<imgui_dockspace_event>(&m_dock);
+				ctx->bus->fire<imgui_dockspace_event>(&m_docker);
 			});
 
-			// imgui render event
+			// imgui render
 			ctx->bus->fire<imgui_render_event>(m_imgui.get());
 		});
 
 		// swap buffers
-		ctx->window->swap_buffers();
+		if (ctx->window->has_hints(window_hints_doublebuffer))
+		{
+			render_window::swap_buffers(ctx->window->get_handle());
+		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -36,7 +36,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
 		using loop_system::set_loop_condition;
 
 		using loop_system::set_enter_callback;
@@ -50,6 +49,11 @@ namespace ml
 	protected:
 		using event_callback = typename ds::method<void(event &&)>;
 
+		virtual void on_event(event && value) override // handle event
+		{
+			loop_system::exec(&application::m_on_event, this, ML_forward(value));
+		}
+
 		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const &
 		{
 			return m_on_event;
@@ -62,12 +66,6 @@ namespace ml
 			(
 				&application::m_on_event, this, ML_forward(fn), std::placeholders::_1, ML_forward(args)...
 			);
-		}
-
-		// handle event
-		virtual void on_event(event && value) override
-		{
-			loop_system::exec(&application::m_on_event, this, ML_forward(value));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -84,12 +84,14 @@ namespace ml
 		template <bool Recursive = true
 		> ML_NODISCARD int32_t process() noexcept
 		{
-			// lock / unlock
+			// lock
 			if (m_locked) { return EXIT_FAILURE * 1; }
 			else { m_locked = true; } ML_defer(&) { m_locked = false; };
 
-			// enter / exit
+			// enter
 			loop_system::exec<Recursive>(&loop_system::m_on_enter, this);
+
+			// exit
 			ML_defer(&) { loop_system::exec<Recursive>(&loop_system::m_on_exit, this); };
 
 			// idle

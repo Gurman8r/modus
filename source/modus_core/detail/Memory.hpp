@@ -303,16 +303,16 @@ namespace ml
 		// get counter
 		ML_NODISCARD auto get_counter() const noexcept -> size_t { return m_counter; }
 
-		// get records
-		ML_NODISCARD auto get_records() const noexcept -> record_storage const & { return m_records; }
-
 		// get resource
 		ML_NODISCARD auto get_resource() const noexcept -> passthrough_resource * { return m_resource; }
+
+		// get storage
+		ML_NODISCARD auto get_storage() const noexcept -> record_storage const & { return m_records; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		// get record
-		ML_NODISCARD auto get_record_at(size_t i) const noexcept -> memory_record
+		ML_NODISCARD auto get_record(size_t i) const noexcept -> memory_record
 		{
 			return {
 				m_records.at<id_addr>(i),
@@ -323,25 +323,25 @@ namespace ml
 		}
 
 		// get record address
-		ML_NODISCARD auto get_record_addr_at(size_t i) const noexcept -> byte_t *
+		ML_NODISCARD auto get_record_addr(size_t i) const noexcept -> byte_t *
 		{
 			return m_records.at<id_addr>(i);
 		}
 
 		// get record index
-		ML_NODISCARD auto get_record_index_at(size_t i) const noexcept -> size_t
+		ML_NODISCARD auto get_record_index(size_t i) const noexcept -> size_t
 		{
 			return m_records.at<id_index>(i);
 		}
 
 		// get record count
-		ML_NODISCARD auto get_record_count_at(size_t i) const noexcept -> size_t
+		ML_NODISCARD auto get_record_count(size_t i) const noexcept -> size_t
 		{
 			return m_records.at<id_count>(i);
 		}
 
 		// get record size
-		ML_NODISCARD auto get_record_size_at(size_t i) const noexcept -> size_t
+		ML_NODISCARD auto get_record_size(size_t i) const noexcept -> size_t
 		{
 			return m_records.at<id_size>(i);
 		}

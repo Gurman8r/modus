@@ -146,10 +146,10 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	py::class_<memory_record>(py_mem, "record")
 		.def(py::init<>())
 		.def(py::init<memory_record const &>())
-		.def(py::init([&rec = get_global<memory_manager>()->get_records()](intptr_t p)
+		.def(py::init([&rec = get_global<memory_manager>()->get_storage()](intptr_t p)
 		{
 			if (auto const i{ rec.lookup<memory_manager::id_addr>((byte_t *)p) }; i != rec.npos) {
-				return get_global<memory_manager>()->get_record_at(i);
+				return get_global<memory_manager>()->get_record(i);
 			} else {
 				return memory_record{};
 			}

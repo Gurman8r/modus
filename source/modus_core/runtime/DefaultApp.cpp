@@ -13,7 +13,7 @@ namespace ml
 		, m_imgui		{}
 		, m_dock		{ "##MainDockspace" }
 	{
-		// main loop
+		// loopsys
 		set_loop_condition(&render_window::is_open, ctx->window);
 		set_enter_callback(&default_app::on_enter, this, ctx);
 		set_exit_callback(&default_app::on_exit, this, ctx);

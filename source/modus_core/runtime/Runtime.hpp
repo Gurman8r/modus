@@ -59,18 +59,21 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime object
+	// runtime object base
 	template <class Derived
-	> struct runtime_object : trackable, non_copyable
+	> struct runtime_object
 	{
 	protected:
-		virtual ~runtime_object() noexcept override = default;
+		using runtime_base = typename runtime_object<Derived>;
+
+		virtual ~runtime_object() noexcept = default;
 
 		explicit runtime_object(runtime_context * const context) noexcept
 			: m_context{ ML_check(context) }
 		{
 		}
 
+	public:
 		ML_NODISCARD auto get_bus() const noexcept { return m_context->bus; }
 
 		ML_NODISCARD auto get_context() const noexcept { return m_context; }
@@ -91,11 +94,15 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime listener
+	// runtime listener base
 	template <class Derived
-	> struct runtime_listener : trackable, non_copyable, event_listener
+	> struct runtime_listener : event_listener
 	{
 	protected:
+		using runtime_base = typename runtime_listener<Derived>;
+
+		virtual ~runtime_listener() noexcept override = default;
+
 		explicit runtime_listener(runtime_context * const context) noexcept
 			: event_listener{ ML_check(context)->bus }
 			, m_context		{ context }
@@ -103,10 +110,9 @@ namespace ml
 			ML_assert("BUS MISMATCH" && get_bus() == get_context()->bus);
 		}
 
-		virtual ~runtime_listener() noexcept override = default;
-
 		using event_listener::on_event; // event_listener
 
+	public:
 		using event_listener::get_bus; // event_listener
 
 		ML_NODISCARD auto get_context() const noexcept { return m_context; }

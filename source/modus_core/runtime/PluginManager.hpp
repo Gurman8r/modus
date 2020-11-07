@@ -68,13 +68,20 @@ namespace ml
 namespace ml
 {
 	// plugin manager
-	struct ML_CORE_API plugin_manager final : runtime_object<plugin_manager>
+	struct ML_CORE_API plugin_manager final : runtime_object<plugin_manager>, trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		using runtime_base = runtime_object<plugin_manager>;
+	protected:
+		friend application;
 
+		explicit plugin_manager(application * const app) noexcept;
+
+		~plugin_manager() noexcept override { this->uninstall_all(); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		ML_NODISCARD auto get_app() const noexcept { return m_app; }
 
 		using runtime_base::get_bus;
@@ -162,15 +169,6 @@ namespace ml
 
 		template <class T
 		> ML_NODISCARD auto get_data(size_t i) const & noexcept -> T const & { return m_data.at<T>(i); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		friend application;
-
-		explicit plugin_manager(application * const app) noexcept;
-
-		~plugin_manager() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -6,7 +6,7 @@
 
 #include <Windows.h>
 
-extern INT main(INT, PZPSTR);
+extern INT main(INT, CHAR**);
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, INT nCmdShow)
 {

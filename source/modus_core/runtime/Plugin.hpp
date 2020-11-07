@@ -15,13 +15,22 @@ namespace ml
 
 	ML_decl_handle(plugin_id);
 
-	struct ML_CORE_API plugin : runtime_listener<plugin>
+	struct ML_CORE_API plugin : runtime_listener<plugin>, trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		using runtime_base = runtime_listener<plugin>;
+	protected:
+		friend plugin_manager;
 
+		explicit plugin(plugin_manager * manager, void * userptr) noexcept;
+
+		virtual ~plugin() noexcept override = default;
+
+		using runtime_base::on_event; // handle event
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		ML_NODISCARD auto get_app() const noexcept { return m_app; }
 
 		using runtime_base::get_bus;
@@ -45,17 +54,6 @@ namespace ml
 		ML_NODISCARD void * get_user_pointer() const noexcept { return m_userptr; }
 
 		void * set_user_pointer(void * value) noexcept { return m_userptr = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		friend plugin_manager;
-
-		explicit plugin(plugin_manager * manager, void * userptr) noexcept;
-
-		virtual ~plugin() noexcept override = default;
-
-		using runtime_base::on_event; // handle event
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

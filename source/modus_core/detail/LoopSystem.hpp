@@ -1,14 +1,13 @@
 #ifndef _ML_LOOP_SYSTEM_HPP_
 #define _ML_LOOP_SYSTEM_HPP_
 
-#include <modus_core/detail/List.hpp>
 #include <modus_core/detail/Method.hpp>
 #include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {
 	// loop system
-	struct ML_CORE_API loop_system
+	struct ML_CORE_API loop_system : trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -24,7 +23,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual ~loop_system() noexcept = default;
+		virtual ~loop_system() noexcept override = default;
 
 		loop_system(allocator_type alloc = {}) noexcept
 			: m_locked		{}
@@ -82,24 +81,20 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD int32_t operator()(bool recursive = true) noexcept
-		{
-			return this->process(recursive);
-		}
-
-		ML_NODISCARD int32_t process(bool recursive = true) noexcept
+		template <bool Recurse = true
+		> ML_NODISCARD int32_t process() noexcept
 		{
 			// lock / unlock
 			if (m_locked) { return EXIT_FAILURE * 1; }
 			else { m_locked = true; } ML_defer(&) { m_locked = false; };
 
 			// enter / exit
-			loop_system::exec(recursive, &loop_system::m_on_enter, this);
-			ML_defer(&) { loop_system::exec(recursive, &loop_system::m_on_exit, this); };
+			loop_system::exec<Recurse>(&loop_system::m_on_enter, this);
+			ML_defer(&) { loop_system::exec<Recurse>(&loop_system::m_on_exit, this); };
 			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
 			
 			// idle
-			do { loop_system::exec(recursive, &loop_system::m_on_idle, this); }
+			do { loop_system::exec<Recurse>(&loop_system::m_on_idle, this); }
 			while (check_loop_condition());
 			return EXIT_SUCCESS;
 		}
@@ -157,8 +152,6 @@ namespace ml
 			return contains(value.get());
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD auto find(subsystem const & value) noexcept -> iterator
 		{
 			return std::find(begin(), end(), value);
@@ -185,7 +178,7 @@ namespace ml
 
 		auto add_subsystem(subsystem const & value) noexcept -> subsystem
 		{
-			if (this != value.get()) { return nullptr; }
+			if (this == value.get()) { return nullptr; }
 			else if (auto const it{ find(value) }; it != end()) { return *it; }
 			else { return m_subsystems.emplace_back(value); }
 		}
@@ -253,7 +246,7 @@ namespace ml
 	protected:
 		// bind procedure
 		template <class D, class C, class Fn, class ... Args
-		> static auto bind(D C::*mp, C * self, Fn && fn, Args && ... args) -> D &
+		> static auto & bind(D C::*mp, C * self, Fn && fn, Args && ... args)
 		{
 			static_assert(std::is_base_of_v<loop_system, C>, "?");
 
@@ -270,8 +263,8 @@ namespace ml
 		}
 
 		// execute procedure
-		template <class D, class C, class ... Args
-		> static void exec(bool recursive, D C::*mp, C * self, Args && ... args)
+		template <bool Recurse = false, class D, class C, class ... Args
+		> static void exec(D C::*mp, C * self, Args && ... args)
 		{
 			static_assert(std::is_base_of_v<loop_system, C>, "?");
 
@@ -279,9 +272,9 @@ namespace ml
 
 			if (self->*mp) { std::invoke(self->*mp, ML_forward(args)...); }
 
-			if (recursive) for (subsystem & e : *self)
+			if constexpr (Recurse) for (subsystem & e : *self)
 			{
-				loop_system::exec(recursive, mp, (C *)e.get(), ML_forward(args)...);
+				loop_system::exec<true>(mp, (C *)e.get(), ML_forward(args)...);
 			}
 		}
 

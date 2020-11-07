@@ -12,11 +12,6 @@ namespace ml
 	{
 	}
 
-	plugin_manager::~plugin_manager() noexcept
-	{
-		this->uninstall_all();
-	}
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	plugin_id plugin_manager::install(fs::path const & path, void * userptr) noexcept

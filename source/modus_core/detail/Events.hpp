@@ -54,25 +54,18 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		explicit event_listener(event_bus * bus) noexcept : m_bus{ bus }
-		{
-			ML_assert_msg(m_bus, "INVALID EVENT BUS");
-		}
-
-		explicit event_listener(event_listener const & other) noexcept : event_listener{ other.m_bus }
-		{
-		}
+		explicit event_listener(event_bus * bus) noexcept : m_bus{ ML_check(bus) } {}
 
 		virtual ~event_listener() noexcept { this->unsubscribe(); }
 
+		ML_NODISCARD event_bus * get_bus() const noexcept { return m_bus; }
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual void on_event(event &&) = 0; // handle event
+	protected:
+		friend event_bus;
 
-		ML_NODISCARD event_bus * get_bus() const noexcept
-		{
-			return m_bus;
-		}
+		virtual void on_event(event &&) = 0; // handle event
 
 		template <class Ev> bool subscribe() noexcept
 		{

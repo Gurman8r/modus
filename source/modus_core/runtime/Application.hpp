@@ -6,13 +6,18 @@
 namespace ml
 {
 	// application
-	struct ML_CORE_API application : runtime_listener<application>, loop_system
+	struct ML_CORE_API application : runtime_listener<application>, loop_system, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		using runtime_base = runtime_listener<application>;
+	protected:
+		explicit application(runtime_context * const ctx) noexcept;
 
+		virtual ~application() noexcept override;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		using runtime_base::get_bus;
 
 		using runtime_base::get_context;
@@ -28,6 +33,17 @@ namespace ml
 		using runtime_base::get_window;
 
 		ML_NODISCARD auto get_plugins() const noexcept { return const_cast<plugin_manager *>(&m_plugins); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	protected:
+		using loop_system::set_loop_condition;
+
+		using loop_system::set_enter_callback;
+
+		using loop_system::set_exit_callback;
+
+		using loop_system::set_idle_callback;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -48,17 +64,11 @@ namespace ml
 			);
 		}
 
-		virtual void on_event(event && value) override // handle event
+		// handle event
+		virtual void on_event(event && value) override
 		{
-			loop_system::exec(false, &application::m_on_event, this, ML_forward(value));
+			loop_system::exec(&application::m_on_event, this, ML_forward(value));
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		explicit application(runtime_context * const ctx) noexcept;
-
-		virtual ~application() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

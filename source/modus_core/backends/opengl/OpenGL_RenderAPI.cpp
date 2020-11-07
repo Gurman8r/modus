@@ -748,47 +748,47 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ds::ref<render_context> opengl_render_device::create_context(spec<render_context> const & desc, allocator_type alloc) noexcept
+	ds::ref<render_context> opengl_render_device::new_context(spec<render_context> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_render_context>(alloc, this, desc);
 	}
 
-	ds::ref<vertexarray> opengl_render_device::create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
+	ds::ref<vertexarray> opengl_render_device::new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_vertexarray>(alloc, this, desc);
 	}
 
-	ds::ref<vertexbuffer> opengl_render_device::create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
+	ds::ref<vertexbuffer> opengl_render_device::new_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_vertexbuffer>(alloc, this, desc, data);
 	}
 
-	ds::ref<indexbuffer> opengl_render_device::create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
+	ds::ref<indexbuffer> opengl_render_device::new_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_indexbuffer>(alloc, this, desc, data);
 	}
 
-	ds::ref<texture2d> opengl_render_device::create_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept
+	ds::ref<texture2d> opengl_render_device::new_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_texture2d>(alloc, this, desc, data);
 	}
 
-	ds::ref<texturecube> opengl_render_device::create_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
+	ds::ref<texturecube> opengl_render_device::new_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_texturecube>(alloc, this, desc);
 	}
 
-	ds::ref<framebuffer> opengl_render_device::create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
+	ds::ref<framebuffer> opengl_render_device::new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_framebuffer>(alloc, this, desc);
 	}
 
-	ds::ref<program> opengl_render_device::create_program(allocator_type alloc) noexcept
+	ds::ref<program> opengl_render_device::new_program(allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_program>(alloc, this);
 	}
 
-	ds::ref<shader> opengl_render_device::create_shader(spec<shader> const & desc, allocator_type alloc) noexcept
+	ds::ref<shader> opengl_render_device::new_shader(spec<shader> const & desc, allocator_type alloc) noexcept
 	{
 		return std::allocate_shared<opengl_shader>(alloc, this, desc);
 	}
@@ -1670,7 +1670,7 @@ namespace ml::gfx
 		// color attachments
 		if (m_attachments.empty())
 		{
-			m_attachments.push_back(get_device()->create_texture2d({
+			m_attachments.push_back(get_device()->new_texture2d({
 				m_size,
 				m_format,
 				m_flags
@@ -1695,7 +1695,7 @@ namespace ml::gfx
 		}
 		else
 		{
-			m_depth = get_device()->create_texture2d({
+			m_depth = get_device()->new_texture2d({
 				m_size,
 				{ format_depth24_stencil8, format_depth_stencil, type_uint_24_8 },
 				m_flags

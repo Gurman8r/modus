@@ -234,11 +234,11 @@ namespace ml
 	{
 		constexpr typeof() noexcept = default;
 
-		ML_NODISCARD static constexpr static_string const & name() noexcept { return nameof_v<T>; }
+		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return this->hash(); }
 
 		ML_NODISCARD static constexpr hash_t const & hash() noexcept { return hashof_v<T>; }
 
-		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return hash(); }
+		ML_NODISCARD static constexpr static_string const & name() noexcept { return nameof_v<T>; }
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -252,19 +252,19 @@ namespace ml
 
 		template <class ... T
 		> constexpr typeof(typeof<T...> const & other) noexcept
-			: m_name{ other.name() }, m_hash{ other.hash() }
+			: m_hash{ other.hash() }, m_name{ other.name() }
 		{
 		}
 
-		ML_NODISCARD constexpr static_string const & name() const & noexcept { return m_name; }
+		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return this->hash(); }
 
 		ML_NODISCARD constexpr hash_t const & hash() const & noexcept { return m_hash; }
 
-		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return hash(); }
+		ML_NODISCARD constexpr static_string const & name() const & noexcept { return m_name; }
 
 	private:
-		static_string	m_name	; // type name
 		hash_t			m_hash	; // hash code
+		static_string	m_name	; // type name
 	};
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

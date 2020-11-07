@@ -56,7 +56,7 @@ namespace ml
 		}
 
 		// create render context
-		m_dev->set_context(m_ctx = m_dev->create_context(
+		m_dev->set_context(m_ctx = m_dev->new_context(
 		{
 			cs.api,
 			cs.major,

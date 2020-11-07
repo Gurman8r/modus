@@ -677,23 +677,23 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual ds::ref<render_context> create_context(spec<render_context> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<render_context> new_context(spec<render_context> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<vertexarray> create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<vertexbuffer> create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<vertexbuffer> new_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<indexbuffer> create_indexbuffer(spec<indexbuffer> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<indexbuffer> new_indexbuffer(spec<indexbuffer> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<texture2d> create_texture2d(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<texture2d> new_texture2d(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<texturecube> create_texturecube(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<texturecube> new_texturecube(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<framebuffer> create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<framebuffer> new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<program> create_program(allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<program> new_program(allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<shader> create_shader(spec<shader> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<shader> new_shader(spec<shader> const & desc, allocator_type alloc = {}) noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -892,7 +892,7 @@ namespace ml::gfx
 
 		ML_NODISCARD static auto create(spec_type const & desc, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->create_context(desc, alloc);
+			return get_global<render_device>()->new_context(desc, alloc);
 		}
 
 	public:
@@ -1024,7 +1024,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<vertexarray> const & desc = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->create_vertexarray(desc, alloc);
+			return get_global<render_device>()->new_vertexarray(desc, alloc);
 		}
 
 	public:
@@ -1095,7 +1095,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<vertexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->create_vertexbuffer(desc, data, alloc);
+			return get_global<render_device>()->new_vertexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1166,7 +1166,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<indexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->create_indexbuffer(desc, data, alloc);
+			return get_global<render_device>()->new_indexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1349,7 +1349,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->create_texture2d(desc, data);
+			return get_global<render_device>()->new_texture2d(desc, data);
 		}
 
 		ML_NODISCARD static auto create(bitmap const & img, texture_flags_ flags = texture_flags_default) noexcept
@@ -1437,7 +1437,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->create_texturecube(desc, alloc);
+			return get_global<render_device>()->new_texturecube(desc, alloc);
 		}
 
 	public:
@@ -1517,7 +1517,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->create_framebuffer(desc, alloc);
+			return get_global<render_device>()->new_framebuffer(desc, alloc);
 		}
 
 	public:
@@ -1593,7 +1593,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create() noexcept
 		{
-			return get_global<render_device>()->create_program();
+			return get_global<render_device>()->new_program();
 		}
 
 	public:
@@ -1718,7 +1718,7 @@ namespace ml::gfx
 	public:
 		ML_NODISCARD static auto create(spec<shader> const & desc, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->create_shader(desc, alloc);
+			return get_global<render_device>()->new_shader(desc, alloc);
 		}
 
 	public:

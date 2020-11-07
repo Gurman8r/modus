@@ -45,23 +45,23 @@ namespace ml::gfx
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::ref<render_context> create_context(spec<render_context> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<render_context> new_context(spec<render_context> const & desc, allocator_type alloc) noexcept override;
 
-		ds::ref<vertexarray> create_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept override;
 
-		ds::ref<vertexbuffer> create_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
+		ds::ref<vertexbuffer> new_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
 
-		ds::ref<indexbuffer> create_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
+		ds::ref<indexbuffer> new_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
 
-		ds::ref<texture2d> create_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept override;
+		ds::ref<texture2d> new_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept override;
 
-		ds::ref<texturecube> create_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<texturecube> new_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept override;
 
-		ds::ref<framebuffer> create_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<framebuffer> new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept override;
 
-		ds::ref<program> create_program(allocator_type alloc) noexcept override;
+		ds::ref<program> new_program(allocator_type alloc) noexcept override;
 
-		ds::ref<shader> create_shader(spec<shader> const & desc, allocator_type alloc) noexcept override;
+		ds::ref<shader> new_shader(spec<shader> const & desc, allocator_type alloc) noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

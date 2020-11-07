@@ -38,7 +38,7 @@ namespace ml
 			// load plugin
 			if (auto const p{ m_data.back<plugin_installer>().create(this, userptr) })
 			{
-				m_data.back<ds::manual<plugin>>().reset(p);
+				m_data.back<plugin_instance>().reset(p);
 
 				return id;
 			}
@@ -54,7 +54,7 @@ namespace ml
 		; i == m_data.npos) { return false; }
 		else
 		{
-			auto const p{ m_data.at<ds::manual<plugin>>(i).release() };
+			auto const p{ m_data.at<plugin_instance>(i).release() };
 			m_data.at<plugin_installer>(i).destroy(this, p);
 			m_data.erase(i);
 			return true;

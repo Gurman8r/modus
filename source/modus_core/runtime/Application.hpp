@@ -10,7 +10,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
+	public:
 		explicit application(runtime_context * const ctx) noexcept;
 
 		virtual ~application() noexcept override;
@@ -26,7 +26,7 @@ namespace ml
 
 		using runtime_base::get_io;
 
-		using runtime_base::get_loopsys;
+		using runtime_base::get_main_loop;
 
 		using runtime_base::get_memory;
 
@@ -36,23 +36,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using loop_system::set_loop_condition;
-
-		using loop_system::set_enter_callback;
-
-		using loop_system::set_exit_callback;
-
-		using loop_system::set_idle_callback;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		using event_callback = typename ds::method<void(event &&)>;
-
-		virtual void on_event(event && value) override // handle event
-		{
-			loop_system::exec(&application::m_on_event, this, ML_forward(value));
-		}
+	public:
+		using event_callback = typename ds::method< void(event &&) >;
 
 		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const &
 		{
@@ -62,10 +47,13 @@ namespace ml
 		template <class Fn, class ... Args
 		> auto set_event_callback(Fn && fn, Args && ... args) noexcept -> event_callback &
 		{
-			return loop_system::bind
-			(
-				&application::m_on_event, this, ML_forward(fn), std::placeholders::_1, ML_forward(args)...
-			);
+			return m_on_event = std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
+		}
+
+	protected:
+		virtual void on_event(event && value) override // event_listener
+		{
+			loop_system::exec(&application::m_on_event, this, ML_forward(value));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -30,9 +30,9 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void set_context(ds::ref<render_context> const & value) noexcept override { m_ctx = value; }
-
 		ds::ref<render_context> const & get_context() const noexcept override { return m_ctx; }
+
+		ds::ref<render_context> & set_context(ds::ref<render_context> const & value) noexcept override { return m_ctx = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

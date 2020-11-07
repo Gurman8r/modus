@@ -81,7 +81,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <bool Recurse = true
+		template <bool Recursive = true
 		> ML_NODISCARD int32_t process() noexcept
 		{
 			// lock / unlock
@@ -89,12 +89,12 @@ namespace ml
 			else { m_locked = true; } ML_defer(&) { m_locked = false; };
 
 			// enter / exit
-			loop_system::exec<Recurse>(&loop_system::m_on_enter, this);
-			ML_defer(&) { loop_system::exec<Recurse>(&loop_system::m_on_exit, this); };
-			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
-			
+			loop_system::exec<Recursive>(&loop_system::m_on_enter, this);
+			ML_defer(&) { loop_system::exec<Recursive>(&loop_system::m_on_exit, this); };
+
 			// idle
-			do { loop_system::exec<Recurse>(&loop_system::m_on_idle, this); }
+			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
+			do { loop_system::exec<Recursive>(&loop_system::m_on_idle, this); }
 			while (check_loop_condition());
 			return EXIT_SUCCESS;
 		}
@@ -116,25 +116,29 @@ namespace ml
 		template <class Fn, class ... Args
 		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition &
 		{
-			return loop_system::bind(&loop_system::m_loopcond, this, ML_forward(fn), ML_forward(args)...);
+			if constexpr (0 == sizeof...(args)) { return m_loopcond = ML_forward(fn); }
+			else { return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...); }
 		}
 
 		template <class Fn, class ... Args
 		> auto set_enter_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			return loop_system::bind(&loop_system::m_on_enter, this, ML_forward(fn), ML_forward(args)...);
+			if constexpr (0 == sizeof...(args)) { return m_on_enter = ML_forward(fn); }
+			else { return m_on_enter = std::bind(ML_forward(fn), ML_forward(args)...); }
 		}
 
 		template <class Fn, class ... Args
 		> auto set_exit_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			return loop_system::bind(&loop_system::m_on_exit, this, ML_forward(fn), ML_forward(args)...);
+			if constexpr (0 == sizeof...(args)) { return m_on_exit = ML_forward(fn); }
+			else { return m_on_exit = std::bind(ML_forward(fn), ML_forward(args)...); }
 		}
 
 		template <class Fn, class ... Args
 		> auto set_idle_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			return loop_system::bind(&loop_system::m_on_idle, this, ML_forward(fn), ML_forward(args)...);
+			if constexpr (0 == sizeof...(args)) { return m_on_idle = ML_forward(fn); }
+			else { return m_on_idle = std::bind(ML_forward(fn), ML_forward(args)...); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -149,7 +153,7 @@ namespace ml
 
 		ML_NODISCARD bool contains(subsystem const & value) const noexcept
 		{
-			return contains(value.get());
+			return end() != find(value);
 		}
 
 		ML_NODISCARD auto find(subsystem const & value) noexcept -> iterator
@@ -215,8 +219,6 @@ namespace ml
 
 		ML_NODISCARD auto operator[](size_t const i) && noexcept -> subsystem & { return std::move(m_subsystems[i]); }
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD auto begin() noexcept -> iterator { return m_subsystems.begin(); }
 
 		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_subsystems.begin(); }
@@ -244,26 +246,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		// bind procedure
-		template <class D, class C, class Fn, class ... Args
-		> static auto & bind(D C::*mp, C * self, Fn && fn, Args && ... args)
-		{
-			static_assert(std::is_base_of_v<loop_system, C>, "?");
-
-			ML_assert(self && mp);
-
-			if constexpr (0 == sizeof...(args))
-			{
-				return self->*mp = ML_forward(fn);
-			}
-			else
-			{
-				return self->*mp = std::bind(ML_forward(fn), ML_forward(args)...);
-			}
-		}
-
-		// execute procedure
-		template <bool Recurse = false, class D, class C, class ... Args
+		// execute member procedure
+		template <bool Recursive = false, class D, class C, class ... Args
 		> static void exec(D C::*mp, C * self, Args && ... args)
 		{
 			static_assert(std::is_base_of_v<loop_system, C>, "?");
@@ -272,9 +256,9 @@ namespace ml
 
 			if (self->*mp) { std::invoke(self->*mp, ML_forward(args)...); }
 
-			if constexpr (Recurse) for (subsystem & e : *self)
+			if constexpr (Recursive) for (subsystem & e : *self)
 			{
-				loop_system::exec<true>(mp, (C *)e.get(), ML_forward(args)...);
+				loop_system::exec<true>(mp, reinterpret_cast<C *>(e.get()), ML_forward(args)...);
 			}
 		}
 

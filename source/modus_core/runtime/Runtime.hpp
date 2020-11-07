@@ -49,12 +49,12 @@ namespace ml
 	// runtime context
 	struct ML_NODISCARD runtime_context final
 	{
-		memory_manager	* const memory	; // memory manager
-		runtime_io		* const io		; // runtime I/O
-		simple_database	* const db		; // database
-		event_bus		* const bus		; // event bus
-		render_window	* const window	; // render window
-		loop_system		* const loopsys	; // loop system
+		memory_manager	* const memory		; // memory manager
+		runtime_io		* const io			; // runtime I/O
+		simple_database	* const database	; // database
+		event_bus		* const bus			; // event bus
+		render_window	* const window		; // render window
+		loop_system		* const mainloop	; // loop system
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -63,10 +63,11 @@ namespace ml
 	template <class Derived
 	> struct runtime_object
 	{
-	protected:
+	public:
 		using runtime_base = typename runtime_object<Derived>;
 
-		virtual ~runtime_object() noexcept = default;
+	protected:
+		virtual ~runtime_object() noexcept = default; // ~
 
 		explicit runtime_object(runtime_context * const context) noexcept
 			: m_context{ ML_check(context) }
@@ -78,11 +79,11 @@ namespace ml
 
 		ML_NODISCARD auto get_context() const noexcept { return m_context; }
 
-		ML_NODISCARD auto get_db() const noexcept { return m_context->db; }
+		ML_NODISCARD auto get_db() const noexcept { return m_context->database; }
 
 		ML_NODISCARD auto get_io() const noexcept { return m_context->io; }
 
-		ML_NODISCARD auto get_loopsys() const noexcept { return m_context->loopsys; }
+		ML_NODISCARD auto get_main_loop() const noexcept { return m_context->mainloop; }
 
 		ML_NODISCARD auto get_memory() const noexcept { return m_context->memory; }
 
@@ -98,10 +99,11 @@ namespace ml
 	template <class Derived
 	> struct runtime_listener : event_listener
 	{
-	protected:
+	public:
 		using runtime_base = typename runtime_listener<Derived>;
 
-		virtual ~runtime_listener() noexcept override = default;
+	protected:
+		virtual ~runtime_listener() noexcept override = default; // ~
 
 		explicit runtime_listener(runtime_context * const context) noexcept
 			: event_listener{ ML_check(context)->bus }
@@ -117,11 +119,11 @@ namespace ml
 
 		ML_NODISCARD auto get_context() const noexcept { return m_context; }
 
-		ML_NODISCARD auto get_db() const noexcept { return m_context->db; }
+		ML_NODISCARD auto get_db() const noexcept { return m_context->database; }
 		
 		ML_NODISCARD auto get_io() const noexcept { return m_context->io; }
 
-		ML_NODISCARD auto get_loopsys() const noexcept { return m_context->loopsys; }
+		ML_NODISCARD auto get_main_loop() const noexcept { return m_context->mainloop; }
 
 		ML_NODISCARD auto get_memory() const noexcept { return m_context->memory; }
 

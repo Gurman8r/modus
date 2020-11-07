@@ -13,7 +13,7 @@ namespace ml
 
 		explicit default_app(runtime_context * const ctx) noexcept;
 
-		~default_app() noexcept override;
+		~default_app() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -30,27 +30,6 @@ namespace ml
 
 		ds::manual<ImGuiContext>	m_imgui	; // imgui
 		ImGuiExt::Dockspace			m_dock	; // dockspace
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD static auto idle_benchmarks(runtime_io * io) noexcept
-		{
-			io->loop_timer.restart();
-
-			auto const dt{ (float_t)io->delta_time.count() };
-			io->fps_accum += dt - io->fps_times[io->fps_index];
-			io->fps_times[io->fps_index] = dt;
-			io->fps_index = (io->fps_index + 1) % io->fps_times.size();
-			io->fps = (0.f < io->fps_accum)
-				? 1.f / (io->fps_accum / (float_t)io->fps_times.size())
-				: FLT_MAX;
-
-			return ML_defer_ex(io) // deferred
-			{
-				++io->frame_count;
-				io->delta_time = io->loop_timer.elapsed();
-			};
-		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

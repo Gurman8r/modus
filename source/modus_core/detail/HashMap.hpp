@@ -13,10 +13,10 @@ namespace ml::ds
 		class Val,
 		class Hasher = std::hash<Key>,
 		class Equals = std::equal_to<Key>
-	> struct hashmap : public pmr::unordered_map<Key, Val, Hasher, Equals>
-	{
-		using pmr::unordered_map<Key, Val, Hasher, Equals>::unordered_map;
-	};
+	> ML_alias hashmap = typename pmr::unordered_map
+	<
+		Key, Val, Hasher, Equals
+	>;
 }
 
 #endif // !_ML_HASH_MAP_HPP_

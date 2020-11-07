@@ -665,7 +665,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual ds::ref<render_context> const & get_context() const noexcept = 0;
 
-		virtual void set_context(ds::ref<render_context> const & value) noexcept = 0;
+		virtual ds::ref<render_context> & set_context(ds::ref<render_context> const & value) noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -747,7 +747,7 @@ namespace ml::gfx
 
 		ML_NODISCARD inline auto get_device() const noexcept -> render_device * { return m_parent; }
 
-		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const & { return m_parent->get_context(); }
+		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const & { return ML_check(m_parent)->get_context(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -2,7 +2,7 @@
 #define _ML_PLUGIN_MANAGER_HPP_
 
 #include <modus_core/runtime/Plugin.hpp>
-#include <modus_core/detail/SharedLibrary.hpp>
+#include <modus_core/runtime/SharedLibrary.hpp>
 
 // DETAILS
 namespace ml
@@ -67,12 +67,15 @@ namespace ml
 // MANAGER
 namespace ml
 {
+	// plugin instance
+	ML_alias plugin_instance = typename ds::manual<plugin>;
+
 	// plugin manager
 	struct ML_CORE_API plugin_manager final : runtime_object<plugin_manager>, trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
+	private:
 		friend application;
 
 		explicit plugin_manager(application * const app) noexcept;
@@ -92,7 +95,7 @@ namespace ml
 
 		using runtime_base::get_io;
 
-		using runtime_base::get_loopsys;
+		using runtime_base::get_main_loop;
 
 		using runtime_base::get_memory;
 
@@ -100,6 +103,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		static auto make_id(fs::path const & path) noexcept
 		{
 			return (plugin_id)hashof(shared_library::format_path(path).string());
@@ -111,7 +115,7 @@ namespace ml
 			plugin_details		,	// details
 			plugin_installer	,	// installer
 			shared_library		,	// library
-			ds::manual<plugin>		// plugin
+			plugin_instance			// plugin
 		>;
 
 		plugin_id install(fs::path const & path, void * userptr = nullptr) noexcept;
@@ -142,16 +146,16 @@ namespace ml
 
 		ML_NODISCARD bool contains(plugin const * value) const noexcept
 		{
-			using P = ds::manual<plugin>;
-			return m_data.end<P>() != m_data.find_if<P>([value](P const & e) noexcept
+			return m_data.end<plugin_instance>() != m_data.find_if<plugin_instance>([&
+			](plugin_instance const & e) noexcept
 			{
 				return value == e.get();
 			});
 		}
 
-		ML_NODISCARD bool contains(ds::manual<plugin> const & value) const noexcept
+		ML_NODISCARD bool contains(plugin_instance const & value) const noexcept
 		{
-			return m_data.contains<ds::manual<plugin>>(value);
+			return m_data.contains<plugin_instance>(value);
 		}
 
 		ML_NODISCARD auto get_data() noexcept -> plugin_storage & { return m_data; }

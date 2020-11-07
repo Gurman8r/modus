@@ -58,14 +58,12 @@ namespace ml
 
 		virtual ~event_listener() noexcept { this->unsubscribe(); }
 
-		ML_NODISCARD event_bus * get_bus() const noexcept { return m_bus; }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
-		friend event_bus;
-
-		virtual void on_event(event &&) = 0; // handle event
+		ML_NODISCARD event_bus * get_bus() const noexcept
+		{
+			return m_bus;
+		}
 
 		template <class Ev> bool subscribe() noexcept
 		{
@@ -74,15 +72,22 @@ namespace ml
 
 		template <class ... Ev> void unsubscribe() noexcept
 		{
-			if constexpr (0 == sizeof...(Ev))
-			{
-				ML_check(m_bus)->remove_listener(this);
-			}
-			else
+			if constexpr (0 < sizeof...(Ev))
 			{
 				ML_check(m_bus)->remove_listener<Ev...>(this);
 			}
+			else
+			{
+				ML_check(m_bus)->remove_listener(this);
+			}
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	protected:
+		friend event_bus;
+
+		virtual void on_event(event &&) = 0; // handle event
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

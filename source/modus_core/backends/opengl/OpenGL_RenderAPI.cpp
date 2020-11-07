@@ -1213,7 +1213,7 @@ namespace ml::gfx
 		{
 			auto const & e{ m_layout.elements()[i] };
 
-			if (uint32_t const type{ std::invoke([&]() noexcept -> uint32_t
+			if (auto const type{ std::invoke([&]() noexcept -> uint32_t
 			{
 				switch (e.get_base_type())
 				{

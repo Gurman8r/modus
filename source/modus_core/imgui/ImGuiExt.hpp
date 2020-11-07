@@ -112,14 +112,14 @@ namespace ml::ImGuiExt
 		bool		IsOpen		; // is open
 		int32_t		WinFlags	; // window flags
 
-		BasicPanel(cstring title, bool open = false, int32_t winflags = ImGuiWindowFlags_None) noexcept
+		constexpr BasicPanel(cstring title, bool open = false, int32_t winflags = ImGuiWindowFlags_None) noexcept
 			: Title		{ title }
 			, IsOpen	{ open }
 			, WinFlags	{ winflags }
 		{
 		}
 
-		BasicPanel(BasicPanel const & other) noexcept
+		constexpr BasicPanel(BasicPanel const & other) noexcept
 			: BasicPanel{ other.Title, other.IsOpen, other.WinFlags }
 		{
 		}
@@ -157,12 +157,12 @@ namespace ml::ImGuiExt
 	// PANEL
 	struct ML_NODISCARD Panel : BasicPanel<Panel>
 	{
-		Panel(cstring title, bool open = false, int32_t winflags = ImGuiWindowFlags_None) noexcept
+		constexpr Panel(cstring title, bool open = false, int32_t winflags = ImGuiWindowFlags_None) noexcept
 			: BasicPanel{ title, open, winflags }
 		{
 		}
 
-		Panel(Panel const & other) noexcept : BasicPanel{ other }
+		constexpr Panel(Panel const & other) noexcept : BasicPanel{ other }
 		{
 		}
 
@@ -212,7 +212,7 @@ namespace ml::ImGuiExt
 			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
 		}
 
-		Dockspace(
+		constexpr Dockspace(
 			cstring			title		= "Dockspace",
 			bool			open		= true,
 			float_t			border		= {},
@@ -231,7 +231,7 @@ namespace ml::ImGuiExt
 			, DockFlags		{ dockflags }
 		{}
 
-		Dockspace(Dockspace const & other) noexcept : Dockspace{
+		constexpr Dockspace(Dockspace const & other) noexcept : Dockspace{
 			other.Title,
 			other.IsOpen,
 			other.Border,

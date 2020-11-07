@@ -22,11 +22,11 @@ namespace ml
 	protected:
 		friend plugin_manager;
 
-		explicit plugin(plugin_manager * manager, void * userptr) noexcept;
+		explicit plugin(plugin_manager * manager, void * userptr = nullptr) noexcept;
 
 		virtual ~plugin() noexcept override = default;
 
-		using runtime_base::on_event; // handle event
+		using runtime_base::on_event; // event_listener
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -41,7 +41,7 @@ namespace ml
 
 		using runtime_base::get_io;
 
-		using runtime_base::get_loopsys;
+		using runtime_base::get_main_loop;
 
 		ML_NODISCARD auto get_manager() const noexcept { return m_manager; }
 		
@@ -51,6 +51,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		ML_NODISCARD void * get_user_pointer() const noexcept { return m_userptr; }
 
 		void * set_user_pointer(void * value) noexcept { return m_userptr = value; }

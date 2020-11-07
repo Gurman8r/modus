@@ -37,7 +37,7 @@ namespace ml
 		template <class Arg0, class ... Args
 		> void execute(Arg0 && arg0, Args && ... args) const noexcept
 		{
-			gfx::execute(get_render_context(), ML_forward(arg0), ML_forward(args)...);
+			gfx::execute(m_ctx, ML_forward(arg0), ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

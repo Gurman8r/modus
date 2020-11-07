@@ -5,7 +5,7 @@
 
 namespace ml::gfx
 {
-	// command executor helper
+	// command executor
 	template <class Ctx, class Arg0, class ... Args
 	> static void execute(Ctx && ctx, Arg0 && arg0, Args && ... args) noexcept
 	{

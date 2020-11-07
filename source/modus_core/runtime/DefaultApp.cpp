@@ -1,6 +1,6 @@
 #include <modus_core/runtime/DefaultApp.hpp>
-#include <modus_core/runtime/RuntimeEvents.hpp>
 #include <modus_core/embed/Python.hpp>
+#include <modus_core/runtime/RuntimeEvents.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 
@@ -46,13 +46,11 @@ namespace ml
 		}, ctx);
 	}
 
-	default_app::~default_app() noexcept {}
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	void default_app::on_enter(runtime_context * const ctx)
 	{
-		// preferences
+		// PREFS
 		ML_assert(ctx->io->prefs.contains("runtime"));
 		auto & runtime_prefs{ ctx->io->prefs["runtime"] };
 		bool const install_callbacks{ runtime_prefs["callbacks"] };
@@ -163,6 +161,8 @@ namespace ml
 		ctx->bus->fire<app_enter_event>(this);
 	}
 
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	void default_app::on_exit(runtime_context * const ctx)
 	{
 		// exit event
@@ -178,10 +178,23 @@ namespace ml
 		ML_assert(Py_FinalizeEx() == EXIT_SUCCESS);
 	}
 
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	void default_app::on_idle(runtime_context * const ctx)
 	{
 		// benchmarks
-		auto ML_anon{ idle_benchmarks(ctx->io) };
+		ctx->io->loop_timer.restart();
+		auto const dt{ (float_t)ctx->io->delta_time.count() };
+		ctx->io->fps_accum += dt - ctx->io->fps_times[ctx->io->fps_index];
+		ctx->io->fps_times[ctx->io->fps_index] = dt;
+		ctx->io->fps_index = (ctx->io->fps_index + 1) % ctx->io->fps_times.size();
+		ctx->io->fps = (0.f < ctx->io->fps_accum)
+			? 1.f / (ctx->io->fps_accum / (float_t)ctx->io->fps_times.size())
+			: FLT_MAX;
+		ML_defer(&ctx) {
+			++ctx->io->frame_count;
+			ctx->io->delta_time = ctx->io->loop_timer.elapsed();
+		};
 
 		// poll events
 		ctx->window->poll_events();

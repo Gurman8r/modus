@@ -59,7 +59,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// global wrapper
+	// global wrapper (WIP/testing)
 	template <class T> struct global_wrapper final
 	{
 		using type = typename std::_Remove_cvref_t<T>;

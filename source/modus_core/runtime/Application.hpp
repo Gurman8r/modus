@@ -32,16 +32,39 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
+		using event_callback = typename ds::method<void(event &&)>;
+
+		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const &
+		{
+			return m_on_event;
+		}
+
+		template <class Fn, class ... Args
+		> auto set_event_callback(Fn && fn, Args && ... args) noexcept -> event_callback &
+		{
+			return loop_system::bind
+			(
+				&application::m_on_event, this, ML_forward(fn), std::placeholders::_1, ML_forward(args)...
+			);
+		}
+
+		virtual void on_event(event && value) override // handle event
+		{
+			loop_system::exec(false, &application::m_on_event, this, ML_forward(value));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	protected:
 		explicit application(runtime_context * const ctx) noexcept;
 
 		virtual ~application() noexcept override;
 
-		using runtime_base::on_event; // handle event
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		plugin_manager m_plugins;
+		event_callback m_on_event	; // event callback
+		plugin_manager m_plugins	; // plugin manager
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

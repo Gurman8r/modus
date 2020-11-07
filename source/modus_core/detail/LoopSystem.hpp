@@ -90,16 +90,16 @@ namespace ml
 		ML_NODISCARD int32_t process(bool recursive = true) noexcept
 		{
 			// lock / unlock
-			if (!do_lock()) { return EXIT_FAILURE * 1; }
-			ML_defer(&) { do_unlock(); };
+			if (m_locked) { return EXIT_FAILURE * 1; }
+			else { m_locked = true; } ML_defer(&) { m_locked = false; };
 
 			// enter / exit
-			do_invoke(&loop_system::m_on_enter, recursive);
-			ML_defer(&) { do_invoke(&loop_system::m_on_exit, recursive); };
+			loop_system::exec(recursive, &loop_system::m_on_enter, this);
+			ML_defer(&) { loop_system::exec(recursive, &loop_system::m_on_exit, this); };
 			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
-
+			
 			// idle
-			do { do_invoke(&loop_system::m_on_idle, recursive); }
+			do { loop_system::exec(recursive, &loop_system::m_on_idle, this); }
 			while (check_loop_condition());
 			return EXIT_SUCCESS;
 		}
@@ -121,25 +121,25 @@ namespace ml
 		template <class Fn, class ... Args
 		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition &
 		{
-			return this->do_bind(&loop_system::m_loopcond, ML_forward(fn), ML_forward(args)...);
+			return loop_system::bind(&loop_system::m_loopcond, this, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_enter_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			return this->do_bind(&loop_system::m_on_enter, ML_forward(fn), ML_forward(args)...);
+			return loop_system::bind(&loop_system::m_on_enter, this, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_exit_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			return this->do_bind(&loop_system::m_on_exit, ML_forward(fn), ML_forward(args)...);
+			return loop_system::bind(&loop_system::m_on_exit, this, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_idle_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			return this->do_bind(&loop_system::m_on_idle, ML_forward(fn), ML_forward(args)...);
+			return loop_system::bind(&loop_system::m_on_idle, this, ML_forward(fn), ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -251,35 +251,38 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		// lock internal
-		bool do_lock() noexcept
+		// bind procedure
+		template <class D, class C, class Fn, class ... Args
+		> static auto bind(D C::*mp, C * self, Fn && fn, Args && ... args) -> D &
 		{
-			return !m_locked && (m_locked = true);
+			static_assert(std::is_base_of_v<loop_system, C>, "?");
+
+			ML_assert(self && mp);
+
+			if constexpr (0 == sizeof...(args))
+			{
+				return self->*mp = ML_forward(fn);
+			}
+			else
+			{
+				return self->*mp = std::bind(ML_forward(fn), ML_forward(args)...);
+			}
 		}
 
-		// unlock internal
-		bool do_unlock() noexcept
+		// execute procedure
+		template <class D, class C, class ... Args
+		> static void exec(bool recursive, D C::*mp, C * self, Args && ... args)
 		{
-			return m_locked && !(m_locked = false);
-		}
+			static_assert(std::is_base_of_v<loop_system, C>, "?");
 
-		// bind internal
-		template <class Member, class Fn, class ... Args
-		> auto do_bind(Member loop_system::*mp, Fn && fn, Args && ... args) noexcept -> Member &
-		{
-			if constexpr (0 == sizeof...(args)) { return this->*mp = ML_forward(fn); }
-			else { return this->*mp = std::bind(ML_forward(fn), ML_forward(args)...); }
-		}
+			ML_assert(self && mp);
 
-		// invoke internal
-		template <class Member
-		> auto do_invoke(Member loop_system::*mp, bool recursive) noexcept -> Member &
-		{
-			if (this->*mp) { std::invoke(this->*mp); }
-			
-			if (recursive) for (auto & e : *this) { e->do_invoke(mp, recursive); }
+			if (self->*mp) { std::invoke(self->*mp, ML_forward(args)...); }
 
-			return this->*mp;
+			if (recursive) for (subsystem & e : *self)
+			{
+				loop_system::exec(recursive, mp, (C *)e.get(), ML_forward(args)...);
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

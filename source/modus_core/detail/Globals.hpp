@@ -57,14 +57,6 @@ namespace ml
 		return _ML_GLOBALS set<U>(static_cast<U *>(value));
 	}
 
-	// release global
-	template <class T> auto release_global() noexcept
-	{
-		auto const temp{ _ML get_global<T>() };
-		_ML set_global<T>(nullptr);
-		return temp;
-	}
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// global wrapper
@@ -81,8 +73,6 @@ namespace ml
 		ML_NODISCARD auto get() const noexcept { return _ML get_global<type>(); }
 
 		auto set(void * value) const noexcept { return _ML set_global<type>(value); }
-
-		auto release() const noexcept { return _ML release_global<type>(); }
 
 		auto operator=(void * value) const noexcept { return _ML set_global<type>(value); }
 

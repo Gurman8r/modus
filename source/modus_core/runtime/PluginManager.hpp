@@ -93,6 +93,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		static auto make_id(fs::path const & path) noexcept
+		{
+			return (plugin_id)hashof(shared_library::format_path(path).string());
+		}
+
 		using plugin_storage = typename ds::batch_vector
 		<
 			plugin_id			,	// id
@@ -102,14 +107,9 @@ namespace ml
 			ds::manual<plugin>		// plugin
 		>;
 
-		static auto make_id(fs::path const & path) noexcept
-		{
-			return (plugin_id)hashof(shared_library::format_path(path).string());
-		}
+		plugin_id install(fs::path const & path, void * userptr = nullptr) noexcept;
 
-		plugin_id install(fs::path const & path, void * userptr = nullptr) noexcept; // install plugin
-
-		bool uninstall(plugin_id value) noexcept; // uninstall plugin
+		bool uninstall(plugin_id value) noexcept;
 
 		void uninstall_all() noexcept
 		{

@@ -11,18 +11,39 @@ namespace ml
 	default_app::default_app(runtime_context * const ctx) noexcept
 		: application	{ ctx }
 		, m_imgui		{}
-		, m_dockspace	{ "##MainDockspace" }
+		, m_dock		{ "##MainDockspace" }
 	{
-		// events
-		subscribe<window_key_event>();
-		subscribe<window_mouse_event>();
-		subscribe<window_cursor_pos_event>();
-
-		// loopsys
+		// main loop
 		set_loop_condition(&render_window::is_open, ctx->window);
 		set_enter_callback(&default_app::on_enter, this, ctx);
 		set_exit_callback(&default_app::on_exit, this, ctx);
 		set_idle_callback(&default_app::on_idle, this, ctx);
+
+		// events
+		subscribe<window_key_event>();
+		subscribe<window_mouse_event>();
+		subscribe<window_cursor_pos_event>();
+		set_event_callback([](event && value, runtime_context * ctx)
+		{
+			switch (value)
+			{
+			case window_key_event::ID: {
+				auto && ev{ (window_key_event &&)value };
+				ctx->io->keyboard[ev.key] = ev.action;
+			} break;
+
+			case window_mouse_event::ID: {
+				auto && ev{ (window_mouse_event &&)value };
+				ctx->io->mouse[ev.button] = ev.action;
+			} break;
+
+			case window_cursor_pos_event::ID: {
+				auto && ev{ (window_cursor_pos_event &&)value };
+				ctx->io->cursor = { ev.x, ev.y };
+			} break;
+			}
+
+		}, ctx);
 	}
 
 	default_app::~default_app() noexcept {}
@@ -105,11 +126,11 @@ namespace ml
 		ML_assert(ImGui_Startup(ctx->window, install_callbacks));
 		if (runtime_prefs.contains("dockspace")) {
 			auto & dock_prefs{ runtime_prefs["dockspace"] };
-			dock_prefs["alpha"].get_to(m_dockspace.Alpha);
-			dock_prefs["border"].get_to(m_dockspace.Border);
-			dock_prefs["padding"].get_to(m_dockspace.Padding);
-			dock_prefs["rounding"].get_to(m_dockspace.Rounding);
-			dock_prefs["size"].get_to(m_dockspace.Size);
+			dock_prefs["alpha"].get_to(m_dock.Alpha);
+			dock_prefs["border"].get_to(m_dock.Border);
+			dock_prefs["padding"].get_to(m_dock.Padding);
+			dock_prefs["rounding"].get_to(m_dock.Rounding);
+			dock_prefs["size"].get_to(m_dock.Size);
 		}
 		if (runtime_prefs.contains("guistyle")) {
 			auto & style_prefs{ runtime_prefs["guistyle"] };
@@ -174,13 +195,13 @@ namespace ml
 			ML_ImGui_ScopeID(this);
 
 			ML_flag_write(
-				m_dockspace.WinFlags,
+				m_dock.WinFlags,
 				ImGuiWindowFlags_MenuBar,
 				ImGui::FindWindowByName("##MainMenuBar"));
-			m_dockspace(m_imgui->Viewports[0], [&]() noexcept
+			m_dock(m_imgui->Viewports[0], [&]() noexcept
 			{
 				// imgui dockspace event
-				ctx->bus->fire<imgui_dockspace_event>(&m_dockspace);
+				ctx->bus->fire<imgui_dockspace_event>(&m_dock);
 			});
 
 			// imgui render event
@@ -189,27 +210,6 @@ namespace ml
 
 		// swap buffers
 		ctx->window->swap_buffers();
-	}
-
-	void default_app::on_event(event && value)
-	{
-		switch (value)
-		{
-		case window_key_event::ID: {
-			auto && ev{ (window_key_event &&)value };
-			get_io()->keyboard[ev.key] = ev.action;
-		} break;
-
-		case window_mouse_event::ID: {
-			auto && ev{ (window_mouse_event &&)value };
-			get_io()->mouse[ev.button] = ev.action;
-		} break;
-
-		case window_cursor_pos_event::ID: {
-			auto && ev{ (window_cursor_pos_event &&)value };
-			get_io()->cursor = { ev.x, ev.y };
-		} break;
-		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

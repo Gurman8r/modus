@@ -7,6 +7,7 @@ namespace ml
 	application::application(runtime_context * const ctx) noexcept
 		: runtime_base	{ ctx }
 		, loop_system	{ get_memory()->get_allocator() }
+		, m_on_event	{}
 		, m_plugins		{ this }
 	{
 		if (!get_global<application>())
@@ -19,7 +20,7 @@ namespace ml
 	{
 		if (this == get_global<application>())
 		{
-			release_global<application>();
+			set_global<application>(nullptr);
 		}
 	}
 

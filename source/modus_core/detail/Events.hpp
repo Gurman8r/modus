@@ -53,7 +53,8 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit event_listener(event_bus * bus) noexcept : m_bus{ bus }, m_listening{ true }
+	public:
+		explicit event_listener(event_bus * bus) noexcept : m_bus{ bus }
 		{
 			ML_assert_msg(m_bus, "INVALID EVENT BUS");
 		}
@@ -62,39 +63,38 @@ namespace ml
 		{
 		}
 
-		virtual ~event_listener() noexcept; // EOF
+		virtual ~event_listener() noexcept { this->unsubscribe(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		virtual void on_event(event &&) = 0; // handle event
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		ML_NODISCARD event_bus * get_bus() const noexcept
+		{
+			return m_bus;
+		}
 
-		ML_NODISCARD event_bus * get_bus() const noexcept { return m_bus; }
-
-		ML_NODISCARD bool listening_enabled() const noexcept { return m_listening; }
-
-		bool enable_listening(bool value) noexcept { return m_listening = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
 		template <class Ev> bool subscribe() noexcept
 		{
 			return ML_check(m_bus)->add_listener<Ev>(this);
 		}
 
-		template <class Ev> void unsubscribe() noexcept
+		template <class ... Ev> void unsubscribe() noexcept
 		{
-			ML_check(m_bus)->remove_listener<Ev>(this);
+			if constexpr (0 == sizeof...(Ev))
+			{
+				ML_check(m_bus)->remove_listener(this);
+			}
+			else
+			{
+				ML_check(m_bus)->remove_listener<Ev...>(this);
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		event_bus * const m_bus; // event bus
-		
-		bool m_listening; // listening enabled
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -132,10 +132,7 @@ namespace ml
 			{
 				for (auto const it : (*cat->second))
 				{
-					if (it->listening_enabled())
-					{
-						it->on_event(Ev{ ML_forward(args)... });
-					}
+					it->on_event(Ev{ ML_forward(args)... });
 				}
 			}
 		}
@@ -186,15 +183,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// ~event_listener
-	inline event_listener::~event_listener() noexcept
-	{
-		// remove listener from all events
-		ML_check(m_bus)->remove_listener(this);
-	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

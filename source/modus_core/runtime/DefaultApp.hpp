@@ -11,7 +11,6 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
 		explicit default_app(runtime_context * const ctx) noexcept;
 
 		~default_app() noexcept override;
@@ -19,27 +18,25 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
+		using application::on_event;
+
 		void on_enter(runtime_context * const ctx);
 
 		void on_exit(runtime_context * const ctx);
 
 		void on_idle(runtime_context * const ctx);
 
-		void on_event(event && value) override;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ds::manual<ImGuiContext>	m_imgui	; // imgui
+		ImGuiExt::Dockspace			m_dock	; // dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	private:
-		ds::manual<ImGuiContext>	m_imgui		; // imgui
-		ImGuiExt::Dockspace			m_dockspace	; // dockspace
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
 		ML_NODISCARD static auto idle_benchmarks(runtime_io * io) noexcept
 		{
 			io->loop_timer.restart();
-			
+
 			auto const dt{ (float_t)io->delta_time.count() };
 			io->fps_accum += dt - io->fps_times[io->fps_index];
 			io->fps_times[io->fps_index] = dt;

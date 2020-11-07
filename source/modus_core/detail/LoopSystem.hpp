@@ -89,14 +89,14 @@ namespace ml
 			else { m_locked = true; } ML_defer(&) { m_locked = false; };
 
 			// enter
-			loop_system::exec<Recursive>(&loop_system::m_on_enter, this);
+			loop_system::run<Recursive>(&loop_system::m_on_enter, this);
 
 			// exit
-			ML_defer(&) { loop_system::exec<Recursive>(&loop_system::m_on_exit, this); };
+			ML_defer(&) { loop_system::run<Recursive>(&loop_system::m_on_exit, this); };
 
 			// idle
 			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
-			do { loop_system::exec<Recursive>(&loop_system::m_on_idle, this); }
+			do { loop_system::run<Recursive>(&loop_system::m_on_idle, this); }
 			while (check_loop_condition());
 			return EXIT_SUCCESS;
 		}
@@ -228,7 +228,7 @@ namespace ml
 	protected:
 		// execute member pointer
 		template <bool Recursive = false, class D, class C, class ... Args
-		> static void exec(D C::*mp, C * self, Args && ... args)
+		> static void run(D C::*mp, C * self, Args && ... args)
 		{
 			static_assert(std::is_base_of_v<loop_system, C>, "?");
 
@@ -239,7 +239,7 @@ namespace ml
 
 			if constexpr (Recursive) for (subsystem & e : self->m_subsystems)
 			{
-				loop_system::exec<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
+				loop_system::run<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
 			}
 		}
 

@@ -53,7 +53,7 @@ namespace ml
 	protected:
 		virtual void on_event(event && value) override // event_listener
 		{
-			loop_system::exec(&application::m_on_event, this, ML_forward(value));
+			loop_system::run(&application::m_on_event, this, ML_forward(value));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

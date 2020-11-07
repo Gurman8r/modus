@@ -1,6 +1,6 @@
-#include <modus_core/runtime/DefaultApp.hpp>
+#include <modus_core/engine/DefaultApp.hpp>
 #include <modus_core/embed/Python.hpp>
-#include <modus_core/runtime/RuntimeEvents.hpp>
+#include <modus_core/engine/RuntimeEvents.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 
@@ -8,7 +8,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	default_app::default_app(runtime_context * const ctx) noexcept
+	default_app::default_app(engine_context * const ctx) noexcept
 		: application	{ ctx }
 		, m_imgui		{}
 		, m_docker		{ "##MainDockspace" }
@@ -23,7 +23,7 @@ namespace ml
 		subscribe<window_key_event>();
 		subscribe<window_mouse_event>();
 		subscribe<window_cursor_pos_event>();
-		set_event_callback([](event && value, runtime_context * ctx)
+		set_event_callback([](event && value, engine_context * ctx)
 		{
 			switch (value)
 			{
@@ -47,7 +47,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void default_app::on_enter(runtime_context * const ctx)
+	void default_app::on_enter(engine_context * const ctx)
 	{
 		// PREFS
 		ML_assert(ctx->io->prefs.contains("runtime"));
@@ -82,7 +82,7 @@ namespace ml
 		if (install_callbacks)
 		{
 			static struct ML_NODISCARD {
-				runtime_context * context;
+				engine_context * context;
 				ML_NODISCARD auto operator->() const noexcept
 				{
 					return ML_check(context)->bus;
@@ -162,7 +162,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void default_app::on_exit(runtime_context * const ctx)
+	void default_app::on_exit(engine_context * const ctx)
 	{
 		// exit event
 		ctx->bus->fire<app_exit_event>(this);
@@ -179,7 +179,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void default_app::on_idle(runtime_context * const ctx)
+	void default_app::on_idle(engine_context * const ctx)
 	{
 		// benchmarks
 		ctx->io->loop_timer.restart();

@@ -1,36 +1,36 @@
 #ifndef _ML_MAIN_LOOP_HPP_
 #define _ML_MAIN_LOOP_HPP_
 
-#include <modus_core/runtime/PluginManager.hpp>
+#include <modus_core/engine/PluginManager.hpp>
 
 namespace ml
 {
 	// application
-	struct ML_CORE_API application : runtime_listener<application>, loop_system, non_copyable
+	struct ML_CORE_API application : engine_listener<application>, loop_system, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		explicit application(runtime_context * const ctx) noexcept;
+		explicit application(engine_context * const ctx) noexcept;
 
 		virtual ~application() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using runtime_base::get_bus;
+		using engine_base::get_bus;
 
-		using runtime_base::get_context;
+		using engine_base::get_context;
 
-		using runtime_base::get_database;
+		using engine_base::get_database;
 
-		using runtime_base::get_io;
+		using engine_base::get_io;
 
-		using runtime_base::get_main_loop;
+		using engine_base::get_main_loop;
 
-		using runtime_base::get_memory;
+		using engine_base::get_memory;
 
-		using runtime_base::get_window;
+		using engine_base::get_window;
 
 		ML_NODISCARD auto get_plugins() const noexcept { return const_cast<plugin_manager *>(&m_plugins); }
 

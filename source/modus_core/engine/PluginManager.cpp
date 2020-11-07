@@ -1,12 +1,12 @@
-#include <modus_core/runtime/PluginManager.hpp>
-#include <modus_core/runtime/Application.hpp>
+#include <modus_core/engine/PluginManager.hpp>
+#include <modus_core/engine/Application.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	plugin_manager::plugin_manager(application * const app) noexcept
-		: runtime_base	{ app->get_context() }
+		: engine_base	{ app->get_context() }
 		, m_app			{ app }
 		, m_data		{ get_memory()->get_allocator() }
 	{

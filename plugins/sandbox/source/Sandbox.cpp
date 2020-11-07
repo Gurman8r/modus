@@ -7,8 +7,8 @@
 #include <modus_core/graphics/Mesh.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/runtime/Application.hpp>
-#include <modus_core/runtime/RuntimeEvents.hpp>
+#include <modus_core/engine/Application.hpp>
+#include <modus_core/engine/RuntimeEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/window/Viewport.hpp>
 #include <modus_core/scene/Scene.hpp>

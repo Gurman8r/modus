@@ -1,11 +1,11 @@
-#include <modus_core/runtime/Application.hpp>
+#include <modus_core/engine/Application.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	application::application(runtime_context * const ctx) noexcept
-		: runtime_base	{ ctx }
+	application::application(engine_context * const ctx) noexcept
+		: engine_base	{ ctx }
 		, loop_system	{ get_memory()->get_allocator() }
 		, m_on_event	{}
 		, m_plugins		{ this }

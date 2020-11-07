@@ -1,7 +1,7 @@
 #ifndef _ML_DEFAULT_APP_
 #define _ML_DEFAULT_APP_
 
-#include <modus_core/runtime/Application.hpp>
+#include <modus_core/engine/Application.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
 
 namespace ml
@@ -11,7 +11,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit default_app(runtime_context * const ctx) noexcept;
+		explicit default_app(engine_context * const ctx) noexcept;
 
 		~default_app() noexcept override = default;
 
@@ -20,11 +20,11 @@ namespace ml
 	private:
 		using application::on_event;
 
-		void on_enter(runtime_context * const ctx);
+		void on_enter(engine_context * const ctx);
 
-		void on_exit(runtime_context * const ctx);
+		void on_exit(engine_context * const ctx);
 
-		void on_idle(runtime_context * const ctx);
+		void on_idle(engine_context * const ctx);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

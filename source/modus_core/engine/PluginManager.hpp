@@ -1,8 +1,8 @@
 #ifndef _ML_PLUGIN_MANAGER_HPP_
 #define _ML_PLUGIN_MANAGER_HPP_
 
-#include <modus_core/runtime/Plugin.hpp>
-#include <modus_core/runtime/SharedLibrary.hpp>
+#include <modus_core/engine/Plugin.hpp>
+#include <modus_core/engine/SharedLibrary.hpp>
 
 // DETAILS
 namespace ml
@@ -71,7 +71,7 @@ namespace ml
 	ML_alias plugin_instance = typename ds::manual<plugin>;
 
 	// plugin manager
-	struct ML_CORE_API plugin_manager final : runtime_object<plugin_manager>, trackable, non_copyable
+	struct ML_CORE_API plugin_manager final : engine_object<plugin_manager>, trackable, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -87,19 +87,19 @@ namespace ml
 	public:
 		ML_NODISCARD auto get_app() const noexcept { return m_app; }
 
-		using runtime_base::get_bus;
+		using engine_base::get_bus;
 
-		using runtime_base::get_context;
+		using engine_base::get_context;
 
-		using runtime_base::get_database;
+		using engine_base::get_database;
 
-		using runtime_base::get_io;
+		using engine_base::get_io;
 
-		using runtime_base::get_main_loop;
+		using engine_base::get_main_loop;
 
-		using runtime_base::get_memory;
+		using engine_base::get_memory;
 
-		using runtime_base::get_window;
+		using engine_base::get_window;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

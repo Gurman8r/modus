@@ -1,4 +1,4 @@
-#include <modus_core/runtime/DefaultApp.hpp>
+#include <modus_core/engine/DefaultApp.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -95,12 +95,12 @@ json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
 int main(int argc, char ** argv)
 {
 	static memory_manager	memory		{};
-	static runtime_io		io			{ { argv, argv + argc }, load_settings() };
+	static engine_io		io			{ { argv, argv + argc }, load_settings() };
 	static simple_database	database	{};
 	static event_bus		bus			{};
 	static render_window	window		{};
 	static loop_system		mainloop	{};
-	static runtime_context	context		{ &memory, &io, &database, &bus, &window, &mainloop };
+	static engine_context	context		{ &memory, &io, &database, &bus, &window, &mainloop };
 
 	auto app{ mainloop.new_subsystem<default_app>(&context) };
 

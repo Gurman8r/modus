@@ -1,5 +1,5 @@
-#ifndef _ML_RUNTIME_HPP_
-#define _ML_RUNTIME_HPP_
+#ifndef _ML_ENGINE_HPP_
+#define _ML_ENGINE_HPP_
 
 #include <modus_core/detail/Database.hpp>
 #include <modus_core/detail/Events.hpp>
@@ -10,8 +10,8 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime I/O
-	struct ML_NODISCARD runtime_io final
+	// engine I/O
+	struct ML_NODISCARD engine_io final
 	{
 		ds::list<ds::string> args; // command line
 		
@@ -46,11 +46,11 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime context
-	struct ML_NODISCARD runtime_context final
+	// engine context
+	struct ML_NODISCARD engine_context final
 	{
 		memory_manager	* const memory		; // memory manager
-		runtime_io		* const io			; // runtime I/O
+		engine_io		* const io			; // engine I/O
 		simple_database	* const database	; // database
 		event_bus		* const bus			; // event bus
 		render_window	* const window		; // render window
@@ -59,17 +59,17 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime object base
+	// base engine object
 	template <class Derived
-	> struct runtime_object
+	> struct engine_object
 	{
 	public:
-		using runtime_base = typename runtime_object<Derived>;
+		using engine_base = typename engine_object<Derived>;
 
 	protected:
-		virtual ~runtime_object() noexcept = default; // ~
+		virtual ~engine_object() noexcept = default; // ~
 
-		explicit runtime_object(runtime_context * const context) noexcept
+		explicit engine_object(engine_context * const context) noexcept
 			: m_context{ ML_check(context) }
 		{
 		}
@@ -90,22 +90,22 @@ namespace ml
 		ML_NODISCARD auto get_window() const noexcept { return m_context->window; }
 
 	private:
-		runtime_context * const m_context; // context
+		engine_context * const m_context; // context
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// runtime listener base
+	// base engine listener
 	template <class Derived
-	> struct runtime_listener : event_listener
+	> struct engine_listener : event_listener
 	{
 	public:
-		using runtime_base = typename runtime_listener<Derived>;
+		using engine_base = typename engine_listener<Derived>;
 
 	protected:
-		virtual ~runtime_listener() noexcept override = default; // ~
+		virtual ~engine_listener() noexcept override = default; // ~
 
-		explicit runtime_listener(runtime_context * const context) noexcept
+		explicit engine_listener(engine_context * const context) noexcept
 			: event_listener{ ML_check(context)->bus }
 			, m_context		{ context }
 		{
@@ -129,10 +129,10 @@ namespace ml
 		ML_NODISCARD auto get_window() const noexcept { return m_context->window; }
 
 	private:
-		runtime_context * const m_context; // context
+		engine_context * const m_context; // context
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-#endif // !_ML_RUNTIME_HPP_
+#endif // !_ML_ENGINE_HPP_

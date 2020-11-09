@@ -24,9 +24,15 @@ namespace ml
 	struct ML_NODISCARD event
 	{
 	public:
+		ML_NODISCARD constexpr hash_t getid() const noexcept { return m_ID; }
+
 		ML_NODISCARD constexpr operator hash_t () const noexcept { return m_ID; }
 
-		ML_NODISCARD constexpr hash_t getid() const noexcept { return m_ID; }
+		template <class U = hash_t
+		> ML_NODISCARD constexpr bool operator ==(U && value) const noexcept { return m_ID == value; }
+
+		template <class U = hash_t
+		> ML_NODISCARD constexpr bool operator !=(U && value) const noexcept { return m_ID != value; }
 
 	protected:
 		constexpr explicit event(hash_t id) noexcept : m_ID{ id } {}

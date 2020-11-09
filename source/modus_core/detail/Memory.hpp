@@ -179,13 +179,13 @@ namespace ml
 	template <class T, class ... Args
 	> ML_NODISCARD ds::scope<T> make_scope(Args && ... args) noexcept
 	{
-		return ds::scope<T>{ new T{ ML_forward(args)... }, default_delete<T>{} };
+		return { new T{ ML_forward(args)... }, default_delete<T>{} };
 	}
 
 	template <class T, class ... Args
 	> ML_NODISCARD ds::raw<T> make_raw(Args && ... args) noexcept
 	{
-		return ds::raw<T>{ new T{ ML_forward(args)... }, no_delete{} };
+		return { new T{ ML_forward(args)... }, no_delete{} };
 	}
 }
 

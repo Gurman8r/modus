@@ -111,6 +111,7 @@ int main(int argc, char * argv[])
 		if (value == app_exit_event::ID) debug::puts("app_exit_event");
 		if (value == app_idle_event::ID) debug::puts("app_idle_event");
 	});
+
 	app->post_event<app_enter_event>();
 	app->post_event<app_idle_event>();
 	app->post_event<app_exit_event>();

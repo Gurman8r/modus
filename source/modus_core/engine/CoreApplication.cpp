@@ -15,17 +15,12 @@ namespace ml
 		, m_uptimer			{ false }
 		, m_should_close	{ false }
 		, m_exit_code		{ EXIT_SUCCESS }
-		, m_dispatcher		{ alloc }
 		, m_loop			{ alloc_ref<loop_system>(alloc, get_bus()) }
+		, m_dispatcher		{ alloc }
 	{
 		if (!get_global<core_application>()) { set_global<core_application>(this); }
 		
 		subscribe<app_enter_event, app_exit_event, app_idle_event>();
-
-		m_loop->set_loop_condition([&]() { return !should_close(); });
-		m_loop->set_enter_callback([&]() { post_event<app_enter_event>(); });
-		m_loop->set_exit_callback([&]() { post_event<app_exit_event>(); });
-		m_loop->set_idle_callback([&]() { post_event<app_idle_event>(); });
 	}
 
 	core_application::~core_application() noexcept
@@ -41,23 +36,23 @@ namespace ml
 	{
 		m_uptimer.restart();
 
-		set_exit_code(m_loop->process());
+		m_loop->process();
 
 		m_uptimer.stop();
 
-		return exit_code();
+		return m_exit_code;
 	}
 
 	void core_application::exit(int32_t exit_code)
 	{
-		set_exit_code(exit_code);
+		m_exit_code = exit_code;
 
 		set_should_close(true);
 	}
 
 	void core_application::quit()
 	{
-		set_exit_code(EXIT_SUCCESS);
+		m_exit_code = EXIT_SUCCESS;
 
 		set_should_close(true);
 	}

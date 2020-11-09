@@ -44,17 +44,17 @@ namespace ml
 	// get global
 	template <class T> ML_NODISCARD auto get_global() noexcept
 	{
-		using U = std::_Remove_cvref_t<T>;
-		static_assert(!std::is_same_v<U, void>, "?");
-		return _ML_GLOBALS get<U>();
+		static_assert(!std::is_same_v<T, void>, "?");
+
+		return _ML_GLOBALS get<T>();
 	}
 
 	// set global
 	template <class T> auto set_global(void * value) noexcept
 	{
-		using U = std::_Remove_cvref_t<T>;
-		static_assert(!std::is_same_v<U, void>, "?");
-		return _ML_GLOBALS set<U>(static_cast<U *>(value));
+		static_assert(!std::is_same_v<T, void>, "?");
+		
+		return _ML_GLOBALS set<T>(static_cast<T *>(value));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

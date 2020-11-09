@@ -363,10 +363,10 @@ namespace ml::util
 		return lhs * ((h < v) ? h : v);
 	}
 
-	template <class Src, class Dst
-	> ML_NODISCARD constexpr auto maintain(Src const & source, Dst const & target) noexcept
+	template <class Src, class Clbk
+	> ML_NODISCARD constexpr auto maintain(Src const & source, Clbk const & target) noexcept
 	{
-		Dst const temp{ target[0] / source[0], target[1] / source[1] };
+		Clbk const temp{ target[0] / source[0], target[1] / source[1] };
 		auto const ratio{ (temp[0] < temp[1]) ? temp[0] : temp[1] };
 		return Src{ source[0] * ratio, source[1] * ratio };
 	}

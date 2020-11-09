@@ -29,7 +29,10 @@ namespace ml::gfx
 			}
 		}) };
 
-		if (!get_global<render_device>()) { set_global<render_device>(temp); }
+		if (!get_global<render_device>())
+		{
+			set_global<render_device>(temp);
+		}
 
 		return temp;
 	}

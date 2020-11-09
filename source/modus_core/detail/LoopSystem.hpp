@@ -97,7 +97,7 @@ namespace ml
 		ML_NODISCARD bool is_locked() const noexcept { return m_locked; }
 
 		template <bool Recurse = true
-		> ML_NODISCARD int32_t process() noexcept
+		> int32_t process() noexcept
 		{
 			// lock
 			if (m_locked) { return EXIT_FAILURE * 1; }
@@ -160,33 +160,33 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Fn, class ... Args
-		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition &
+		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition
 		{
-			return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...);
+			return util::swap_callback(m_loopcond, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
-		> auto set_enter_callback(Fn && fn, Args && ... args) -> loop_callback &
+		> auto set_enter_callback(Fn && fn, Args && ... args) -> loop_callback
 		{
-			return m_on_enter = std::bind(ML_forward(fn), ML_forward(args)...);
+			return util::swap_callback(m_on_enter, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
-		> auto set_exit_callback(Fn && fn, Args && ... args) -> loop_callback &
+		> auto set_exit_callback(Fn && fn, Args && ... args) -> loop_callback
 		{
-			return m_on_exit = std::bind(ML_forward(fn), ML_forward(args)...);
+			return util::swap_callback(m_on_exit, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
-		> auto set_idle_callback(Fn && fn, Args && ... args) -> loop_callback &
+		> auto set_idle_callback(Fn && fn, Args && ... args) -> loop_callback
 		{
-			return m_on_idle = std::bind(ML_forward(fn), ML_forward(args)...);
+			return util::swap_callback(m_on_idle, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
-		> auto set_event_callback(Fn && fn, Args && ... args) -> event_callback &
+		> auto set_event_callback(Fn && fn, Args && ... args) -> event_callback
 		{
-			return m_on_event = std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
+			return util::swap_callback(m_on_enter, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -214,7 +214,7 @@ namespace ml
 
 			return std::static_pointer_cast<Derived>(m_subsystems.emplace_back
 			(
-				make_ref<Derived>(ML_forward(args)...)
+				_ML make_ref<Derived>(ML_forward(args)...)
 			));
 		}
 

@@ -51,15 +51,11 @@ namespace ml
 
 		void quit();
 
-		ML_NODISCARD auto exit_code() const noexcept -> int32_t { return m_exit_code; }
-
 		ML_NODISCARD auto main_loop() const noexcept -> ds::ref<loop_system> const & { return m_loop; }
 
 		ML_NODISCARD bool should_close() const noexcept { return m_should_close; }
 
 		ML_NODISCARD auto uptime() const noexcept -> duration { return m_uptimer.elapsed(); }
-
-		void set_exit_code(int32_t value) noexcept { m_exit_code = value; }
 
 		void set_main_loop(ds::ref<loop_system> const & value) noexcept { m_loop = value; }
 
@@ -107,8 +103,8 @@ namespace ml
 		timer					m_uptimer		; // 
 		bool					m_should_close	; // 
 		int32_t					m_exit_code		; // 
-		event_bus				m_dispatcher	; // 
 		ds::ref<loop_system>	m_loop			; // 
+		event_bus				m_dispatcher	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

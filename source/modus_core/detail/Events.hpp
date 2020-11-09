@@ -143,30 +143,28 @@ namespace ml
 			this->set_callback(ML_forward(fn), ML_forward(args)...);
 		}
 
-		~dummy_listener() noexcept override = default;
-
 		using event_listener::subscribe;
 
 		using event_listener::unsubscribe;
 
 		void on_event(event const & value) noexcept final
 		{
-			if (m_callback) { std::invoke(m_callback, value); }
+			if (m_on_event) { std::invoke(m_on_event, value); }
 		}
 
 		ML_NODISCARD auto get_callback() const noexcept -> event_callback const &
 		{
-			return m_callback;
+			return m_on_event;
 		}
 
 		template <class Fn, class ... Args
-		> auto set_callback(Fn && fn, Args && ... args) noexcept -> event_callback &
+		> auto set_callback(Fn && fn, Args && ... args) noexcept -> event_callback
 		{
-			return m_callback = std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
+			return util::swap_callback(m_on_event, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 	private:
-		event_callback m_callback;
+		event_callback m_on_event;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -207,7 +205,7 @@ namespace ml
 			{
 				for (auto const listener : (*cat->second))
 				{
-					ML_check(listener)->on_event(value);
+					listener->on_event(value);
 				}
 			}
 		}
@@ -218,47 +216,6 @@ namespace ml
 			static_assert(is_valid_event<Ev>, "invalid event type");
 
 			this->fire(Ev{ ML_forward(args)... });
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		template <class Ev
-		> bool add_listener(event_listener * value) noexcept
-		{
-			static_assert(is_valid_event<Ev>, "invalid event type");
-
-			return value
-				&& this == value->get_bus()
-				&& m_cats[Ev::ID].insert(value).second;
-		}
-
-		template <class Ev
-		> void remove_listener(event_listener * value) noexcept
-		{
-			static_assert(is_valid_event<Ev>, "invalid event type");
-
-			if (!value || (this != value->get_bus())) { return; }
-			else if (auto const cat{ m_cats.find(Ev::ID) })
-			{
-				if (auto const listener{ cat->second->find(value) }
-				; listener != cat->second->end())
-				{
-					cat->second->erase(listener);
-				}
-			}
-		}
-
-		void remove_listener(event_listener * value) noexcept
-		{
-			if (!value || (this != value->get_bus())) { return; }
-
-			m_cats.for_each([&](hash_t, category_type & cat) noexcept
-			{
-				if (auto const listener{ cat.find(value) }; listener != cat.end())
-				{
-					cat.erase(listener);
-				}
-			});
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -314,8 +271,49 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		template <class Ev
+		> bool add_listener(event_listener * value) noexcept
+		{
+			static_assert(is_valid_event<Ev>, "invalid event type");
+
+			return value
+				&& this == value->get_bus()
+				&& m_cats[Ev::ID].insert(value).second;
+		}
+
+		template <class Ev
+		> void remove_listener(event_listener * value) noexcept
+		{
+			static_assert(is_valid_event<Ev>, "invalid event type");
+
+			if (!value || (this != value->get_bus())) { return; }
+			else if (auto const cat{ m_cats.find(Ev::ID) })
+			{
+				if (auto const listener{ cat->second->find(value) }
+				; listener != cat->second->end())
+				{
+					cat->second->erase(listener);
+				}
+			}
+		}
+
+		void remove_listener(event_listener * value) noexcept
+		{
+			if (!value || (this != value->get_bus())) { return; }
+
+			m_cats.for_each([&](hash_t, category_type & cat) noexcept
+			{
+				if (auto const listener{ cat.find(value) }; listener != cat.end())
+				{
+					cat.erase(listener);
+				}
+			});
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	private:
-		categories_type m_cats; // categories
+		categories_type m_cats; // listener storage
 
 		ds::list<ds::scope<event>> m_queue; // event queue
 

@@ -141,24 +141,52 @@ namespace ml
 	};
 }
 
-// smart pointers
-namespace ml::ds
+// pointers
+namespace ml
 {
-	// shared pointer
-	template <class Type
-	> ML_alias ref = std::shared_ptr<Type>;
+	// smart pointers
+	namespace ds
+	{
+		// shared pointer
+		template <class T
+		> ML_alias ref = typename std::shared_ptr<T>;
 
-	// weak pointer
-	template <class Type
-	> ML_alias unown = std::weak_ptr<Type>;
+		// weak pointer
+		template <class T
+		> ML_alias unown = typename std::weak_ptr<T>;
 
-	// unique pointer
-	template <class Type, class Dx = default_delete<Type>
-	> ML_alias scoped = std::unique_ptr<Type, Dx>;
+		// unique pointer
+		template <class T
+		> ML_alias scope = typename std::unique_ptr<T, default_delete<T>>;
 
-	// non-deleting pointer
-	template <class Type
-	> ML_alias manual = std::unique_ptr<Type, no_delete>;
+		// non-deleting pointer
+		template <class T
+		> ML_alias raw = typename std::unique_ptr<T, no_delete>;
+	}
+
+	template <class T, class Alloc = pmr::polymorphic_allocator<byte_t>, class ... Args
+	> ML_NODISCARD ds::ref<T> alloc_ref(Alloc alloc, Args && ... args) noexcept
+	{
+		return std::allocate_shared<T>(alloc, ML_forward(args)...);
+	}
+
+	template <class T, class ... Args
+	> ML_NODISCARD ds::ref<T> make_ref(Args && ... args) noexcept
+	{
+		return std::make_shared<T>(ML_forward(args)...);
+	}
+
+	template <class T, class ... Args
+	> ML_NODISCARD ds::scope<T> make_scope(Args && ... args) noexcept
+	{
+		return ds::scope<T>{ new T{ ML_forward(args)... }, default_delete<T>{} };
+	}
+
+	template <class T, class ... Args
+	> ML_NODISCARD ds::raw<T> make_raw(Args && ... args) noexcept
+	{
+		return ds::raw<T>{ new T{ ML_forward(args)... }, no_delete{} };
+	}
 }
 
 // memory record
@@ -398,7 +426,11 @@ namespace ml
 	// trackable base
 	struct ML_CORE_API trackable
 	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		virtual ~trackable() noexcept = default;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD void * operator new(size_t size) noexcept
 		{
@@ -419,6 +451,8 @@ namespace ml
 		{
 			get_global<memory_manager>()->deallocate(addr);
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 

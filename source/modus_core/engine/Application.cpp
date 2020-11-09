@@ -4,24 +4,15 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	application::application(engine_context * const ctx) noexcept
-		: engine_base	{ ctx }
-		, loop_system	{ get_memory()->get_allocator() }
-		, m_on_event	{}
-		, m_plugins		{ this }
+	application::application(int32_t argc, char * argv[], allocator_type alloc)
+		: gui_application{ argc, argv, alloc }
 	{
-		if (!get_global<application>())
-		{
-			set_global<application>(this);
-		}
+		if (!get_global<application>()) { set_global<application>(this); }
 	}
 
 	application::~application() noexcept
 	{
-		if (this == get_global<application>())
-		{
-			set_global<application>(nullptr);
-		}
+		if (this == get_global<application>()) { set_global<application>(nullptr); }
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -30,15 +21,15 @@ namespace ml
 // global application
 namespace ml::globals
 {
-	static application * g_application{};
+	static application * g_app{};
 
 	ML_impl_global(application) get() noexcept
 	{
-		return g_application;
+		return g_app;
 	}
 
 	ML_impl_global(application) set(application * value) noexcept
 	{
-		return g_application = value;
+		return g_app = value;
 	}
 }

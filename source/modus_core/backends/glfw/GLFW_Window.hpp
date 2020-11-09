@@ -135,7 +135,7 @@ namespace ml
 
 		void set_focus_on_show(bool value) override;
 		
-		void set_icons(size_t w, size_t h, size_t n, byte_t const * p) override;
+		void set_icons(size_t w, size_t h, byte_t const * p, size_t n = 1) override;
 
 		void set_input_mode(int32_t mode, int32_t value) override;
 

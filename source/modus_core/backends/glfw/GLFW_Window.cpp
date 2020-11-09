@@ -442,7 +442,7 @@ namespace ml
 		glfwSetWindowAttrib(m_window, GLFW_FOCUS_ON_SHOW, value);
 	}
 
-	void glfw_window::set_icons(size_t w, size_t h, size_t n, byte_t const * p)
+	void glfw_window::set_icons(size_t w, size_t h, byte_t const * p, size_t n)
 	{
 		glfwSetWindowIcon(m_window, (int32_t)n, make_glfw_image(w, h, p));
 	}

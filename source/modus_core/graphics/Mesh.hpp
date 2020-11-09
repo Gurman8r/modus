@@ -6,7 +6,7 @@
 
 namespace ml
 {
-	struct ML_CORE_API mesh final : trackable, non_copyable
+	struct ML_CORE_API mesh final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

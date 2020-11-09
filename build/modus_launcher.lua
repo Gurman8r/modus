@@ -85,7 +85,7 @@ filter{ "configurations:Debug" }
 	}
 
 filter{ "configurations:Release" }
-	kind "WindowedApp"
+	kind "ConsoleApp"
 	optimize "Speed"
 	links{
 		"glew32",

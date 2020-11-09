@@ -29,7 +29,6 @@ namespace ml
 			imgui_metrics_panel,
 			imgui_style_panel,
 
-			database_panel,
 			terminal_panel,
 			viewport_panel,
 
@@ -42,7 +41,6 @@ namespace ml
 			{ "Dear ImGui Metrics" },
 			{ "Style Editor" },
 			
-			{ "database", 0, ImGuiWindowFlags_None },
 			{ "terminal", 1, ImGuiWindowFlags_MenuBar },
 			{ "viewport", 1, ImGuiWindowFlags_MenuBar },
 		};
@@ -57,7 +55,7 @@ namespace ml
 		ds::list<ds::ref<gfx::framebuffer>> m_fb{};
 
 		// icon
-		db_var<bitmap> m_icon{ get_database(), "icon" };
+		bitmap m_icon{};
 
 		// resources
 		ds::hashmap<ds::string, ds::ref<font>>			m_fonts		{};
@@ -98,9 +96,9 @@ namespace ml
 		void on_app_enter(app_enter_event && ev)
 		{
 			// set icon
-			if (auto & i = m_icon = bitmap{ get_io()->path2("resource/modus_launcher.png"), false })
+			if (bitmap i; i.load_from_file(get_io()->path2("resource/modus_launcher.png"), false))
 			{
-				get_window()->set_icons(i.width(), i.height(), 1, i.data());
+				//get_window()->set_icons(i.width(), i.height(), i.data());
 			}
 
 			// framebuffers
@@ -117,15 +115,15 @@ namespace ml
 
 			for (auto & fb : m_fb) { fb->resize(m_resolution); }
 
-			get_window()->execute(
-				gfx::command::bind_framebuffer(m_fb[0]),
-				gfx::command::set_clear_color(m_clear_color),
-				gfx::command::clear(gfx::clear_color | gfx::clear_depth),
-				gfx::command([&](gfx::render_context * ctx) noexcept
-				{
-					// custom rendering...
-				}),
-				gfx::command::bind_framebuffer(nullptr));
+			//get_window()->execute(
+			//	gfx::command::bind_framebuffer(m_fb[0]),
+			//	gfx::command::set_clear_color(m_clear_color),
+			//	gfx::command::clear(gfx::clear_color | gfx::clear_depth),
+			//	gfx::command([&](gfx::render_context * ctx) noexcept
+			//	{
+			//		// custom rendering...
+			//	}),
+			//	gfx::command::bind_framebuffer(nullptr));
 		}
 
 		void on_imgui_dockspace(imgui_dockspace_event && ev)
@@ -135,6 +133,7 @@ namespace ml
 				ImGui::DockBuilderRemoveNode(root);
 				ImGui::DockBuilderAddNode(root, ev->DockFlags);
 				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, root);
+				ImGui::DockBuilderDockWindow(m_panels[terminal_panel].Title, root);
 				ImGui::DockBuilderFinish(root);
 			}
 		}
@@ -146,13 +145,12 @@ namespace ml
 				// FILE
 				if (ImGui::BeginMenu("file")) {
 					if (ImGui::MenuItem("quit", "alt+f4")) {
-						get_window()->set_should_close(true);
+						//get_window()->set_should_close(true);
 					}
 					ImGui::EndMenu();
 				}
 				// TOOLS
 				if (ImGui::BeginMenu("tools")) {
-					ImGuiExt::MenuItem(m_panels + database_panel);
 					ImGuiExt::MenuItem(m_panels + terminal_panel);
 					ImGuiExt::MenuItem(m_panels + viewport_panel);
 					ImGui::EndMenu();
@@ -183,51 +181,17 @@ namespace ml
 			);
 
 			// SANDBOX
-			draw_database_panel(); // DATABASE
 			draw_terminal_panel(); // TERMINAL
 			draw_viewport_panel(); // VIEWPORT
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// DATABASE
-		void draw_database_panel()
-		{
-			if (m_panels[database_panel].IsOpen) {
-				auto const winsize{ (vec2)get_window()->get_size() };
-				ImGui::SetNextWindowSize({ 960, 329 }, ImGuiCond_Once);
-				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
-			}
-			m_panels[database_panel]([&]() noexcept
-			{
-				ML_defer() { ImGui::EndTabBar(); };
-				if (!ImGui::BeginTabBar("tabs")) { return; }
-
-				// plugins
-				if (ImGui::BeginTabItem("plugins")) {
-					ImGui::Columns(3);
-					ImGui::TextDisabled("name"); ImGui::NextColumn();
-					ImGui::TextDisabled("path"); ImGui::NextColumn();
-					ImGui::TextDisabled("ID"); ImGui::NextColumn();
-					ImGui::Separator();
-					for (auto const & e : get_manager()->get_data<plugin_details>())
-					{
-						ImGui::Text(e.name.c_str()); ImGui::NextColumn();
-						ImGui::Text(e.path.c_str()); ImGui::NextColumn();
-						ImGui::Text("%u", e.hash); ImGui::NextColumn();
-					}
-					ImGui::Columns(1);
-					ImGui::Separator();
-					ImGui::EndTabItem();
-				}
-			});
-		}
-
 		// TERMINAL
 		void draw_terminal_panel()
 		{
 			if (m_panels[terminal_panel].IsOpen) {
-				auto const winsize{ (vec2)get_window()->get_size() };
+				vec2 const winsize{ 1280, 720 };
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
@@ -323,7 +287,7 @@ namespace ml
 
 				// exit
 				m_term.AddCommand("exit", {}, [&](auto line) {
-					get_window()->set_should_close(true);
+					//get_window()->set_should_close(true);
 				});
 
 				// help

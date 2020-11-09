@@ -8,7 +8,7 @@ namespace ml
 {
 	ML_decl_handle(library_handle);
 
-	struct ML_CORE_API shared_library final : trackable, non_copyable
+	struct ML_CORE_API shared_library final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -89,11 +89,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool open(fs::path const & path);
+		bool open(fs::path const & path); // load library
 
-		bool close();
+		bool close(); // close library
 
-		void * get_proc(cstring name);
+		void * get_proc(cstring name); // get procedure
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

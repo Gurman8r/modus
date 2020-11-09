@@ -3,15 +3,9 @@
 
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	plugin::plugin(plugin_manager * manager, void * userptr) noexcept
-		: engine_base	{ manager->get_context() }
-		, m_app			{ manager->get_app() }
-		, m_manager		{ manager }
+	core_plugin::core_plugin(core_application * app, void * userptr) noexcept
+		: core_object	{ app->get_bus() }
 		, m_userptr		{ userptr }
 	{
 	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

@@ -750,47 +750,47 @@ namespace ml::gfx
 
 	ds::ref<render_context> opengl_render_device::new_context(spec<render_context> const & desc, allocator_type alloc) noexcept
 	{
-		return std::allocate_shared<opengl_render_context>(alloc, this, desc);
+		return alloc_ref<opengl_render_context>(alloc, this, desc);
 	}
 
 	ds::ref<vertexarray> opengl_render_device::new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
 	{
-		return std::allocate_shared<opengl_vertexarray>(alloc, this, desc);
+		return alloc_ref<opengl_vertexarray>(alloc, this, desc);
 	}
 
 	ds::ref<vertexbuffer> opengl_render_device::new_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
-		return std::allocate_shared<opengl_vertexbuffer>(alloc, this, desc, data);
+		return alloc_ref<opengl_vertexbuffer>(alloc, this, desc, data);
 	}
 
 	ds::ref<indexbuffer> opengl_render_device::new_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
-		return std::allocate_shared<opengl_indexbuffer>(alloc, this, desc, data);
+		return alloc_ref<opengl_indexbuffer>(alloc, this, desc, data);
 	}
 
 	ds::ref<texture2d> opengl_render_device::new_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept
 	{
-		return std::allocate_shared<opengl_texture2d>(alloc, this, desc, data);
+		return alloc_ref<opengl_texture2d>(alloc, this, desc, data);
 	}
 
 	ds::ref<texturecube> opengl_render_device::new_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
 	{
-		return std::allocate_shared<opengl_texturecube>(alloc, this, desc);
+		return alloc_ref<opengl_texturecube>(alloc, this, desc);
 	}
 
 	ds::ref<framebuffer> opengl_render_device::new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
 	{
-		return std::allocate_shared<opengl_framebuffer>(alloc, this, desc);
+		return alloc_ref<opengl_framebuffer>(alloc, this, desc);
 	}
 
 	ds::ref<program> opengl_render_device::new_program(allocator_type alloc) noexcept
 	{
-		return std::allocate_shared<opengl_program>(alloc, this);
+		return alloc_ref<opengl_program>(alloc, this);
 	}
 
 	ds::ref<shader> opengl_render_device::new_shader(spec<shader> const & desc, allocator_type alloc) noexcept
 	{
-		return std::allocate_shared<opengl_shader>(alloc, this, desc);
+		return alloc_ref<opengl_shader>(alloc, this, desc);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

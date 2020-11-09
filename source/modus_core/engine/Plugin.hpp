@@ -1,7 +1,8 @@
 #ifndef _ML_PLUGIN_HPP_
 #define _ML_PLUGIN_HPP_
 
-#include <modus_core/engine/Engine.hpp>
+#include <modus_core/detail/Events.hpp>
+#include <modus_core/engine/Object.hpp>
 
 #ifndef ML_PLUGIN_API
 #define ML_PLUGIN_API ML_API_EXPORT
@@ -9,59 +10,40 @@
 
 namespace ml
 {
-	struct application;
+	struct core_application;
 
-	struct plugin_manager;
-
-	ML_decl_handle(plugin_id);
-
-	struct ML_CORE_API plugin : engine_listener<plugin>, trackable, non_copyable
+	struct ML_CORE_API core_plugin : core_object, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		friend plugin_manager;
+		explicit core_plugin(core_application * app, void * userptr) noexcept;
 
-		explicit plugin(plugin_manager * manager, void * userptr = nullptr) noexcept;
-
-		virtual ~plugin() noexcept override = default;
-
-		using engine_base::on_event; // event_listener
+		virtual ~core_plugin() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_app() const noexcept { return m_app; }
+		void * get_user_pointer() const noexcept { return m_userptr; }
 
-		using engine_base::get_bus;
-
-		using engine_base::get_context;
-
-		using engine_base::get_database;
-
-		using engine_base::get_io;
-
-		using engine_base::get_main_loop;
-
-		ML_NODISCARD auto get_manager() const noexcept { return m_manager; }
-		
-		using engine_base::get_memory;
-
-		using engine_base::get_window;
+		void set_user_pointer(void * value) noexcept { m_userptr = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD void * get_user_pointer() const noexcept { return m_userptr; }
+		using core_object::get_bus;
 
-		void * set_user_pointer(void * value) noexcept { return m_userptr = value; }
+	protected:
+		using core_object::on_event;
+
+		using core_object::subscribe;
+
+		using core_object::unsubscribe;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		application * const		m_app		; // application
-		plugin_manager * const	m_manager	; // manager
-		void *					m_userptr	; // user
+		void * m_userptr;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

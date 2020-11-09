@@ -58,32 +58,6 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// global wrapper (WIP/testing)
-	template <class T> struct global_wrapper final
-	{
-		using type = typename std::_Remove_cvref_t<T>;
-
-		static_assert(!std::is_same_v<type, void>, "?");
-
-		using self_type = typename global_wrapper<type>;
-
-		constexpr global_wrapper() noexcept = default;
-
-		ML_NODISCARD auto get() const noexcept { return _ML get_global<type>(); }
-
-		auto set(void * value) const noexcept { return _ML set_global<type>(value); }
-
-		auto operator=(void * value) const noexcept { return _ML set_global<type>(value); }
-
-		ML_NODISCARD auto operator->() const noexcept { return _ML get_global<type>(); }
-
-		ML_NODISCARD auto & operator *() const noexcept { return *_ML get_global<type>(); }
-
-		ML_NODISCARD operator type * () const noexcept { return _ML get_global<type>(); }
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_GLOBALS_HPP_

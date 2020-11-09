@@ -646,7 +646,7 @@ namespace ml::gfx
 	};
 
 	// base render device
-	struct ML_CORE_API render_device : trackable, non_copyable
+	struct ML_CORE_API render_device : non_copyable, trackable
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -716,7 +716,7 @@ namespace ml::gfx
 {
 	// base render object
 	template <class Derived
-	> class render_object : trackable, non_copyable
+	> class render_object : non_copyable, trackable
 	{
 	private:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -18,32 +18,34 @@ namespace ml
 		vec2s			&	size,
 		size_t			&	channels,
 		bool				flip_v,
-		size_t				req
-	)
+		size_t				req)
 	{
 		pix.clear();
 		size = {};
 		channels = 0;
-
+		
 		if (path.empty()) { return false; }
 
 		stbi_set_flip_vertically_on_load(flip_v);
 
 		if (byte_t * const temp
 		{
-			stbi_load(path.string().c_str(),
+			stbi_load(
+				path.string().c_str(),
 				(int32_t *)&size[0],
 				(int32_t *)&size[1],
 				(int32_t *)&channels,
 				(int32_t)req)
-		})
+		}
+		; !temp) { return false; }
+		else
 		{
 			pix = { temp, temp + size[0] * size[1] * channels };
 
 			stbi_image_free(temp);
-		}
 
-		return !pix.empty();
+			return true;
+		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

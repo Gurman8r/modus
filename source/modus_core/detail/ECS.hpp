@@ -357,21 +357,21 @@ namespace ml::ecs::detail
 		{
 			// generate bitsets for each signature_type
 			signature_storage temp{};
-			meta::for_types<typename signatures_type::type_list
+			meta::for_type_list<typename signatures_type::type_list
 			>([&temp](auto s)
 			{
 				// get the signature_type's bitset
 				auto & b{ std::get<self_type::signature_id<decltype(s)::type>()>(temp) };
 
 				// enable component bits
-				meta::for_types<components_type::template filter<decltype(s)::type>
+				meta::for_type_list<components_type::template filter<decltype(s)::type>
 				>([&b](auto c)
 				{
 					b.set(self_type::component_bit<decltype(c)::type>());
 				});
 
 				// enable tag bits
-				meta::for_types<tags_type::template filter<decltype(s)::type>
+				meta::for_type_list<tags_type::template filter<decltype(s)::type>
 				>([&b](auto t)
 				{
 					b.set(self_type::tag_bit<decltype(t)::type>());
@@ -1005,7 +1005,7 @@ namespace ml::ecs
 		template <class Fn
 		> self_type & for_components(size_t const i, Fn && fn) noexcept
 		{
-			meta::for_types<typename components::type_list>([&](auto c) noexcept
+			meta::for_type_list<typename components::type_list>([&](auto c) noexcept
 			{
 				using C = typename decltype(c)::type;
 				if (this->has_component<C>(i))

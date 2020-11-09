@@ -1,19 +1,20 @@
 #ifndef _ML_LOOP_SYSTEM_HPP_
 #define _ML_LOOP_SYSTEM_HPP_
 
-#include <modus_core/detail/Method.hpp>
+#include <modus_core/detail/Events.hpp>
 #include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {
 	// loop system
-	struct ML_CORE_API loop_system : trackable
+	struct ML_CORE_API loop_system : trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type			= typename pmr::polymorphic_allocator<byte_t>;
 		using loop_condition			= typename ds::method<bool()>;
 		using loop_callback				= typename ds::method<void()>;
+		using event_callback			= typename ds::method<void(event const &)>;
 		using subsystem					= typename ds::ref<loop_system>;
 		using subsystem_list			= typename ds::list<subsystem>;
 		using iterator					= typename subsystem_list::iterator;
@@ -25,28 +26,32 @@ namespace ml
 
 		virtual ~loop_system() noexcept override = default;
 
-		loop_system(allocator_type alloc = {}) noexcept
-			: m_locked		{}
+		loop_system(event_bus * bus, allocator_type alloc = {}) noexcept
+			: event_listener{ bus }
+			, m_locked		{}
 			, m_subsystems	{ alloc }
 			, m_loopcond	{}
 			, m_on_enter	{}
 			, m_on_exit		{}
 			, m_on_idle		{}
+			, m_on_event	{}
 		{
 		}
 
 		explicit loop_system(loop_system const & other, allocator_type alloc = {})
-			: m_locked		{}
+			: event_listener{ other.get_bus() }
+			, m_locked		{}
 			, m_subsystems	{ other.m_subsystems, alloc }
 			, m_loopcond	{ other.m_loopcond }
 			, m_on_enter	{ other.m_on_enter }
 			, m_on_exit		{ other.m_on_exit }
 			, m_on_idle		{ other.m_on_idle }
+			, m_on_event	{ other.m_on_event }
 		{
 		}
 
 		explicit loop_system(loop_system && other, allocator_type alloc = {}) noexcept
-			: loop_system{ alloc }
+			: loop_system{ other.get_bus(), alloc }
 		{
 			this->swap(std::move(other));
 		}
@@ -68,6 +73,7 @@ namespace ml
 
 		void swap(loop_system & other) noexcept
 		{
+			ML_assert_msg(get_bus() == other.get_bus(), "LOOPSYSTEM BUS MISMATCH");
 			if (this != std::addressof(other))
 			{
 				std::swap(m_locked, other.m_locked);
@@ -76,34 +82,70 @@ namespace ml
 				m_on_enter.swap(m_on_enter);
 				m_on_exit.swap(m_on_exit);
 				m_on_idle.swap(m_on_idle);
+				m_on_event.swap(m_on_event);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <bool Recursive = true
+		using event_listener::subscribe;
+
+		using event_listener::unsubscribe;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD bool is_locked() const noexcept { return m_locked; }
+
+		template <bool Recurse = true
 		> ML_NODISCARD int32_t process() noexcept
 		{
 			// lock
 			if (m_locked) { return EXIT_FAILURE * 1; }
 			else { m_locked = true; } ML_defer(&) { m_locked = false; };
 
-			// enter
-			loop_system::run<Recursive>(&loop_system::m_on_enter, this);
-
-			// exit
-			ML_defer(&) { loop_system::run<Recursive>(&loop_system::m_on_exit, this); };
+			// enter / exit
+			this->run_enter_callback<Recurse>();
+			ML_defer(&) { this->run_exit_callback<Recurse>(); };
+			if (!this->run_loop_condition()) { return EXIT_FAILURE * 2; }
 
 			// idle
-			if (!check_loop_condition()) { return EXIT_FAILURE * 2; }
-			do { loop_system::run<Recursive>(&loop_system::m_on_idle, this); }
-			while (check_loop_condition());
+			do { this->run_idle_callback<Recurse>(); }
+			while (this->run_loop_condition());
 			return EXIT_SUCCESS;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool check_loop_condition() const noexcept { return m_loopcond && m_loopcond(); }
+		ML_NODISCARD bool run_loop_condition() const noexcept
+		{
+			return m_loopcond && m_loopcond();
+		}
+
+		template <bool Recurse = false
+		> void run_enter_callback() noexcept
+		{
+			loop_system::run<Recurse>(&loop_system::m_on_enter, this);
+		}
+
+		template <bool Recurse = false
+		> void run_exit_callback() noexcept
+		{
+			loop_system::run<Recurse>(&loop_system::m_on_exit, this);
+		}
+
+		template <bool Recurse = false
+		> void run_idle_callback() noexcept
+		{
+			loop_system::run<Recurse>(&loop_system::m_on_idle, this);
+		}
+
+		template <bool Recurse = false
+		> void run_event_callback(event const & value) noexcept
+		{
+			loop_system::run<Recurse>(&loop_system::m_on_event, this, ML_forward(value));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_loop_condition() const noexcept -> loop_condition const & { return m_loopcond; }
 
@@ -113,34 +155,38 @@ namespace ml
 
 		ML_NODISCARD auto get_idle_callback() const noexcept -> loop_callback const & { return m_on_idle; }
 
+		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const & { return m_on_event; }
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Fn, class ... Args
 		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition &
 		{
-			if constexpr (0 == sizeof...(args)) { return m_loopcond = ML_forward(fn); }
-			else { return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...); }
+			return m_loopcond = std::bind(ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_enter_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			if constexpr (0 == sizeof...(args)) { return m_on_enter = ML_forward(fn); }
-			else { return m_on_enter = std::bind(ML_forward(fn), ML_forward(args)...); }
+			return m_on_enter = std::bind(ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_exit_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			if constexpr (0 == sizeof...(args)) { return m_on_exit = ML_forward(fn); }
-			else { return m_on_exit = std::bind(ML_forward(fn), ML_forward(args)...); }
+			return m_on_exit = std::bind(ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_idle_callback(Fn && fn, Args && ... args) -> loop_callback &
 		{
-			if constexpr (0 == sizeof...(args)) { return m_on_idle = ML_forward(fn); }
-			else { return m_on_idle = std::bind(ML_forward(fn), ML_forward(args)...); }
+			return m_on_idle = std::bind(ML_forward(fn), ML_forward(args)...);
+		}
+
+		template <class Fn, class ... Args
+		> auto set_event_callback(Fn && fn, Args && ... args) -> event_callback &
+		{
+			return m_on_event = std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -168,7 +214,7 @@ namespace ml
 
 			return std::static_pointer_cast<Derived>(m_subsystems.emplace_back
 			(
-				std::make_shared<Derived>(ML_forward(args)...)
+				make_ref<Derived>(ML_forward(args)...)
 			));
 		}
 
@@ -217,17 +263,17 @@ namespace ml
 
 		ML_NODISCARD auto subsystems() && noexcept -> subsystem_list && { return std::move(m_subsystems); }
 
-		ML_NODISCARD auto operator[](size_t const i) & noexcept -> subsystem & { return m_subsystems[i]; }
-
-		ML_NODISCARD auto operator[](size_t const i) const & noexcept -> subsystem const & { return m_subsystems[i]; }
-
-		ML_NODISCARD auto operator[](size_t const i) && noexcept -> subsystem & { return std::move(m_subsystems[i]); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
+		// handle event
+		virtual void on_event(event const & value) override
+		{
+			run_event_callback(value);
+		}
+
 		// execute member pointer
-		template <bool Recursive = false, class D, class C, class ... Args
+		template <bool Recurse = false, class D, class C, class ... Args
 		> static void run(D C::*mp, C * self, Args && ... args)
 		{
 			static_assert(std::is_base_of_v<loop_system, C>, "?");
@@ -237,7 +283,7 @@ namespace ml
 				std::invoke(self->*mp, ML_forward(args)...);
 			}
 
-			if constexpr (Recursive) for (subsystem & e : self->m_subsystems)
+			if constexpr (Recurse) for (subsystem & e : self->m_subsystems)
 			{
 				loop_system::run<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
 			}
@@ -246,12 +292,13 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		bool			m_locked	; // process locked
-		subsystem_list	m_subsystems; // subsystem list
-		loop_condition	m_loopcond	; // loop condition
-		loop_callback	m_on_enter	, // enter callback
-						m_on_exit	, // exit callback
-						m_on_idle	; // idle callback
+		bool			m_locked		; // process locked
+		subsystem_list	m_subsystems	; // subsystem list
+		loop_condition	m_loopcond		; // loop condition
+		loop_callback	m_on_enter		, // enter callback
+						m_on_exit		, // exit callback
+						m_on_idle		; // idle callback
+		event_callback	m_on_event		; // event callback
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

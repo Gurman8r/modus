@@ -46,5 +46,8 @@
 		"scripts": [
 			{ "path": "resource/modus_launcher.py" }
 		]
+	},
+	"app": {
+		"name": "
 	}
 }

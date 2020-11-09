@@ -123,7 +123,7 @@ namespace ml
 namespace ml
 {
 	// base window
-	struct ML_CORE_API base_window : trackable, non_copyable
+	struct ML_CORE_API base_window : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -245,7 +245,7 @@ namespace ml
 
 		virtual void set_focus_on_show(bool) = 0;
 
-		virtual void set_icons(size_t, size_t, size_t, byte_t const *) = 0;
+		virtual void set_icons(size_t, size_t, byte_t const *, size_t) = 0;
 
 		virtual void set_input_mode(int32_t, int32_t) = 0;
 

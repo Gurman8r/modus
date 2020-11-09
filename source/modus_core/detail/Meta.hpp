@@ -17,6 +17,8 @@
 
 #include <modus_core/Common.hpp>
 
+#define _ML_META _ML meta::
+
 // DS
 namespace ml::meta
 {
@@ -47,7 +49,7 @@ namespace ml::meta
 	template <class Tup, class Fn
 	> constexpr void impl_tuple_expand(Tup && tp, Fn && fn) noexcept
 	{
-		_ML meta::impl_tuple_expand(
+		_ML_META impl_tuple_expand(
 			ML_forward(tp),
 			ML_forward(fn),
 			std::make_index_sequence<std::tuple_size_v<std::decay_t<Tup>>>());
@@ -65,9 +67,9 @@ namespace ml::meta
 	template <class Tup, class Fn
 	> constexpr void impl_for_tuple(Tup && tp, Fn && fn) noexcept
 	{
-		_ML meta::impl_tuple_expand(ML_forward(tp), [&fn](auto && ... rest) noexcept
+		_ML_META impl_tuple_expand(ML_forward(tp), [&fn](auto && ... rest) noexcept
 		{
-			_ML meta::for_args(fn, ML_forward(rest)...);
+			_ML_META for_args(fn, ML_forward(rest)...);
 		});
 	}
 
@@ -77,21 +79,21 @@ namespace ml::meta
 	template <class Tup, class Fn
 	> constexpr void tuple_expand(Tup && tp, Fn && fn) noexcept
 	{
-		_ML meta::impl_tuple_expand(ML_forward(tp), ML_forward(fn));
+		_ML_META impl_tuple_expand(ML_forward(tp), ML_forward(fn));
 	}
 
 	// invokes a function on every passed object
 	template <class Fn, class ... Args
 	> constexpr void for_args(Fn && fn, Args && ... args) noexcept
 	{
-		_ML meta::impl_for_args(ML_forward(fn), ML_forward(args)...);
+		_ML_META impl_for_args(ML_forward(fn), ML_forward(args)...);
 	}
 
 	// invokes a function on every element of a tuple
 	template <class Tup, class Fn
 	> constexpr void for_tuple(Tup && tp, Fn && fn) noexcept
 	{
-		_ML meta::impl_for_tuple(ML_forward(tp), ML_forward(fn));
+		_ML_META impl_for_tuple(ML_forward(tp), ML_forward(fn));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -227,9 +229,15 @@ namespace ml::meta
 	> ML_alias tag_tuple = typename tuple<remap<tag, Ls>>;
 
 	template <class Ls, class Fn
+	> constexpr void for_type_list(Fn && fn) noexcept
+	{
+		_ML_META for_tuple(tag_tuple<Ls>{}, fn);
+	}
+
+	template <class T0, class ... Ts, class Fn
 	> constexpr void for_types(Fn && fn) noexcept
 	{
-		return _ML meta::for_tuple(tag_tuple<Ls>{}, fn);
+		_ML_META for_type_list<_ML_META list<T0, Ts...>>(ML_forward(fn));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

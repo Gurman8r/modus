@@ -51,7 +51,7 @@ namespace ml
 			; it != cat.end()) { return it->second; }
 			else
 			{
-				return cat[ML_forward(key)] = std::make_shared<std::any>
+				return cat[ML_forward(key)] = make_ref<std::any>
 				(
 					std::make_any<Type>()
 				);

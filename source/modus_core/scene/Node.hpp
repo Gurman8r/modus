@@ -8,7 +8,7 @@
 
 namespace ml
 {
-	struct node : trackable, non_copyable
+	struct node : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

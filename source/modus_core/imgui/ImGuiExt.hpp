@@ -6,13 +6,10 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// ImGui::PushID(...); ML_defer() { ImGui::PopID(); };
-#define ImGuiExt_ScopeID(...) \
-	auto ML_anon = _ML ImGuiExt::ImplScopeID{ ##__VA_ARGS__ }
-
-// SCOPE-ID
-namespace ml::ImGuiExt
+// SCOPE ID
+namespace ml::ImGuiExt::Impl
 {
+	// IMPL SCOPE ID
 	struct ML_NODISCARD ImplScopeID final
 	{
 		template <class ... Args
@@ -21,6 +18,10 @@ namespace ml::ImGuiExt
 		~ImplScopeID() noexcept { ImGui::PopID(); }
 	};
 }
+
+// Scope ID
+#define ImGuiExt_ScopeID(...) \
+	auto ML_anon = _ML ImGuiExt::Impl::ImplScopeID{ ##__VA_ARGS__ }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -266,6 +267,12 @@ namespace ml::ImGuiExt
 		> bool operator()(ImGuiViewport const * vp, Fn && fn, Args && ... args) noexcept
 		{
 			if (!IsOpen || !vp || !IsDockingEnabled()) { return false; }
+
+			// main menu bar
+			ML_flag_write(
+				this->WinFlags,
+				ImGuiWindowFlags_MenuBar,
+				ImGui::FindWindowByName("##MainMenuBar"));
 			
 			ImGuiExt_ScopeID(this);
 			ImGui::SetNextWindowPos(vp->Pos);
@@ -298,7 +305,7 @@ namespace ml::ImGuiExt
 // TEXT LOG
 namespace ml::ImGuiExt
 {
-	struct ML_CORE_API ML_NODISCARD TextLog final : trackable, non_copyable
+	struct ML_CORE_API ML_NODISCARD TextLog final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -413,7 +420,7 @@ namespace ml::ImGuiExt
 // TERMINAL
 namespace ml::ImGuiExt
 {
-	struct ML_CORE_API ML_NODISCARD Terminal final : trackable, non_copyable
+	struct ML_CORE_API ML_NODISCARD Terminal final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

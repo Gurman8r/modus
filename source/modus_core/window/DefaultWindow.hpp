@@ -133,7 +133,7 @@ namespace ml
 
 		void set_focus_on_show(bool value) noexcept final;
 		
-		void set_icons(size_t w, size_t h, size_t n, byte_t const * p) noexcept final;
+		void set_icons(size_t w, size_t h, byte_t const * p, size_t n = 1) noexcept final;
 
 		void set_input_mode(int32_t mode, int32_t value) noexcept final;
 		
@@ -208,7 +208,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::scoped<base_window> m_backend; // backend implementation
+		ds::scope<base_window> m_backend; // backend implementation
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

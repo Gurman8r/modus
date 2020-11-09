@@ -10,20 +10,14 @@ namespace ml
 		, m_records	{ m_alloc }
 		, m_counter	{}
 	{
-		if (!get_global<memory_manager>())
-		{
-			set_global<memory_manager>(this);
-		}
+		if (!get_global<memory_manager>()) { set_global<memory_manager>(this); }
 	}
 
 	memory_manager::~memory_manager() noexcept
 	{
 		ML_assert_msg(m_records.empty(), "MEMORY LEAKS DETECTED");
 
-		if (this == get_global<memory_manager>())
-		{
-			set_global<memory_manager>(nullptr);
-		}
+		if (this == get_global<memory_manager>()) { set_global<memory_manager>(nullptr); }
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

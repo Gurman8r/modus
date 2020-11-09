@@ -10,7 +10,7 @@ namespace ml
 {
 	struct entity;
 
-	struct ML_CORE_API scene : trackable, non_copyable
+	struct ML_CORE_API scene : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

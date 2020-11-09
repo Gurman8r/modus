@@ -3,9 +3,10 @@
 
 #include <modus_core/graphics/RenderAPI.hpp>
 
-// glyph
+// GLYPH
 namespace ml
 {
+	// glyph
 	struct ML_CORE_API glyph final : trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -40,13 +41,14 @@ namespace ml
 	};
 }
 
-// font
+// FONT
 namespace ml
 {
 	ML_decl_handle(	font_face		); // font face handle
 	ML_decl_handle(	font_library	); // font library handle
 	ML_decl_handle(	font_stroker	); // font stroker handle
 
+	// font
 	struct ML_CORE_API font final : trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

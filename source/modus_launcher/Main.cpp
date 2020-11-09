@@ -1,4 +1,4 @@
-#include <modus_core/engine/DefaultApp.hpp>
+#include <modus_core/engine/Application.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -92,19 +92,30 @@ json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int main(int argc, char ** argv)
+int main(int argc, char * argv[])
 {
-	static memory_manager	memory		{};
-	static engine_io		io			{ { argv, argv + argc }, load_settings() };
-	static simple_database	database	{};
-	static event_bus		bus			{};
-	static render_window	window		{};
-	static loop_system		mainloop	{};
-	static engine_context	context		{ &memory, &io, &database, &bus, &window, &mainloop };
+	static memory_manager memory{};
 
-	auto app{ mainloop.new_subsystem<default_app>(&context) };
+	auto app{ make_scope<core_application>(argc, argv) };
+	app->set_app_name("modus launcher");
+	app->set_app_version("alpha");
+	app->set_library_paths({ "../../../" });
 
-	return app->process();
+	auto dummy = app->get_bus()->new_dummy<
+		app_enter_event,
+		app_exit_event,
+		app_idle_event
+	>([&](event const & value) noexcept
+	{
+		if (value == app_enter_event::ID) debug::puts("app_enter_event");
+		if (value == app_exit_event::ID) debug::puts("app_exit_event");
+		if (value == app_idle_event::ID) debug::puts("app_idle_event");
+	});
+	app->post_event<app_enter_event>();
+	app->post_event<app_idle_event>();
+	app->post_event<app_exit_event>();
+	app->process_events();
+	return debug::pause();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

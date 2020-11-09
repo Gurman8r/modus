@@ -26,7 +26,7 @@ namespace ml
 	public:
 		ML_NODISCARD constexpr hash_t getid() const noexcept { return m_ID; }
 
-		ML_NODISCARD constexpr operator hash_t () const noexcept { return m_ID; }
+		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_ID; }
 
 		ML_NODISCARD constexpr bool operator==(hash_t value) const noexcept { return m_ID == value; }
 

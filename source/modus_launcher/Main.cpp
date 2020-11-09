@@ -92,7 +92,7 @@ json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int main(int argc, char * argv[])
+int32_t main(int32_t argc, char * argv[])
 {
 	static memory_manager memory{};
 

@@ -91,4 +91,12 @@ namespace ml
 	};
 }
 
+// global gui_application
+namespace ml::globals
+{
+	ML_decl_global(gui_application) get() noexcept;
+
+	ML_decl_global(gui_application) set(gui_application * value) noexcept;
+}
+
 #endif // !_ML_GUI_APPLICATION_HPP_

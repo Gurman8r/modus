@@ -99,7 +99,7 @@ int main(int argc, char * argv[])
 	auto app{ make_scope<core_application>(argc, argv) };
 	app->set_app_name("modus launcher");
 	app->set_app_version("alpha");
-	app->set_library_paths({ "../../../" });
+	app->set_library_paths({ "./plugins" });
 
 	auto dummy = app->get_bus()->new_dummy<
 		app_enter_event,

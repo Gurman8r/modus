@@ -20,6 +20,8 @@ namespace ml
 		, m_imgui		{}
 		, m_docker		{ new ImGuiExt::Dockspace{ "##MainDockspace" } }
 	{
+		if (!get_global<gui_application>()) { set_global<gui_application>(this); }
+
 		subscribe<window_cursor_pos_event>();
 		subscribe<window_key_event>();
 		subscribe<window_mouse_event>();
@@ -27,6 +29,7 @@ namespace ml
 
 	gui_application::~gui_application() noexcept
 	{
+		if (this == get_global<gui_application>()) { set_global<gui_application>(nullptr); }
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -67,4 +70,20 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// global gui_application
+namespace ml::globals
+{
+	static gui_application * g_gui_app{};
+
+	ML_impl_global(gui_application) get() noexcept
+	{
+		return g_gui_app;
+	}
+
+	ML_impl_global(gui_application) set(gui_application * value) noexcept
+	{
+		return g_gui_app = value;
+	}
 }

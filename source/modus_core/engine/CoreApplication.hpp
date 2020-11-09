@@ -114,6 +114,14 @@ namespace ml
 	};
 }
 
+// global core_application
+namespace ml::globals
+{
+	ML_decl_global(core_application) get() noexcept;
+
+	ML_decl_global(core_application) set(core_application * value) noexcept;
+}
+
 // EVENTS
 namespace ml
 {

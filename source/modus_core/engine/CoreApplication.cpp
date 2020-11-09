@@ -18,6 +18,8 @@ namespace ml
 		, m_dispatcher		{ alloc }
 		, m_loop			{ alloc_ref<loop_system>(alloc, get_bus()) }
 	{
+		if (!get_global<core_application>()) { set_global<core_application>(this); }
+		
 		subscribe<app_enter_event, app_exit_event, app_idle_event>();
 
 		m_loop->set_loop_condition([&]() { return !should_close(); });
@@ -29,6 +31,8 @@ namespace ml
 	core_application::~core_application() noexcept
 	{
 		unsubscribe();
+
+		if (this == get_global<core_application>()) { set_global<core_application>(nullptr); }
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -79,4 +83,20 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// global core_application
+namespace ml::globals
+{
+	static core_application * g_core_app{};
+
+	ML_impl_global(core_application) get() noexcept
+	{
+		return g_core_app;
+	}
+
+	ML_impl_global(core_application) set(core_application * value) noexcept
+	{
+		return g_core_app = value;
+	}
 }

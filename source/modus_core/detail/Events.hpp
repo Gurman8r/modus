@@ -28,11 +28,9 @@ namespace ml
 
 		ML_NODISCARD constexpr operator hash_t () const noexcept { return m_ID; }
 
-		template <class U = hash_t
-		> ML_NODISCARD constexpr bool operator ==(U && value) const noexcept { return m_ID == value; }
+		ML_NODISCARD constexpr bool operator==(hash_t value) const noexcept { return m_ID == value; }
 
-		template <class U = hash_t
-		> ML_NODISCARD constexpr bool operator !=(U && value) const noexcept { return m_ID != value; }
+		ML_NODISCARD constexpr bool operator!=(hash_t value) const noexcept { return m_ID != value; }
 
 	protected:
 		constexpr explicit event(hash_t id) noexcept : m_ID{ id } {}

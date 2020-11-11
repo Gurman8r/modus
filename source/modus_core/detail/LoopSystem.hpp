@@ -103,12 +103,14 @@ namespace ml
 			if (m_locked) { return EXIT_FAILURE * 1; }
 			else { m_locked = true; } ML_defer(&) { m_locked = false; };
 
-			// enter / exit
+			// enter
 			this->run_enter_callback<Recurse>();
+			
+			// exit
 			ML_defer(&) { this->run_exit_callback<Recurse>(); };
-			if (!this->run_loop_condition()) { return EXIT_FAILURE * 2; }
-
+			
 			// idle
+			if (!this->run_loop_condition()) { return EXIT_FAILURE * 2; }
 			do { this->run_idle_callback<Recurse>(); }
 			while (this->run_loop_condition());
 			return EXIT_SUCCESS;
@@ -162,31 +164,31 @@ namespace ml
 		template <class Fn, class ... Args
 		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition
 		{
-			return util::swap_callback(m_loopcond, ML_forward(fn), ML_forward(args)...);
+			return util::route_callback(m_loopcond, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_enter_callback(Fn && fn, Args && ... args) -> loop_callback
 		{
-			return util::swap_callback(m_on_enter, ML_forward(fn), ML_forward(args)...);
+			return util::route_callback(m_on_enter, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_exit_callback(Fn && fn, Args && ... args) -> loop_callback
 		{
-			return util::swap_callback(m_on_exit, ML_forward(fn), ML_forward(args)...);
+			return util::route_callback(m_on_exit, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_idle_callback(Fn && fn, Args && ... args) -> loop_callback
 		{
-			return util::swap_callback(m_on_idle, ML_forward(fn), ML_forward(args)...);
+			return util::route_callback(m_on_idle, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_event_callback(Fn && fn, Args && ... args) -> event_callback
 		{
-			return util::swap_callback(m_on_enter, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
+			return util::route_callback(m_on_enter, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -285,7 +287,9 @@ namespace ml
 
 			if constexpr (Recurse) for (subsystem & e : self->m_subsystems)
 			{
-				loop_system::run<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
+				auto const c{ dynamic_cast<C *>(e.get()) };
+
+				loop_system::run<true>(mp, c, ML_forward(args)...);
 			}
 		}
 

@@ -4,8 +4,7 @@
 #include <modus_core/Common.hpp>
 #include <modus_core/Export.hpp>
 
-// globals namespace
-#define _ML_GLOBALS _ML globals::
+#define _ML_GLOBALS _ML globals:: // globals
 
 // globals api
 #ifndef ML_GLOBALS_API
@@ -13,10 +12,10 @@
 #endif
 
 // globals declaration ( in .hpp )
-#define ML_decl_global(T) template <> ML_NODISCARD ML_GLOBALS_API T *
+#define ML_decl_global(Type) template <> ML_NODISCARD ML_GLOBALS_API Type *
 
 // globals implementation ( in .cpp )
-#define ML_impl_global(T) template <> T *
+#define ML_impl_global(Type) template <> Type *
 
 namespace ml
 {
@@ -24,14 +23,14 @@ namespace ml
 
 	namespace globals
 	{
-		// backend global get
+		// backend global getter
 		template <class T> ML_NODISCARD T * get() noexcept
 		{
 			static_assert(0, "get global not implemented for type");
 			return nullptr;
 		}
 
-		// backend global set
+		// backend global setter
 		template <class T> ML_NODISCARD T * set(T *) noexcept
 		{
 			static_assert(0, "set global not implemented for type");
@@ -55,6 +54,24 @@ namespace ml
 		static_assert(!std::is_same_v<T, void>, "?");
 		
 		return _ML_GLOBALS set<T>(static_cast<T *>(value));
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// begin global
+	template <class T> bool begin_global(void * value) noexcept
+	{
+		return value
+			&& _ML get_global<T>() == nullptr
+			&& _ML set_global<T>(value);
+	}
+
+	// end global
+	template <class T> bool end_global(void * value) noexcept
+	{
+		return value
+			&& _ML get_global<T>() == value
+			&& !_ML set_global<T>(nullptr);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

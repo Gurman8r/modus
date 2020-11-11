@@ -17,7 +17,7 @@
 
 #include <modus_core/Common.hpp>
 
-#define _ML_META _ML meta::
+#define _ML_META _ML meta:: // meta
 
 // DS
 namespace ml::meta

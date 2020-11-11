@@ -1,15 +1,14 @@
-#ifndef _ML_BASE_WINDOW_HPP_
-#define _ML_BASE_WINDOW_HPP_
+#ifndef _ML_BACKEND_WINDOW_HPP_
+#define _ML_BACKEND_WINDOW_HPP_
 
 #include <modus_core/detail/Duration.hpp>
 #include <modus_core/window/Input.hpp>
 #include <modus_core/window/VideoMode.hpp>
 #include <modus_core/window/WindowContext.hpp>
 
+// HINTS
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	// window hints
 	enum window_hints_ : int32_t
 	{
@@ -71,10 +70,11 @@ namespace ml
 		j["resizable"		] = ML_flag_read(v, window_hints_resizable		);
 		j["visible"			] = ML_flag_read(v, window_hints_visible		);
 	}
+}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// callback types
+// CALLBACKS
+namespace ml
+{
 	ML_alias window_char_callback				= void(*)(window_handle, uint32_t);
 	ML_alias window_char_mods_callback			= void(*)(window_handle, uint32_t, int32_t);
 	ML_alias window_close_callback				= void(*)(window_handle);
@@ -93,9 +93,6 @@ namespace ml
 	ML_alias window_resize_callback				= void(*)(window_handle, int32_t, int32_t);
 	ML_alias window_scroll_callback				= void(*)(window_handle, float64_t, float64_t);
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// callback container
 	struct ML_NODISCARD window_callbacks final
 	{
 		window_char_callback				on_char					; // 
@@ -116,20 +113,21 @@ namespace ml
 		window_resize_callback				on_resize				; // 
 		window_scroll_callback				on_scroll				; // 
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
+// BACKEND WINDOW
 namespace ml
 {
-	// base window
-	struct ML_CORE_API base_window : non_copyable, trackable
+	// base window type
+	struct ML_CORE_API backend_window : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		virtual ~base_window() noexcept override = default;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		virtual ~backend_window() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
@@ -162,7 +160,7 @@ namespace ml
 
 		virtual window_callbacks const & get_callbacks() const = 0;
 
-		virtual window_context_manager const & get_context_manager() const = 0;
+		virtual window_context const & get_context_manager() const = 0;
 
 		virtual cstring get_clipboard() const = 0;
 
@@ -299,6 +297,26 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		virtual window_char_callback				get_char_callback() const = 0;
+		virtual window_char_mods_callback			get_char_mods_callback() const = 0;
+		virtual window_close_callback				get_close_callback() const = 0;
+		virtual window_content_scale_callback		get_content_scale_callback() const = 0;
+		virtual window_cursor_enter_callback		get_cursor_enter_callback() const = 0;
+		virtual window_cursor_pos_callback			get_cursor_pos_callback() const = 0;
+		virtual window_drop_callback				get_drop_callback() const = 0;
+		virtual window_focus_callback				get_focus_callback() const = 0;
+		virtual window_framebuffer_resize_callback	get_framebuffer_resize_callback() const = 0;
+		virtual window_iconify_callback				get_iconify_callback() const = 0;
+		virtual window_key_callback					get_key_callback() const = 0;
+		virtual window_maximize_callback			get_maximize_callback() const = 0;
+		virtual window_mouse_callback				get_mouse_callback() const = 0;
+		virtual window_position_callback			get_position_callback() const = 0;
+		virtual window_refresh_callback				get_refresh_callback() const = 0;
+		virtual window_resize_callback				get_resize_callback() const = 0;
+		virtual window_scroll_callback				get_scroll_callback() const = 0;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		virtual window_char_callback				set_char_callback				(window_char_callback) = 0;
 		virtual window_char_mods_callback			set_char_mods_callback			(window_char_mods_callback) = 0;
 		virtual window_close_callback				set_close_callback				(window_close_callback) = 0;
@@ -317,29 +335,8 @@ namespace ml
 		virtual window_resize_callback				set_resize_callback				(window_resize_callback) = 0;
 		virtual window_scroll_callback				set_scroll_callback				(window_scroll_callback) = 0;
 
-		inline void clear_callbacks() noexcept
-		{
-			set_char_callback				(nullptr);
-			set_char_mods_callback			(nullptr);
-			set_close_callback				(nullptr);
-			set_content_scale_callback		(nullptr);
-			set_cursor_enter_callback		(nullptr);
-			set_cursor_pos_callback			(nullptr);
-			set_drop_callback				(nullptr);
-			set_focus_callback				(nullptr);
-			set_framebuffer_resize_callback	(nullptr);
-			set_iconify_callback			(nullptr);
-			set_key_callback				(nullptr);
-			set_maximize_callback			(nullptr);
-			set_mouse_callback				(nullptr);
-			set_position_callback			(nullptr);
-			set_refresh_callback			(nullptr);
-			set_resize_callback				(nullptr);
-			set_scroll_callback				(nullptr);
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
-#endif // !_ML_BASE_WINDOW_HPP_
+#endif // !_ML_BACKEND_WINDOW_HPP_

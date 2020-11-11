@@ -2,7 +2,7 @@
 #ifndef _ML_GLFW_WINDOW_HPP_
 #define _ML_GLFW_WINDOW_HPP_
 
-#include <modus_core/window/BaseWindow.hpp>
+#include <modus_core/window/BackendWindow.hpp>
 
 struct GLFWwindow;
 struct GLFWmonitor;
@@ -10,13 +10,21 @@ struct GLFWmonitor;
 namespace ml
 {
 	// glfw window implementation
-	struct glfw_window final : base_window
+	struct glfw_window final : backend_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit glfw_window(allocator_type alloc) noexcept;
+		using self_type = glfw_window;
 
-		explicit glfw_window(
+		using base_type = backend_window;
+
+		using base_type::allocator_type;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		glfw_window(allocator_type alloc = {}) noexcept;
+
+		glfw_window(
 			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
@@ -57,7 +65,7 @@ namespace ml
 
 		window_callbacks const & get_callbacks() const override;
 
-		window_context_manager const & get_context_manager() const override;
+		window_context const & get_context_manager() const override;
 
 		cstring get_clipboard() const override;
 
@@ -186,6 +194,26 @@ namespace ml
 		static cursor_handle create_standard_cursor(int32_t value);
 
 		static void destroy_cursor(cursor_handle value);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		window_char_callback				get_char_callback() const override;
+		window_char_mods_callback			get_char_mods_callback() const override;
+		window_close_callback				get_close_callback() const override;
+		window_content_scale_callback		get_content_scale_callback() const override;
+		window_cursor_enter_callback		get_cursor_enter_callback() const override;
+		window_cursor_pos_callback			get_cursor_pos_callback() const override;
+		window_drop_callback				get_drop_callback() const override;
+		window_focus_callback				get_focus_callback() const override;
+		window_framebuffer_resize_callback	get_framebuffer_resize_callback() const override;
+		window_iconify_callback				get_iconify_callback() const override;
+		window_key_callback					get_key_callback() const override;
+		window_maximize_callback			get_maximize_callback() const override;
+		window_mouse_callback				get_mouse_callback() const override;
+		window_position_callback			get_position_callback() const override;
+		window_refresh_callback				get_refresh_callback() const override;
+		window_resize_callback				get_resize_callback() const override;
+		window_scroll_callback				get_scroll_callback() const override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

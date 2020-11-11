@@ -8,15 +8,15 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// exit
-	m.def("exit", [](py::args) { get_global<core_application>()->set_should_close(true); });
+	m.def("exit", [](py::args) { get_global<core_application>()->quit(); });
 	py::module::import("builtins").attr("exit") = m.attr("exit");
 	py::module::import("sys").attr("exit") = m.attr("exit");
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	py::class_<non_copyable, ds::raw<non_copyable>>(m, "non_copyable");
+	py::class_<non_copyable, ds::scary<non_copyable>>(m, "non_copyable");
 
-	py::class_<trackable, ds::raw<trackable>>(m, "trackable");
+	py::class_<trackable, ds::scary<trackable>>(m, "trackable");
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

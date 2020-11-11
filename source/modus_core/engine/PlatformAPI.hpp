@@ -13,9 +13,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		platform_api() noexcept = default;
+		platform_api() noexcept;
 
-		virtual ~platform_api() noexcept override = default;
+		virtual ~platform_api() noexcept override;
 
 	public:
 		static platform_api * create() noexcept;

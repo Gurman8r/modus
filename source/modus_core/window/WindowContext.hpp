@@ -148,8 +148,8 @@ namespace ml
 // MANAGER
 namespace ml
 {
-	// window context manager
-	struct ML_NODISCARD window_context_manager final
+	// window context
+	struct ML_NODISCARD window_context final
 	{
 		int32_t (*extension_supported)(cstring);
 

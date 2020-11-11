@@ -6,8 +6,10 @@
 
 namespace ml
 {
+	// library handle
 	ML_decl_handle(library_handle);
 
+	// shared library
 	struct ML_CORE_API shared_library final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -204,6 +206,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+
+	// load library
+	template <class ... Args
+	> ML_NODISCARD auto load_library(Args && ... args) noexcept
+	{
+		return _ML make_scope<shared_library>(ML_forward(args)...);
+	}
 }
 
 #endif // !_ML_SHARED_LIBRARY_HPP_

@@ -7,6 +7,8 @@
 #include <modus_core/graphics/Bitmap.hpp>
 #include <modus_core/window/WindowContext.hpp>
 
+#define _ML_GFX _ML gfx:: // graphics
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // types
@@ -691,7 +693,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual ds::ref<framebuffer> new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<program> new_program(allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<program> new_program(spec<program> const & desc, allocator_type alloc = {}) noexcept = 0;
 
 		ML_NODISCARD virtual ds::ref<shader> new_shader(spec<shader> const & desc, allocator_type alloc = {}) noexcept = 0;
 
@@ -730,9 +732,8 @@ namespace ml::gfx
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		explicit render_object(render_device * parent) noexcept : m_parent{ parent }
+		explicit render_object(render_device * parent) noexcept : m_parent{ ML_check(parent) }
 		{
-			ML_assert_msg(m_parent, "BAD RENDER DEVICE");
 		}
 
 		virtual ~render_object() override = default;
@@ -747,7 +748,10 @@ namespace ml::gfx
 
 		ML_NODISCARD inline auto get_device() const noexcept -> render_device * { return m_parent; }
 
-		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const & { return ML_check(m_parent)->get_context(); }
+		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const &
+		{
+			return ML_check(m_parent)->get_context();
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -888,11 +892,11 @@ namespace ml::gfx
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using spec_type = typename spec<render_context>;
+		using spec = typename _ML_GFX spec<render_context>;
 
-		ML_NODISCARD static auto create(spec_type const & desc, allocator_type alloc = {}) noexcept
+		ML_NODISCARD static auto create(spec const & desc, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->new_context(desc, alloc);
+			return ML_check(get_global<render_device>())->new_context(desc, alloc);
 		}
 
 	public:
@@ -908,9 +912,9 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual object_id get_handle() const noexcept override = 0;
 
-		ML_NODISCARD virtual spec<render_context> const & get_settings() const noexcept = 0;
-
 		ML_NODISCARD virtual typeof<> const & get_self_type() const noexcept override = 0;
+
+		ML_NODISCARD virtual spec const & get_spec() const noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -918,7 +922,7 @@ namespace ml::gfx
 		
 		virtual blend_state * get_blend_state(blend_state * value = {}) const = 0;
 
-		virtual color get_clear_color() const = 0;
+		virtual color * get_clear_color(color * value = {}) const = 0;
 
 		virtual cull_state * get_cull_state(cull_state * value = {}) const = 0;
 
@@ -994,6 +998,20 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+
+	// allocate render context
+	template <class ... Args
+	> ML_NODISCARD auto alloc_context(render_context::allocator_type alloc, Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_context(render_context::spec{ ML_forward(args)... }, alloc);
+	}
+
+	// make render context
+	template <class ... Args
+	> ML_NODISCARD auto make_context(Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_context(render_context::spec{ ML_forward(args)... });
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1022,9 +1040,11 @@ namespace ml::gfx
 	struct ML_CORE_API vertexarray : public render_object<vertexarray>
 	{
 	public:
-		ML_NODISCARD static auto create(spec<vertexarray> const & desc = {}, allocator_type alloc = {}) noexcept
+		using spec = typename _ML_GFX spec<vertexarray>;
+
+		ML_NODISCARD static auto create(spec const & desc = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->new_vertexarray(desc, alloc);
+			return ML_check(get_global<render_device>())->new_vertexarray(desc, alloc);
 		}
 
 	public:
@@ -1056,14 +1076,28 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			get_context()->bind_vertexarray(this);
+			ML_check(get_context())->bind_vertexarray(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			get_context()->bind_vertexarray(nullptr);
+			ML_check(get_context())->bind_vertexarray(nullptr);
 		}
 	};
+
+	// allocate vertexarray
+	template <class ... Args
+	> ML_NODISCARD auto alloc_vertexarray(vertexarray::allocator_type alloc, Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_vertexarray(vertexarray::spec{ ML_forward(args)... }, alloc);
+	}
+
+	// make vertexarray
+	template <class ... Args
+	> ML_NODISCARD auto make_vertexarray(Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_vertexarray(vertexarray::spec{ ML_forward(args)... });
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1093,9 +1127,11 @@ namespace ml::gfx
 	struct ML_CORE_API vertexbuffer : public render_object<vertexbuffer>
 	{
 	public:
-		ML_NODISCARD static auto create(spec<vertexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
+		using spec = typename _ML_GFX spec<vertexbuffer>;
+
+		ML_NODISCARD static auto create(spec const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->new_vertexbuffer(desc, data, alloc);
+			return ML_check(get_global<render_device>())->new_vertexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1125,14 +1161,28 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			get_context()->bind_vertexbuffer(this);
+			ML_check(get_context())->bind_vertexbuffer(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			get_context()->bind_vertexbuffer(nullptr);
+			ML_check(get_context())->bind_vertexbuffer(nullptr);
 		}
 	};
+
+	// allocate vertexbuffer
+	template <class ... Args
+	> ML_NODISCARD auto alloc_vertexbuffer(vertexbuffer::allocator_type alloc, Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_vertexbuffer(vertexbuffer::spec{ ML_forward(args)... }, alloc);
+	}
+
+	// make vertexbuffer
+	template <class ... Args
+	> ML_NODISCARD auto make_vertexbuffer(Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_vertexbuffer(vertexbuffer::spec{ ML_forward(args)... });
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1164,9 +1214,11 @@ namespace ml::gfx
 	struct ML_CORE_API indexbuffer : public render_object<indexbuffer>
 	{
 	public:
-		ML_NODISCARD static auto create(spec<indexbuffer> const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
+		using spec = typename _ML_GFX spec<indexbuffer>;
+
+		ML_NODISCARD static auto create(spec const & desc = {}, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->new_indexbuffer(desc, data, alloc);
+			return ML_check(get_global<render_device>())->new_indexbuffer(desc, data, alloc);
 		}
 
 	public:
@@ -1196,14 +1248,28 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			get_context()->bind_indexbuffer(this);
+			ML_check(get_context())->bind_indexbuffer(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			get_context()->bind_indexbuffer(nullptr);
+			ML_check(get_context())->bind_indexbuffer(nullptr);
 		}
 	};
+
+	// allocate indexbuffer
+	template <class ... Args
+	> ML_NODISCARD auto alloc_indexbuffer(indexbuffer::allocator_type alloc, Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_indexbuffer(indexbuffer::spec{ ML_forward(args)... }, alloc);
+	}
+
+	// make indexbuffer
+	template <class ... Args
+	> ML_NODISCARD auto make_indexbuffer(Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_indexbuffer(indexbuffer::spec{ ML_forward(args)... });
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1305,12 +1371,12 @@ namespace ml::gfx
 	public:
 		inline void bind(uint32_t slot = 0) const noexcept
 		{
-			get_context()->bind_texture(this, slot);
+			ML_check(get_context())->bind_texture(this, slot);
 		}
 
 		inline void unbind(uint32_t slot = 0) const noexcept
 		{
-			get_context()->bind_texture(nullptr, slot);
+			ML_check(get_context())->bind_texture(nullptr, slot);
 		}
 	};
 }
@@ -1347,9 +1413,11 @@ namespace ml::gfx
 	struct ML_CORE_API texture2d : public texture
 	{
 	public:
-		ML_NODISCARD static auto create(spec<texture2d> const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept
+		using spec = typename _ML_GFX spec<texture2d>;
+
+		ML_NODISCARD static auto create(spec const & desc, addr_t data = {}, allocator_type alloc = {}) noexcept
 		{
-			return get_global<render_device>()->new_texture2d(desc, data);
+			return ML_check(get_global<render_device>())->new_texture2d(desc, data);
 		}
 
 		ML_NODISCARD static auto create(bitmap const & img, texture_flags_ flags = texture_flags_default) noexcept
@@ -1400,6 +1468,20 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 	};
+
+	// allocate texture2d
+	template <class ... Args
+	> ML_NODISCARD auto alloc_texture2d(texture2d::allocator_type alloc, Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_texture2d(texture2d::spec{ ML_forward(args)... }, alloc);
+	}
+
+	// make texture2d
+	template <class ... Args
+	> ML_NODISCARD auto make_texture2d(Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_texture2d(texture2d::spec{ ML_forward(args)... });
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1435,12 +1517,8 @@ namespace ml::gfx
 	struct ML_CORE_API texturecube : public texture
 	{
 	public:
-		ML_NODISCARD static auto create(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept
-		{
-			return get_global<render_device>()->new_texturecube(desc, alloc);
-		}
+		using spec = typename _ML_GFX spec<texturecube>;
 
-	public:
 		explicit texturecube(render_device * parent) noexcept : texture{ parent }
 		{
 		}
@@ -1466,6 +1544,20 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 	};
+
+	// allocate texturecube
+	template <class ... Args
+	> ML_NODISCARD auto alloc_texturecube(texturecube::allocator_type alloc, Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_texturecube(texturecube::spec{ ML_forward(args)... }, alloc);
+	}
+
+	// make texturecube
+	template <class ... Args
+	> ML_NODISCARD auto make_texturecube(Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_texturecube(texturecube::spec{ ML_forward(args)... });
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1474,7 +1566,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// framebuffer specification
-	template <> struct ML_NODISCARD spec<framebuffer> final
+	template <> struct ML_NODISCARD ML_CORE_API spec<framebuffer> final
 	{
 		vec2i			size			{};
 		texture_format	format			{ format_rgba };
@@ -1515,12 +1607,8 @@ namespace ml::gfx
 	struct ML_CORE_API framebuffer : public render_object<framebuffer>
 	{
 	public:
-		ML_NODISCARD static auto create(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept
-		{
-			return get_global<render_device>()->new_framebuffer(desc, alloc);
-		}
+		using spec = typename _ML_GFX spec<framebuffer>;
 
-	public:
 		explicit framebuffer(render_device * parent) noexcept : render_object{ parent }
 		{
 		}
@@ -1564,22 +1652,36 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			get_context()->bind_framebuffer(this);
+			ML_check(get_context())->bind_framebuffer(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			get_context()->bind_framebuffer(nullptr);
+			ML_check(get_context())->bind_framebuffer(nullptr);
 		}
 
 		inline void bind_texture(uint32_t slot = 0) const noexcept
 		{
-			get_context()->bind_texture
+			ML_check(get_context())->bind_texture
 			(
 				get_color_attachments()[(size_t)slot].get(), slot
 			);
 		}
 	};
+
+	// allocate framebuffer
+	template <class ... Args
+	> ML_NODISCARD auto alloc_framebuffer(framebuffer::allocator_type alloc, Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_framebuffer(framebuffer::spec{ ML_forward(args)... }, alloc);
+	}
+
+	// make framebuffer
+	template <class ... Args
+	> ML_NODISCARD auto make_framebuffer(Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_framebuffer(framebuffer::spec{ ML_forward(args)... });
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1587,14 +1689,16 @@ namespace ml::gfx
 // program
 namespace ml::gfx
 {
+	// program specification
+	template <> struct ML_NODISCARD spec<program> final
+	{
+	};
+
 	// base program
 	struct ML_CORE_API program : public render_object<program>
 	{
 	public:
-		ML_NODISCARD static auto create() noexcept
-		{
-			return get_global<render_device>()->new_program();
-		}
+		using spec = typename _ML_GFX spec<program>;
 
 	public:
 		explicit program(render_device * parent) noexcept : render_object{ parent }
@@ -1645,12 +1749,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			get_context()->bind_program(this);
+			ML_check(get_context())->bind_program(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			get_context()->bind_program(nullptr);
+			ML_check(get_context())->bind_program(nullptr);
 		}
 
 		inline void bind_textures() const noexcept
@@ -1683,6 +1787,20 @@ namespace ml::gfx
 	protected:
 		virtual void do_cache_texture(uniform_id loc, ds::ref<texture> const & value) noexcept = 0;
 	};
+
+	// alloc program
+	template <class ... Args
+	> ML_NODISCARD auto alloc_program(program::allocator_type alloc, Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_program(program::spec{ ML_forward(args)... }, alloc);
+	}
+
+	// make program
+	template <class ... Args
+	> ML_NODISCARD auto make_program(Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_program(program::spec{ ML_forward(args)... });
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1716,12 +1834,8 @@ namespace ml::gfx
 	struct ML_CORE_API shader : public render_object<shader>
 	{
 	public:
-		ML_NODISCARD static auto create(spec<shader> const & desc, allocator_type alloc = {}) noexcept
-		{
-			return get_global<render_device>()->new_shader(desc, alloc);
-		}
+		using spec = typename _ML_GFX spec<shader>;
 
-	public:
 		explicit shader(render_device * parent) noexcept : render_object{ parent }
 		{
 		}
@@ -1748,12 +1862,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			get_context()->bind_shader(this);
+			ML_check(get_context())->bind_shader(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			get_context()->bind_shader(nullptr);
+			ML_check(get_context())->bind_shader(nullptr);
 		}
 
 		inline void bind_textures() noexcept
@@ -1807,6 +1921,20 @@ namespace ml::gfx
 
 		virtual void do_upload(uniform_id loc, ds::ref<texture> const & value, uint32_t slot = 0) = 0;
 	};
+
+	// allocate shader
+	template <class ... Args
+	> ML_NODISCARD auto alloc_shader(shader::allocator_type alloc, Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_shader(shader::spec{ ML_forward(args)... }, alloc);
+	}
+
+	// make shader
+	template <class ... Args
+	> ML_NODISCARD auto make_shader(Args && ... args)
+	{
+		return ML_check(get_global<render_device>())->new_shader(shader::spec{ ML_forward(args)... });
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

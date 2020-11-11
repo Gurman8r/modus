@@ -61,14 +61,21 @@ namespace ml
 
 		self_type & start() & noexcept
 		{
-			return m_running ? (*this) : this->restart();
+			if (!m_running)
+			{
+				this->restart();
+			}
+			return (*this);
 		}
 
 		self_type & restart() & noexcept
 		{
 			m_running = true;
+			
 			m_start_time = m_stop_time = clock_type::now();
+			
 			m_elapsed = {};
+			
 			return (*this);
 		}
 
@@ -77,6 +84,7 @@ namespace ml
 			if (m_running)
 			{
 				m_running = false;
+				
 				m_elapsed = ((m_stop_time = clock_type::now()) - m_start_time);
 			}
 			return (*this);

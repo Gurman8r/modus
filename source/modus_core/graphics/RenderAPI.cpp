@@ -29,21 +29,16 @@ namespace ml::gfx
 			}
 		}) };
 
-		if (!get_global<render_device>())
-		{
-			set_global<render_device>(temp);
-		}
+		begin_global<render_device>(temp);
 
 		return temp;
 	}
 
 	void render_device::destroy(render_device * value) noexcept
 	{
-		auto const g{ get_global<render_device>() };
+		if (!value) { value = get_global<render_device>(); }
 
-		if (!value) { value = g; }
-
-		if (value == g) { set_global<render_device>(nullptr); }
+		end_global<render_device>(value);
 
 		delete value;
 	}

@@ -783,9 +783,9 @@ namespace ml::gfx
 		return alloc_ref<opengl_framebuffer>(alloc, this, desc);
 	}
 
-	ds::ref<program> opengl_render_device::new_program(allocator_type alloc) noexcept
+	ds::ref<program> opengl_render_device::new_program(spec<program> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_program>(alloc, this);
+		return alloc_ref<opengl_program>(alloc, this, desc);
 	}
 
 	ds::ref<shader> opengl_render_device::new_shader(spec<shader> const & desc, allocator_type alloc) noexcept
@@ -803,7 +803,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_render_context::opengl_render_context(render_device * parent, spec_type const & desc, allocator_type alloc)
+	opengl_render_context::opengl_render_context(render_device * parent, spec const & desc, allocator_type alloc)
 		: render_context{ parent }
 		, m_data{ desc }
 	{
@@ -820,8 +820,7 @@ namespace ml::gfx
 
 	alpha_state * opengl_render_context::get_alpha_state(alpha_state * value) const
 	{
-		static alpha_state temp{
-		}; if (!value) { value = &temp; }
+		if (static alpha_state temp{}; !value) { value = &temp; }
 
 		ML_glCheck(glGetBooleanv(GL_ALPHA_TEST, (uint8_t *)&value->enabled));
 
@@ -835,8 +834,7 @@ namespace ml::gfx
 
 	blend_state * opengl_render_context::get_blend_state(blend_state * value) const
 	{
-		static blend_state temp{
-		}; if (!value) { value = &temp; }
+		if (static blend_state temp{}; !value) { value = &temp; }
 
 		ML_glCheck(glGetBooleanv(GL_BLEND, (uint8_t *)&value->enabled));
 
@@ -863,19 +861,18 @@ namespace ml::gfx
 		return value;
 	}
 
-	color opengl_render_context::get_clear_color() const
+	color * opengl_render_context::get_clear_color(color * value) const
 	{
-		color temp{};
+		if (static color temp{}; !value) { value = &temp; }
 
-		ML_glCheck(glGetFloatv(GL_COLOR_CLEAR_VALUE, temp));
+		ML_glCheck(glGetFloatv(GL_COLOR_CLEAR_VALUE, *value));
 
-		return temp;
+		return value;
 	}
 
 	cull_state * opengl_render_context::get_cull_state(cull_state * value) const
 	{
-		static cull_state temp{
-		}; if (!value) { value = &temp; }
+		if (static cull_state temp{}; !value) { value = &temp; }
 
 		ML_glCheck(glGetBooleanv(GL_CULL_FACE, (uint8_t *)&value->enabled));
 
@@ -890,8 +887,7 @@ namespace ml::gfx
 
 	depth_state * opengl_render_context::get_depth_state(depth_state * value) const
 	{
-		static depth_state temp{
-		}; if (!value) { value = &temp; }
+		if (static depth_state temp{}; !value) { value = &temp; }
 
 		ML_glCheck(glGetBooleanv(GL_DEPTH_TEST, (uint8_t *)&value->enabled));
 
@@ -905,8 +901,7 @@ namespace ml::gfx
 
 	stencil_state * opengl_render_context::get_stencil_state(stencil_state * value) const
 	{
-		static stencil_state temp{
-		}; if (!value) { value = &temp; }
+		if (static stencil_state temp{}; !value) { value = &temp; }
 
 		ML_glCheck(glGetBooleanv(GL_STENCIL_TEST, (uint8_t *)&value->enabled));
 		{
@@ -931,10 +926,9 @@ namespace ml::gfx
 
 	int_rect * opengl_render_context::get_viewport(int_rect * value) const
 	{
-		static int_rect temp{
-		}; if (!value) { value = &temp; }
+		if (static int_rect temp{}; !value) { value = &temp; }
 
-		ML_glCheck(glGetIntegerv(GL_VIEWPORT, temp));
+		ML_glCheck(glGetIntegerv(GL_VIEWPORT, *value));
 
 		return value;
 	}
@@ -1177,7 +1171,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_vertexarray::opengl_vertexarray(render_device * parent, spec<vertexarray> const & desc, allocator_type alloc)
+	opengl_vertexarray::opengl_vertexarray(render_device * parent, spec const & desc, allocator_type alloc)
 		: vertexarray{ parent }
 		, m_mode{ desc.prim }
 	{
@@ -1262,7 +1256,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_vertexbuffer::opengl_vertexbuffer(render_device * parent, spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc)
+	opengl_vertexbuffer::opengl_vertexbuffer(render_device * parent, spec const & desc, addr_t data, allocator_type alloc)
 		: vertexbuffer{ parent }
 		, m_usage{ desc.usage }
 		, m_buffer{ bufcpy<float_t>(desc.count, data), alloc }
@@ -1312,7 +1306,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_indexbuffer::opengl_indexbuffer(render_device * parent, spec<indexbuffer> const & desc, addr_t data, allocator_type alloc)
+	opengl_indexbuffer::opengl_indexbuffer(render_device * parent, spec const & desc, addr_t data, allocator_type alloc)
 		: indexbuffer	{ parent }
 		, m_usage		{ desc.usage }
 		, m_buffer		{ bufcpy<uint32_t>(desc.count, data), alloc }
@@ -1362,7 +1356,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_texture2d::opengl_texture2d(render_device * parent, spec<texture2d> const & desc, addr_t data, allocator_type alloc)
+	opengl_texture2d::opengl_texture2d(render_device * parent, spec const & desc, addr_t data, allocator_type alloc)
 		: texture2d	{ parent }
 		, m_size	{ desc.size }
 		, m_format	{ desc.format }
@@ -1552,7 +1546,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_texturecube::opengl_texturecube(render_device * parent, spec<texturecube> const & desc, allocator_type alloc)
+	opengl_texturecube::opengl_texturecube(render_device * parent, spec const & desc, allocator_type alloc)
 		: texturecube	{ parent }
 		, m_size		{ desc.size }
 		, m_format		{ desc.format }
@@ -1601,7 +1595,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_framebuffer::opengl_framebuffer(render_device * parent, spec<framebuffer> const & desc, allocator_type alloc)
+	opengl_framebuffer::opengl_framebuffer(render_device * parent, spec const & desc, allocator_type alloc)
 		: framebuffer	{ parent }
 		, m_size		{ desc.size }
 		, m_format		{ desc.format }
@@ -1752,7 +1746,7 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_program::opengl_program(render_device * parent, allocator_type alloc)
+	opengl_program::opengl_program(render_device * parent, spec const & desc, allocator_type alloc)
 		: program{ parent }
 	{
 		ML_glCheck(m_handle = ML_glCreateProgram());
@@ -1872,7 +1866,7 @@ namespace ml::gfx
 		}
 	}
 
-	opengl_shader::opengl_shader(render_device * parent, spec<shader> const & desc, allocator_type alloc)
+	opengl_shader::opengl_shader(render_device * parent, spec const & desc, allocator_type alloc)
 		: shader{ parent }
 	{
 		cstring str{ desc.code.front().data() };

@@ -13,21 +13,20 @@ namespace ml
 		, m_arguments		{ argv, argv + argc, alloc }
 		, m_lib_paths		{ alloc }
 		, m_uptimer			{ false }
-		, m_should_close	{ false }
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_loop			{ alloc_ref<loop_system>(alloc, get_bus()) }
 		, m_dispatcher		{ alloc }
 	{
-		if (!get_global<core_application>()) { set_global<core_application>(this); }
+		ML_assert(begin_global<core_application>(this));
 		
 		subscribe<app_enter_event, app_exit_event, app_idle_event>();
 	}
 
 	core_application::~core_application() noexcept
 	{
+		ML_assert(end_global<core_application>(this));
+		
 		unsubscribe();
-
-		if (this == get_global<core_application>()) { set_global<core_application>(nullptr); }
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -47,14 +46,12 @@ namespace ml
 	{
 		m_exit_code = exit_code;
 
-		set_should_close(true);
+		m_loop->set_loop_condition(nullptr); // FIXME: this is a hack
 	}
 
 	void core_application::quit()
 	{
-		m_exit_code = EXIT_SUCCESS;
-
-		set_should_close(true);
+		this->exit(EXIT_SUCCESS);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

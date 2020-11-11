@@ -6,9 +6,9 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	render_window::render_window(allocator_type alloc) noexcept
-		: default_window{ alloc }
-		, m_dev			{}
-		, m_ctx			{}
+		: base_type	{ alloc }
+		, m_dev		{}
+		, m_ctx		{}
 	{
 	}
 
@@ -19,7 +19,7 @@ namespace ml
 		window_hints_				hints,
 		void *						userptr,
 		allocator_type				alloc
-	) noexcept : render_window{ alloc }
+	) noexcept : self_type{ alloc }
 	{
 		ML_assert(this->open(title, vm, cs, hints, userptr));
 	}
@@ -45,7 +45,7 @@ namespace ml
 		}
 
 		// open render_window
-		if (!default_window::open(title, vm, cs, hints, userptr)) {
+		if (!base_type::open(title, vm, cs, hints, userptr)) {
 			return debug::error("failed opening render_window");
 		}
 
@@ -69,7 +69,7 @@ namespace ml
 		}));
 
 		// setup states
-		this->execute(
+		this->render(
 
 			// alpha state
 			gfx::command::set_alpha_state

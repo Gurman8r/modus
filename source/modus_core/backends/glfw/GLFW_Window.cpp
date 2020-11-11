@@ -61,7 +61,7 @@ namespace ml
 		window_hints_				hints,
 		void *						userptr,
 		allocator_type				alloc
-	) noexcept : glfw_window{ alloc }
+	) noexcept : self_type{ alloc }
 	{
 		ML_assert(this->open(title, vm, cs, hints, userptr));
 	}
@@ -213,9 +213,9 @@ namespace ml
 		return m_clbk;
 	}
 
-	window_context_manager const & glfw_window::get_context_manager() const
+	window_context const & glfw_window::get_context_manager() const
 	{
-		static window_context_manager temp
+		static window_context temp
 		{
 			&glfw_window::extension_supported,
 			&glfw_window::get_active_window,
@@ -622,6 +622,93 @@ namespace ml
 	void glfw_window::destroy_cursor(cursor_handle value)
 	{
 		glfwDestroyCursor((GLFWcursor *)value);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	window_char_callback glfw_window::get_char_callback() const
+	{
+		return m_clbk.on_char;
+	}
+
+	window_char_mods_callback glfw_window::get_char_mods_callback() const
+	{
+		return m_clbk.on_char_mods;
+	}
+
+	window_close_callback glfw_window::get_close_callback() const
+	{
+		return m_clbk.on_close;
+	}
+
+	window_content_scale_callback glfw_window::get_content_scale_callback() const
+	{
+		return m_clbk.on_content_scale;
+	}
+
+	window_cursor_enter_callback glfw_window::get_cursor_enter_callback() const
+	{
+		return m_clbk.on_cursor_enter;
+	}
+
+	window_cursor_pos_callback glfw_window::get_cursor_pos_callback() const
+	{
+		return m_clbk.on_cursor_pos;
+	}
+
+	window_drop_callback glfw_window::get_drop_callback() const
+	{
+		return m_clbk.on_drop;
+	}
+
+	window_focus_callback glfw_window::get_focus_callback() const
+	{
+		return m_clbk.on_focus;
+	}
+
+	window_framebuffer_resize_callback glfw_window::get_framebuffer_resize_callback() const
+	{
+		return m_clbk.on_framebuffer_resize;
+	}
+
+	window_iconify_callback glfw_window::get_iconify_callback() const
+	{
+		return m_clbk.on_iconify;
+	}
+
+	window_key_callback glfw_window::get_key_callback() const
+	{
+		return m_clbk.on_key;
+	}
+
+	window_maximize_callback glfw_window::get_maximize_callback() const
+	{
+		return m_clbk.on_maximize;
+	}
+
+	window_mouse_callback glfw_window::get_mouse_callback() const
+	{
+		return m_clbk.on_mouse;
+	}
+
+	window_position_callback glfw_window::get_position_callback() const
+	{
+		return m_clbk.on_position;
+	}
+
+	window_refresh_callback glfw_window::get_refresh_callback() const
+	{
+		return m_clbk.on_refresh;
+	}
+
+	window_resize_callback glfw_window::get_resize_callback() const
+	{
+		return m_clbk.on_resize;
+	}
+
+	window_scroll_callback glfw_window::get_scroll_callback() const
+	{
+		return m_clbk.on_scroll;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

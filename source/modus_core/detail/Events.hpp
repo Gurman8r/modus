@@ -24,8 +24,6 @@ namespace ml
 	struct ML_NODISCARD event
 	{
 	public:
-		ML_NODISCARD constexpr hash_t getid() const noexcept { return m_ID; }
-
 		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_ID; }
 
 		ML_NODISCARD constexpr bool operator==(hash_t value) const noexcept { return m_ID == value; }
@@ -133,12 +131,8 @@ namespace ml
 	public:
 		using event_callback = typename ds::method<void(event const &)>;
 
-		explicit dummy_listener(event_bus * bus) noexcept : event_listener{ bus }
-		{
-		}
-
 		template <class Fn, class ... Args
-		> dummy_listener(event_bus * bus, Fn && fn, Args && ... args) noexcept : dummy_listener{ bus }
+		> dummy_listener(event_bus * bus, Fn && fn, Args && ... args) noexcept : event_listener{ bus }
 		{
 			this->set_callback(ML_forward(fn), ML_forward(args)...);
 		}
@@ -160,7 +154,7 @@ namespace ml
 		template <class Fn, class ... Args
 		> auto set_callback(Fn && fn, Args && ... args) noexcept -> event_callback
 		{
-			return util::swap_callback(m_on_event, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
+			return util::route_callback(m_on_event, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 	private:
@@ -182,6 +176,12 @@ namespace ml
 		using category_type = typename ds::set<event_listener *>;
 		
 		using categories_type = typename ds::map<hash_t, category_type>;
+
+		using event_list = typename ds::list<ds::scope<event>>;
+
+		using dummy_ref = typename ds::ref<dummy_listener>;
+
+		using dummy_list = typename ds::list<dummy_ref>;
 
 		template <class Ev> static constexpr bool is_valid_event
 		{
@@ -220,7 +220,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_queue() const noexcept -> ds::list<ds::scope<event>> const &
+		ML_NODISCARD auto get_queue() const noexcept -> event_list const &
 		{
 			return m_queue;
 		}
@@ -237,32 +237,29 @@ namespace ml
 		{
 			for (auto const & ev : m_queue)
 			{
-				this->fire(*ML_check(ev.get()));
+				this->fire(*ev.get());
 			}
 			m_queue.clear();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto get_dummies() const noexcept -> ds::list<ds::ref<dummy_listener>> const &
+		ML_NODISCARD auto get_dummies() const noexcept -> dummy_list const &
 		{
 			return m_dummies;
 		}
 
 		template <class ... Evs, class ... Args
-		> auto new_dummy(Args && ... args) noexcept -> ds::ref<dummy_listener>
+		> auto new_dummy(Args && ... args) noexcept -> dummy_ref
 		{
 			auto temp{ _ML make_ref<dummy_listener>(this, ML_forward(args)...) };
 
-			if constexpr (0 < sizeof...(Evs))
-			{
-				temp->subscribe<Evs...>();
-			}
+			temp->subscribe<Evs...>();
 
 			return m_dummies.emplace_back(std::move(temp));
 		}
 
-		auto delete_dummy(ds::ref<dummy_listener> const & value) noexcept
+		auto delete_dummy(dummy_ref const & value) noexcept
 		{
 			if (auto it{ std::find(m_dummies.begin(), m_dummies.end(), value) }
 			; it == m_dummies.end()) { return it; }
@@ -315,9 +312,9 @@ namespace ml
 	private:
 		categories_type m_cats; // listener storage
 
-		ds::list<ds::scope<event>> m_queue; // event queue
+		event_list m_queue; // event queue
 
-		ds::list<ds::ref<dummy_listener>> m_dummies; // dummy listeners
+		dummy_list m_dummies; // dummy listeners
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

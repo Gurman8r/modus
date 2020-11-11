@@ -5,31 +5,27 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	gui_application::gui_application(int32_t argc, char * argv[], allocator_type alloc)
-		: core_application		{ argc, argv, alloc }
-		, m_loop_timer	{ false }
-		, m_delta_time	{}
-		, m_frame_count	{}
-		, m_frame_rate	{}
-		, m_fps_accum	{}
-		, m_fps_index	{}
-		, m_fps_times	{}
-		, m_cursor_pos	{}
-		, m_mouse		{}
-		, m_keyboard	{}
-		, m_window		{ new render_window{ alloc } }
-		, m_imgui		{}
-		, m_docker		{ new ImGuiExt::Dockspace{ "##MainDockspace" } }
+		: core_application	{ argc, argv, alloc }
+		, m_loop_timer		{ false }
+		, m_delta_time		{}
+		, m_frame_count		{}
+		, m_frame_rate		{}
+		, m_fps_accum		{}
+		, m_fps_index		{}
+		, m_fps_times		{}
+		, m_cursor_pos		{}
+		, m_mouse			{}
+		, m_keyboard		{}
+		, m_window			{ new main_window{ alloc } }
 	{
-		if (!get_global<gui_application>()) { set_global<gui_application>(this); }
+		ML_assert(begin_global<gui_application>(this));
 
-		subscribe<window_cursor_pos_event>();
-		subscribe<window_key_event>();
-		subscribe<window_mouse_event>();
+		subscribe<window_cursor_pos_event, window_key_event, window_mouse_event>();
 	}
 
 	gui_application::~gui_application() noexcept
 	{
-		if (this == get_global<gui_application>()) { set_global<gui_application>(nullptr); }
+		ML_assert(end_global<gui_application>(this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

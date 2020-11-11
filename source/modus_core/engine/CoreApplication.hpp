@@ -24,17 +24,17 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
 	public:
-		ML_NODISCARD auto app_filename() const noexcept -> fs::path const & { return m_app_file_name; }
+		ML_NODISCARD auto get_app_filename() const noexcept -> fs::path const & { return m_app_file_name; }
 
-		ML_NODISCARD auto app_file_path() const noexcept -> fs::path const & { return m_app_file_path; }
+		ML_NODISCARD auto get_app_file_path() const noexcept -> fs::path const & { return m_app_file_path; }
 
-		ML_NODISCARD auto app_name() noexcept -> ds::string const & { return m_app_name; }
+		ML_NODISCARD auto get_app_name() noexcept -> ds::string const & { return m_app_name; }
 
-		ML_NODISCARD auto app_version() noexcept -> ds::string const & { return m_app_version; }
+		ML_NODISCARD auto get_app_version() noexcept -> ds::string const & { return m_app_version; }
 
-		ML_NODISCARD auto arguments() const noexcept -> ds::list<ds::string> const & { return m_arguments; }
+		ML_NODISCARD auto get_arguments() const noexcept -> ds::list<ds::string> const & { return m_arguments; }
 
-		ML_NODISCARD auto library_paths() const noexcept -> ds::list<fs::path> const & { return m_lib_paths; }
+		ML_NODISCARD auto get_library_paths() const noexcept -> ds::list<fs::path> const & { return m_lib_paths; }
 
 		void set_app_name(ds::string const & value) noexcept { m_app_name = value; }
 
@@ -51,15 +51,11 @@ namespace ml
 
 		void quit();
 
-		ML_NODISCARD auto main_loop() const noexcept -> ds::ref<loop_system> const & { return m_loop; }
+		ML_NODISCARD auto get_main_loop() const noexcept -> ds::ref<loop_system> const & { return m_loop; }
 
-		ML_NODISCARD bool should_close() const noexcept { return m_should_close; }
-
-		ML_NODISCARD auto uptime() const noexcept -> duration { return m_uptimer.elapsed(); }
+		ML_NODISCARD auto get_time() const noexcept -> duration { return m_uptimer.elapsed(); }
 
 		void set_main_loop(ds::ref<loop_system> const & value) noexcept { m_loop = value; }
-
-		void set_should_close(bool value) noexcept { m_should_close = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -101,7 +97,6 @@ namespace ml
 		ds::list<fs::path>		m_lib_paths		; // 
 		
 		timer					m_uptimer		; // 
-		bool					m_should_close	; // 
 		int32_t					m_exit_code		; // 
 		ds::ref<loop_system>	m_loop			; // 
 		event_bus				m_dispatcher	; // 

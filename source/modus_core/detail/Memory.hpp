@@ -127,7 +127,7 @@ namespace ml
 
 		template <class U> void operator()(U * value) const noexcept
 		{
-			auto const g{ _ML get_global<memory_manager>() };
+			auto const g{ get_global<memory_manager>() };
 
 			if constexpr (std::is_same_v<type, void>)
 			{
@@ -161,31 +161,35 @@ namespace ml
 
 		// non-deleting pointer
 		template <class T
-		> ML_alias raw = typename std::unique_ptr<T, no_delete>;
+		> ML_alias scary = typename std::unique_ptr<T, no_delete>;
 	}
 
 	template <class T, class Alloc = pmr::polymorphic_allocator<byte_t>, class ... Args
-	> ML_NODISCARD ds::ref<T> alloc_ref(Alloc alloc, Args && ... args) noexcept
+	> ML_NODISCARD ds::ref<T> alloc_ref(Alloc alloc, Args && ... args)
 	{
 		return std::allocate_shared<T>(alloc, ML_forward(args)...);
 	}
 
 	template <class T, class ... Args
-	> ML_NODISCARD ds::ref<T> make_ref(Args && ... args) noexcept
+	> ML_NODISCARD ds::ref<T> make_ref(Args && ... args)
 	{
 		return std::make_shared<T>(ML_forward(args)...);
 	}
 
 	template <class T, class ... Args
-	> ML_NODISCARD ds::scope<T> make_scope(Args && ... args) noexcept
+	> ML_NODISCARD ds::scope<T> make_scope(Args && ... args)
 	{
-		return { new T{ ML_forward(args)... }, default_delete<T>{} };
+		auto const g{ ML_check(get_global<memory_manager>()) };
+
+		return { g->new_object<T>(ML_forward(args)...), default_delete<T>{} };
 	}
 
 	template <class T, class ... Args
-	> ML_NODISCARD ds::raw<T> make_raw(Args && ... args) noexcept
+	> ML_NODISCARD ds::scary<T> make_scary(Args && ... args)
 	{
-		return { new T{ ML_forward(args)... }, no_delete{} };
+		auto const g{ ML_check(get_global<memory_manager>()) };
+
+		return { g->new_object<T>(ML_forward(args)...), no_delete{} };
 	}
 }
 
@@ -434,22 +438,30 @@ namespace ml
 
 		ML_NODISCARD void * operator new(size_t size) noexcept
 		{
-			return get_global<memory_manager>()->allocate(size);
+			auto const g{ ML_check(get_global<memory_manager>()) };
+
+			return g->allocate(size);
 		}
 
 		ML_NODISCARD void * operator new[](size_t size) noexcept
 		{
-			return get_global<memory_manager>()->allocate(size);
+			auto const g{ ML_check(get_global<memory_manager>()) };
+
+			return g->allocate(size);
 		}
 
 		void operator delete(void * addr) noexcept
 		{
-			get_global<memory_manager>()->deallocate(addr);
+			auto const g{ ML_check(get_global<memory_manager>()) };
+
+			g->deallocate(addr);
 		}
 
 		void operator delete[](void * addr) noexcept
 		{
-			get_global<memory_manager>()->deallocate(addr);
+			auto const g{ ML_check(get_global<memory_manager>()) };
+
+			g->deallocate(addr);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

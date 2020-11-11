@@ -1,20 +1,28 @@
-#ifndef _ML_DEFAULT_WINDOW_HPP_
-#define _ML_DEFAULT_WINDOW_HPP_
+#ifndef _ML_NATIVE_WINDOW_HPP_
+#define _ML_NATIVE_WINDOW_HPP_
 
-#include <modus_core/window/BaseWindow.hpp>
+#include <modus_core/window/BackendWindow.hpp>
 
 namespace ml
 {
-	// default window
-	struct ML_CORE_API default_window : base_window
+	// native window
+	struct ML_CORE_API native_window : backend_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		default_window(base_window * backend) noexcept;
+		using self_type = native_window;
 
-		default_window(allocator_type alloc = {}) noexcept;
+		using base_type = backend_window;
 
-		default_window(
+		using base_type::allocator_type;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		native_window(backend_window * backend) noexcept;
+
+		native_window(allocator_type alloc = {}) noexcept;
+
+		native_window(
 			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
@@ -22,14 +30,14 @@ namespace ml
 			void *						userptr	= nullptr,
 			allocator_type				alloc	= {}) noexcept;
 		
-		virtual ~default_window() noexcept override;
+		virtual ~native_window() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		virtual bool open(
 			ds::string			const &	title,
-			video_mode			const &	vm,
-			context_settings	const &	cs,
+			video_mode			const &	vm = {},
+			context_settings	const & cs = {},
 			window_hints_				hints = window_hints_default,
 			void *						userptr	= nullptr) override;
 		
@@ -55,7 +63,7 @@ namespace ml
 
 		ML_NODISCARD window_callbacks const & get_callbacks() const noexcept final;
 
-		ML_NODISCARD window_context_manager const & get_context_manager() const noexcept final;
+		ML_NODISCARD window_context const & get_context_manager() const noexcept final;
 
 		ML_NODISCARD cstring get_clipboard() const noexcept final;
 
@@ -187,6 +195,26 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		window_char_callback				get_char_callback() const noexcept final;
+		window_char_mods_callback			get_char_mods_callback() const noexcept final;
+		window_close_callback				get_close_callback() const noexcept final;
+		window_content_scale_callback		get_content_scale_callback() const noexcept final;
+		window_cursor_enter_callback		get_cursor_enter_callback() const noexcept final;
+		window_cursor_pos_callback			get_cursor_pos_callback() const noexcept final;
+		window_drop_callback				get_drop_callback() const noexcept final;
+		window_focus_callback				get_focus_callback() const noexcept final;
+		window_framebuffer_resize_callback	get_framebuffer_resize_callback() const noexcept final;
+		window_iconify_callback				get_iconify_callback() const noexcept final;
+		window_key_callback					get_key_callback() const noexcept final;
+		window_maximize_callback			get_maximize_callback() const noexcept final;
+		window_mouse_callback				get_mouse_callback() const noexcept final;
+		window_position_callback			get_position_callback() const noexcept final;
+		window_refresh_callback				get_refresh_callback() const noexcept final;
+		window_resize_callback				get_resize_callback() const noexcept final;
+		window_scroll_callback				get_scroll_callback() const noexcept final;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		window_char_callback				set_char_callback				(window_char_callback				fn) noexcept final;
 		window_char_mods_callback			set_char_mods_callback			(window_char_mods_callback			fn) noexcept final;
 		window_close_callback				set_close_callback				(window_close_callback				fn) noexcept final;
@@ -208,10 +236,10 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::scope<base_window> m_backend; // backend implementation
+		ds::scope<backend_window> m_backend; // backend implementation
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
-#endif // !_ML_DEFAULT_WINDOW_HPP_
+#endif // !_ML_NATIVE_WINDOW_HPP_

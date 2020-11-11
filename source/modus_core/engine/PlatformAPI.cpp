@@ -10,6 +10,20 @@ using native_api = _ML windows_platform_api;
 
 namespace ml
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	platform_api::platform_api() noexcept
+	{
+		begin_global<platform_api>(this);
+	}
+
+	platform_api::~platform_api() noexcept
+	{
+		end_global<platform_api>(this);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	platform_api * platform_api::create() noexcept
 	{
 		auto const temp{ new native_api{} };

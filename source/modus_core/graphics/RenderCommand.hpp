@@ -3,36 +3,9 @@
 
 #include <modus_core/graphics/RenderAPI.hpp>
 
+// COMMAND
 namespace ml::gfx
 {
-	// command executor
-	template <class Ctx, class Arg0, class ... Args
-	> static void execute(Ctx && ctx, Arg0 && arg0, Args && ... args) noexcept
-	{
-		auto do_execute = [](auto && cmd, auto && ctx) noexcept
-		{
-			if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
-			{
-				std::invoke(ML_forward(cmd), ctx);
-			}
-			else
-			{
-				std::invoke(ML_forward(cmd), ctx.get());
-			}
-		};
-
-		do_execute(ML_forward(arg0), ML_forward(ctx)); // arg0
-
-		if constexpr (0 < sizeof...(args))
-		{
-			meta::for_args([&](auto && arg) noexcept
-			{
-				do_execute(ML_forward(arg), ML_forward(ctx)); // args...
-			}
-			, ML_forward(args)...);
-		}
-	}
-
 	// render command
 	class command final : public ds::method< void(render_context *) >
 	{
@@ -220,6 +193,71 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+}
+
+// EXECUTE
+namespace ml::gfx
+{
+	// execute render commands
+	template <class Ctx, class Arg0, class ... Args
+	> static void execute(Ctx && ctx, Arg0 && arg0, Args && ... args) noexcept
+	{
+		// do execute
+		auto do_execute = [](auto && cmd, auto && ctx) noexcept
+		{
+			if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
+			{
+				std::invoke(ML_forward(cmd), ctx);
+			}
+			else
+			{
+				std::invoke(ML_forward(cmd), ctx.get());
+			}
+		};
+
+		do_execute(ML_forward(arg0), ML_forward(ctx)); // arg0
+
+		if constexpr (0 < sizeof...(args))
+		{
+			meta::for_args([&](auto && cmd) noexcept
+			{
+				do_execute(ML_forward(cmd), ML_forward(ctx)); // args...
+			}
+			, ML_forward(args)...);
+		}
+
+		//if constexpr (0 == sizeof...(Args))
+		//{
+		//	if constexpr (std::is_convertible_v<std::decay_t<decltype(arg0)>, gfx::command>)
+		//	{
+		//		if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
+		//		{
+		//			std::invoke(ML_forward(arg0), ctx);
+		//		}
+		//		else
+		//		{
+		//			std::invoke(ML_forward(arg0), ctx.get());
+		//		}
+		//	}
+		//	else
+		//	{
+		//		for (auto const & cmd : ML_forward(arg0))
+		//		{
+		//			_ML_GFX execute(ML_forward(ctx), cmd);
+		//		}
+		//	}
+		//}
+		//else
+		//{
+		//	_ML_GFX execute(ML_forward(ctx), ML_forward(arg0));
+		//
+		//	meta::for_args([&](auto && cmd) noexcept
+		//	{
+		//		_ML_GFX execute(ML_forward(ctx), ML_forward(cmd));
+		//	}
+		//	, ML_forward(args)...);
+		//}
+	}
 }
 
 #endif // !_ML_RENDER_COMMAND_HPP_

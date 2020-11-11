@@ -4,9 +4,8 @@
 // WIP
 
 #include <modus_core/engine/CoreApplication.hpp>
+#include <modus_core/engine/MainWindow.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/imgui/ImGuiEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 
 namespace ml
@@ -36,19 +35,9 @@ namespace ml
 		
 		ML_NODISCARD auto get_mouse() const noexcept -> mouse_state const & { return m_mouse; }
 		
-		ML_NODISCARD auto get_mouse(size_t i) const noexcept -> int32_t { return m_mouse[i]; }
-		
 		ML_NODISCARD auto get_keyboard() const noexcept -> keyboard_state const & { return m_keyboard; }
-		
-		ML_NODISCARD auto get_keyboard(size_t i) const noexcept -> int32_t { return m_keyboard[i]; }
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace * { return m_docker.get(); }
-
-		ML_NODISCARD auto get_imgui() const noexcept -> ImGuiContext * { return m_imgui.get(); }
-
-		ML_NODISCARD auto get_window() const noexcept -> render_window * { return m_window.get(); }
+		ML_NODISCARD auto get_window() const noexcept -> main_window * { return m_window.get(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -79,13 +68,10 @@ namespace ml
 		size_t							m_fps_index		; // 
 		ds::array<float_t, 120>			m_fps_times		; // 
 
+		ds::scope<main_window>			m_window		; // 
 		vec2d							m_cursor_pos	; // 
 		mouse_state						m_mouse			; // 
 		keyboard_state					m_keyboard		; // 
-
-		ds::scope<render_window>		m_window		; // 
-		ds::raw<ImGuiContext>		m_imgui			; // 
-		ds::scope<ImGuiExt::Dockspace>	m_docker		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

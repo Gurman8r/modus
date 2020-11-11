@@ -17,12 +17,22 @@ namespace ml::ds
 
 namespace ml::util
 {
+	// bind callback and return its previous value
 	template <class Clbk, class Fn, class ... Args
-	> constexpr auto swap_callback(Clbk & clbk, Fn && fn, Args && ... args) noexcept
+	> constexpr auto route_callback(Clbk & clbk, Fn && fn, Args && ... args) noexcept
 	{
-		auto const temp{ std::move(clbk) };
-		clbk = std::bind(ML_forward(fn), ML_forward(args)...);
-		return temp;
+		auto const prev{ std::move(clbk) };
+		
+		if constexpr (0 < sizeof...(Args))
+		{
+			clbk = std::bind(ML_forward(fn), ML_forward(args)...);
+		}
+		else
+		{
+			clbk = ML_forward(fn);
+		}
+		
+		return prev;
 	}
 }
 

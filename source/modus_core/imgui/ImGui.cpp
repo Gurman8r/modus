@@ -48,7 +48,7 @@ namespace ml
 	{
 		ImGui::Render();
 
-		win->execute(
+		win->render(
 			gfx::command::set_viewport(win->get_framebuffer_size()),
 			gfx::command::set_clear_color(colors::black),
 			gfx::command::clear(gfx::clear_color));

@@ -115,7 +115,6 @@ int32_t main(int32_t argc, char * argv[])
 	{
 		ML_assert(prefs.contains("runtime"));
 		auto & runtime_prefs{ prefs["runtime"] };
-		bool const install_callbacks{ runtime_prefs["callbacks"] };
 
 		ML_assert(prefs.contains("window"));
 		auto & window_prefs{ prefs["window"] };
@@ -124,34 +123,7 @@ int32_t main(int32_t argc, char * argv[])
 			window_prefs["video"],
 			window_prefs["context"],
 			window_prefs["hints"]));
-		if (install_callbacks)
-		{
-			static struct ML_NODISCARD {
-				event_bus * bus;
-				ML_NODISCARD auto operator->() const noexcept { return ML_check(bus); }
-			} helper; helper.bus = bus;
 
-			window->set_char_callback([](auto w, auto ... x) { helper->fire<window_char_event>(x...); });
-			window->set_char_mods_callback([](auto w, auto ... x) { helper->fire<window_char_mods_event>(x...); });
-			window->set_close_callback([](auto w, auto ... x) { helper->fire<window_close_event>(x...); });
-			window->set_cursor_enter_callback([](auto w, auto ... x) { helper->fire<window_cursor_enter_event>(x...); });
-			window->set_cursor_pos_callback([](auto w, auto ... x) { helper->fire<window_cursor_pos_event>(x...); });
-			window->set_content_scale_callback([](auto w, auto ... x) { helper->fire<window_content_scale_event>(x...); });
-			window->set_drop_callback([](auto w, auto ... x) { helper->fire<window_drop_event>(x...); });
-			window->set_error_callback([](auto ... x) { helper->fire<window_error_event>(x...); });
-			window->set_focus_callback([](auto w, auto ... x) { helper->fire<window_focus_event>(x...); });
-			window->set_framebuffer_resize_callback([](auto w, auto ... x) { helper->fire<window_framebuffer_resize_event>(x...); });
-			window->set_iconify_callback([](auto w, auto ... x) { helper->fire<window_iconify_event>(x...); });
-			window->set_key_callback([](auto w, auto ... x) { helper->fire<window_key_event>(x...); });
-			window->set_maximize_callback([](auto w, auto ... x) { helper->fire<window_maximize_event>(x...); });
-			window->set_mouse_callback([](auto w, auto ... x) { helper->fire<window_mouse_event>(x...); });
-			window->set_position_callback([](auto w, auto ... x) { helper->fire<window_position_event>(x...); });
-			window->set_refresh_callback([](auto w, auto ... x) { helper->fire<window_refresh_event>(x...); });
-			window->set_resize_callback([](auto w, auto ... x) { helper->fire<window_resize_event>(x...); });
-			window->set_scroll_callback([](auto w, auto ... x) { helper->fire<window_scroll_event>(x...); });
-		}
-
-		ML_assert(ImGui_Startup(window, install_callbacks));
 		if (runtime_prefs.contains("dockspace")) {
 			auto & dock_prefs{ runtime_prefs["dockspace"] };
 			dock_prefs["alpha"].get_to(docker->Alpha);
@@ -177,10 +149,8 @@ int32_t main(int32_t argc, char * argv[])
 
 		bus->fire<app_idle_event>();
 
-		ImGui_DoFrame(window, window->get_imgui(), [&]() noexcept
+		window->do_imgui_frame([&]() noexcept
 		{
-			ImGuiExt_ScopeID(app.get());
-
 			(*docker)(imgui->Viewports[0], [&]() noexcept
 			{
 				bus->fire<imgui_dockspace_event>(docker);
@@ -253,20 +223,23 @@ int32_t main(int32_t argc, char * argv[])
 				ImGui::PopStyleVar(1);
 
 				if (ImGui::BeginMenuBar()) {
-					ImGuiExt::HelpMarker("viewport"); ImGui::Separator();
-
-					ImGui::ColorEdit4("clear color", m_clear_color,
-						ImGuiColorEditFlags_NoInputs |
-						ImGuiColorEditFlags_NoLabel);
+					ImGuiExt::HelpMarker("viewport");
 					ImGui::Separator();
+
+					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+					ImGui::Separator();
+
+					auto const fps{ ImGui::GetIO().Framerate };
+					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+					ImGui::Separator();
+
 					ImGui::EndMenuBar();
 				}
 
 				ImGui::Image(
 					m_fb[0]->get_color_attachments()[0]->get_handle(),
 					m_resolution = ImGui::GetContentRegionAvail(),
-					{ 0, 1 },
-					{ 1, 0 },
+					{ 0, 1 }, { 1, 0 },
 					colors::white,
 					colors::clear);
 			}))

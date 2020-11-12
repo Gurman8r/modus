@@ -6,9 +6,9 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	render_window::render_window(allocator_type alloc) noexcept
-		: base_type	{ alloc }
-		, m_dev		{}
-		, m_ctx		{}
+		: native_window	{ alloc }
+		, m_dev			{}
+		, m_ctx			{}
 	{
 	}
 
@@ -19,14 +19,14 @@ namespace ml
 		window_hints_				hints,
 		void *						userptr,
 		allocator_type				alloc
-	) noexcept : self_type{ alloc }
+	) noexcept : render_window{ alloc }
 	{
 		ML_assert(this->open(title, vm, cs, hints, userptr));
 	}
 
 	render_window::~render_window() noexcept
 	{
-		gfx::render_device::destroy(m_dev.release());
+		gfx::destroy_device(m_dev.release());
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -45,12 +45,12 @@ namespace ml
 		}
 
 		// open render_window
-		if (!base_type::open(title, vm, cs, hints, userptr)) {
+		if (!native_window::open(title, vm, cs, hints, userptr)) {
 			return debug::error("failed opening render_window");
 		}
 
 		// create render device
-		if (m_dev.reset(gfx::render_device::create({ cs.api })); !m_dev)
+		if (m_dev.reset(gfx::make_device(cs.api)); !m_dev)
 		{
 			return debug::error("failed creating device");
 		}

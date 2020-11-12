@@ -10,11 +10,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using self_type = native_window;
-
-		using base_type = backend_window;
-
-		using base_type::allocator_type;
+		using backend_window::allocator_type;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -11,11 +11,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using self_type = render_window;
-
-		using base_type = native_window;
-
-		using base_type::allocator_type;
+		using native_window::allocator_type;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

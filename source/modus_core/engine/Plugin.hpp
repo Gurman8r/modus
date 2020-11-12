@@ -12,7 +12,7 @@ namespace ml
 {
 	struct core_application;
 
-	struct ML_CORE_API core_plugin : core_object, non_copyable
+	struct ML_CORE_API core_plugin : non_copyable, trackable, core_object
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

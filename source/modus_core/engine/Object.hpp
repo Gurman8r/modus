@@ -6,7 +6,7 @@
 
 namespace ml
 {
-	struct ML_CORE_API core_object : trackable, event_listener
+	struct ML_CORE_API core_object : event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

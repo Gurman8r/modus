@@ -16,7 +16,7 @@ namespace ml
 		, m_cursor_pos		{}
 		, m_mouse			{}
 		, m_keyboard		{}
-		, m_window			{ new main_window{ alloc } }
+		, m_window			{ new main_window{ get_bus(), alloc } }
 	{
 		ML_assert(begin_global<gui_application>(this));
 

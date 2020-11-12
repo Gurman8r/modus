@@ -77,16 +77,16 @@ namespace ml
 		{
 			if (value.empty())
 			{
-				add_vertices(gfx::vertexbuffer::create({
+				add_vertices(gfx::make_vertexbuffer(
 					gfx::usage_dynamic,
-					0 },
+					0u,
 					nullptr));
 			}
 			else
 			{
-				add_vertices(gfx::vertexbuffer::create({
+				add_vertices(gfx::make_vertexbuffer(
 					gfx::usage_static,
-					value.size() },
+					value.size(),
 					value.data()));
 			}
 		}
@@ -106,9 +106,9 @@ namespace ml
 			if (value.empty()) { set_indices(nullptr); }
 			else
 			{
-				set_indices(gfx::indexbuffer::create({
+				set_indices(gfx::make_indexbuffer(
 					gfx::usage_static,
-					value.size() },
+					value.size(),
 					value.data()));
 			}
 		}

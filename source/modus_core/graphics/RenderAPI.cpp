@@ -16,7 +16,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	render_device * render_device::create(spec<render_device> const & desc, allocator_type alloc) noexcept
+	render_device * render_device::create(spec_type const & desc, allocator_type alloc) noexcept
 	{
 		auto const temp{ std::invoke([&]() noexcept -> render_device *
 		{

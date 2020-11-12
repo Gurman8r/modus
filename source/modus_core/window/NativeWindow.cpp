@@ -25,7 +25,7 @@ namespace ml
 		window_hints_				hints,
 		void *						userptr,
 		allocator_type				alloc
-	) noexcept : self_type{ alloc }
+	) noexcept : native_window{ alloc }
 	{
 		ML_assert(this->open(title, vm, cs, hints, userptr));
 	}

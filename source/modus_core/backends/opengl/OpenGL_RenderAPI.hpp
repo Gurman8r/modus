@@ -49,11 +49,11 @@ namespace ml::gfx
 
 		ds::ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept override;
 
-		ds::ref<vertexbuffer> new_vertexbuffer(spec<vertexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
+		ds::ref<vertexbuffer> new_vertexbuffer(spec<vertexbuffer> const & des, allocator_type alloc) noexcept override;
 
-		ds::ref<indexbuffer> new_indexbuffer(spec<indexbuffer> const & desc, addr_t data, allocator_type alloc) noexcept override;
+		ds::ref<indexbuffer> new_indexbuffer(spec<indexbuffer> const & desc, allocator_type alloc) noexcept override;
 
-		ds::ref<texture2d> new_texture2d(spec<texture2d> const & desc, addr_t data, allocator_type alloc) noexcept override;
+		ds::ref<texture2d> new_texture2d(spec<texture2d> const & desc, allocator_type alloc) noexcept override;
 
 		ds::ref<texturecube> new_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept override;
 
@@ -80,13 +80,13 @@ namespace ml::gfx
 
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_render_context> };
 
-		spec		m_data		{}; // context settings
+		spec_type	m_desc		{}; // context settings
 		uint32_t	m_handle	{}; // pipeline handle (WIP)
 
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
-		opengl_render_context(render_device * parent, spec const & desc, allocator_type alloc);
+		opengl_render_context(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_render_context() override = default;
 
@@ -96,7 +96,7 @@ namespace ml::gfx
 
 		typeof<> const & get_self_type() const noexcept override { return s_self_type; }
 
-		spec const & get_spec() const noexcept override { return m_data; }
+		spec_type const & get_spec() const noexcept override { return m_desc; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -200,7 +200,7 @@ namespace ml::gfx
 		ds::list<ds::ref<vertexbuffer>>	m_vertices	{}; // vertex buffers
 
 	public:
-		opengl_vertexarray(render_device * parent, spec const & desc, allocator_type alloc);
+		opengl_vertexarray(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_vertexarray() override;
 
@@ -243,7 +243,7 @@ namespace ml::gfx
 		buffer_t		m_buffer	{}; // local data
 
 	public:
-		opengl_vertexbuffer(render_device * parent, spec const & desc, addr_t data, allocator_type alloc);
+		opengl_vertexbuffer(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_vertexbuffer() override;
 
@@ -282,7 +282,7 @@ namespace ml::gfx
 		buffer_t		m_buffer	{}; // local data
 
 	public:
-		opengl_indexbuffer(render_device * parent, spec const & desc, addr_t data, allocator_type alloc);
+		opengl_indexbuffer(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_indexbuffer() override;
 
@@ -323,7 +323,7 @@ namespace ml::gfx
 		bool			m_locked	{ true }	; // locked
 
 	public:
-		opengl_texture2d(render_device * parent, spec const & desc, addr_t data, allocator_type alloc);
+		opengl_texture2d(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_texture2d() override;
 
@@ -376,7 +376,7 @@ namespace ml::gfx
 		bool			m_locked	{ true }	; // locked
 
 	public:
-		opengl_texturecube(render_device * parent, spec const & desc, allocator_type alloc);
+		opengl_texturecube(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_texturecube() override;
 
@@ -424,7 +424,7 @@ namespace ml::gfx
 
 		
 	public:
-		opengl_framebuffer(render_device * parent, spec const & desc, allocator_type alloc);
+		opengl_framebuffer(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_framebuffer() override;
 
@@ -496,7 +496,7 @@ namespace ml::gfx
 		};
 
 	public:
-		opengl_program(render_device * parent, spec const & desc, allocator_type alloc);
+		opengl_program(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_program() override;
 
@@ -583,7 +583,7 @@ namespace ml::gfx
 		};
 
 	public:
-		opengl_shader(render_device * parent, spec const & desc, allocator_type alloc);
+		opengl_shader(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_shader() override;
 

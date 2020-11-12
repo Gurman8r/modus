@@ -10,7 +10,7 @@
 namespace ml
 {
 	// core application
-	struct ML_CORE_API core_application : core_object, non_copyable
+	struct ML_CORE_API core_application : non_copyable, trackable, core_object
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -50,6 +50,9 @@ namespace ml
 		void exit(int32_t exit_code);
 
 		void quit();
+
+
+		ML_NODISCARD auto get_exit_code() const noexcept -> int32_t { return m_exit_code; }
 
 		ML_NODISCARD auto get_main_loop() const noexcept -> ds::ref<loop_system> const & { return m_loop; }
 

@@ -64,23 +64,22 @@ static auto const default_settings{ R"(
 			"visible"		: false
 		}
 	},
-	"application": {
-		"callbacks": true,
-		"guistyle": "resource/modus_launcher.style",
+	"imgui": {
+		"style": "resource/modus_launcher.style",
 		"dockspace": {
 			"alpha"		: 0,
 			"border"	: 0,
 			"padding"	: [ 0, 0 ],
 			"rounding"	: 0,
 			"size"		: [ 0, 0 ]
-		},
-		"plugins": [
-			{ "path": "./plugins/sandbox" }
-		],
-		"scripts": [
-			{ "path": "resource/modus_launcher.py" }
-		]
-	}
+		}
+	},
+	"plugins": [
+		{ "path": "./plugins/sandbox" }
+	],
+	"scripts": [
+		{ "path": "resource/modus_launcher.py" }
+	]
 }
 )"_json };
 

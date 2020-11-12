@@ -39,31 +39,30 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool startup_imgui(bool install_callbacks = true) noexcept
+		bool initialize_imgui(bool install_callbacks = true);
+
+		void finalize_imgui();
+
+		void begin_imgui_frame();
+
+		void end_imgui_frame();
+
+		template <class ... Args
+		> void do_imgui_frame(Args && ... args) noexcept
 		{
-			return _ML ImGui_Startup(this, install_callbacks);
-		}
+			this->begin_imgui_frame();
 
-		void shutdown_imgui() noexcept { _ML ImGui_Shutdown(this, get_imgui()); }
-
-		void begin_imgui_frame() noexcept { _ML ImGui_NewFrame(this, get_imgui()); }
-
-		void end_imgui_frame() noexcept { _ML ImGui_RenderFrame(this, get_imgui()); }
-
-		template <class Fn, class ... Args
-		> void do_imgui_frame(Fn && fn, Args && ... args) noexcept
-		{
-			_ML ImGui_DoFrame(this, get_imgui(), [&]() noexcept
+			if constexpr (0 < sizeof...(Args))
 			{
-				ImGuiExt_ScopeID(this);
-
-				std::invoke(ML_forward(fn), ML_forward(args)...);
-			});
+				std::invoke(ML_forward(args)...);
+			}
+			
+			this->end_imgui_frame();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_docker() const noexcept -> ImGuiExt::Dockspace * { return m_docker.get(); }
+		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace * { return m_dockspace.get(); }
 
 		ML_NODISCARD auto get_imgui() const noexcept -> ImGuiContext * { return m_imgui.get(); }
 
@@ -83,7 +82,7 @@ namespace ml
 
 	private:
 		ds::scary<ImGuiContext>			m_imgui		; // imgui context
-		ds::scope<ImGuiExt::Dockspace>	m_docker	; // imgui dockspace
+		ds::scope<ImGuiExt::Dockspace>	m_dockspace	; // imgui dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

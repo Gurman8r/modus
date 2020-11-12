@@ -116,11 +116,6 @@ namespace ml
 		return m_backend->get_callbacks();
 	}
 
-	window_context const & native_window::get_context_manager() const noexcept
-	{
-		return m_backend->get_context_manager();
-	}
-
 	cstring native_window::get_clipboard() const noexcept
 	{
 		return m_backend->get_clipboard();
@@ -199,6 +194,11 @@ namespace ml
 	void * native_window::get_user_pointer() const noexcept
 	{
 		return m_backend->get_user_pointer();
+	}
+
+	window_manager const * native_window::get_window_manager() const noexcept
+	{
+		return m_backend->get_window_manager();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -30,7 +30,7 @@
 			"visible"		: false
 		}
 	},
-	"runtime": {
+	"application": {
 		"callbacks": true,
 		"guistyle": "resource/modus_launcher.style",
 		"dockspace": {

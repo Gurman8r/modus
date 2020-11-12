@@ -160,8 +160,6 @@ namespace ml
 
 		virtual window_callbacks const & get_callbacks() const = 0;
 
-		virtual window_context const & get_context_manager() const = 0;
-
 		virtual cstring get_clipboard() const = 0;
 
 		virtual vec2 get_content_scale() const = 0;
@@ -198,6 +196,8 @@ namespace ml
 		virtual ds::string const & get_title() const = 0;
 
 		virtual void * get_user_pointer() const = 0;
+
+		virtual window_manager const * get_window_manager() const = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

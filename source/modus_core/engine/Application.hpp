@@ -24,12 +24,6 @@ namespace ml
 	public:
 		using gui_application::get_bus;
 
-		using gui_application::fire_event;
-
-		using gui_application::post_event;
-
-		using gui_application::process_events;
-
 	protected:
 		using gui_application::subscribe;
 

@@ -213,28 +213,6 @@ namespace ml
 		return m_clbk;
 	}
 
-	window_context const & glfw_window::get_context_manager() const
-	{
-		static window_context temp
-		{
-			&glfw_window::extension_supported,
-			&glfw_window::get_active_window,
-			&glfw_window::get_monitors,
-			&glfw_window::get_primary_monitor,
-			&glfw_window::get_proc_address,
-			&glfw_window::get_time,
-			&glfw_window::set_active_window,
-			&glfw_window::set_error_callback,
-			&glfw_window::set_swap_interval,
-			&glfw_window::poll_events,
-			&glfw_window::swap_buffers,
-			&glfw_window::create_custom_cursor,
-			&glfw_window::create_standard_cursor,
-			&glfw_window::destroy_cursor
-		};
-		return temp;
-	}
-
 	cstring glfw_window::get_clipboard() const
 	{
 		return glfwGetClipboardString(m_window);
@@ -327,6 +305,28 @@ namespace ml
 	void * glfw_window::get_user_pointer() const
 	{
 		return glfwGetWindowUserPointer((GLFWwindow *)m_window);
+	}
+
+	window_manager const * glfw_window::get_window_manager() const
+	{
+		static window_manager temp
+		{
+			&glfw_window::extension_supported,
+			&glfw_window::get_active_window,
+			&glfw_window::get_monitors,
+			&glfw_window::get_primary_monitor,
+			&glfw_window::get_proc_address,
+			&glfw_window::get_time,
+			&glfw_window::set_active_window,
+			&glfw_window::set_error_callback,
+			&glfw_window::set_swap_interval,
+			&glfw_window::poll_events,
+			&glfw_window::swap_buffers,
+			&glfw_window::create_custom_cursor,
+			&glfw_window::create_standard_cursor,
+			&glfw_window::destroy_cursor
+		};
+		return std::addressof(temp);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

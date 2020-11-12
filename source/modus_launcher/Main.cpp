@@ -63,7 +63,7 @@ static auto const default_settings{ R"(
 			"visible"		: false
 		}
 	},
-	"runtime": {
+	"application": {
 		"callbacks": true,
 		"guistyle": "resource/modus_launcher.style",
 		"dockspace": {
@@ -101,31 +101,33 @@ int32_t main(int32_t argc, char * argv[])
 	auto app{ make_scope<application>(argc, argv) };
 	app->set_app_name("modus launcher");
 	app->set_app_version("alpha");
-	app->set_library_paths({ "./plugins" });
+	app->set_library_paths({ "../../../" });
 
 	auto const bus		{ app->get_bus() };
-	auto const mainloop	{ app->get_main_loop() };
-	auto const window	{ app->get_window() };
-	auto const imgui	{ window->get_imgui() };
-	auto const docker	{ window->get_docker() };
+	auto const loop		{ app->get_main_loop() };
+	auto const win		{ app->get_window() };
+	auto const imgui	{ win->get_imgui() };
+	auto const docker	{ win->get_dockspace() };
 
-	mainloop->set_loop_condition(&main_window::is_open, window);
+	loop->set_loop_condition(&main_window::is_open, win);
 	
-	mainloop->set_enter_callback([&]()
+	loop->set_enter_callback([&]()
 	{
-		ML_assert(prefs.contains("runtime"));
-		auto & runtime_prefs{ prefs["runtime"] };
+		ML_assert(prefs.contains("application"));
+		auto & app_prefs{ prefs["application"] };
+
+		ML_assert(app->initialize_interpreter());
 
 		ML_assert(prefs.contains("window"));
 		auto & window_prefs{ prefs["window"] };
-		ML_assert(window->open(
+		ML_assert(win->open(
 			window_prefs["title"],
 			window_prefs["video"],
 			window_prefs["context"],
 			window_prefs["hints"]));
 
-		if (runtime_prefs.contains("dockspace")) {
-			auto & dock_prefs{ runtime_prefs["dockspace"] };
+		if (app_prefs.contains("dockspace")) {
+			auto & dock_prefs{ app_prefs["dockspace"] };
 			dock_prefs["alpha"].get_to(docker->Alpha);
 			dock_prefs["border"].get_to(docker->Border);
 			dock_prefs["padding"].get_to(docker->Padding);
@@ -136,36 +138,23 @@ int32_t main(int32_t argc, char * argv[])
 		bus->fire<app_enter_event>();
 	});
 	
-	mainloop->set_exit_callback([&]()
+	loop->set_exit_callback([&]()
 	{
 		bus->fire<app_exit_event>();
 
-		ImGui_Shutdown(window, imgui);
+		ML_assert(app->finalize_interpreter());
 	});
 	
-	mainloop->set_idle_callback([&]()
+	loop->set_idle_callback([&]()
 	{
-		main_window::poll_events();
+		win->get_window_manager()->poll_events();
 
 		bus->fire<app_idle_event>();
 
-		window->do_imgui_frame([&]() noexcept
-		{
-			(*docker)(imgui->Viewports[0], [&]() noexcept
-			{
-				bus->fire<imgui_dockspace_event>(docker);
-			});
-
-			bus->fire<imgui_render_event>(imgui);
-		});
-
-		if (window->has_hints(window_hints_doublebuffer))
-		{
-			main_window::swap_buffers(window->get_handle());
-		}
+		win->do_imgui_frame();
 	});
 
-	// dummy
+	// demo dummy
 	enum
 	{
 		viewport_panel,
@@ -193,11 +182,12 @@ int32_t main(int32_t argc, char * argv[])
 		} break;
 
 		case app_exit_event::ID: {
+			debug::ok("goodbye!");
 		} break;
 
 		case app_idle_event::ID: {
 			for (auto & fb : m_fb) { fb->resize(m_resolution); }
-			window->render(
+			win->draw_commands(
 				gfx::command::bind_framebuffer(m_fb[0]),
 				gfx::command::set_clear_color(m_clear_color),
 				gfx::command::clear(gfx::clear_color | gfx::clear_depth),

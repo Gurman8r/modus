@@ -24,7 +24,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
 	public:
-		ML_NODISCARD auto get_app_filename() const noexcept -> fs::path const & { return m_app_file_name; }
+		ML_NODISCARD auto get_app_file_name() const noexcept -> fs::path const & { return m_app_file_name; }
 
 		ML_NODISCARD auto get_app_file_path() const noexcept -> fs::path const & { return m_app_file_path; }
 
@@ -51,7 +51,6 @@ namespace ml
 
 		void quit();
 
-
 		ML_NODISCARD auto get_exit_code() const noexcept -> int32_t { return m_exit_code; }
 
 		ML_NODISCARD auto get_main_loop() const noexcept -> ds::ref<loop_system> const & { return m_loop; }
@@ -63,24 +62,14 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		bool initialize_interpreter();
+
+		bool finalize_interpreter();
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		using core_object::get_bus;
-
-		template <class Ev, class ... Args
-		> void fire_event(Args && ... args) noexcept
-		{
-			m_dispatcher.fire<Ev>(ML_forward(args)...);
-		}
-		
-		template <class Ev, class ... Args
-		> void post_event(Args && ... args) noexcept
-		{
-			m_dispatcher.post<Ev>(ML_forward(args)...);
-		}
-
-		void process_events() noexcept
-		{
-			m_dispatcher.process_events();
-		}
 
 	protected:
 		using core_object::subscribe;

@@ -1,4 +1,5 @@
 #include <modus_core/engine/CoreApplication.hpp>
+#include <modus_core/embed/Python.hpp>
 
 namespace ml
 {
@@ -26,7 +27,7 @@ namespace ml
 	{
 		ML_assert(end_global<core_application>(this));
 		
-		unsubscribe();
+		unsubscribe(); // do this manually because we own the bus
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -52,6 +53,36 @@ namespace ml
 	void core_application::quit()
 	{
 		this->exit(EXIT_SUCCESS);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool core_application::initialize_interpreter()
+	{
+		if (Py_IsInitialized()) { return false; }
+
+		PyObjectArenaAllocator al;
+		al.ctx = pmr::get_default_resource();
+		al.alloc = [](auto mres, size_t s) {
+			return ((pmr::memory_resource *)mres)->allocate(s);
+		};
+		al.free = [](auto mres, void * p, size_t s) {
+			return ((pmr::memory_resource *)mres)->deallocate(p, s);
+		};
+		PyObject_SetArenaAllocator(&al);
+
+		Py_SetProgramName(get_app_file_name().c_str());
+		
+		Py_SetPythonHome(get_library_paths()[0].c_str());
+		
+		Py_InitializeEx(1);
+
+		return Py_IsInitialized();
+	}
+
+	bool core_application::finalize_interpreter()
+	{
+		return Py_IsInitialized() && (Py_FinalizeEx() == EXIT_SUCCESS);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

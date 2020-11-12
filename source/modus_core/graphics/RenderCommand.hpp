@@ -225,38 +225,6 @@ namespace ml::gfx
 			}
 			, ML_forward(args)...);
 		}
-
-		//if constexpr (0 == sizeof...(Args))
-		//{
-		//	if constexpr (std::is_convertible_v<std::decay_t<decltype(arg0)>, gfx::command>)
-		//	{
-		//		if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
-		//		{
-		//			std::invoke(ML_forward(arg0), ctx);
-		//		}
-		//		else
-		//		{
-		//			std::invoke(ML_forward(arg0), ctx.get());
-		//		}
-		//	}
-		//	else
-		//	{
-		//		for (auto const & cmd : ML_forward(arg0))
-		//		{
-		//			_ML_GFX execute(ML_forward(ctx), cmd);
-		//		}
-		//	}
-		//}
-		//else
-		//{
-		//	_ML_GFX execute(ML_forward(ctx), ML_forward(arg0));
-		//
-		//	meta::for_args([&](auto && cmd) noexcept
-		//	{
-		//		_ML_GFX execute(ML_forward(ctx), ML_forward(cmd));
-		//	}
-		//	, ML_forward(args)...);
-		//}
 	}
 }
 

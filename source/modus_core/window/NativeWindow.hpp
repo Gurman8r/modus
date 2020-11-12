@@ -59,8 +59,6 @@ namespace ml
 
 		ML_NODISCARD window_callbacks const & get_callbacks() const noexcept final;
 
-		ML_NODISCARD window_context const & get_context_manager() const noexcept final;
-
 		ML_NODISCARD cstring get_clipboard() const noexcept final;
 
 		ML_NODISCARD vec2 get_content_scale() const noexcept final;
@@ -92,6 +90,8 @@ namespace ml
 		ML_NODISCARD ds::string const & get_title() const noexcept final;
 
 		ML_NODISCARD void * get_user_pointer() const noexcept final;
+
+		ML_NODISCARD window_manager const * get_window_manager() const noexcept final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

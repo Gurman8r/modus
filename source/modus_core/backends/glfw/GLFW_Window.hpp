@@ -65,8 +65,6 @@ namespace ml
 
 		window_callbacks const & get_callbacks() const override;
 
-		window_context const & get_context_manager() const override;
-
 		cstring get_clipboard() const override;
 
 		vec2 get_content_scale() const override;
@@ -98,6 +96,8 @@ namespace ml
 		ds::string const & get_title() const override;
 
 		void * get_user_pointer() const override;
+
+		window_manager const * get_window_manager() const override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -39,7 +39,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Arg0, class ... Args
-		> void render(Arg0 && arg0, Args && ... args) const noexcept
+		> void draw_commands(Arg0 && arg0, Args && ... args) const noexcept
 		{
 			gfx::execute(m_ctx, ML_forward(arg0), ML_forward(args)...);
 		}

@@ -69,7 +69,7 @@ namespace ml
 		}));
 
 		// setup states
-		this->render(
+		this->draw_commands(
 
 			// alpha state
 			gfx::command::set_alpha_state

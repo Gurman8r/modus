@@ -88,11 +88,13 @@ namespace ml
 		
 		virtual void on_event(event const &) = 0; // handle event
 
-		template <class Ev0, class ... Evs> void subscribe() noexcept
+		template <class ... Evs> void subscribe() noexcept
 		{
 			ML_assert(m_bus);
 
-			meta::for_types<Ev0, Evs...>([&](auto tag) noexcept
+			static_assert(0 < sizeof...(Evs));
+
+			meta::for_types<Evs...>([&](auto tag) noexcept
 			{
 				m_bus->add_listener<decltype(tag)::type>(this);
 			});

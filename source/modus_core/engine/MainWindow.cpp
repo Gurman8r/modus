@@ -9,12 +9,13 @@ namespace ml
 		: core_object	{ bus }
 		, render_window	{ alloc }
 		, m_imgui		{}
-		, m_docker		{ new ImGuiExt::Dockspace{ "##MainDockspace" } }
+		, m_dockspace	{ new ImGuiExt::Dockspace{ "##MainDockspace" } }
 	{
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, void * u) { return ((memory_manager *)u)->allocate(s); },
 			[](void * p, void * u) { return ((memory_manager *)u)->deallocate(p); },
-			get_global<memory_manager>());
+			ML_check(get_global<memory_manager>()));
+		
 		m_imgui.reset(ML_check(ImGui::CreateContext()));
 		m_imgui->IO.LogFilename = "";
 		m_imgui->IO.IniFilename = "";
@@ -38,6 +39,7 @@ namespace ml
 
 	main_window::~main_window() noexcept
 	{
+		ImGui::DestroyContext(m_imgui.release());
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -50,21 +52,23 @@ namespace ml
 		void *						userptr
 	)
 	{
-		// check already open
-		if (is_open()) {
+		// check open
+		if (is_open())
+		{
 			return debug::error("main_window is already open");
 		}
 
-		// open render_window
-		if (!render_window::open(title, vm, cs, hints, userptr)) {
+		// open base
+		if (!render_window::open(title, vm, cs, hints, userptr))
+		{
 			return debug::error("failed opening main_window");
 		}
 
 		// install callbacks
 		{
-			static struct ML_NODISCARD {
+			static struct {
 				event_bus * bus;
-				ML_NODISCARD auto operator->() const noexcept { return ML_check(bus); }
+				auto operator->() const noexcept { return bus; }
 			} helper; helper.bus = get_bus();
 
 			set_char_callback([](auto w, auto ... x) { helper->fire<window_char_event>(x...); });
@@ -88,11 +92,70 @@ namespace ml
 		}
 
 		// imgui
-		if (!startup_imgui()) {
+		if (!initialize_imgui(true))
+		{
 			return debug::error("failed starting imgui");
 		}
 
 		return true;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool main_window::initialize_imgui(bool install_callbacks)
+	{
+		return ImGui_Init(get_handle(), install_callbacks);
+	}
+
+	void main_window::finalize_imgui()
+	{
+		ImGui_Shutdown();
+	}
+
+	void main_window::begin_imgui_frame()
+	{
+		ImGui_NewFrame();
+
+		ImGui::NewFrame();
+
+		ImGui::PushID(this);
+
+		(*get_dockspace())(get_imgui()->Viewports[0], [&]() noexcept
+		{
+			get_bus()->fire<imgui_dockspace_event>(get_dockspace());
+		});
+
+		get_bus()->fire<imgui_render_event>(get_imgui());
+	}
+
+	void main_window::end_imgui_frame()
+	{
+		ImGui::PopID();
+
+		ImGui::Render();
+
+		draw_commands(
+			gfx::command::set_viewport(get_framebuffer_size()),
+			gfx::command::set_clear_color(colors::black),
+			gfx::command::clear(gfx::clear_color));
+
+		ImGui_RenderDrawData(&get_imgui()->Viewports[0]->DrawDataP);
+
+		if (get_imgui()->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			auto const backup_context{ get_window_manager()->get_active_window() };
+
+			ImGui::UpdatePlatformWindows();
+
+			ImGui::RenderPlatformWindowsDefault();
+
+			get_window_manager()->set_active_window(backup_context);
+		}
+
+		if (has_hints(window_hints_doublebuffer))
+		{
+			get_window_manager()->swap_buffers(get_handle());
+		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

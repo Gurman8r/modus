@@ -13,59 +13,39 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool ImGui_Startup(render_window * win, bool callbacks)
+	bool ImGui_Init(window_handle window, bool callbacks)
 	{
-		ML_assert(win && win->is_open());
-
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
-		return ImGui_ImplGlfw_InitForOpenGL((GLFWwindow *)win->get_handle(), callbacks)
+		return ImGui_ImplGlfw_InitForOpenGL((GLFWwindow *)window, callbacks)
 			&& ImGui_ImplOpenGL3_Init("#version 130");
 #else
 #endif
 	}
 
-	void ImGui_Shutdown(render_window * win, ImGuiContext * ctx)
+	void ImGui_Shutdown()
 	{
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 #else
 #endif
-		ImGui::DestroyContext(ctx);
 	}
 
-	void ImGui_NewFrame(render_window * win, ImGuiContext * ctx)
+	void ImGui_NewFrame()
 	{
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 #else
 #endif
-		ImGui::NewFrame();
 	}
 
-	void ImGui_RenderFrame(render_window * win, ImGuiContext * ctx)
+	void ImGui_RenderDrawData(ImDrawData * draw_data)
 	{
-		ImGui::Render();
-
-		win->render(
-			gfx::command::set_viewport(win->get_framebuffer_size()),
-			gfx::command::set_clear_color(colors::black),
-			gfx::command::clear(gfx::clear_color));
-
-		auto const draw_data{ &ctx->Viewports[0]->DrawDataP };
 #if defined(ML_IMPL_RENDERER_OPENGL)
 		ImGui_ImplOpenGL3_RenderDrawData(draw_data);
 #else
 #endif
-
-		if (ctx->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			auto const backup_context{ win->get_active_window() };
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			win->set_active_window(backup_context);
-		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -44,12 +44,6 @@ namespace ml
 	public:
 		using core_application::get_bus;
 
-		using core_application::fire_event;
-
-		using core_application::post_event;
-
-		using core_application::process_events;
-
 	protected:
 		using core_application::subscribe;
 

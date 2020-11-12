@@ -245,14 +245,12 @@ int32_t main(int32_t argc, char * argv[])
 				if (ImGui::BeginMenu("file"))
 				{
 					if (ImGui::MenuItem("quit", "alt+f4")) { app->quit(); }
-
 					ImGui::EndMenu();
 				}
 
 				if (ImGui::BeginMenu("tools"))
 				{
 					ImGuiExt::MenuItem(m_panels + viewport_panel);
-
 					ImGui::EndMenu();
 				}
 				ImGui::EndMainMenuBar();

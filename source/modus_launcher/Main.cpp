@@ -153,7 +153,7 @@ int32_t main(int32_t argc, char * argv[])
 		if (prefs.contains("scripts")) {
 			for (auto const & e : prefs["scripts"]) {
 				auto const path{ app_path + e["path"].get<ds::string>() };
-				PyRun_AnyFileExFlags(std::fopen(path.c_str(), "r"), path.c_str(), true, nullptr);
+				PyRun_AnyFileEx(std::fopen(path.c_str(), "r"), path.c_str(), true);
 			}
 		}
 

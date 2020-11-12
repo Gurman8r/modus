@@ -1,4 +1,5 @@
 #include <modus_core/engine/Application.hpp>
+#include <modus_core/embed/Python.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -113,11 +114,14 @@ int32_t main(int32_t argc, char * argv[])
 	
 	loop->set_enter_callback([&]()
 	{
-		ML_assert(prefs.contains("application"));
-		auto & app_prefs{ prefs["application"] };
+		// path
+		ML_assert(prefs.contains("path"));
+		auto const app_path{ prefs["path"].get<ds::string>() };
 
+		// python
 		ML_assert(app->initialize_interpreter());
 
+		// window
 		ML_assert(prefs.contains("window"));
 		auto & window_prefs{ prefs["window"] };
 		ML_assert(win->open(
@@ -126,13 +130,31 @@ int32_t main(int32_t argc, char * argv[])
 			window_prefs["context"],
 			window_prefs["hints"]));
 
-		if (app_prefs.contains("dockspace")) {
-			auto & dock_prefs{ app_prefs["dockspace"] };
+		// imgui
+		ML_assert(prefs.contains("imgui"));
+		auto & gui_prefs{ prefs["imgui"] };
+		if (gui_prefs.contains("dockspace")) {
+			auto & dock_prefs{ gui_prefs["dockspace"] };
 			dock_prefs["alpha"].get_to(docker->Alpha);
 			dock_prefs["border"].get_to(docker->Border);
 			dock_prefs["padding"].get_to(docker->Padding);
 			dock_prefs["rounding"].get_to(docker->Rounding);
 			dock_prefs["size"].get_to(docker->Size);
+		}
+		if (gui_prefs.contains("style")) {
+			auto & style_prefs{ gui_prefs["style"] };
+			if (style_prefs.is_string())
+			{
+				ImGui_LoadStyle(app_path + style_prefs.get<ds::string>());
+			}
+		}
+
+		// scripts
+		if (prefs.contains("scripts")) {
+			for (auto const & e : prefs["scripts"]) {
+				auto const path{ app_path + e["path"].get<ds::string>() };
+				PyRun_AnyFileExFlags(std::fopen(path.c_str(), "r"), path.c_str(), true, nullptr);
+			}
 		}
 
 		bus->fire<app_enter_event>();

@@ -5,9 +5,9 @@
 // PROJECT
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define ML__auth                "Melody Gurman"
+#define ML__author              "Melody Gurman"
 #define ML__name                "modus"
-#define ML__ver                 "0.0.0"
+#define ML__version             "alpha"
 #define ML__url                 "https://www.github.com/Gurman8r/modus"
 #define ML__date                __DATE__
 #define ML__time                __TIME__

@@ -35,6 +35,8 @@ namespace ml
 		ML_NODISCARD auto get_arguments() const noexcept -> ds::list<ds::string> const & { return m_arguments; }
 
 		ML_NODISCARD auto get_library_paths() const noexcept -> ds::list<fs::path> const & { return m_lib_paths; }
+		
+		ML_NODISCARD auto get_path_to(fs::path const & path) const noexcept -> fs::path { return m_lib_paths[0].native() + path.native(); }
 
 		void set_app_name(ds::string const & value) noexcept { m_app_name = value; }
 

@@ -708,14 +708,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto alloc_device(render_device::allocator_type alloc, Args && ... args) noexcept
 	{
-		return render_device::create(spec<render_device>{ ML_forward(args)... }, alloc);
+		return render_device::create(render_device::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make device
 	template <class ... Args
 	> ML_NODISCARD auto make_device(Args && ... args) noexcept
 	{
-		return render_device::create(spec<render_device>{ ML_forward(args)... });
+		return render_device::create(render_device::spec_type{ ML_forward(args)... });
 	}
 
 	// destroy device
@@ -1026,14 +1026,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto alloc_context(render_context::allocator_type alloc, Args && ... args) noexcept
 	{
-		return render_context::create(spec<render_context>{ ML_forward(args)... }, alloc);
+		return render_context::create(render_context::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make context
 	template <class ... Args
 	> ML_NODISCARD auto make_context(Args && ... args) noexcept
 	{
-		return render_context::create(spec<render_context>{ ML_forward(args)... });
+		return render_context::create(render_context::spec_type{ ML_forward(args)... });
 	}
 }
 
@@ -1111,14 +1111,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto alloc_vertexarray(vertexarray::allocator_type alloc, Args && ... args) noexcept
 	{
-		return vertexarray::create(spec<vertexarray>{ ML_forward(args)... }, alloc);
+		return vertexarray::create(vertexarray::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make vertexarray
 	template <class ... Args
 	> ML_NODISCARD auto make_vertexarray(Args && ... args) noexcept
 	{
-		return vertexarray::create(spec<vertexarray>{ ML_forward(args)... });
+		return vertexarray::create(vertexarray::spec_type{ ML_forward(args)... });
 	}
 }
 
@@ -1196,14 +1196,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto make_vertexbuffer(vertexbuffer::allocator_type alloc, Args && ... args) noexcept
 	{
-		return vertexbuffer::create(spec<vertexbuffer>{ ML_forward(args)... }, alloc);
+		return vertexbuffer::create(vertexbuffer::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make vertexbuffer
 	template <class ... Args
 	> ML_NODISCARD auto make_vertexbuffer(Args && ... args) noexcept
 	{
-		return vertexbuffer::create(spec<vertexbuffer>{ ML_forward(args)... });
+		return vertexbuffer::create(vertexbuffer::spec_type{ ML_forward(args)... });
 	}
 }
 
@@ -1283,14 +1283,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto make_indexbuffer(indexbuffer::allocator_type alloc, Args && ... args) noexcept
 	{
-		return indexbuffer::create(spec<indexbuffer>{ ML_forward(args)... }, alloc);
+		return indexbuffer::create(indexbuffer::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make indexbuffer
 	template <class ... Args
 	> ML_NODISCARD auto make_indexbuffer(Args && ... args) noexcept
 	{
-		return indexbuffer::create(spec<indexbuffer>{ ML_forward(args)... });
+		return indexbuffer::create(indexbuffer::spec_type{ ML_forward(args)... });
 	}
 }
 
@@ -1495,14 +1495,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto make_texture2d(texture2d::allocator_type alloc, Args && ... args) noexcept
 	{
-		return texture2d::create(spec<texture2d>{ ML_forward(args)... }, alloc);
+		return texture2d::create(texture2d::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make texture2d
 	template <class ... Args
 	> ML_NODISCARD auto make_texture2d(Args && ... args) noexcept
 	{
-		return texture2d::create(spec<texture2d>{ ML_forward(args)... });
+		return texture2d::create(texture2d::spec_type{ ML_forward(args)... });
 	}
 }
 
@@ -1578,14 +1578,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto alloc_texturecube(texturecube::allocator_type alloc, Args && ... args) noexcept
 	{
-		return texturecube::create(spec<texturecube>{ ML_forward(args)... }, alloc);
+		return texturecube::create(texturecube::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make texturecube
 	template <class ... Args
 	> ML_NODISCARD auto make_texturecube(Args && ... args) noexcept
 	{
-		return texturecube::create(spec<texturecube>{ ML_forward(args)... });
+		return texturecube::create(texturecube::spec_type{ ML_forward(args)... });
 	}
 }
 
@@ -1707,14 +1707,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto alloc_framebuffer(framebuffer::allocator_type alloc, Args && ... args) noexcept
 	{
-		return framebuffer::create(spec<framebuffer>{ ML_forward(args)... }, alloc);
+		return framebuffer::create(framebuffer::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make framebuffer
 	template <class ... Args
 	> ML_NODISCARD auto make_framebuffer(Args && ... args) noexcept
 	{
-		return framebuffer::create(spec<framebuffer>{ ML_forward(args)... });
+		return framebuffer::create(framebuffer::spec_type{ ML_forward(args)... });
 	}
 }
 
@@ -1830,14 +1830,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto alloc_program(program::allocator_type alloc, Args && ... args) noexcept
 	{
-		return program::create(spec<program>{ ML_forward(args)... }, alloc);
+		return program::create(program::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make program
 	template <class ... Args
 	> ML_NODISCARD auto make_program(Args && ... args) noexcept
 	{
-		return program::create(spec<program>{ ML_forward(args)... });
+		return program::create(program::spec_type{ ML_forward(args)... });
 	}
 }
 
@@ -1969,14 +1969,14 @@ namespace ml::gfx
 	template <class ... Args
 	> ML_NODISCARD auto alloc_shader(shader::allocator_type alloc, Args && ... args) noexcept
 	{
-		return shader::create(spec<shader>{ ML_forward(args)... }, alloc);
+		return shader::create(shader::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make shader
 	template <class ... Args
 	> ML_NODISCARD auto make_shader(Args && ... args) noexcept
 	{
-		return shader::create(spec<shader>{ ML_forward(args)... });
+		return shader::create(shader::spec_type{ ML_forward(args)... });
 	}
 }
 

@@ -14,7 +14,7 @@ namespace ml
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, void * u) { return ((memory_manager *)u)->allocate(s); },
 			[](void * p, void * u) { return ((memory_manager *)u)->deallocate(p); },
-			ML_check(get_global<memory_manager>()));
+			get_global<memory_manager>());
 		
 		m_imgui.reset(ML_check(ImGui::CreateContext()));
 		m_imgui->IO.LogFilename = "";
@@ -104,17 +104,17 @@ namespace ml
 
 	bool main_window::initialize_imgui(bool install_callbacks)
 	{
-		return ImGui_Init(get_handle(), install_callbacks);
+		return _ML ImGui_Init(get_handle(), install_callbacks);
 	}
 
 	void main_window::finalize_imgui()
 	{
-		ImGui_Shutdown();
+		_ML ImGui_Shutdown();
 	}
 
 	void main_window::begin_imgui_frame()
 	{
-		ImGui_NewFrame();
+		_ML ImGui_NewFrame();
 
 		ImGui::NewFrame();
 
@@ -139,7 +139,7 @@ namespace ml
 			gfx::command::set_clear_color(colors::black),
 			gfx::command::clear(gfx::clear_color));
 
-		ImGui_RenderDrawData(&get_imgui()->Viewports[0]->DrawDataP);
+		_ML ImGui_RenderDrawData(&get_imgui()->Viewports[0]->DrawDataP);
 
 		if (get_imgui()->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{

@@ -1,6 +1,8 @@
 #ifndef _ML_PLUGIN_HPP_
 #define _ML_PLUGIN_HPP_
 
+// WIP
+
 #include <modus_core/detail/Events.hpp>
 #include <modus_core/engine/Object.hpp>
 
@@ -34,11 +36,11 @@ namespace ml
 		using core_object::get_bus;
 
 	protected:
-		using core_object::on_event;
-
 		using core_object::subscribe;
 
 		using core_object::unsubscribe;
+
+		using core_object::on_event;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

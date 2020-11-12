@@ -466,6 +466,8 @@ namespace ml::ImGuiExt
 
 		Terminal(allocator_type alloc = {}) noexcept;
 
+		void DrawPrefixOptions();
+
 		void DrawPrefix();
 		
 		void DrawInput();

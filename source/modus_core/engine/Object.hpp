@@ -1,6 +1,8 @@
 #ifndef _ML_OBJECT_HPP_
 #define _ML_OBJECT_HPP_
 
+// WIP
+
 #include <modus_core/detail/Events.hpp>
 #include <modus_core/detail/Timer.hpp>
 
@@ -21,11 +23,11 @@ namespace ml
 		using event_listener::get_bus;
 
 	protected:
-		using event_listener::on_event;
-
 		using event_listener::subscribe;
 
 		using event_listener::unsubscribe;
+
+		using event_listener::on_event;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

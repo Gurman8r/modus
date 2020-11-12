@@ -71,6 +71,41 @@ namespace ml::ImGuiExt
 	{
 	}
 
+	void Terminal::DrawPrefixOptions()
+	{
+		// USER
+		char username[32]{}; std::strcpy(username, this->User.c_str());
+		ImGui::TextDisabled("user"); ImGui::SameLine();
+		if (ImGui::InputText("##username", username, ML_arraysize(username), ImGuiInputTextFlags_EnterReturnsTrue)) {
+			this->User = username;
+		} ImGui::SameLine();
+		ImGui::ColorEdit4("##usercolor", this->Colors.User, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+
+		// HOST
+		char hostname[32]{}; std::strcpy(hostname, this->Host.c_str());
+		ImGui::TextDisabled("host"); ImGui::SameLine();
+		if (ImGui::InputText("##hostname", hostname, ML_arraysize(hostname), ImGuiInputTextFlags_EnterReturnsTrue)) {
+			this->Host = hostname;
+		} ImGui::SameLine();
+		ImGui::ColorEdit4("##hostcolor", this->Colors.Host, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+
+		// PATH
+		char pathname[32]{}; std::strcpy(pathname, this->Path.c_str());
+		ImGui::TextDisabled("path"); ImGui::SameLine();
+		if (ImGui::InputText("##pathname", pathname, ML_arraysize(pathname), ImGuiInputTextFlags_EnterReturnsTrue)) {
+			this->Path = pathname;
+		} ImGui::SameLine();
+		ImGui::ColorEdit4("##pathcolor", this->Colors.Path, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+
+		// MODE
+		char modename[32]{}; std::strcpy(modename, this->Mode.c_str());
+		ImGui::TextDisabled("mode"); ImGui::SameLine();
+		if (ImGui::InputText("##modename", modename, ML_arraysize(modename), ImGuiInputTextFlags_EnterReturnsTrue)) {
+			this->Mode = modename;
+		} ImGui::SameLine();
+		ImGui::ColorEdit4("##modecolor", this->Colors.Mode, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+	}
+
 	void Terminal::DrawPrefix()
 	{
 		ImGui::BeginGroup(); ML_defer(&) { ImGui::EndGroup(); };

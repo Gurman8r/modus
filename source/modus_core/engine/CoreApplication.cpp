@@ -47,7 +47,7 @@ namespace ml
 	{
 		m_exit_code = exit_code;
 
-		m_loop->set_loop_condition(nullptr); // FIXME: this is a hack
+		m_loop->set_loop_condition(nullptr); // FIXME? is this a good?
 	}
 
 	void core_application::quit()

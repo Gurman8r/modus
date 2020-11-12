@@ -32,20 +32,27 @@ namespace ml
 
 	void gui_application::on_event(event const & value)
 	{
-		core_application::on_event(ML_forward(value));
+		core_application::on_event(value);
 
 		switch (value)
 		{
 		case app_enter_event::ID: {
-			auto && ev{ (app_enter_event &&)value };
 		} break;
 
 		case app_exit_event::ID: {
-			auto && ev{ (app_exit_event &&)value };
 		} break;
 
 		case app_idle_event::ID: {
-			auto && ev{ (app_idle_event &&)value };
+			++m_frame_count;
+			m_delta_time = m_loop_timer.elapsed();
+			m_loop_timer.restart();
+			auto const dt{ (float_t)m_delta_time.count() };
+			m_fps_accum += dt - m_fps_times[m_fps_index];
+			m_fps_times[m_fps_index] = dt;
+			m_fps_index = (m_fps_index + 1) % m_fps_times.size();
+			m_frame_rate = (0.f < m_fps_accum)
+				? 1.f / (m_fps_accum / (float_t)m_fps_times.size())
+				: FLT_MAX;
 		} break;
 
 		case window_key_event::ID: {

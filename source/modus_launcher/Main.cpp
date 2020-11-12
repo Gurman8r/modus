@@ -107,7 +107,7 @@ int32_t main(int32_t argc, char * argv[])
 	auto const loop		{ app->get_main_loop() };
 	auto const win		{ app->get_window() };
 	auto const imgui	{ win->get_imgui() };
-	auto const docker	{ win->get_dockspace() };
+	auto const dockspace	{ win->get_dockspace() };
 
 	loop->set_loop_condition(&main_window::is_open, win);
 	
@@ -134,11 +134,11 @@ int32_t main(int32_t argc, char * argv[])
 		auto & gui_prefs{ prefs["imgui"] };
 		if (gui_prefs.contains("dockspace")) {
 			auto & dock_prefs{ gui_prefs["dockspace"] };
-			dock_prefs["alpha"].get_to(docker->Alpha);
-			dock_prefs["border"].get_to(docker->Border);
-			dock_prefs["padding"].get_to(docker->Padding);
-			dock_prefs["rounding"].get_to(docker->Rounding);
-			dock_prefs["size"].get_to(docker->Size);
+			dock_prefs["alpha"].get_to(dockspace->Alpha);
+			dock_prefs["border"].get_to(dockspace->Border);
+			dock_prefs["padding"].get_to(dockspace->Padding);
+			dock_prefs["rounding"].get_to(dockspace->Rounding);
+			dock_prefs["size"].get_to(dockspace->Size);
 		}
 		if (gui_prefs.contains("style")) {
 			auto & style_prefs{ gui_prefs["style"] };
@@ -199,14 +199,20 @@ int32_t main(int32_t argc, char * argv[])
 		switch (value)
 		{
 		case app_enter_event::ID: {
+
 			m_fb.push_back(gfx::make_framebuffer((vec2i)m_resolution));
+
 		} break;
 
 		case app_exit_event::ID: {
+
 			debug::ok("goodbye!");
+
 		} break;
 
 		case app_idle_event::ID: {
+
+			// RENDER
 			for (auto & fb : m_fb) { fb->resize(m_resolution); }
 			win->draw_commands(
 				gfx::command::bind_framebuffer(m_fb[0]),
@@ -214,9 +220,12 @@ int32_t main(int32_t argc, char * argv[])
 				gfx::command::clear(gfx::clear_color | gfx::clear_depth),
 				gfx::command([&](gfx::render_context * ctx) noexcept { /* custom */ }),
 				gfx::command::bind_framebuffer(nullptr));
+		
 		} break;
 
 		case imgui_dockspace_event::ID: {
+
+			// DOCKSPACE
 			auto && ev{ (imgui_dockspace_event &&)value };
 			if (ImGuiID const root{ ev->GetID() }; !ImGui::DockBuilderGetNode(root))
 			{
@@ -225,9 +234,31 @@ int32_t main(int32_t argc, char * argv[])
 				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, root);
 				ImGui::DockBuilderFinish(root);
 			}
+
 		} break;
 
 		case imgui_render_event::ID: {
+
+			// MAIN MENU BAR
+			if (ImGui::BeginMainMenuBar())
+			{
+				if (ImGui::BeginMenu("file"))
+				{
+					if (ImGui::MenuItem("quit", "alt+f4")) { app->quit(); }
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("tools"))
+				{
+					ImGuiExt::MenuItem(m_panels + viewport_panel);
+
+					ImGui::EndMenu();
+				}
+				ImGui::EndMainMenuBar();
+			}
+
+			// VIEWPORT
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
 			if (!m_panels[viewport_panel]([&]() noexcept
 			{
@@ -240,7 +271,7 @@ int32_t main(int32_t argc, char * argv[])
 					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 					ImGui::Separator();
 
-					auto const fps{ ImGui::GetIO().Framerate };
+					auto const fps{ app->get_frame_rate() };
 					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 					ImGui::Separator();
 
@@ -257,6 +288,7 @@ int32_t main(int32_t argc, char * argv[])
 			{
 				ImGui::PopStyleVar(1);
 			}
+
 		} break;
 		}
 	});

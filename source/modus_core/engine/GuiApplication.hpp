@@ -23,6 +23,10 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD auto get_window() const noexcept -> main_window * { return m_window.get(); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ML_NODISCARD auto get_delta_time() const noexcept -> duration { return m_delta_time; }
 		
 		ML_NODISCARD auto get_frame_count() const noexcept -> uint64_t { return m_frame_count; }
@@ -30,14 +34,12 @@ namespace ml
 		ML_NODISCARD auto get_frame_rate() const noexcept -> float_t { return m_frame_rate; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
+
 		ML_NODISCARD auto get_cursor_pos() const noexcept -> vec2d const & { return m_cursor_pos; }
 		
 		ML_NODISCARD auto get_mouse() const noexcept -> mouse_state const & { return m_mouse; }
 		
 		ML_NODISCARD auto get_keyboard() const noexcept -> keyboard_state const & { return m_keyboard; }
-
-		ML_NODISCARD auto get_window() const noexcept -> main_window * { return m_window.get(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -54,18 +56,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		timer							m_loop_timer	; // 
-		duration						m_delta_time	; // 
-		uint64_t						m_frame_count	; // 
-		float_t							m_frame_rate	; // 
-		float_t							m_fps_accum		; // 
-		size_t							m_fps_index		; // 
-		ds::array<float_t, 120>			m_fps_times		; // 
+		ds::scope<main_window>	m_window		; // 
 
-		ds::scope<main_window>			m_window		; // 
-		vec2d							m_cursor_pos	; // 
-		mouse_state						m_mouse			; // 
-		keyboard_state					m_keyboard		; // 
+		timer					m_loop_timer	; // 
+		duration				m_delta_time	; // 
+		uint64_t				m_frame_count	; // 
+		float_t					m_frame_rate	; // 
+		float_t					m_fps_accum		; // 
+		size_t					m_fps_index		; // 
+		ds::array<float_t, 120>	m_fps_times		; // 
+
+		vec2d					m_cursor_pos	; // 
+		mouse_state				m_mouse			; // 
+		keyboard_state			m_keyboard		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

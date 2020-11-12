@@ -15,9 +15,9 @@ namespace ml
 
 	memory_manager::~memory_manager() noexcept
 	{
-		ML_assert(end_global<memory_manager>(this));
-
 		ML_assert_msg(m_records.empty(), "MEMORY LEAKS DETECTED");
+
+		ML_assert(end_global<memory_manager>(this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

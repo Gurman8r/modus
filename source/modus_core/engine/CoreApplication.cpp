@@ -25,9 +25,9 @@ namespace ml
 
 	core_application::~core_application() noexcept
 	{
-		ML_assert(end_global<core_application>(this));
-		
 		unsubscribe(); // do this manually because we own the bus
+		
+		ML_assert(end_global<core_application>(this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

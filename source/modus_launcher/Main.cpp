@@ -104,14 +104,14 @@ int32_t main(int32_t argc, char * argv[])
 	app->set_library_paths({ "../../../" });
 
 	auto const bus		{ app->get_bus() };
-	auto const loop		{ app->get_main_loop() };
-	auto const win		{ app->get_window() };
-	auto const imgui	{ win->get_imgui() };
-	auto const dockspace	{ win->get_dockspace() };
+	auto const mainloop	{ app->get_main_loop() };
+	auto const window	{ app->get_window() };
+	auto const imgui	{ window->get_imgui() };
+	auto const dockspace{ window->get_dockspace() };
 
-	loop->set_loop_condition(&main_window::is_open, win);
+	mainloop->set_loop_condition(&main_window::is_open, window);
 	
-	loop->set_enter_callback([&]()
+	mainloop->set_enter_callback([&]()
 	{
 		// path
 		ML_assert(prefs.contains("path"));
@@ -123,7 +123,7 @@ int32_t main(int32_t argc, char * argv[])
 		// window
 		ML_assert(prefs.contains("window"));
 		auto & window_prefs{ prefs["window"] };
-		ML_assert(win->open(
+		ML_assert(window->open(
 			window_prefs["title"],
 			window_prefs["video"],
 			window_prefs["context"],
@@ -159,20 +159,20 @@ int32_t main(int32_t argc, char * argv[])
 		bus->fire<app_enter_event>();
 	});
 	
-	loop->set_exit_callback([&]()
+	mainloop->set_exit_callback([&]()
 	{
 		bus->fire<app_exit_event>();
 
 		ML_assert(app->finalize_interpreter());
 	});
 	
-	loop->set_idle_callback([&]()
+	mainloop->set_idle_callback([&]()
 	{
-		win->get_window_manager()->poll_events();
+		window->get_window_manager()->poll_events();
 
 		bus->fire<app_idle_event>();
 
-		win->do_imgui_frame();
+		window->do_imgui_frame();
 	});
 
 	// demo dummy
@@ -214,7 +214,7 @@ int32_t main(int32_t argc, char * argv[])
 
 			// RENDER
 			for (auto & fb : m_fb) { fb->resize(m_resolution); }
-			win->draw_commands(
+			window->draw_commands(
 				gfx::command::bind_framebuffer(m_fb[0]),
 				gfx::command::set_clear_color(m_clear_color),
 				gfx::command::clear(gfx::clear_color | gfx::clear_depth),

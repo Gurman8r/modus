@@ -3,7 +3,6 @@
 
 #include <modus_core/detail/LoopSystem.hpp>
 #include <modus_core/engine/Object.hpp>
-#include <modus_core/engine/PlatformAPI.hpp>
 
 // CORE APP
 namespace ml
@@ -57,32 +56,32 @@ namespace ml
 
 		ML_NODISCARD auto attr() noexcept -> json &
 		{
-			return m_attribs;
+			return m_attributes;
 		}
 
 		ML_NODISCARD auto attr() const noexcept -> json const &
 		{
-			return m_attribs;
+			return m_attributes;
 		}
 
 		template <class I> ML_NODISCARD auto attr(I && i) noexcept -> json &
 		{
-			return m_attribs[ML_forward(i)];
+			return m_attributes[ML_forward(i)];
 		}
 
 		template <class I> ML_NODISCARD auto attr(I && i) const noexcept -> json const &
 		{
-			return m_attribs[ML_forward(i)];
+			return m_attributes[ML_forward(i)];
 		}
 
 		ML_NODISCARD auto library_paths() const noexcept -> ds::list<fs::path> const &
 		{
-			return m_lib_paths;
+			return m_library_paths;
 		}
 
 		ML_NODISCARD auto library_paths(size_t i) const noexcept -> fs::path const &
 		{
-			return m_lib_paths[i];
+			return m_library_paths[i];
 		}
 
 		ML_NODISCARD auto path_to(fs::path const & value = {}) const noexcept -> fs::path
@@ -90,33 +89,25 @@ namespace ml
 			return library_paths(0).native() + value.native();
 		}
 
-	public:
-		auto set_app_name(ds::string const & value) noexcept -> ds::string const &
+		auto set_app_name(ds::string const & value) noexcept -> ds::string &
 		{
 			return m_app_name = value;
 		}
 
-		auto set_app_version(ds::string const & value) noexcept -> ds::string const &
+		auto set_app_version(ds::string const & value) noexcept -> ds::string &
 		{
 			return m_app_version = value;
 		}
 
-		auto set_attributes(json const & value) noexcept -> json const &
+		auto set_attributes(json const & value) noexcept -> json &
 		{
-			return m_attribs = value;
+			return m_attributes = value;
 		}
 
-		auto set_library_paths(ds::list<fs::path> const & value) noexcept -> ds::list<fs::path> const &
+		auto set_library_paths(ds::list<fs::path> const & value) noexcept -> ds::list<fs::path> &
 		{
-			return m_lib_paths = value;
+			return m_library_paths = value;
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	public:
-		ML_NODISCARD bool initialize_interpreter();
-
-		void finalize_interpreter();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -129,13 +120,20 @@ namespace ml
 
 		ML_NODISCARD auto get_main_loop() const noexcept -> subsystem const &
 		{
-			return m_loop;
+			return m_main_loop;
 		}
 
-		auto set_main_loop(subsystem const & value) noexcept -> subsystem const &
+		auto set_main_loop(subsystem const & value) noexcept -> subsystem &
 		{
-			return m_loop = value;
+			return m_main_loop = value;
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	protected:
+		ML_NODISCARD bool initialize_interpreter();
+
+		void finalize_interpreter();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -150,12 +148,12 @@ namespace ml
 		ds::string				m_app_name		; // 
 		ds::string				m_app_version	; // 
 		ds::list<ds::string>	m_arguments		; // 
-		json					m_attribs		; // 
-		ds::list<fs::path>		m_lib_paths		; // 
+		json					m_attributes	; // 
+		ds::list<fs::path>		m_library_paths	; // 
 		
 		int32_t		m_exit_code		; // 
 		event_bus	m_dispatcher	; // 
-		subsystem	m_loop			; // 
+		subsystem	m_main_loop		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

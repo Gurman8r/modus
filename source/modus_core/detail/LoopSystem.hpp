@@ -96,10 +96,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool running() const noexcept { return m_locked; }
-
-		ML_NODISCARD auto uptime() const noexcept -> duration { return m_uptime.elapsed(); }
-
 		template <bool Recurse = true
 		> int32_t process() noexcept
 		{
@@ -122,6 +118,12 @@ namespace ml
 			while (this->run_loop_condition());
 			return EXIT_SUCCESS;
 		}
+
+		ML_NODISCARD bool running() const noexcept { return m_locked; }
+
+		ML_NODISCARD auto uptime() const noexcept -> duration { return m_uptime.elapsed(); }
+
+		void kill() noexcept { this->set_loop_condition(nullptr); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

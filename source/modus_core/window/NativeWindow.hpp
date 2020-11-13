@@ -57,9 +57,9 @@ namespace ml
 
 		ML_NODISCARD vec2 get_content_scale() const noexcept final;
 
-		ML_NODISCARD vec2 get_cursor_pos() const noexcept final;
-
 		ML_NODISCARD int32_t get_cursor_mode() const noexcept final;
+
+		ML_NODISCARD vec2 get_cursor_pos() const noexcept final;
 
 		ML_NODISCARD vec2i get_framebuffer_size() const noexcept final;
 

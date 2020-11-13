@@ -13,9 +13,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		static std::optional<fs::path> open_filename(window_handle window, cstring filter);
+		static std::optional<fs::path> get_open_file_name(window_handle window, cstring filter);
 
-		static std::optional<fs::path> save_filename(window_handle window, cstring filter);
+		static std::optional<fs::path> get_save_file_name(window_handle window, cstring filter);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

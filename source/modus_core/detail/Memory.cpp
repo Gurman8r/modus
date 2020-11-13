@@ -17,9 +17,9 @@ namespace ml
 	{
 #if 0
 		while (!m_records.empty()) { this->deallocate(m_records.back<id_addr>()); }
-#endif
+#else
 		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
-
+#endif
 		ML_assert(end_singleton<memory_manager>(this));
 	}
 

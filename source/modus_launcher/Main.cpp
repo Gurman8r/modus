@@ -1,7 +1,5 @@
 #include <modus_core/engine/Application.hpp>
 #include <modus_core/embed/Python.hpp>
-#include <modus_core/detail/StreamSniper.hpp>
-#include <modus_core/scene/Components.hpp>
 #include <modus_core/engine/PluginManager.hpp>
 
 using namespace ml;
@@ -88,18 +86,18 @@ static auto const default_settings{ R"(
 }
 )"_json };
 
-json load_settings(fs::path const & path = SETTINGS_PATH)
-{
-	std::ifstream f{ path }; ML_defer(&f) { f.close(); };
-
-	return f ? json::parse(f) : default_settings;
-}
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 int32_t main(int32_t argc, char * argv[])
 {
 	static memory_manager memory{};
+
+	auto load_settings = [](fs::path const & path = SETTINGS_PATH) noexcept
+	{
+		std::ifstream f{ path };
+		ML_defer(&f) { f.close(); };
+		return f ? json::parse(f) : default_settings;
+	};
 
 	auto app{ make_scope<application>(argc, argv) };
 	app->set_app_name(ML__name);
@@ -107,13 +105,27 @@ int32_t main(int32_t argc, char * argv[])
 	app->set_attributes(load_settings());
 	app->set_library_paths(app->attr("paths"));
 
-	// plugins
+	auto plugs{ make_scope<plugin_manager>(app.get()) };
 	if (app->attr().contains("plugins")) {
-		json & plugin_prefs{ app->attr("plugins") };
-		for (json const & e : plugin_prefs) {
-			app->get_plugin_manager()->install(e["path"]);
+		for (json const & e : app->attr("plugins")) {
+			plugs->install(e["path"]);
 		}
 	}
+
+	app->get_bus()->new_dummy<app_enter_event, app_exit_event
+	>([&](event const & value) {
+		if (value == app_enter_event::ID) {
+			if (app->attr().contains("scripts")) {
+				for (json const & e : app->attr("scripts")) {
+					auto const path{ app->path_to(e["path"]).string() };
+					PyRun_AnyFileEx(std::fopen(path.c_str(), "r"), path.c_str(), true);
+				}
+			}
+		}
+		else if (value == app_exit_event::ID) {
+			debug::ok("goodbye!");
+		}
+	});
 
 	return app->exec();
 }

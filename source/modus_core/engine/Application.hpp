@@ -1,8 +1,6 @@
 #ifndef _ML_APPLICATION_HPP_
 #define _ML_APPLICATION_HPP_
 
-// WIP
-
 #include <modus_core/engine/GuiApplication.hpp>
 #include <modus_core/engine/PluginManager.hpp>
 
@@ -22,21 +20,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager *
-		{
-			return const_cast<plugin_manager *>(&m_plugins);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	protected:
 		virtual void on_event(event const & value) override;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		plugin_manager m_plugins;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

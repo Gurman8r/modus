@@ -68,7 +68,7 @@ namespace ml
 namespace ml
 {
 	// plugin manager
-	struct ML_CORE_API plugin_manager final : non_copyable, trackable
+	struct ML_CORE_API plugin_manager final : non_copyable, trackable, core_object
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -92,18 +92,35 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		plugin_manager(application * app, allocator_type alloc = {}) noexcept;
+		plugin_manager(application * app, allocator_type alloc = {});
 
 		~plugin_manager() noexcept final { this->uninstall_all(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_app() const noexcept -> application * { return m_app; }
+	public:
+		ML_NODISCARD auto get_app() const noexcept -> application * const
+		{
+			return m_app;
+		}
 
-		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_mem; }
+		void broadcast(event const & value) noexcept
+		{
+			for (auto & e : m_data.get<plugin_instance>())
+			{
+				ML_check(e)->on_event(value);
+			}
+		}
+
+		template <class Ev, class ... Args
+		> void broadcast(Args && ... args) noexcept
+		{
+			this->broadcast(Ev{ ML_forward(args)... });
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		plugin_id install(fs::path const & path, void * userptr = nullptr);
 
 		bool uninstall(plugin_id value);
@@ -117,7 +134,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
 		ML_NODISCARD bool contains(plugin_id id) const noexcept
 		{
 			return m_data.contains<plugin_id>(id);
@@ -146,6 +162,8 @@ namespace ml
 		{
 			return m_data.contains<plugin_instance>(value);
 		}
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_data() noexcept -> plugin_storage & { return m_data; }
 
@@ -165,9 +183,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	protected:
+		void on_event(event const & value) final {}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	private:
 		application * const	m_app; // application
-		memory_manager * const m_mem;
 		plugin_storage		m_data; // plugin data
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -56,9 +56,8 @@ namespace ml
 			switch (value)
 			{
 			case app_enter_event::ID: {
-				if (bitmap i{ get_app()->path_to("resource/modus_launcher.png"), false })
-				{
-					get_app()->get_main_window()->set_icons(i.width(), i.height(), i.data());
+				if (bitmap i{ get_app()->path_to("resource/modus_launcher.png"), false }) {
+					get_app()->get_window()->set_icons(i.width(), i.height(), i.data());
 				}
 				m_fb.push_back(gfx::make_framebuffer((vec2i)m_resolution));
 			} break;
@@ -70,7 +69,7 @@ namespace ml
 			case app_idle_event::ID: {
 				m_term.Output.Dump(m_cout.sstr());
 				for (auto & fb : m_fb) { fb->resize(m_resolution); }
-				get_app()->get_render_context()->execute(
+				get_app()->get_window()->get_render_context()->execute(
 					gfx::command::bind_framebuffer(m_fb[0]),
 					gfx::command::set_clear_color(m_clear_color),
 					gfx::command::clear(gfx::clear_color | gfx::clear_depth),
@@ -84,50 +83,49 @@ namespace ml
 			} break;
 	
 			case imgui_render_event::ID: {
-	
-				// MAIN MENU BAR
-				if (ImGui::BeginMainMenuBar()) {
-					if (ImGui::BeginMenu("file")) {
-
-						if (ImGui::MenuItem("new")) {
-						}
-						if (ImGui::MenuItem("open")) {
-						}
-						if (ImGui::MenuItem("close")) {
-						}
-						ImGui::Separator();
-						if (ImGui::MenuItem("save")) {
-						}
-						if (ImGui::MenuItem("save as...")) {
-						}
-						ImGui::Separator();
-						if (ImGui::MenuItem("quit", "alt+f4")) {
-							get_app()->quit();
-						}
-						ImGui::EndMenu();
-					}
-					if (ImGui::BeginMenu("tools")) {
-						ImGuiExt::MenuItem(m_panels + terminal_panel);
-						ImGuiExt::MenuItem(m_panels + viewport_panel);
-						ImGui::EndMenu();
-					}
-					ImGui::EndMainMenuBar();
-				}
-	
-				show_terminal(); // TERMINAL
-
-				show_viewport(); // VIEWPORT
-	
+				draw_menubar(); // MENUBAR
+				draw_terminal(); // TERMINAL
+				draw_viewport(); // VIEWPORT
 			} break;
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void show_terminal()
+		void draw_menubar()
+		{
+			if (ImGui::BeginMainMenuBar()) {
+				if (ImGui::BeginMenu("file")) {
+					if (ImGui::MenuItem("new")) {
+					}
+					if (ImGui::MenuItem("open")) {
+					}
+					if (ImGui::MenuItem("close")) {
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("save")) {
+					}
+					if (ImGui::MenuItem("save as...")) {
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("quit", "alt+f4")) {
+						get_app()->quit();
+					}
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("tools")) {
+					ImGuiExt::MenuItem(m_panels + terminal_panel);
+					ImGuiExt::MenuItem(m_panels + viewport_panel);
+					ImGui::EndMenu();
+				}
+				ImGui::EndMainMenuBar();
+			}
+		}
+
+		void draw_terminal()
 		{
 			if (m_panels[terminal_panel].IsOpen) {
-				auto const winsize{ (vec2)get_app()->get_main_window()->get_size() };
+				auto const winsize{ (vec2)get_app()->get_window()->get_size() };
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
@@ -224,7 +222,7 @@ namespace ml
 			}
 		}
 
-		void show_viewport()
+		void draw_viewport()
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
 			if (!m_panels[viewport_panel]([&]() noexcept
@@ -264,12 +262,16 @@ extern "C"
 {
 	ML_PLUGIN_API ml::plugin * ml_plugin_install(ml::plugin_manager * manager, void * userptr)
 	{
-		return manager->get_memory()->new_object<ml::sandbox>(manager, userptr);
+		auto const g{ ML_check(ml::get_global<ml::memory_manager>()) };
+
+		return g->new_object<ml::sandbox>(manager, userptr);
 	}
 
 	ML_PLUGIN_API void ml_plugin_uninstall(ml::plugin_manager * manager, ml::plugin * ptr)
 	{
-		return manager->get_memory()->delete_object((ml::sandbox *)ptr);
+		auto const g{ ML_check(ml::get_global<ml::memory_manager>()) };
+
+		return g->delete_object((ml::sandbox *)ptr);
 	}
 }
 

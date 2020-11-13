@@ -10,13 +10,9 @@
 
 namespace ml
 {
-	// application
 	struct application;
-
-	// plugin manager
 	struct plugin_manager;
 
-	// plugin id
 	ML_decl_handle(plugin_id);
 
 	// base plugin

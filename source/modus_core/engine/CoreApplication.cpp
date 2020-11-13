@@ -12,11 +12,11 @@ namespace ml
 		, m_app_name		{ fs::path{ argv[0] }.stem().string(), alloc }
 		, m_app_version		{ alloc }
 		, m_arguments		{ argv, argv + argc, alloc }
-		, m_lib_paths		{ alloc }
+		, m_library_paths		{ alloc }
 
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_dispatcher		{ alloc }
-		, m_loop			{ alloc_ref<loop_system>(alloc, get_bus()) }
+		, m_main_loop			{ alloc_ref<loop_system>(alloc, get_bus()) }
 	{
 		ML_assert(begin_singleton<core_application>(this));
 		
@@ -30,6 +30,22 @@ namespace ml
 		finalize_interpreter();
 
 		ML_assert(end_singleton<core_application>(this));
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	int32_t core_application::exec()
+	{
+		m_main_loop->process();
+
+		return m_exit_code;
+	}
+
+	void core_application::exit(int32_t exit_code)
+	{
+		m_exit_code = exit_code;
+
+		m_main_loop->kill();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -65,28 +81,13 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	int32_t core_application::exec()
-	{
-		m_loop->process();
-
-		return m_exit_code;
-	}
-
-	void core_application::exit(int32_t exit_code)
-	{
-		m_exit_code = exit_code;
-
-		m_loop->set_loop_condition(nullptr);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	void core_application::on_event(event const & value)
 	{
 		switch (value)
 		{
 		case app_enter_event::ID: {
 			auto && ev{ (app_enter_event &&)value };
+			ML_assert(initialize_interpreter());
 		} break;
 
 		case app_exit_event::ID: {

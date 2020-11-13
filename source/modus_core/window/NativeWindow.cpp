@@ -119,14 +119,14 @@ namespace ml
 		return m_backend->get_content_scale();
 	}
 
-	vec2 native_window::get_cursor_pos() const noexcept
-	{
-		return m_backend->get_cursor_pos();
-	}
-
 	int32_t native_window::get_cursor_mode() const noexcept
 	{
 		return m_backend->get_cursor_mode();
+	}
+
+	vec2 native_window::get_cursor_pos() const noexcept
+	{
+		return m_backend->get_cursor_pos();
 	}
 
 	vec2i native_window::get_framebuffer_size() const noexcept

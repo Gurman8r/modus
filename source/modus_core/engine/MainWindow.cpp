@@ -108,8 +108,15 @@ namespace ml
 		_ML ImGui_Shutdown();
 	}
 
+	bool main_window::load_imgui_style(fs::path const & path)
+	{
+		return _ML ImGui_LoadStyle(path, get_imgui()->Style);
+	}
+
 	void main_window::begin_imgui_frame()
 	{
+		get_window_context()->poll_events();
+
 		_ML ImGui_NewFrame();
 
 		ImGui::NewFrame();
@@ -137,11 +144,11 @@ namespace ml
 			ImGui::RenderPlatformWindowsDefault();
 			get_window_context()->make_context_current(backup_context);
 		}
-	}
 
-	bool main_window::load_imgui_style(fs::path const & path)
-	{
-		return _ML ImGui_LoadStyle(path, get_imgui()->Style);
+		if (has_hints(window_hints_doublebuffer))
+		{
+			get_window_context()->swap_buffers(get_handle());
+		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

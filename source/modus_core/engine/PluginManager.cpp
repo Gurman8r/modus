@@ -1,14 +1,13 @@
-#include <modus_core/engine/PluginManager.hpp>
 #include <modus_core/engine/Application.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(application * app, allocator_type alloc) noexcept
-		: m_app	{ ML_check(app) }
-		, m_mem	{ ML_check(get_global<memory_manager>()) }
-		, m_data{ alloc }
+	plugin_manager::plugin_manager(application * app, allocator_type alloc)
+		: core_object	{ app->get_bus() }
+		, m_app			{ app }
+		, m_data		{ alloc }
 	{
 	}
 

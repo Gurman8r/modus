@@ -320,16 +320,16 @@ namespace ml
 		return temp;
 	}
 
-	int32_t glfw_window::get_cursor_mode() const
-	{
-		return glfwGetInputMode(m_window, GLFW_CURSOR);
-	}
-
 	vec2 glfw_window::get_cursor_pos() const
 	{
 		vec2d temp{};
 		glfwGetCursorPos(m_window, &temp[0], &temp[1]);
 		return (vec2)temp;
+	}
+
+	int32_t glfw_window::get_cursor_mode() const
+	{
+		return glfwGetInputMode(m_window, GLFW_CURSOR);
 	}
 
 	vec2i glfw_window::get_framebuffer_size() const

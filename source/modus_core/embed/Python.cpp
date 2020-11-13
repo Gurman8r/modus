@@ -8,7 +8,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// exit
-	m.def("exit", [](py::args) { get_global<core_application>()->quit(); });
+	m.def("exit", [](py::args) { ML_check(get_global<core_application>())->quit(); });
 	py::module::import("builtins").attr("exit") = m.attr("exit");
 	py::module::import("sys").attr("exit") = m.attr("exit");
 

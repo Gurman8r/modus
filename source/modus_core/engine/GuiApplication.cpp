@@ -21,12 +21,6 @@ namespace ml
 		ML_assert(begin_singleton<gui_application>(this));
 		
 		subscribe<window_cursor_pos_event, window_key_event, window_mouse_event>();
-
-		auto const mainloop{ get_main_loop() };
-		mainloop->set_loop_condition(&main_window::is_open, get_main_window());
-		mainloop->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
-		mainloop->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
-		mainloop->set_idle_callback([&]() { get_bus()->fire<app_idle_event>(); });
 	}
 
 	gui_application::~gui_application() noexcept

@@ -114,26 +114,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		int32_t exec()
-		{
-			m_loop->process();
+		ML_NODISCARD bool initialize_interpreter();
 
-			return m_exit_code;
-		}
+		void finalize_interpreter();
 
-		void exit(int32_t exit_code)
-		{
-			m_exit_code = exit_code;
-
-			m_loop->set_loop_condition(nullptr);
-		}
-
-		void quit() noexcept
-		{
-			this->exit(EXIT_SUCCESS);
-		}
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		int32_t exec();
+
+		void exit(int32_t exit_code);
+
+		void quit() noexcept { this->exit(EXIT_SUCCESS); }
+
 		ML_NODISCARD auto get_main_loop() const noexcept -> subsystem const &
 		{
 			return m_loop;
@@ -143,13 +136,6 @@ namespace ml
 		{
 			return m_loop = value;
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	public:
-		ML_NODISCARD bool initialize_interpreter();
-
-		void finalize_interpreter();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -5,12 +5,8 @@
 #include <modus_core/engine/Plugin.hpp>
 #include <modus_core/engine/SharedLibrary.hpp>
 
-// instance
-namespace ml
-{
-	// plugin instance
-	ML_alias plugin_instance = typename ds::scary<plugin>;
-}
+// plugin instance
+namespace ml { ML_alias plugin_instance = typename ds::scary<plugin>; }
 
 // details
 namespace ml
@@ -72,7 +68,7 @@ namespace ml
 namespace ml
 {
 	// plugin manager
-	struct ML_CORE_API plugin_manager final : non_copyable, trackable, core_object
+	struct ML_CORE_API plugin_manager final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -96,9 +92,15 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		plugin_manager(event_bus * bus, allocator_type alloc = {}) noexcept;
+		plugin_manager(application * app, allocator_type alloc = {}) noexcept;
 
-		~plugin_manager() noexcept override;
+		~plugin_manager() noexcept final { this->uninstall_all(); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_app() const noexcept -> application * { return m_app; }
+
+		ML_NODISCARD auto get_memory() const noexcept -> memory_manager * { return m_mem; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -106,34 +108,34 @@ namespace ml
 
 		bool uninstall(plugin_id value);
 
+		void uninstall_all() noexcept
+		{
+			auto & ids{ m_data.get<plugin_id>() };
+
+			while (!ids.empty()) { this->uninstall(ids.back()); }
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		void uninstall_all() noexcept
-		{
-			auto & ids{ this->get<plugin_id>() };
-
-			while (!ids.empty()) { uninstall(ids.back()); }
-		}
-
 		ML_NODISCARD bool contains(plugin_id id) const noexcept
 		{
-			return m_storage.contains<plugin_id>(id);
+			return m_data.contains<plugin_id>(id);
 		}
 
 		ML_NODISCARD bool contains(fs::path const & path) const noexcept
 		{
-			return m_storage.contains<plugin_id>(make_id(path));
+			return m_data.contains<plugin_id>(make_id(path));
 		}
 
 		ML_NODISCARD bool contains(shared_library const & value) const noexcept
 		{
-			return m_storage.contains<shared_library>(value);
+			return m_data.contains<shared_library>(value);
 		}
 
 		ML_NODISCARD bool contains(plugin const * value) const noexcept
 		{
-			return m_storage.end<plugin_instance>() != m_storage.find_if<plugin_instance>([&
+			return m_data.end<plugin_instance>() != m_data.find_if<plugin_instance>([&
 			](plugin_instance const & e) noexcept
 			{
 				return value == e.get();
@@ -142,29 +144,31 @@ namespace ml
 
 		ML_NODISCARD bool contains(plugin_instance const & value) const noexcept
 		{
-			return m_storage.contains<plugin_instance>(value);
+			return m_data.contains<plugin_instance>(value);
 		}
 
-		ML_NODISCARD auto storage() noexcept -> plugin_storage & { return m_storage; }
+		ML_NODISCARD auto get_data() noexcept -> plugin_storage & { return m_data; }
 
-		ML_NODISCARD auto storage() const noexcept -> plugin_storage const & { return m_storage; }
-
-		template <class T
-		> ML_NODISCARD auto get() & noexcept -> ds::list<T> & { return m_storage.get<T>(); }
+		ML_NODISCARD auto get_data() const noexcept -> plugin_storage const & { return m_data; }
 
 		template <class T
-		> ML_NODISCARD auto get() const & noexcept -> ds::list<T> const & { return m_storage.get<T>(); }
+		> ML_NODISCARD auto get_data() & noexcept -> ds::list<T> & { return m_data.get<T>(); }
 
 		template <class T
-		> ML_NODISCARD auto get(size_t i) & noexcept -> T & { return m_storage.at<T>(i); }
+		> ML_NODISCARD auto get_data() const & noexcept -> ds::list<T> const & { return m_data.get<T>(); }
 
 		template <class T
-		> ML_NODISCARD auto get(size_t i) const & noexcept -> T const & { return m_storage.at<T>(i); }
+		> ML_NODISCARD auto get_data(size_t i) & noexcept -> T & { return m_data.at<T>(i); }
+
+		template <class T
+		> ML_NODISCARD auto get_data(size_t i) const & noexcept -> T const & { return m_data.at<T>(i); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		plugin_storage m_storage; // plugin data
+		application * const	m_app; // application
+		memory_manager * const m_mem;
+		plugin_storage		m_data; // plugin data
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

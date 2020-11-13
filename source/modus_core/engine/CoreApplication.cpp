@@ -49,7 +49,7 @@ namespace ml
 		Py_SetProgramName(app_file_name().c_str());
 
 		Py_SetPythonHome(library_paths(0).c_str());
-		
+
 		Py_InitializeEx(1);
 
 		return Py_IsInitialized();
@@ -65,13 +65,28 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	int32_t core_application::exec()
+	{
+		m_loop->process();
+
+		return m_exit_code;
+	}
+
+	void core_application::exit(int32_t exit_code)
+	{
+		m_exit_code = exit_code;
+
+		m_loop->set_loop_condition(nullptr);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	void core_application::on_event(event const & value)
 	{
 		switch (value)
 		{
 		case app_enter_event::ID: {
 			auto && ev{ (app_enter_event &&)value };
-			ML_assert(initialize_interpreter());
 		} break;
 
 		case app_exit_event::ID: {

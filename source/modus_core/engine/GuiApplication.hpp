@@ -58,8 +58,6 @@ namespace ml
 			return m_window.get_dockspace();
 		}
 
-
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto open_filename(cstring filter = "") const -> std::optional<fs::path>

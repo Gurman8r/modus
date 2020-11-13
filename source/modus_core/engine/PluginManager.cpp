@@ -1,16 +1,14 @@
 #include <modus_core/engine/PluginManager.hpp>
+#include <modus_core/engine/Application.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(event_bus * bus, allocator_type alloc) noexcept
-		: core_object{ bus }
-		, m_storage{ alloc }
-	{
-	}
-
-	plugin_manager::~plugin_manager() noexcept
+	plugin_manager::plugin_manager(application * app, allocator_type alloc) noexcept
+		: m_app	{ ML_check(app) }
+		, m_mem	{ ML_check(get_global<memory_manager>()) }
+		, m_data{ alloc }
 	{
 	}
 
@@ -20,13 +18,13 @@ namespace ml
 	{
 		auto load_library = [&]() -> plugin_id
 		{
-			if (contains(path))
+			if (this->contains(path))
 			{
 				return nullptr;
 			}
-			else if (shared_library lib{ path }; lib && !contains(lib))
+			else if (shared_library lib{ path }; lib && !this->contains(lib))
 			{
-				return std::get<0>(storage().push_back
+				return std::get<0>(m_data.push_back
 				(
 					(plugin_id)lib.hash(),
 					plugin_details{ lib },
@@ -45,29 +43,28 @@ namespace ml
 		{
 			return nullptr;
 		}
-		else if (plugin * const p{ get<plugin_installer>().back().create(this, userptr) })
+		else if (plugin * const p{ m_data.get<plugin_installer>().back().create(this, userptr) })
 		{
-			get<plugin_instance>().back().reset(p);
+			m_data.get<plugin_instance>().back().reset(p);
 
-			return get<plugin_id>().back();
+			return m_data.get<plugin_id>().back();
 		}
 		else
 		{
 			return nullptr;
 		}
-		
 	}
 
 	bool plugin_manager::uninstall(plugin_id value)
 	{
 		if (!value) { return false; }
-		else if (auto const i{ m_storage.lookup<plugin_id>(value) }
-		; i == m_storage.npos) { return false; }
+		else if (auto const i{ m_data.lookup<plugin_id>(value) }
+		; i == m_data.npos) { return false; }
 		else
 		{
-			auto const p{ m_storage.at<plugin_instance>(i).release() };
-			m_storage.at<plugin_installer>(i).destroy(this, p);
-			m_storage.erase(i);
+			auto const p{ m_data.at<plugin_instance>(i).release() };
+			m_data.at<plugin_installer>(i).destroy(this, p);
+			m_data.erase(i);
 			return true;
 		}
 	}

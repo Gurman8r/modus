@@ -4,7 +4,7 @@
 // WIP
 
 #include <modus_core/engine/GuiApplication.hpp>
-#include <modus_core/scene/Scene.hpp>
+#include <modus_core/engine/PluginManager.hpp>
 
 namespace ml
 {
@@ -22,8 +22,21 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
+		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager *
+		{
+			return const_cast<plugin_manager *>(&m_plugins);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	protected:
 		virtual void on_event(event const & value) override;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	private:
+		plugin_manager m_plugins;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

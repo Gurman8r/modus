@@ -235,7 +235,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource());
+		explicit memory_manager(passthrough_resource & mres);
+
+		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource()) noexcept(false)
+			: memory_manager{ *reinterpret_cast<passthrough_resource *>(mres) }
+		{
+		}
 
 		~memory_manager() noexcept;
 

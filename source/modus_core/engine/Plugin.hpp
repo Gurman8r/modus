@@ -10,6 +10,9 @@
 
 namespace ml
 {
+	// application
+	struct application;
+
 	// plugin manager
 	struct plugin_manager;
 
@@ -26,21 +29,23 @@ namespace ml
 
 		plugin(plugin_manager * manager, void * userptr = nullptr);
 
-		virtual ~plugin() noexcept override;
+		virtual ~plugin() noexcept override = default;
+
+		virtual void on_event(event const &) override = 0;
 
 	public:
+		ML_NODISCARD auto get_app() const noexcept -> application * { return m_app; }
+		
 		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager * { return m_manager; }
 
 		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
 
 		auto set_user_pointer(void * value) noexcept -> void * { return m_userptr = value; }
 
-	protected:
-		virtual void on_event(event const &) override = 0;
-
 	private:
-		plugin_manager * const	m_manager;
-		void *					m_userptr;
+		application * const		m_app		; // application
+		plugin_manager * const	m_manager	; // plugin manager
+		void *					m_userptr	; // user pointer
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

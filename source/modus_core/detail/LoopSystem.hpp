@@ -3,6 +3,7 @@
 
 #include <modus_core/detail/Events.hpp>
 #include <modus_core/detail/Memory.hpp>
+#include <modus_core/detail/Timer.hpp>
 
 namespace ml
 {
@@ -170,31 +171,31 @@ namespace ml
 		template <class Fn, class ... Args
 		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition
 		{
-			return util::route_callback(m_loopcond, ML_forward(fn), ML_forward(args)...);
+			return util::chain(m_loopcond, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_enter_callback(Fn && fn, Args && ... args) -> loop_callback
 		{
-			return util::route_callback(m_on_enter, ML_forward(fn), ML_forward(args)...);
+			return util::chain(m_on_enter, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_exit_callback(Fn && fn, Args && ... args) -> loop_callback
 		{
-			return util::route_callback(m_on_exit, ML_forward(fn), ML_forward(args)...);
+			return util::chain(m_on_exit, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_idle_callback(Fn && fn, Args && ... args) -> loop_callback
 		{
-			return util::route_callback(m_on_idle, ML_forward(fn), ML_forward(args)...);
+			return util::chain(m_on_idle, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
 		> auto set_event_callback(Fn && fn, Args && ... args) -> event_callback
 		{
-			return util::route_callback(m_on_enter, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
+			return util::chain(m_on_enter, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -293,9 +294,14 @@ namespace ml
 
 			if constexpr (Recurse) for (subsystem & e : self->m_subsystems)
 			{
-				auto const c{ dynamic_cast<C *>(e.get()) };
-
-				loop_system::run<true>(mp, c, ML_forward(args)...);
+				if constexpr (std::is_same_v<C, loop_system>)
+				{
+					loop_system::run<true>(mp, e.get(), ML_forward(args)...);
+				}
+				else
+				{
+					loop_system::run<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
+				}
 			}
 		}
 

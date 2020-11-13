@@ -7,8 +7,8 @@ namespace ml
 
 	render_window::render_window(allocator_type alloc) noexcept
 		: native_window	{ alloc }
-		, m_dev			{}
-		, m_ctx			{}
+		, m_device		{}
+		, m_context		{}
 	{
 	}
 
@@ -26,7 +26,7 @@ namespace ml
 
 	render_window::~render_window() noexcept
 	{
-		gfx::destroy_device(m_dev.release());
+		gfx::destroy_device(m_device.release());
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -52,13 +52,13 @@ namespace ml
 		}
 
 		// create render device
-		if (m_dev.reset(gfx::make_device(cs.api)); !m_dev)
+		if (m_device.reset(gfx::make_device(cs.api)); !m_device)
 		{
 			return debug::error("failed creating device");
 		}
 
 		// create render context
-		set_render_context(m_dev->new_context({
+		set_render_context(m_device->new_context({
 			cs.api,
 			cs.major,
 			cs.minor,
@@ -70,7 +70,7 @@ namespace ml
 		}));
 
 		// setup states
-		this->render_commands(
+		get_render_context()->execute(
 
 			// alpha state
 			gfx::command::set_alpha_state

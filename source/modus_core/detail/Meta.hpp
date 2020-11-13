@@ -58,10 +58,13 @@ namespace ml::meta
 	template <class Fn, class ... Args
 	> constexpr void impl_for_args(Fn && fn, Args && ... args) noexcept
 	{
-		(void)std::initializer_list<int32_t>
+		if constexpr (0 < sizeof...(args)) // sanity check
 		{
-			(ML_forward(fn)(ML_forward(args)), 0)...
-		};
+			(void)std::initializer_list<int32_t>
+			{
+				(ML_forward(fn)(ML_forward(args)), 0)...
+			};
+		}
 	}
 
 	template <class Tup, class Fn

@@ -19,11 +19,11 @@ namespace ml::util
 {
 	// bind callback and return its previous value
 	template <class Clbk, class Fn, class ... Args
-	> constexpr auto route_callback(Clbk & clbk, Fn && fn, Args && ... args) noexcept
+	> constexpr auto chain(Clbk & clbk, Fn && fn, Args && ... args) noexcept
 	{
 		auto const prev{ std::move(clbk) };
 		
-		if constexpr (0 < sizeof...(Args))
+		if constexpr (0 < sizeof...(args))
 		{
 			clbk = std::bind(ML_forward(fn), ML_forward(args)...);
 		}

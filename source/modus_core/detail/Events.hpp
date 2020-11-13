@@ -32,13 +32,10 @@ namespace ml
 
 	protected:
 		constexpr explicit event(hash_t id) noexcept : m_ID{ id } {}
-		
+
 		constexpr event(event const &) = default;
-		
 		constexpr event(event &&) noexcept = default;
-		
 		constexpr event & operator=(event const &) = default;
-		
 		constexpr event & operator=(event &&) noexcept = default;
 
 	private:
@@ -58,13 +55,10 @@ namespace ml
 			enum : hash_t { ID = hashof_v<Derived> };
 
 			constexpr event_helper() noexcept : event{ ID } {}
-			
+
 			constexpr event_helper(helper_base const &) = default;
-			
 			constexpr event_helper(helper_base &&) noexcept = default;
-			
 			constexpr helper_base & operator=(helper_base const &) = default;
-			
 			constexpr helper_base & operator=(helper_base &&) noexcept = default;
 		};
 	}
@@ -169,7 +163,7 @@ namespace ml
 		template <class Fn, class ... Args
 		> auto set_event_callback(Fn && fn, Args && ... args) noexcept -> event_callback
 		{
-			return util::route_callback(m_on_event, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
+			return util::chain(m_on_event, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 	private:
@@ -320,11 +314,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		categories_type m_cats; // listener storage
-
-		event_list m_queue; // event queue
-
-		dummy_list m_dummies; // dummy listeners
+		categories_type	m_cats		; // listener storage
+		event_list		m_queue		; // event queue
+		dummy_list		m_dummies	; // dummy listeners
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

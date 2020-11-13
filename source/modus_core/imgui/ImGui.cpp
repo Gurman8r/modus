@@ -6,6 +6,7 @@
 // GLFW
 #ifdef ML_IMPL_WINDOW_GLFW
 #include <imgui/backends/imgui_impl_glfw.h>
+#else
 #endif
 
 // OpenGL3
@@ -18,10 +19,10 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool ImGui_Init(window_handle window, bool callbacks)
+	bool ImGui_Init(window_handle window, bool install_callbacks)
 	{
 #if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
-		return ImGui_ImplGlfw_InitForOpenGL((GLFWwindow *)window, callbacks)
+		return ImGui_ImplGlfw_InitForOpenGL((GLFWwindow *)window, install_callbacks)
 			&& ImGui_ImplOpenGL3_Init("#version 130");
 #else
 #endif

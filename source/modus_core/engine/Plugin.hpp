@@ -21,9 +21,14 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		static constexpr plugin_id null{ nullptr };
+	protected:
+		friend plugin_manager;
 
+		plugin(plugin_manager * manager, void * userptr = nullptr);
+
+		virtual ~plugin() noexcept override;
+
+	public:
 		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager * { return m_manager; }
 
 		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
@@ -31,12 +36,6 @@ namespace ml
 		auto set_user_pointer(void * value) noexcept -> void * { return m_userptr = value; }
 
 	protected:
-		friend plugin_manager;
-
-		plugin(plugin_manager * manager, void * userptr = nullptr);
-
-		virtual ~plugin() override;
-
 		virtual void on_event(event const &) override = 0;
 
 	private:

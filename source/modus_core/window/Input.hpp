@@ -142,7 +142,7 @@ namespace ml
 		keymods_none		= 0 << 0,	// none
 		keymods_shift		= 0 << 1,	// shift
 		keymods_ctrl		= 1 << 1,	// ctrl
-		keymods_alt		= 1 << 2,	// alt
+		keymods_alt			= 1 << 2,	// alt
 		keymods_super		= 1 << 3,	// super
 		keymods_caps_lock	= 1 << 4,	// caps
 		keymods_num_lock	= 1 << 5	// numlock

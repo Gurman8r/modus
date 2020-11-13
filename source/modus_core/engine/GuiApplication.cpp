@@ -6,7 +6,7 @@ namespace ml
 
 	gui_application::gui_application(int32_t argc, char * argv[], allocator_type alloc)
 		: core_application	{ argc, argv, alloc }
-		, m_window			{ new main_window{ get_bus(), alloc } }
+		, m_window			{ get_bus(), alloc }
 		, m_loop_timer		{ false }
 		, m_delta_time		{}
 		, m_frame_count		{}
@@ -21,6 +21,12 @@ namespace ml
 		ML_assert(begin_singleton<gui_application>(this));
 		
 		subscribe<window_cursor_pos_event, window_key_event, window_mouse_event>();
+
+		auto const mainloop{ get_main_loop() };
+		mainloop->set_loop_condition(&main_window::is_open, get_main_window());
+		mainloop->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
+		mainloop->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
+		mainloop->set_idle_callback([&]() { get_bus()->fire<app_idle_event>(); });
 	}
 
 	gui_application::~gui_application() noexcept
@@ -61,7 +67,7 @@ namespace ml
 				if (gui_prefs.contains("style")) {
 					json & style_prefs{ gui_prefs["style"] };
 					if (style_prefs.is_string()) {
-						ImGui_LoadStyle(path_to(style_prefs));
+						_ML ImGui_LoadStyle(path_to(style_prefs));
 					}
 				}
 			}
@@ -86,31 +92,39 @@ namespace ml
 				? 1.f / (m_fps_accum / (float_t)m_fps_times.size())
 				: FLT_MAX;
 
-			// poll
-			get_window_manager()->poll_events();
+			// poll events
+			get_window_context()->poll_events();
 
-			// imgui
+			// imgui layer
 			get_main_window()->do_imgui_frame([&
-				, imgui = get_imgui_context()
-				, docker = get_dockspace()
-				, menubar = get_menubar()
-			]() noexcept
+				, imgui		= get_imgui().get()
+				, menubar	= get_menubar()
+				, dockspace	= get_dockspace()
+			]()
 			{
-				docker->SetWindowFlag(ImGuiWindowFlags_MenuBar, ImGuiExt::FindWindowByName(menubar));
+				dockspace->SetWindowFlag(
+					ImGuiWindowFlags_MenuBar,
+					ImGui::FindWindowByName(menubar->Title));
 				
-				(*docker)(imgui->Viewports[0], [&]() noexcept
+				(*dockspace)(imgui->Viewports[0], [&]() noexcept
 				{
-					if (ImGuiID const id{ docker->GetID() }; !ImGui::DockBuilderGetNode(id))
+					if (ImGuiID const id{ dockspace->GetID() }; !ImGui::DockBuilderGetNode(id))
 					{
 						ImGui::DockBuilderRemoveNode(id);
-						ImGui::DockBuilderAddNode(id, docker->DockFlags);
-						get_bus()->fire<imgui_dockspace_event>(docker);
+						ImGui::DockBuilderAddNode(id, dockspace->DockFlags);
+						get_bus()->fire<imgui_dockspace_event>(dockspace);
 						ImGui::DockBuilderFinish(id);
 					}
 				});
 
 				get_bus()->fire<imgui_render_event>(imgui);
 			});
+
+			// swap buffers
+			if (get_main_window()->has_hints(window_hints_doublebuffer))
+			{
+				get_window_context()->swap_buffers(get_main_window()->get_handle());
+			}
 
 		} break;
 

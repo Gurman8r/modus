@@ -15,11 +15,11 @@ namespace ml
 
 	memory_manager::~memory_manager() noexcept
 	{
-#if 1
+#if 0
 		while (!m_records.empty()) { deallocate(m_records.back<id_addr>()); }
-#else
-		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
 #endif
+		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
+
 		ML_assert(end_singleton<memory_manager>(this));
 	}
 

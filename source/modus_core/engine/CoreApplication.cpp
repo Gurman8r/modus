@@ -9,12 +9,11 @@ namespace ml
 		: core_object		{ std::addressof(m_dispatcher) }
 		, m_app_file_name	{ argv[0] }
 		, m_app_file_path	{ fs::current_path() }
-		, m_app_name		{ fs::path{ argv[0] }.stem().string() }
+		, m_app_name		{ fs::path{ argv[0] }.stem().string(), alloc }
 		, m_app_version		{ alloc }
 		, m_arguments		{ argv, argv + argc, alloc }
 		, m_lib_paths		{ alloc }
 
-		, m_platform		{ make_platform_api(get_bus(), alloc) }
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_dispatcher		{ alloc }
 		, m_loop			{ alloc_ref<loop_system>(alloc, get_bus()) }
@@ -26,52 +25,29 @@ namespace ml
 
 	core_application::~core_application() noexcept
 	{
-		unsubscribe(); // <- unsub manually because we own the bus
+		unsubscribe();
 
 		finalize_interpreter();
 
-		destroy_platform_api(m_platform.release());
-		
 		ML_assert(end_singleton<core_application>(this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	int32_t core_application::exec()
-	{
-		m_loop->process();
-
-		return m_exit_code;
-	}
-
-	void core_application::exit(int32_t exit_code)
-	{
-		m_exit_code = exit_code;
-
-		m_loop->set_loop_condition(nullptr); // FIXME: kind of a hack
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	bool core_application::has_interpreter() const
-	{
-		return Py_IsInitialized();
-	}
-
 	bool core_application::initialize_interpreter()
 	{
 		if (Py_IsInitialized()) { return false; }
 
-		PyObjectArenaAllocator al
+		PyObjectArenaAllocator alloc
 		{
 			get_global<memory_manager>()->get_resource(),
 			[](auto mres, size_t s) { return ((pmr::memory_resource *)mres)->allocate(s); },
 			[](auto mres, void * p, size_t s) { return ((pmr::memory_resource *)mres)->deallocate(p, s); }
 		};
-		PyObject_SetArenaAllocator(&al);
+		PyObject_SetArenaAllocator(&alloc);
 
 		Py_SetProgramName(app_file_name().c_str());
-		
+
 		Py_SetPythonHome(library_paths(0).c_str());
 		
 		Py_InitializeEx(1);
@@ -95,6 +71,7 @@ namespace ml
 		{
 		case app_enter_event::ID: {
 			auto && ev{ (app_enter_event &&)value };
+			ML_assert(initialize_interpreter());
 		} break;
 
 		case app_exit_event::ID: {

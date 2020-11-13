@@ -96,17 +96,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		plugin_manager(event_bus * bus, allocator_type alloc = {});
+		plugin_manager(event_bus * bus, allocator_type alloc = {}) noexcept;
 
 		~plugin_manager() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
 		plugin_id install(fs::path const & path, void * userptr = nullptr);
 
 		bool uninstall(plugin_id value);
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		void uninstall_all() noexcept
 		{
 			auto & ids{ this->get<plugin_id>() };
@@ -163,8 +165,6 @@ namespace ml
 
 	private:
 		plugin_storage m_storage; // plugin data
-
-		void on_event(event const &) noexcept final {} // nothing to do
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -9,8 +9,8 @@ namespace ml
 		: core_object	{ bus }
 		, render_window	{ alloc }
 		, m_imgui		{}
-		, m_menubar		{ new ImGuiExt::MenuBar{ "##MainMenuBar" } }
-		, m_dockspace	{ new ImGuiExt::Dockspace{ "##MainDockspace" } }
+		, m_menubar		{ "##MainMenuBar" }
+		, m_dockspace	{ "##MainDockspace" }
 	{
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, void * u) { return ((memory_manager *)u)->allocate(s); },
@@ -123,25 +123,25 @@ namespace ml
 
 		ImGui::Render();
 
-		render_commands(
+		get_render_context()->execute(
 			gfx::command::set_viewport(get_framebuffer_size()),
 			gfx::command::set_clear_color(colors::black),
 			gfx::command::clear(gfx::clear_color));
 
-		_ML ImGui_RenderDrawData(&get_imgui_context()->Viewports[0]->DrawDataP);
+		_ML ImGui_RenderDrawData(&get_imgui()->Viewports[0]->DrawDataP);
 
-		if (get_imgui_context()->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		if (get_imgui()->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			auto const backup_context{ get_window_manager()->get_active_window() };
+			auto const backup_context{ get_window_context()->get_context_current() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			get_window_manager()->set_active_window(backup_context);
+			get_window_context()->make_context_current(backup_context);
 		}
+	}
 
-		if (has_hints(window_hints_doublebuffer))
-		{
-			get_window_manager()->swap_buffers(get_handle());
-		}
+	bool main_window::load_imgui_style(fs::path const & path)
+	{
+		return _ML ImGui_LoadStyle(path, get_imgui()->Style);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

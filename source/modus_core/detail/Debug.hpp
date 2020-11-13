@@ -30,10 +30,8 @@
 #endif
 
 // assert extended
-#ifndef ML_assert_ext
 #define ML_assert_ext(expr, msg, file, line) \
 	(void)((!!(expr)) || (ML_IMPL_WASSERT(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
-#endif
 
 // assert message
 #define ML_assert_msg(expr, msg) \
@@ -46,10 +44,12 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // check message
-#define ML_check_msg(expr, msg) ([](auto && x) noexcept {	\
-		ML_assert_ext(x, msg, __FILE__, __LINE__);			\
-		return std::move(x);								\
-	})(expr)
+#define ML_check_msg(expr, msg) ([](auto const & x) noexcept -> auto const &	\
+	{																			\
+		ML_assert_ext(x, msg, __FILE__, __LINE__);								\
+		return x;																\
+	}																			\
+	)(expr)
 
 // check
 #define ML_check(expr) \

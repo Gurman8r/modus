@@ -171,7 +171,7 @@ namespace ml::ImGuiExt
 		bool reclaim_focus{};
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
 		if (ImGui::InputText(
-			"##inputtext", Input.data(), Input.max_size(),
+			"##input_text", Input.data(), Input.max_size(),
 			ImGuiInputTextFlags_EnterReturnsTrue |
 			ImGuiInputTextFlags_CallbackCompletion |
 			ImGuiInputTextFlags_CallbackHistory,

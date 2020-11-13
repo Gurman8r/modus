@@ -138,18 +138,6 @@ namespace ml::ImGuiExt
 	{
 		return ImGui::Selectable(p->Title, &p->IsOpen, flags, size);
 	}
-
-	template <class T
-	> ImGuiWindow * FindWindowByID(T * p)
-	{
-		return ImGui::FindWindowByID(GetID(p));
-	}
-
-	template <class T
-	> ImGuiWindow * FindWindowByName(T * p)
-	{
-		return ImGui::FindWindowByName(p->Title);
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

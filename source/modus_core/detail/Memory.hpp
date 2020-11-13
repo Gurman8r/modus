@@ -125,7 +125,7 @@ namespace ml
 
 		template <class U> void operator()(U * value) const noexcept
 		{
-			_ML ml_free(value);
+			delete value;
 		}
 	};
 }
@@ -273,7 +273,7 @@ namespace ml
 			else if (newsz <= oldsz)	{ return addr; }
 			else
 			{
-				auto const temp{ allocate(newsz) };
+				auto const temp{ this->allocate(newsz) };
 				if (temp)
 				{
 					std::memcpy(temp, addr, oldsz);

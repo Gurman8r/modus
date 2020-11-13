@@ -4,7 +4,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(event_bus * bus, allocator_type alloc)
+	plugin_manager::plugin_manager(event_bus * bus, allocator_type alloc) noexcept
 		: core_object{ bus }
 		, m_storage{ alloc }
 	{
@@ -18,11 +18,11 @@ namespace ml
 
 	plugin_id plugin_manager::install(fs::path const & path, void * userptr)
 	{
-		auto load_library = [&]()
+		auto load_library = [&]() -> plugin_id
 		{
 			if (contains(path))
 			{
-				return plugin::null;
+				return nullptr;
 			}
 			else if (shared_library lib{ path }; lib && !contains(lib))
 			{
@@ -37,13 +37,13 @@ namespace ml
 			}
 			else
 			{
-				return plugin::null;
+				return nullptr;
 			}
 		};
 
 		if (!load_library())
 		{
-			return plugin::null;
+			return nullptr;
 		}
 		else if (plugin * const p{ get<plugin_installer>().back().create(this, userptr) })
 		{
@@ -53,7 +53,7 @@ namespace ml
 		}
 		else
 		{
-			return plugin::null;
+			return nullptr;
 		}
 		
 	}

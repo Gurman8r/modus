@@ -40,6 +40,24 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		ML_NODISCARD auto get_imgui() const noexcept -> ds::scary<ImGuiContext> const &
+		{
+			return m_imgui;
+		}
+
+		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MenuBar * const
+		{
+			return const_cast<ImGuiExt::MenuBar *>(&m_menubar);
+		}
+
+		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace * const
+		{
+			return const_cast<ImGuiExt::Dockspace *>(&m_dockspace);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		bool initialize_imgui(bool install_callbacks = true);
 
 		void finalize_imgui();
@@ -58,12 +76,7 @@ namespace ml
 			this->end_imgui_frame();
 		}
 
-	public:
-		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace * { return m_dockspace.get(); }
-
-		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MenuBar * { return m_menubar.get(); }
-
-		ML_NODISCARD auto get_imgui_context() const noexcept -> ImGuiContext * { return m_imgui.get(); }
+		bool load_imgui_style(fs::path const & path);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -80,12 +93,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::scary<ImGuiContext>			m_imgui		; // imgui
-		ds::scope<ImGuiExt::MenuBar>	m_menubar	; // menubar
-		ds::scope<ImGuiExt::Dockspace>	m_dockspace	; // dockspace
+		ds::scary<ImGuiContext>	m_imgui		; // imgui
+		ImGuiExt::MenuBar		m_menubar	; // menubar
+		ImGuiExt::Dockspace		m_dockspace	; // dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
-#endif // !1
+#endif // !_ML_MAIN_WINDOW_HPP_

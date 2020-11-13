@@ -55,7 +55,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_CORE_API bool ImGui_Init(window_handle window, bool callbacks = true);
+	ML_CORE_API bool ImGui_Init(window_handle window, bool install_callbacks = true);
 
 	ML_CORE_API void ImGui_Shutdown();
 

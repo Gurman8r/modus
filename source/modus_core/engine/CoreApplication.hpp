@@ -1,8 +1,9 @@
 #ifndef _ML_CORE_APPLICATION_HPP_
 #define _ML_CORE_APPLICATION_HPP_
 
-#include <modus_core/engine/PlatformAPI.hpp>
 #include <modus_core/detail/LoopSystem.hpp>
+#include <modus_core/engine/Object.hpp>
+#include <modus_core/engine/PlatformAPI.hpp>
 
 // CORE APP
 namespace ml
@@ -22,7 +23,7 @@ namespace ml
 		virtual ~core_application() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
+
 	public:
 		ML_NODISCARD auto app_file_name() const noexcept -> fs::path const &
 		{
@@ -89,11 +90,6 @@ namespace ml
 			return library_paths(0).native() + value.native();
 		}
 
-		ML_NODISCARD auto platform() const noexcept -> platform_api *
-		{
-			return m_platform.get();
-		}
-
 	public:
 		auto set_app_name(ds::string const & value) noexcept -> ds::string const &
 		{
@@ -118,12 +114,26 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		int32_t exec();
+		int32_t exec()
+		{
+			m_loop->process();
 
-		void exit(int32_t exit_code);
+			return m_exit_code;
+		}
 
-		void quit() noexcept { this->exit(EXIT_SUCCESS); }
+		void exit(int32_t exit_code)
+		{
+			m_exit_code = exit_code;
 
+			m_loop->set_loop_condition(nullptr);
+		}
+
+		void quit() noexcept
+		{
+			this->exit(EXIT_SUCCESS);
+		}
+
+	public:
 		ML_NODISCARD auto get_main_loop() const noexcept -> subsystem const &
 		{
 			return m_loop;
@@ -137,8 +147,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD bool has_interpreter() const;
-
 		ML_NODISCARD bool initialize_interpreter();
 
 		void finalize_interpreter();
@@ -159,10 +167,9 @@ namespace ml
 		json					m_attribs		; // 
 		ds::list<fs::path>		m_lib_paths		; // 
 		
-		ds::scary<platform_api>	m_platform		; // 
-		int32_t					m_exit_code		; // 
-		event_bus				m_dispatcher	; // 
-		subsystem				m_loop			; // 
+		int32_t		m_exit_code		; // 
+		event_bus	m_dispatcher	; // 
+		subsystem	m_loop			; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

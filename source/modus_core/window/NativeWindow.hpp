@@ -49,8 +49,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD allocator_type get_allocator() const noexcept final;
-
 		ML_NODISCARD int_rect get_bounds() const noexcept final;
 
 		ML_NODISCARD window_callbacks const & get_callbacks() const noexcept final;
@@ -87,7 +85,7 @@ namespace ml
 
 		ML_NODISCARD void * get_user_pointer() const noexcept final;
 
-		ML_NODISCARD window_manager const * get_window_manager() const noexcept final;
+		ML_NODISCARD window_context const * get_window_context() const noexcept final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

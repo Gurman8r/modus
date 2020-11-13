@@ -3,6 +3,36 @@
 
 #include <modus_core/graphics/RenderAPI.hpp>
 
+// EXECUTE
+namespace ml::gfx
+{
+	// execute commands
+	template <class Ctx, class Arg0, class ... Args
+	> static void execute(Ctx && ctx, Arg0 && arg0, Args && ... args) noexcept
+	{
+		// do execute
+		auto do_execute = [](auto && cmd, auto && ctx) noexcept
+		{
+			if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
+			{
+				std::invoke(ML_forward(cmd), ctx);
+			}
+			else
+			{
+				std::invoke(ML_forward(cmd), ctx.get());
+			}
+		};
+
+		do_execute(ML_forward(arg0), ML_forward(ctx)); // first
+
+		meta::for_args([&](auto && cmd) noexcept
+		{
+			do_execute(ML_forward(cmd), ML_forward(ctx));
+		}
+		, ML_forward(args)...);
+	}
+}
+
 // COMMAND
 namespace ml::gfx
 {
@@ -193,39 +223,6 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-}
-
-// EXECUTE
-namespace ml::gfx
-{
-	// execute render commands
-	template <class Ctx, class Arg0, class ... Args
-	> static void execute(Ctx && ctx, Arg0 && arg0, Args && ... args) noexcept
-	{
-		// do execute
-		auto do_execute = [](auto && cmd, auto && ctx) noexcept
-		{
-			if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
-			{
-				std::invoke(ML_forward(cmd), ctx);
-			}
-			else
-			{
-				std::invoke(ML_forward(cmd), ctx.get());
-			}
-		};
-
-		do_execute(ML_forward(arg0), ML_forward(ctx)); // first
-
-		if constexpr (0 < sizeof...(args))
-		{
-			meta::for_args([&](auto && cmd) noexcept
-			{
-				do_execute(ML_forward(cmd), ML_forward(ctx)); // rest...
-			}
-			, ML_forward(args)...);
-		}
-	}
 }
 
 #endif // !_ML_RENDER_COMMAND_HPP_

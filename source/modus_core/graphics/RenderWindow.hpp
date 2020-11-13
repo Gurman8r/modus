@@ -38,34 +38,26 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Arg0, class ... Args
-		> void render_commands(Arg0 && arg0, Args && ... args) const noexcept
+		ML_NODISCARD auto get_render_device() const noexcept -> ds::scary<gfx::render_device> const &
 		{
-			gfx::execute(ML_check(m_ctx), ML_forward(arg0), ML_forward(args)...);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_render_device() const noexcept -> gfx::render_device *
-		{
-			return m_dev.get();
+			return m_device;
 		}
 
 		ML_NODISCARD auto get_render_context() const noexcept -> ds::ref<gfx::render_context> const &
 		{
-			return m_ctx;
+			return m_context;
 		}
 
-		auto set_render_context(ds::ref<gfx::render_context> const & value) noexcept -> ds::ref<gfx::render_context> &
+		auto set_render_context(ds::ref<gfx::render_context> const & value) noexcept -> ds::ref<gfx::render_context> const &
 		{
-			return ML_check(m_dev)->set_context(m_ctx = value);
+			return ML_check(m_device)->set_context(m_context = value);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::scary<gfx::render_device>	m_dev; // render device
-		ds::ref<gfx::render_context>	m_ctx; // render context
+		ds::scary<gfx::render_device>	m_device; // render device
+		ds::ref<gfx::render_context>	m_context; // render context
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

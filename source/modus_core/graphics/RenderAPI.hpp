@@ -954,6 +954,21 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		// execute commands
+		template <class Arg0, class ... Args
+		> void execute(Arg0 && arg0, Args && ... args) noexcept
+		{
+			std::invoke(ML_forward(arg0), this);
+
+			meta::for_args([&](auto && e) noexcept
+			{
+				std::invoke(ML_forward(e), this);
+			}
+			, ML_forward(args)...);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		virtual alpha_state * get_alpha_state(alpha_state * value = {}) const = 0;
 		
 		virtual blend_state * get_blend_state(blend_state * value = {}) const = 0;

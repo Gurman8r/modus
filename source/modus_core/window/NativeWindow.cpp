@@ -53,7 +53,7 @@ namespace ml
 		}
 		
 		// make current context
-		get_window_manager()->set_active_window(get_handle());
+		get_window_context()->make_context_current(get_handle());
 		
 		// centered
 		set_position((video_mode::get_desktop_mode().resolution - vm.resolution) / 2);
@@ -98,11 +98,6 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	native_window::allocator_type native_window::get_allocator() const noexcept
-	{
-		return m_backend->get_allocator();
-	}
 
 	int_rect native_window::get_bounds() const noexcept
 	{
@@ -194,9 +189,9 @@ namespace ml
 		return m_backend->get_user_pointer();
 	}
 
-	window_manager const * native_window::get_window_manager() const noexcept
+	window_context const * native_window::get_window_context() const noexcept
 	{
-		return m_backend->get_window_manager();
+		return m_backend->get_window_context();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

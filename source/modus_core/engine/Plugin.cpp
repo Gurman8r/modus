@@ -11,7 +11,7 @@ namespace ml
 	{
 	}
 
-	plugin::~plugin()
+	plugin::~plugin() noexcept
 	{
 	}
 

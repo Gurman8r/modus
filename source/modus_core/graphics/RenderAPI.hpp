@@ -785,7 +785,7 @@ namespace ml::gfx
 
 		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const &
 		{
-			return ML_check(get_device())->get_context();
+			return ML_check(m_parent)->get_context();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

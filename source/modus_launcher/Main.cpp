@@ -107,9 +107,9 @@ int32_t main(int32_t argc, char * argv[])
 	app->set_library_paths(app->attr("paths"));
 
 	// demo
+	ds::list<ds::ref<gfx::framebuffer>> m_fb{};
 	color m_clear_color{ 0.223f, 0.f, 0.46f, 1.f };
 	vec2 m_resolution{ 1280, 720 };
-	ds::list<ds::ref<gfx::framebuffer>> m_fb{};
 	basic_stream_sniper<> m_cout{ &std::cout };
 	ImGuiExt::Terminal m_term{};
 	enum
@@ -183,18 +183,14 @@ int32_t main(int32_t argc, char * argv[])
 			{
 				ImGui::PopStyleVar(1);
 	
-				if (ImGui::BeginMenuBar())
-				{
+				if (ImGui::BeginMenuBar()) {
 					ImGuiExt::HelpMarker("viewport");
 					ImGui::Separator();
-	
 					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 					ImGui::Separator();
-	
 					auto const fps{ app->get_frame_rate() };
 					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 					ImGui::Separator();
-	
 					ImGui::EndMenuBar();
 				}
 	
@@ -234,13 +230,12 @@ int32_t main(int32_t argc, char * argv[])
 					// options
 					if (ImGui::BeginMenu("options"))
 					{
-						// auto scroll
 						ImGui::Checkbox("auto scroll", &m_term.Output.AutoScroll);
 						ImGui::Separator();
-	
-						// prefix options
 						m_term.DrawPrefixOptions();
+						ImGui::EndMenu();
 					}
+					ImGui::Separator();
 	
 					// clear
 					if (ImGui::MenuItem("clear")) { m_term.Output.Lines.clear(); }

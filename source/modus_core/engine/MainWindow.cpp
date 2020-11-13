@@ -6,7 +6,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	main_window::main_window(event_bus * bus, allocator_type alloc) noexcept
-		: core_object	{ bus }
+		: event_listener{ bus }
 		, render_window	{ alloc }
 		, m_imgui		{}
 		, m_menubar		{ "##MainMenuBar" }

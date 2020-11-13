@@ -4,8 +4,8 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(application * app, allocator_type alloc)
-		: core_object	{ app->get_bus() }
+	plugin_manager::plugin_manager(application * app, allocator_type alloc) noexcept
+		: event_listener{ ML_check(app)->get_bus() }
 		, m_app			{ app }
 		, m_data		{ alloc }
 	{

@@ -2,7 +2,6 @@
 #define _ML_LOOP_SYSTEM_HPP_
 
 #include <modus_core/detail/Events.hpp>
-#include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Timer.hpp>
 
 namespace ml

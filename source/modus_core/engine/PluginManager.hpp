@@ -3,7 +3,7 @@
 
 #include <modus_core/detail/BatchVector.hpp>
 #include <modus_core/engine/Plugin.hpp>
-#include <modus_core/engine/SharedLibrary.hpp>
+#include <modus_core/detail/SharedLibrary.hpp>
 
 // plugin instance
 namespace ml { ML_alias plugin_instance = typename ds::scary<plugin>; }
@@ -68,7 +68,7 @@ namespace ml
 namespace ml
 {
 	// plugin manager
-	struct ML_CORE_API plugin_manager final : non_copyable, trackable, core_object
+	struct ML_CORE_API plugin_manager final : non_copyable, trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -92,7 +92,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		plugin_manager(application * app, allocator_type alloc = {});
+		plugin_manager(application * app, allocator_type alloc = {}) noexcept;
 
 		~plugin_manager() noexcept final { this->uninstall_all(); }
 

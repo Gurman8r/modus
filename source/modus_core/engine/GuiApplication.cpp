@@ -87,7 +87,7 @@ namespace ml
 				? 1.f / (m_fps_accum / (float_t)m_fps_times.size())
 				: FLT_MAX;
 
-			// imgui frame
+			// do frame
 			m_window.do_imgui_frame([&
 				, imgui = m_window.get_imgui().get()
 				, menubar = m_window.get_menubar()
@@ -97,7 +97,6 @@ namespace ml
 				dockspace->SetWindowFlag(
 					ImGuiWindowFlags_MenuBar,
 					ImGui::FindWindowByName(menubar->Title));
-
 				(*dockspace)(imgui->Viewports[0], [&]() noexcept
 				{
 					if (ImGuiID const id{ dockspace->GetID() }; !ImGui::DockBuilderGetNode(id))
@@ -108,7 +107,6 @@ namespace ml
 						ImGui::DockBuilderFinish(id);
 					}
 				});
-
 				get_bus()->fire<imgui_render_event>(imgui);
 			});
 

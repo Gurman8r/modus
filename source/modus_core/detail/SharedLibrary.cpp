@@ -1,21 +1,15 @@
-#include <modus_core/engine/SharedLibrary.hpp>
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+#include <modus_core/detail/SharedLibrary.hpp>
 
 #if defined(ML_os_windows)
 #	include <Windows.h>
-
 #elif defined(ML_os_unix)
 #	include <unistd.h>
 #	if ML_has_include(<dlfcn.h>)
 #		include <dlfcn.h>
 #	endif
-
 #else
 #	error ""
 #endif
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 namespace ml
 {

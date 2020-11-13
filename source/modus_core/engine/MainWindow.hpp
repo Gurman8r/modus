@@ -1,7 +1,7 @@
 #ifndef _ML_MAIN_WINDOW_HPP_
 #define _ML_MAIN_WINDOW_HPP_
 
-#include <modus_core/engine/Object.hpp>
+#include <modus_core/detail/Events.hpp>
 #include <modus_core/engine/PlatformAPI.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
@@ -10,7 +10,7 @@
 namespace ml
 {
 	// main window
-	struct ML_CORE_API main_window : core_object, render_window
+	struct ML_CORE_API main_window : event_listener, render_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -92,12 +92,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using core_object::get_bus;
+		using event_listener::get_bus;
 
 	protected:
-		using core_object::subscribe;
+		using event_listener::subscribe;
 
-		using core_object::unsubscribe;
+		using event_listener::unsubscribe;
 
 		virtual void on_event(event const & value) override {}
 

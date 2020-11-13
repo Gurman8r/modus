@@ -6,7 +6,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	core_application::core_application(int32_t argc, char * argv[], allocator_type alloc)
-		: core_object		{ std::addressof(m_dispatcher) }
+		: event_listener	{ std::addressof(m_dispatcher) }
 		, m_app_file_name	{ argv[0] }
 		, m_app_file_path	{ fs::current_path() }
 		, m_app_name		{ fs::path{ argv[0] }.stem().string(), alloc }
@@ -16,7 +16,7 @@ namespace ml
 
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_dispatcher		{ alloc }
-		, m_main_loop			{ alloc_ref<loop_system>(alloc, get_bus()) }
+		, m_main_loop		{ alloc_ref<loop_system>(alloc, get_bus()) }
 	{
 		ML_assert(begin_singleton<core_application>(this));
 		

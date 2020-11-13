@@ -2,13 +2,13 @@
 #define _ML_CORE_APPLICATION_HPP_
 
 #include <modus_core/detail/LoopSystem.hpp>
-#include <modus_core/engine/Object.hpp>
+#include <modus_core/detail/Events.hpp>
 
 // CORE APP
 namespace ml
 {
 	// core application
-	struct ML_CORE_API core_application : non_copyable, trackable, core_object
+	struct ML_CORE_API core_application : non_copyable, trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

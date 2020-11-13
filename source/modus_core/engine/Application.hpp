@@ -4,6 +4,7 @@
 // WIP
 
 #include <modus_core/engine/GuiApplication.hpp>
+#include <modus_core/scene/Scene.hpp>
 
 namespace ml
 {
@@ -21,14 +22,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		using gui_application::get_bus;
-
 	protected:
-		using gui_application::subscribe;
-
-		using gui_application::unsubscribe;
-
 		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

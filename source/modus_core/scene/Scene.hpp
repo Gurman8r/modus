@@ -1,8 +1,7 @@
 #ifndef _ML_SCENE_HPP_
 #define _ML_SCENE_HPP_
 
-#include <modus_core/Export.hpp>
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/detail/Events.hpp>
 #include <modus_core/detail/Matrix.hpp>
 #include <entt/entt.hpp>
 
@@ -10,7 +9,7 @@ namespace ml
 {
 	struct entity;
 
-	struct ML_CORE_API scene : non_copyable, trackable
+	struct ML_CORE_API scene : non_copyable, trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -20,15 +19,25 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		scene(allocator_type alloc = {}) noexcept;
+		scene(event_bus * bus, allocator_type alloc = {}) noexcept
+			: event_listener{ bus }
+			, m_entities	{ alloc }
+			, m_registry	{}
+		{
+		}
 
-		~scene() noexcept override;
+		virtual ~scene() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::ref<entity> & create_entity(ds::string const & name, allocator_type alloc = {}) noexcept;
+		ds::ref<entity> new_entity(ds::string const & name = {}, allocator_type alloc = {}) noexcept;
 
-		void destroy_entity(ds::ref<entity> const & value) noexcept;
+		auto delete_entity(ds::ref<entity> const & value) noexcept -> entity_list::iterator
+		{
+			if (auto const it{ std::find(m_entities.begin(), m_entities.end(), value) }
+			; it == m_entities.end()) { return it; }
+			else { return m_entities.erase(it); }
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -41,6 +50,18 @@ namespace ml
 		ML_NODISCARD auto get_entities() noexcept -> entity_list & { return m_entities; }
 
 		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return m_registry; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
+		using event_listener::get_bus;
+
+	protected:
+		using event_listener::subscribe;
+
+		using event_listener::unsubscribe;
+
+		virtual void on_event(event const &) override {}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

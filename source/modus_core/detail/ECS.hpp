@@ -737,7 +737,7 @@ namespace ml::ecs
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD size_t create_entity()
+		ML_NODISCARD size_t new_entity()
 		{
 			// grow if needed
 			if (m_capacity <= m_size_next)
@@ -776,7 +776,7 @@ namespace ml::ecs
 
 		ML_NODISCARD handle create_handle()
 		{
-			size_t const i{ this->create_entity() };
+			size_t const i{ this->new_entity() };
 			size_t const e{ m_entities.at<id_handle>(i) };
 			auto & h{ m_handles[e] };
 

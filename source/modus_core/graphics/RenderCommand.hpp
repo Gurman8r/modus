@@ -215,13 +215,13 @@ namespace ml::gfx
 			}
 		};
 
-		do_execute(ML_forward(arg0), ML_forward(ctx)); // arg0
+		do_execute(ML_forward(arg0), ML_forward(ctx)); // first
 
 		if constexpr (0 < sizeof...(args))
 		{
 			meta::for_args([&](auto && cmd) noexcept
 			{
-				do_execute(ML_forward(cmd), ML_forward(ctx)); // args...
+				do_execute(ML_forward(cmd), ML_forward(ctx)); // rest...
 			}
 			, ML_forward(args)...);
 		}

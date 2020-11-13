@@ -165,38 +165,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static int32_t extension_supported(cstring value);
-
-		static window_handle get_active_window();
-
-		static ds::list<monitor_handle> const & get_monitors();
-
-		static void * get_proc_address(cstring value);
-
-		static monitor_handle get_primary_monitor();
-
-		static duration get_time();
-
-		static void set_active_window(window_handle value);
-
-		static window_error_callback set_error_callback(window_error_callback fn);
-
-		static void set_swap_interval(int32_t value);
-
-		static void poll_events();
-
-		static void swap_buffers(window_handle value);
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static cursor_handle create_custom_cursor(size_t w, size_t h, byte_t const * p);
-
-		static cursor_handle create_standard_cursor(int32_t value);
-
-		static void destroy_cursor(cursor_handle value);
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		window_char_callback				get_char_callback() const override;
 		window_char_mods_callback			get_char_mods_callback() const override;
 		window_close_callback				get_close_callback() const override;
@@ -234,6 +202,38 @@ namespace ml
 		window_refresh_callback				set_refresh_callback			(window_refresh_callback			fn) override;
 		window_resize_callback				set_resize_callback				(window_resize_callback				fn) override;
 		window_scroll_callback				set_scroll_callback				(window_scroll_callback				fn) override;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static int32_t extension_supported(cstring value);
+
+		static window_handle get_active_window();
+
+		static ds::list<monitor_handle> const & get_monitors();
+
+		static void * get_proc_address(cstring value);
+
+		static monitor_handle get_primary_monitor();
+
+		static duration get_time();
+
+		static void set_active_window(window_handle value);
+
+		static window_error_callback set_error_callback(window_error_callback fn);
+
+		static void set_swap_interval(int32_t value);
+
+		static void poll_events();
+
+		static void swap_buffers(window_handle value);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static cursor_handle create_custom_cursor(size_t w, size_t h, byte_t const * p, int32_t x, int32_t y);
+
+		static cursor_handle create_standard_cursor(int32_t value);
+
+		static void destroy_cursor(cursor_handle value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

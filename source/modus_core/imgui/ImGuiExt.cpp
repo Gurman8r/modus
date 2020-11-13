@@ -1,5 +1,26 @@
 #include <modus_core/imgui/ImGuiExt.hpp>
 
+// MENUBAR
+namespace ml::ImGuiExt
+{
+	void MenuBar::Configure(json const & j)
+	{
+	}
+}
+
+// DOCKSPACE
+namespace ml::ImGuiExt
+{
+	void Dockspace::Configure(json const & j)
+	{
+		if (j.contains("alpha"))	j["alpha"	].get_to(this->Alpha);
+		if (j.contains("border"))	j["border"	].get_to(this->Border);
+		if (j.contains("padding"))	j["padding"	].get_to(this->Padding);
+		if (j.contains("rounding"))	j["rounding"].get_to(this->Rounding);
+		if (j.contains("size"))		j["size"	].get_to(this->Size);
+	}
+}
+
 // TEXT LOG
 namespace ml::ImGuiExt
 {

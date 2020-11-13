@@ -23,7 +23,40 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_window() const noexcept -> main_window * { return m_window.get(); }
+		ML_NODISCARD auto get_main_window() const noexcept -> main_window *
+		{
+			return m_window.get();
+		}
+
+		ML_NODISCARD auto get_window_manager() const noexcept -> window_manager const *
+		{
+			return m_window->get_window_manager();
+		}
+
+		ML_NODISCARD auto get_render_device() const -> gfx::render_device *
+		{
+			return m_window->get_render_device();
+		}
+
+		ML_NODISCARD auto get_render_context() const -> ds::ref<gfx::render_context> const &
+		{
+			return m_window->get_render_context();
+		}
+
+		ML_NODISCARD auto get_imgui_context() const noexcept -> ImGuiContext *
+		{
+			return m_window->get_imgui_context();
+		}
+
+		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace *
+		{
+			return m_window->get_dockspace();
+		}
+
+		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MenuBar *
+		{
+			return m_window->get_menubar();
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -32,8 +65,6 @@ namespace ml
 		ML_NODISCARD auto get_frame_count() const noexcept -> uint64_t { return m_frame_count; }
 		
 		ML_NODISCARD auto get_frame_rate() const noexcept -> float_t { return m_frame_rate; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_cursor_pos() const noexcept -> vec2d const & { return m_cursor_pos; }
 		
@@ -44,20 +75,15 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using core_application::get_bus;
+		using core_object::get_bus;
 
 	protected:
-		using core_application::subscribe;
-
-		using core_application::unsubscribe;
-
 		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		ds::scope<main_window>	m_window		; // 
-
 		timer					m_loop_timer	; // 
 		duration				m_delta_time	; // 
 		uint64_t				m_frame_count	; // 
@@ -65,7 +91,6 @@ namespace ml
 		float_t					m_fps_accum		; // 
 		size_t					m_fps_index		; // 
 		ds::array<float_t, 120>	m_fps_times		; // 
-
 		vec2d					m_cursor_pos	; // 
 		mouse_state				m_mouse			; // 
 		keyboard_state			m_keyboard		; // 

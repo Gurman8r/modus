@@ -12,9 +12,12 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		windows_platform_api() noexcept;
+		explicit windows_platform_api(event_bus * bus, allocator_type alloc);
 
 		~windows_platform_api() noexcept override;
+
+	private:
+		void on_event(event const & value) final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

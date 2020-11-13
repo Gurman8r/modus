@@ -10,14 +10,17 @@ namespace ml
 		, m_records	{ m_alloc }
 		, m_counter	{}
 	{
-		ML_assert(begin_global<memory_manager>(this));
+		ML_assert(begin_singleton<memory_manager>(this));
 	}
 
 	memory_manager::~memory_manager() noexcept
 	{
-		ML_assert_msg(m_records.empty(), "MEMORY LEAKS DETECTED");
-
-		ML_assert(end_global<memory_manager>(this));
+#if 1
+		while (!m_records.empty()) { deallocate(m_records.back<id_addr>()); }
+#else
+		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
+#endif
+		ML_assert(end_singleton<memory_manager>(this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

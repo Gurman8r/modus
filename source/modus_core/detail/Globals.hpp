@@ -59,7 +59,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// begin global
-	template <class T> bool begin_global(void * value) noexcept
+	template <class T> bool begin_singleton(void * value) noexcept
 	{
 		return value
 			&& _ML get_global<T>() == nullptr
@@ -67,7 +67,7 @@ namespace ml
 	}
 
 	// end global
-	template <class T> bool end_global(void * value) noexcept
+	template <class T> bool end_singleton(void * value) noexcept
 	{
 		return value
 			&& _ML get_global<T>() == value

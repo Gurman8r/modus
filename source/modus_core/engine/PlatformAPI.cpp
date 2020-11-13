@@ -2,47 +2,32 @@
 
 #ifdef ML_os_windows
 #include <modus_core/backends/windows/Windows_PlatformAPI.hpp>
-using native_api = _ML windows_platform_api;
-
-#else
-#error ""
+using native_platform = _ML windows_platform_api;
 #endif
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	platform_api::platform_api() noexcept
+	platform_api * platform_api::create(event_bus * bus, allocator_type alloc) noexcept
 	{
-		begin_global<platform_api>(this);
-	}
+		auto const temp{ new native_platform{ bus, alloc } };
 
-	platform_api::~platform_api() noexcept
-	{
-		end_global<platform_api>(this);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	platform_api * platform_api::create() noexcept
-	{
-		auto const temp{ new native_api{} };
-
-		if (!get_global<platform_api>()) { set_global<platform_api>(temp); }
+		begin_singleton<platform_api>(temp);
 
 		return temp;
 	}
 
 	void platform_api::destroy(platform_api * value) noexcept
 	{
-		auto const g{ get_global<platform_api>() };
+		if (!value) { value = get_global<platform_api>(); }
 
-		if (!value) { value = g; }
-
-		if (value == g) { set_global<platform_api>(nullptr); }
+		end_singleton<platform_api>(value);
 
 		delete value;
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 // global platform_api

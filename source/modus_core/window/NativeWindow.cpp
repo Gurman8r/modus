@@ -8,11 +8,6 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	native_window::native_window(backend_window * backend) noexcept
-		: m_backend{ ML_check(backend) }
-	{
-	}
-
 	native_window::native_window(allocator_type alloc) noexcept
 		: m_backend{ new glfw_window{ alloc } }
 	{
@@ -32,6 +27,7 @@ namespace ml
 
 	native_window::~native_window() noexcept
 	{
+		clear_callbacks();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -45,17 +41,19 @@ namespace ml
 	)
 	{
 		// check already open
-		if (is_open()) {
+		if (is_open())
+		{
 			return debug::error("native_window is already open");
 		}
 
 		// open native_window
-		if (!m_backend->open(title, vm, cs, hints, userptr)) {
+		if (!m_backend->open(title, vm, cs, hints, userptr))
+		{
 			return debug::error("failed opening native_window");
 		}
 		
 		// make current context
-		set_active_window(get_handle());
+		get_window_manager()->set_active_window(get_handle());
 		
 		// centered
 		set_position((video_mode::get_desktop_mode().resolution - vm.resolution) / 2);
@@ -353,80 +351,6 @@ namespace ml
 	void * native_window::set_user_pointer(void * value) noexcept
 	{
 		return m_backend->set_user_pointer(value);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	int32_t native_window::extension_supported(cstring value) noexcept
-	{
-		return glfw_window::extension_supported(value);
-	}
-
-	window_handle native_window::get_active_window() noexcept
-	{
-		return glfw_window::get_active_window();
-	}
-
-	ds::list<monitor_handle> const & native_window::get_monitors() noexcept
-	{
-		return glfw_window::get_monitors();
-	}
-
-	void * native_window::get_proc_address(cstring value) noexcept
-	{
-		return glfw_window::get_proc_address(value);
-	}
-
-	monitor_handle native_window::get_primary_monitor() noexcept
-	{
-		return glfw_window::get_primary_monitor();
-	}
-
-	duration native_window::get_time() noexcept
-	{
-		return glfw_window::get_time();
-	}
-
-	void native_window::set_active_window(window_handle value) noexcept
-	{
-		glfw_window::set_active_window(value);
-	}
-
-	window_error_callback native_window::set_error_callback(window_error_callback fn) noexcept
-	{
-		return glfw_window::set_error_callback(fn);
-	}
-
-	void native_window::set_swap_interval(int32_t value) noexcept
-	{
-		glfw_window::set_swap_interval(value);
-	}
-
-	void native_window::poll_events() noexcept
-	{
-		glfw_window::poll_events();
-	}
-
-	void native_window::swap_buffers(window_handle value) noexcept
-	{
-		glfw_window::swap_buffers(value);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	cursor_handle native_window::create_custom_cursor(size_t w, size_t h, byte_t const * p) noexcept
-	{
-		return glfw_window::create_custom_cursor(w, h, p);
-	}
-
-	cursor_handle native_window::create_standard_cursor(int32_t value) noexcept
-	{
-		return glfw_window::create_standard_cursor(value);
-	}
-
-	void native_window::destroy_cursor(cursor_handle value) noexcept
-	{
-		glfw_window::destroy_cursor(value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

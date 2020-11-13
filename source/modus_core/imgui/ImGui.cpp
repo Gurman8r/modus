@@ -3,10 +3,15 @@
 #include <modus_core/detail/FileUtility.hpp>
 #include <modus_core/detail/ParserUtil.hpp>
 
-// GLFW / OpenGL3
-#if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
+// GLFW
+#ifdef ML_IMPL_WINDOW_GLFW
 #include <imgui/backends/imgui_impl_glfw.h>
+#endif
+
+// OpenGL3
+#ifdef ML_IMPL_RENDERER_OPENGL
 #include <imgui/backends/imgui_impl_opengl3.h>
+#else
 #endif
 
 namespace ml
@@ -24,8 +29,12 @@ namespace ml
 
 	void ImGui_Shutdown()
 	{
-#if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
+#ifdef ML_IMPL_RENDERER_OPENGL
 		ImGui_ImplOpenGL3_Shutdown();
+#else
+#endif
+
+#ifdef ML_IMPL_WINDOW_GLFW
 		ImGui_ImplGlfw_Shutdown();
 #else
 #endif
@@ -33,8 +42,12 @@ namespace ml
 
 	void ImGui_NewFrame()
 	{
-#if defined(ML_IMPL_WINDOW_GLFW) && defined(ML_IMPL_RENDERER_OPENGL)
+#ifdef ML_IMPL_RENDERER_OPENGL
 		ImGui_ImplOpenGL3_NewFrame();
+#else
+#endif
+
+#ifdef ML_IMPL_WINDOW_GLFW
 		ImGui_ImplGlfw_NewFrame();
 #else
 #endif
@@ -42,7 +55,7 @@ namespace ml
 
 	void ImGui_RenderDrawData(ImDrawData * draw_data)
 	{
-#if defined(ML_IMPL_RENDERER_OPENGL)
+#ifdef ML_IMPL_RENDERER_OPENGL
 		ImGui_ImplOpenGL3_RenderDrawData(draw_data);
 #else
 #endif

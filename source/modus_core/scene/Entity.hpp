@@ -5,31 +5,32 @@
 
 namespace ml
 {
-	struct entity : trackable
+	struct entity : trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		virtual ~entity() noexcept override = default;
+
 		entity(scene * scene, entt::entity handle) noexcept
-			: m_scene	{ scene }
-			, m_handle	{ handle }
+			: event_listener{ scene->get_bus() }
+			, m_scene		{ scene }
+			, m_handle		{ handle }
 		{
 		}
 
-		entity() noexcept : entity{ nullptr, entt::null }
+		entity(entity const & other)
+			: event_listener{ other.get_bus() }
+			, m_scene		{ other.m_scene }
+			, m_handle		{ other.m_handle }
 		{
 		}
 
-		entity(entity const & other) : entity{ other.m_scene, other.m_handle }
-		{
-		}
-
-		entity(entity && other) noexcept : entity{}
+		entity(entity && other) noexcept
+			: event_listener{ other.get_bus() }
+			, m_scene		{}
+			, m_handle		{}
 		{
 			this->swap(std::move(other));
-		}
-
-		virtual ~entity() noexcept
-		{
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -58,45 +59,67 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool valid() const noexcept
+		ML_NODISCARD auto get_handle() const noexcept -> entt::entity
 		{
-			return ML_check(m_scene)->get_registry().valid(m_handle);
+			return m_handle;
 		}
 
-		template <class T, class ... Args
+		ML_NODISCARD auto get_scene() const noexcept -> scene *
+		{
+			return m_scene;
+		}
+
+		ML_NODISCARD auto get_registry() const noexcept -> entt::registry &
+		{
+			return ML_check(m_scene)->get_registry();
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Component, class ... Args
 		> decltype(auto) add_component(Args && ... args) noexcept
 		{
-			return ML_check(m_scene)->get_registry().emplace<T>(m_handle, ML_forward(args)...);
+			return this->get_registry().emplace<Component>(m_handle, ML_forward(args)...);
 		}
 
-		template <class ... T
+		template <class ... Components
 		> ML_NODISCARD decltype(auto) get_component() noexcept
 		{
-			return ML_check(m_scene)->get_registry().get<T...>(m_handle);
+			return this->get_registry().get<Components...>(m_handle);
 		}
 
-		template <class ... T
+		template <class ... Components
 		> ML_NODISCARD bool has_component() const noexcept
 		{
-			return ML_check(m_scene)->get_registry().has<T...>(m_handle);
+			return this->get_registry().has<Components...>(m_handle);
 		}
 
-		template <class ... T
+		template <class ... Components
 		> void remove_component() noexcept
 		{
-			ML_check(m_scene)->get_registry().remove<T...>(m_handle);
+			this->get_registry().remove<T...>(m_handle);
+		}
+
+		ML_NODISCARD bool valid() const noexcept
+		{
+			return this->get_registry().valid(m_handle);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_handle() const noexcept -> entt::entity { return m_handle; }
+	public:
+		using event_listener::get_bus;
 
-		ML_NODISCARD auto get_scene() const noexcept -> scene * { return m_scene; }
+	protected:
+		using event_listener::subscribe;
 
-		ML_NODISCARD auto get_registry() const noexcept -> entt::registry & { return ML_check(m_scene)->get_registry(); }
+		using event_listener::unsubscribe;
+
+		virtual void on_event(event const &) override {}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		template <class U = entity
 		> ML_NODISCARD auto compare(U const & other) const noexcept
 		{
@@ -114,39 +137,27 @@ namespace ml
 		}
 
 		template <class U = entity
-		> ML_NODISCARD bool operator==(U const & other) const noexcept {
-			return this->compare(other) == 0;
-		}
+		> ML_NODISCARD bool operator==(U const & other) const noexcept { return this->compare(other) == 0; }
 
 		template <class U = entity
-		> ML_NODISCARD bool operator!=(U const & other) const noexcept {
-			return this->compare(other) != 0;
-		}
+		> ML_NODISCARD bool operator!=(U const & other) const noexcept { return this->compare(other) != 0; }
 
 		template <class U = entity
-		> ML_NODISCARD bool operator<(U const & other) const noexcept {
-			return this->compare(other) < 0;
-		}
+		> ML_NODISCARD bool operator<(U const & other) const noexcept { return this->compare(other) < 0; }
 
 		template <class U = entity
-		> ML_NODISCARD bool operator>(U const & other) const noexcept {
-			return this->compare(other) > 0;
-		}
+		> ML_NODISCARD bool operator>(U const & other) const noexcept { return this->compare(other) > 0; }
 
 		template <class U = entity
-		> ML_NODISCARD bool operator<=(U const & other) const noexcept {
-			return this->compare(other) <= 0;
-		}
+		> ML_NODISCARD bool operator<=(U const & other) const noexcept { return this->compare(other) <= 0; }
 
 		template <class U = entity
-		> ML_NODISCARD bool operator>=(U const & other) const noexcept {
-			return this->compare(other) >= 0;
-		}
+		> ML_NODISCARD bool operator>=(U const & other) const noexcept { return this->compare(other) >= 0; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		scene *	m_scene		; // scene
+		scene *			m_scene		; // scene
 		entt::entity	m_handle	; // handle
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

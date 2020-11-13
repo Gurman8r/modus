@@ -84,15 +84,15 @@ namespace ml
 		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
 
 	protected:
-		friend event_bus;
-		
-		virtual void on_event(event const &) = 0; // handle event
+		// handle event
+		virtual void on_event(event const &) = 0;
 
+		// subscribe
 		template <class ... Evs> void subscribe() noexcept
 		{
 			ML_assert(m_bus);
 
-			static_assert(0 < sizeof...(Evs));
+			static_assert(0 < sizeof...(Evs), "must subscribe to at least one event");
 
 			meta::for_types<Evs...>([&](auto tag) noexcept
 			{
@@ -100,6 +100,7 @@ namespace ml
 			});
 		}
 
+		// unsubscribe
 		template <class ... Evs> void unsubscribe() noexcept
 		{
 			ML_assert(m_bus);
@@ -117,8 +118,16 @@ namespace ml
 			}
 		}
 
+	protected:
+		friend event_bus;
+
+		event_listener(event_listener const &) = default;
+		event_listener(event_listener &&) noexcept = default;
+		event_listener & operator=(event_listener const &) = default;
+		event_listener & operator=(event_listener &&) noexcept = default;
+
 	private:
-		event_bus * const m_bus; // event bus
+		event_bus * m_bus; // event bus
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -131,12 +140,16 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using event_callback = typename ds::method<void(event const &)>;
+		using event_callback = typename ds::method< void(event const &) >;
+
+		explicit dummy_listener(event_bus * bus) noexcept : event_listener{ bus }
+		{
+		}
 
 		template <class Fn, class ... Args
 		> dummy_listener(event_bus * bus, Fn && fn, Args && ... args) noexcept : event_listener{ bus }
 		{
-			this->set_callback(ML_forward(fn), ML_forward(args)...);
+			this->set_event_callback(ML_forward(fn), ML_forward(args)...);
 		}
 
 		using event_listener::subscribe;
@@ -148,13 +161,13 @@ namespace ml
 			if (m_on_event) { std::invoke(m_on_event, value); }
 		}
 
-		ML_NODISCARD auto get_callback() const noexcept -> event_callback const &
+		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const &
 		{
 			return m_on_event;
 		}
 
 		template <class Fn, class ... Args
-		> auto set_callback(Fn && fn, Args && ... args) noexcept -> event_callback
+		> auto set_event_callback(Fn && fn, Args && ... args) noexcept -> event_callback
 		{
 			return util::route_callback(m_on_event, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
@@ -173,17 +186,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
-		
-		using category_type = typename ds::set<event_listener *>;
-		
-		using categories_type = typename ds::map<hash_t, category_type>;
-
-		using event_list = typename ds::list<ds::scope<event>>;
-
-		using dummy_ref = typename ds::ref<dummy_listener>;
-
-		using dummy_list = typename ds::list<dummy_ref>;
+		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
+		using category_type		= typename ds::set<event_listener *>;
+		using categories_type	= typename ds::map<hash_t, category_type>;
+		using event_list		= typename ds::list<ds::scope<event>>;
+		using dummy_ref			= typename ds::ref<dummy_listener>;
+		using dummy_list		= typename ds::list<dummy_ref>;
 
 		template <class Ev> static constexpr bool is_valid_event
 		{
@@ -252,11 +260,11 @@ namespace ml
 		}
 
 		template <class ... Evs, class ... Args
-		> auto new_dummy(Args && ... args) noexcept -> dummy_ref
+		> auto new_dummy(Args && ... args) noexcept -> dummy_ref const &
 		{
 			auto temp{ _ML make_ref<dummy_listener>(this, ML_forward(args)...) };
 
-			temp->subscribe<Evs...>();
+			if constexpr (0 < sizeof...(Evs)) { temp->subscribe<Evs...>(); }
 
 			return m_dummies.emplace_back(std::move(temp));
 		}

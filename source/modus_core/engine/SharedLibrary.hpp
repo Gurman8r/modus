@@ -91,11 +91,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool open(fs::path const & path); // load library
+		bool open(fs::path const & path);
 
-		bool close(); // close library
+		bool close();
 
-		void * get_proc(cstring name); // get procedure
+		void * get_proc(cstring name);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -161,40 +161,22 @@ namespace ml
 		}
 
 		template <class U = shared_library
-		> ML_NODISCARD bool operator==(U const & value) const noexcept
-		{
-			return compare(value) == 0;
-		}
+		> ML_NODISCARD bool operator==(U const & value) const noexcept { return this->compare(value) == 0; }
 
 		template <class U = shared_library
-		> ML_NODISCARD bool operator!=(U const & value) const noexcept
-		{
-			return compare(value) != 0;
-		}
+		> ML_NODISCARD bool operator!=(U const & value) const noexcept { return this->compare(value) != 0; }
 
 		template <class U = shared_library
-		> ML_NODISCARD bool operator<(U const & value) const noexcept
-		{
-			return compare(value) < 0;
-		}
+		> ML_NODISCARD bool operator<(U const & value) const noexcept { return this->compare(value) < 0; }
 
 		template <class U = shared_library
-		> ML_NODISCARD bool operator>(U const & value) const noexcept
-		{
-			return compare(value) > 0;
-		}
+		> ML_NODISCARD bool operator>(U const & value) const noexcept { return this->compare(value) > 0; }
 
 		template <class U = shared_library
-		> ML_NODISCARD bool operator<=(U const & value) const noexcept
-		{
-			return compare(value) <= 0;
-		}
+		> ML_NODISCARD bool operator<=(U const & value) const noexcept { return this->compare(value) <= 0; }
 
 		template <class U = shared_library
-		> ML_NODISCARD bool operator>=(U const & value) const noexcept
-		{
-			return compare(value) >= 0;
-		}
+		> ML_NODISCARD bool operator>=(U const & value) const noexcept { return this->compare(value) >= 0; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -206,13 +188,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	// load library
-	template <class ... Args
-	> ML_NODISCARD auto load_library(Args && ... args) noexcept
-	{
-		return _ML make_scope<shared_library>(ML_forward(args)...);
-	}
 }
 
 #endif // !_ML_SHARED_LIBRARY_HPP_

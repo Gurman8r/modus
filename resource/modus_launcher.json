@@ -1,5 +1,13 @@
 {
-	"path": "../../../",
+	"paths": [
+		"../../../"
+	],
+	"plugins": [
+		{ "path": "./plugins/sandbox" }
+	],
+	"scripts": [
+		{ "path": "resource/modus_launcher.py" }
+	],
 	"window": {
 		"title": "modus launcher",
 		"video": {
@@ -39,11 +47,5 @@
 			"rounding"	: 0,
 			"size"		: [ 0, 0 ]
 		}
-	},
-	"plugins": [
-		{ "path": "./plugins/sandbox" }
-	],
-	"scripts": [
-		{ "path": "resource/modus_launcher.py" }
-	]
+	}
 }

@@ -3,6 +3,8 @@
 
 #include <modus_core/detail/StringUtility.hpp>
 
+#define _ML_DEBUG _ML debug::
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // ok message
@@ -22,19 +24,15 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// wassert
+#ifndef ML_IMPL_WASSERT
+#define ML_IMPL_WASSERT ::_wassert
+#endif
+
 // assert extended
 #ifndef ML_assert_ext
-
-#	ifdef ML_cc_msvc
-#		define ML_assert_ext(expr, msg, file, line) (void)((!!(expr)) || (_wassert(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
-
-#	elif defined(assert)
-#		define ML_assert_ext(expr, msg, file, line) assert(expr)
-
-#	else
-#		define ML_assert_ext(expr, msg, file, line) ((void)expr)
-
-#	endif
+#define ML_assert_ext(expr, msg, file, line) \
+	(void)((!!(expr)) || (ML_IMPL_WASSERT(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
 #endif
 
 // assert message
@@ -50,7 +48,7 @@
 // check message
 #define ML_check_msg(expr, msg) ([](auto && x) noexcept {	\
 		ML_assert_ext(x, msg, __FILE__, __LINE__);			\
-		return ML_forward(x);								\
+		return std::move(x);								\
 	})(expr)
 
 // check

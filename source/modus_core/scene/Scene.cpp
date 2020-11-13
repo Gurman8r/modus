@@ -6,37 +6,18 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	scene::scene(allocator_type alloc) noexcept
-		: m_entities{ alloc }
-		, m_registry{}
+	ds::ref<entity> scene::new_entity(ds::string const & name, allocator_type alloc) noexcept
 	{
-	}
-
-	scene::~scene() noexcept
-	{
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ds::ref<entity> & scene::create_entity(ds::string const & name, allocator_type alloc) noexcept
-	{
-		auto & temp{ m_entities.emplace_back(
-			alloc_ref<entity>(alloc, this, m_registry.create())
-		) };
-		temp->add_component<tag_component>(!name.empty() ? name : "New Entity");
-		temp->add_component<transform_component>();
-		return temp;
-	}
-
-	void scene::destroy_entity(ds::ref<entity> const & value) noexcept
-	{
-		if (auto const it{ std::find(m_entities.begin(), m_entities.end(), value) }
-		; it != m_entities.end())
+		auto & temp
 		{
-			m_registry.destroy(value->get_handle());
-
-			m_entities.erase(it);
-		}
+			m_entities.emplace_back(alloc_ref<entity>(alloc, this, m_registry.create()))
+		};
+		
+		temp->add_component<tag_component>(!name.empty() ? name : "New Entity");
+		
+		temp->add_component<transform_component>();
+		
+		return temp;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

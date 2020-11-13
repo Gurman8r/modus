@@ -644,15 +644,15 @@ namespace ml::gfx
 	// render device specification
 	template <> struct ML_NODISCARD spec<render_device> final
 	{
-		int32_t api;
+		int32_t api{ context_api_opengl };
 	};
 
 	// base render device
 	struct ML_CORE_API render_device : non_copyable, trackable
 	{
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		using spec_type = typename spec<render_device>;
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
@@ -665,7 +665,7 @@ namespace ml::gfx
 
 		ML_NODISCARD static render_device * create(spec_type const & desc, allocator_type alloc = {}) noexcept;
 
-		static void destroy(render_device * value) noexcept;
+		static void destroy(render_device * value = nullptr) noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -725,6 +725,19 @@ namespace ml::gfx
 	}
 }
 
+// default delete
+namespace ml
+{
+	// render device deleter
+	template <> struct default_delete<gfx::render_device>
+	{
+		template <class U> void operator()(U * value) const noexcept
+		{
+			gfx::destroy_device(value);
+		}
+	};
+}
+
 // global render device
 namespace ml::globals
 {
@@ -742,16 +755,16 @@ namespace ml::gfx
 	template <class Derived
 	> class render_object : non_copyable, trackable
 	{
-	private:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	private:
 		static constexpr typeof<> s_base_type{ typeof_v<Derived> };
 
 		render_device * const m_parent;
 
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
 		explicit render_object(render_device * parent) noexcept : m_parent{ ML_check(parent) }
@@ -772,7 +785,7 @@ namespace ml::gfx
 
 		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const &
 		{
-			return ML_check(m_parent)->get_context();
+			return ML_check(get_device())->get_context();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -911,9 +924,9 @@ namespace ml::gfx
 	// base render context
 	struct ML_CORE_API render_context : public render_object<render_context>
 	{
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		using spec_type = typename spec<render_context>;
 
 		template <class Desc = spec_type
@@ -922,9 +935,9 @@ namespace ml::gfx
 			return ML_check(get_global<render_device>())->new_context(ML_forward(desc), alloc);
 		}
 
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		explicit render_context(render_device * parent) noexcept : render_object{ parent }
 		{
 		}

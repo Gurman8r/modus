@@ -40,12 +40,14 @@ namespace ml
 	)
 	{
 		// check already open
-		if (is_open()) {
+		if (is_open())
+		{
 			return debug::error("render_window is already open");
 		}
 
 		// open render_window
-		if (!native_window::open(title, vm, cs, hints, userptr)) {
+		if (!native_window::open(title, vm, cs, hints, userptr))
+		{
 			return debug::error("failed opening render_window");
 		}
 
@@ -56,8 +58,7 @@ namespace ml
 		}
 
 		// create render context
-		m_dev->set_context(m_ctx = m_dev->new_context(
-		{
+		set_render_context(m_dev->new_context({
 			cs.api,
 			cs.major,
 			cs.minor,
@@ -69,7 +70,7 @@ namespace ml
 		}));
 
 		// setup states
-		this->draw_commands(
+		this->render_commands(
 
 			// alpha state
 			gfx::command::set_alpha_state

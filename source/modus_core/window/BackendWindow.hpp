@@ -265,38 +265,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static int32_t extension_supported(cstring) = delete;
-
-		static window_handle get_active_window() = delete;
-		
-		static ds::list<monitor_handle> const & get_monitors() = delete;
-
-		static void * get_proc_address(cstring) = delete;
-
-		static monitor_handle get_primary_monitor() = delete;
-
-		static duration get_time() = delete;
-
-		static void set_active_window(window_handle) = delete;
-
-		static window_error_callback set_error_callback(window_error_callback) = delete;
-
-		static void set_swap_interval(int32_t) = delete;
-
-		static void poll_events() = delete;
-
-		static void swap_buffers(window_handle) = delete;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static cursor_handle create_custom_cursor(size_t, size_t, byte_t const *) = delete;
-
-		static cursor_handle create_standard_cursor(int32_t) = delete;
-
-		static void destroy_cursor(cursor_handle) = delete;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		virtual window_char_callback				get_char_callback() const = 0;
 		virtual window_char_mods_callback			get_char_mods_callback() const = 0;
 		virtual window_close_callback				get_close_callback() const = 0;
@@ -334,6 +302,29 @@ namespace ml
 		virtual window_refresh_callback				set_refresh_callback			(window_refresh_callback) = 0;
 		virtual window_resize_callback				set_resize_callback				(window_resize_callback) = 0;
 		virtual window_scroll_callback				set_scroll_callback				(window_scroll_callback) = 0;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void clear_callbacks()
+		{
+			set_char_callback				(nullptr);
+			set_char_mods_callback			(nullptr);
+			set_close_callback				(nullptr);
+			set_content_scale_callback		(nullptr);
+			set_cursor_enter_callback		(nullptr);
+			set_cursor_pos_callback			(nullptr);
+			set_drop_callback				(nullptr);
+			set_focus_callback				(nullptr);
+			set_framebuffer_resize_callback	(nullptr);
+			set_iconify_callback			(nullptr);
+			set_key_callback				(nullptr);
+			set_maximize_callback			(nullptr);
+			set_mouse_callback				(nullptr);
+			set_position_callback			(nullptr);
+			set_refresh_callback			(nullptr);
+			set_resize_callback				(nullptr);
+			set_scroll_callback				(nullptr);
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -1,8 +1,6 @@
 #ifndef _ML_PLUGIN_HPP_
 #define _ML_PLUGIN_HPP_
 
-// WIP
-
 #include <modus_core/detail/Events.hpp>
 #include <modus_core/engine/Object.hpp>
 
@@ -12,40 +10,38 @@
 
 namespace ml
 {
-	struct core_application;
+	// plugin manager
+	struct plugin_manager;
 
-	struct ML_CORE_API core_plugin : non_copyable, trackable, core_object
+	// plugin id
+	ML_decl_handle(plugin_id);
+
+	// base plugin
+	struct ML_CORE_API plugin : non_copyable, trackable, core_object
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
-		explicit core_plugin(core_application * app, void * userptr) noexcept;
-
-		virtual ~core_plugin() noexcept override = default;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	public:
-		void * get_user_pointer() const noexcept { return m_userptr; }
+		static constexpr plugin_id null{ nullptr };
 
-		void set_user_pointer(void * value) noexcept { m_userptr = value; }
+		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager * { return m_manager; }
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
 
-	public:
-		using core_object::get_bus;
+		auto set_user_pointer(void * value) noexcept -> void * { return m_userptr = value; }
 
 	protected:
-		using core_object::subscribe;
+		friend plugin_manager;
 
-		using core_object::unsubscribe;
+		plugin(plugin_manager * manager, void * userptr = nullptr);
 
-		using core_object::on_event;
+		virtual ~plugin() override;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		virtual void on_event(event const &) override = 0;
 
 	private:
-		void * m_userptr;
+		plugin_manager * const	m_manager;
+		void *					m_userptr;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

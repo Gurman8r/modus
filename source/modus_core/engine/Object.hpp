@@ -27,7 +27,7 @@ namespace ml
 
 		using event_listener::unsubscribe;
 
-		using event_listener::on_event;
+		virtual void on_event(event const &) override = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

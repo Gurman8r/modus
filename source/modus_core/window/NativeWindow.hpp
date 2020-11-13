@@ -12,10 +12,6 @@ namespace ml
 
 		using backend_window::allocator_type;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		native_window(backend_window * backend) noexcept;
-
 		native_window(allocator_type alloc = {}) noexcept;
 
 		native_window(
@@ -32,9 +28,9 @@ namespace ml
 
 		virtual bool open(
 			ds::string			const &	title,
-			video_mode			const &	vm = {},
-			context_settings	const & cs = {},
-			window_hints_				hints = window_hints_default,
+			video_mode			const &	vm		= {},
+			context_settings	const & cs		= {},
+			window_hints_				hints	= window_hints_default,
 			void *						userptr	= nullptr) override;
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -156,38 +152,6 @@ namespace ml
 		void set_title(ds::string const & value) noexcept final;
 
 		void * set_user_pointer(void * value) noexcept final;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD static int32_t extension_supported(cstring value) noexcept;
-
-		ML_NODISCARD static window_handle get_active_window() noexcept;
-
-		ML_NODISCARD static ds::list<monitor_handle> const & get_monitors() noexcept;
-
-		ML_NODISCARD static monitor_handle get_primary_monitor() noexcept;
-
-		ML_NODISCARD static void * get_proc_address(cstring value) noexcept;
-
-		ML_NODISCARD static duration get_time() noexcept;
-
-		static void set_active_window(window_handle value) noexcept;
-
-		static window_error_callback set_error_callback(window_error_callback fn) noexcept;
-
-		static void set_swap_interval(int32_t value) noexcept;
-
-		static void poll_events() noexcept;
-
-		static void swap_buffers(window_handle value) noexcept;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD static cursor_handle create_custom_cursor(size_t w, size_t h, byte_t const * p) noexcept;
-
-		ML_NODISCARD static cursor_handle create_standard_cursor(int32_t value) noexcept;
-
-		static void destroy_cursor(cursor_handle value) noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

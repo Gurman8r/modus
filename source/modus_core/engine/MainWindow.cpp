@@ -9,6 +9,7 @@ namespace ml
 		: core_object	{ bus }
 		, render_window	{ alloc }
 		, m_imgui		{}
+		, m_menubar		{ new ImGuiExt::MenuBar{ "##MainMenuBar" } }
 		, m_dockspace	{ new ImGuiExt::Dockspace{ "##MainDockspace" } }
 	{
 		ImGui::SetAllocatorFunctions(
@@ -65,12 +66,8 @@ namespace ml
 		}
 
 		// install callbacks
+		if (static event_bus * helper; ML_check(helper = get_bus()))
 		{
-			static struct {
-				event_bus * bus;
-				auto operator->() const noexcept { return bus; }
-			} helper; helper.bus = get_bus();
-
 			set_char_callback([](auto w, auto ... x) { helper->fire<window_char_event>(x...); });
 			set_char_mods_callback([](auto w, auto ... x) { helper->fire<window_char_mods_event>(x...); });
 			set_close_callback([](auto w, auto ... x) { helper->fire<window_close_event>(x...); });
@@ -78,7 +75,6 @@ namespace ml
 			set_cursor_pos_callback([](auto w, auto ... x) { helper->fire<window_cursor_pos_event>(x...); });
 			set_content_scale_callback([](auto w, auto ... x) { helper->fire<window_content_scale_event>(x...); });
 			set_drop_callback([](auto w, auto ... x) { helper->fire<window_drop_event>(x...); });
-			set_error_callback([](auto ... x) { helper->fire<window_error_event>(x...); });
 			set_focus_callback([](auto w, auto ... x) { helper->fire<window_focus_event>(x...); });
 			set_framebuffer_resize_callback([](auto w, auto ... x) { helper->fire<window_framebuffer_resize_event>(x...); });
 			set_iconify_callback([](auto w, auto ... x) { helper->fire<window_iconify_event>(x...); });
@@ -92,7 +88,7 @@ namespace ml
 		}
 
 		// imgui
-		if (!initialize_imgui(true))
+		if (!initialize_imgui())
 		{
 			return debug::error("failed starting imgui");
 		}
@@ -119,13 +115,6 @@ namespace ml
 		ImGui::NewFrame();
 
 		ImGui::PushID(this);
-
-		(*get_dockspace())(get_imgui()->Viewports[0], [&]() noexcept
-		{
-			get_bus()->fire<imgui_dockspace_event>(get_dockspace());
-		});
-
-		get_bus()->fire<imgui_render_event>(get_imgui());
 	}
 
 	void main_window::end_imgui_frame()
@@ -134,21 +123,18 @@ namespace ml
 
 		ImGui::Render();
 
-		draw_commands(
+		render_commands(
 			gfx::command::set_viewport(get_framebuffer_size()),
 			gfx::command::set_clear_color(colors::black),
 			gfx::command::clear(gfx::clear_color));
 
-		_ML ImGui_RenderDrawData(&get_imgui()->Viewports[0]->DrawDataP);
+		_ML ImGui_RenderDrawData(&get_imgui_context()->Viewports[0]->DrawDataP);
 
-		if (get_imgui()->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		if (get_imgui_context()->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			auto const backup_context{ get_window_manager()->get_active_window() };
-
 			ImGui::UpdatePlatformWindows();
-
 			ImGui::RenderPlatformWindowsDefault();
-
 			get_window_manager()->set_active_window(backup_context);
 		}
 
@@ -156,12 +142,6 @@ namespace ml
 		{
 			get_window_manager()->swap_buffers(get_handle());
 		}
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void main_window::on_event(event const & value)
-	{
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

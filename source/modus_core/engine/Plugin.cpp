@@ -1,11 +1,19 @@
-#include <modus_core/engine/Plugin.hpp>
-#include <modus_core/engine/Application.hpp>
+#include <modus_core/engine/PluginManager.hpp>
 
 namespace ml
 {
-	core_plugin::core_plugin(core_application * app, void * userptr) noexcept
-		: core_object	{ app->get_bus() }
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	plugin::plugin(plugin_manager * manager, void * userptr)
+		: core_object	{ manager->get_bus() }
+		, m_manager		{ manager }
 		, m_userptr		{ userptr }
 	{
 	}
+
+	plugin::~plugin()
+	{
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

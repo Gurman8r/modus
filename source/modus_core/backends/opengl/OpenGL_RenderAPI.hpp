@@ -13,17 +13,17 @@ namespace ml::gfx
 {
 	struct opengl_render_device final : render_device
 	{
-	private:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_render_device> };
 
 		device_info				m_info	{}; // device settings
 		ds::ref<render_context>	m_ctx	{}; // render context
 
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		opengl_render_device(allocator_type alloc);
 
 		~opengl_render_device() override;
@@ -42,9 +42,9 @@ namespace ml::gfx
 
 		typeof<> const & get_self_type() const noexcept override { return s_self_type; }
 
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		ds::ref<render_context> new_context(spec<render_context> const & desc, allocator_type alloc) noexcept override;
 
 		ds::ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept override;
@@ -75,17 +75,17 @@ namespace ml::gfx
 	// opengl context
 	struct opengl_render_context final : render_context
 	{
-	private:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	private:
 		static constexpr typeof<> s_self_type{ typeof_v<opengl_render_context> };
 
 		spec_type	m_desc		{}; // context settings
 		uint32_t	m_handle	{}; // pipeline handle (WIP)
 
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
+	public:
 		opengl_render_context(render_device * parent, spec_type const & desc, allocator_type alloc);
 
 		~opengl_render_context() override = default;

@@ -29,6 +29,7 @@ namespace ml
 		loop_system(event_bus * bus, allocator_type alloc = {}) noexcept
 			: event_listener{ bus }
 			, m_locked		{}
+			, m_uptime		{ false }
 			, m_subsystems	{ alloc }
 			, m_loopcond	{}
 			, m_on_enter	{}
@@ -41,6 +42,7 @@ namespace ml
 		explicit loop_system(loop_system const & other, allocator_type alloc = {})
 			: event_listener{ other.get_bus() }
 			, m_locked		{}
+			, m_uptime		{ false }
 			, m_subsystems	{ other.m_subsystems, alloc }
 			, m_loopcond	{ other.m_loopcond }
 			, m_on_enter	{ other.m_on_enter }
@@ -73,7 +75,6 @@ namespace ml
 
 		void swap(loop_system & other) noexcept
 		{
-			ML_assert_msg(get_bus() == other.get_bus(), "LOOPSYSTEM BUS MISMATCH");
 			if (this != std::addressof(other))
 			{
 				std::swap(m_locked, other.m_locked);
@@ -94,7 +95,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool is_locked() const noexcept { return m_locked; }
+		ML_NODISCARD bool running() const noexcept { return m_locked; }
+
+		ML_NODISCARD auto uptime() const noexcept -> duration { return m_uptime.elapsed(); }
 
 		template <bool Recurse = true
 		> int32_t process() noexcept
@@ -102,6 +105,9 @@ namespace ml
 			// lock
 			if (m_locked) { return EXIT_FAILURE * 1; }
 			else { m_locked = true; } ML_defer(&) { m_locked = false; };
+
+			// uptime
+			m_uptime.restart(); ML_defer(&) { m_uptime.stop(); };
 
 			// enter
 			this->run_enter_callback<Recurse>();
@@ -297,6 +303,7 @@ namespace ml
 
 	private:
 		bool			m_locked		; // process locked
+		timer			m_uptime		; // process timer
 		subsystem_list	m_subsystems	; // subsystem list
 		loop_condition	m_loopcond		; // loop condition
 		loop_callback	m_on_enter		, // enter callback

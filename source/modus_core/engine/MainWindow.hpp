@@ -20,11 +20,11 @@ namespace ml
 		main_window(
 			event_bus *					bus,
 			ds::string			const & title,
-			video_mode			const & vm = {},
-			context_settings	const & cs = {},
-			window_hints_				hints = window_hints_default,
+			video_mode			const & vm		= {},
+			context_settings	const & cs		= {},
+			window_hints_				hints	= window_hints_default,
 			void *						userptr = nullptr,
-			allocator_type				alloc = {}) noexcept;
+			allocator_type				alloc	= {}) noexcept;
 
 		virtual ~main_window() noexcept override;
 
@@ -32,13 +32,14 @@ namespace ml
 
 		virtual bool open(
 			ds::string			const & title,
-			video_mode			const & vm = {},
-			context_settings	const & cs = {},
-			window_hints_				hints = window_hints_default,
-			void *						userptr = nullptr) override;
+			video_mode			const & vm		= {},
+			context_settings	const & cs		= {},
+			window_hints_				hints	= window_hints_default,
+			void *						userptr	= nullptr) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		bool initialize_imgui(bool install_callbacks = true);
 
 		void finalize_imgui();
@@ -51,20 +52,18 @@ namespace ml
 		> void do_imgui_frame(Args && ... args) noexcept
 		{
 			this->begin_imgui_frame();
-
-			if constexpr (0 < sizeof...(Args))
-			{
-				std::invoke(ML_forward(args)...);
-			}
+			
+			if constexpr (0 < sizeof...(Args)) { std::invoke(ML_forward(args)...); }
 			
 			this->end_imgui_frame();
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+	public:
 		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace * { return m_dockspace.get(); }
 
-		ML_NODISCARD auto get_imgui() const noexcept -> ImGuiContext * { return m_imgui.get(); }
+		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MenuBar * { return m_menubar.get(); }
+
+		ML_NODISCARD auto get_imgui_context() const noexcept -> ImGuiContext * { return m_imgui.get(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -76,22 +75,17 @@ namespace ml
 
 		using core_object::unsubscribe;
 
-		virtual void on_event(event const & value) override;
+		virtual void on_event(event const & value) override {}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::scary<ImGuiContext>			m_imgui		; // imgui context
-		ds::scope<ImGuiExt::Dockspace>	m_dockspace	; // imgui dockspace
+		ds::scary<ImGuiContext>			m_imgui		; // imgui
+		ds::scope<ImGuiExt::MenuBar>	m_menubar	; // menubar
+		ds::scope<ImGuiExt::Dockspace>	m_dockspace	; // dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-}
-
-// global main_window
-namespace ml::globals
-{
-
 }
 
 #endif // !1

@@ -3,27 +3,47 @@
 
 // WIP
 
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/engine/Object.hpp>
 
 namespace ml
 {
-	// platform api
-	struct ML_CORE_API platform_api : non_copyable, trackable
+	// base platform api
+	struct ML_CORE_API platform_api : non_copyable, trackable, core_object
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
-		platform_api() noexcept;
+	public:
+		explicit platform_api(event_bus * bus) noexcept : core_object{ bus } {}
 
-		virtual ~platform_api() noexcept override;
+		virtual ~platform_api() noexcept override = default;
 
 	public:
-		static platform_api * create() noexcept;
+		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
 
-		static void destroy(platform_api * value) noexcept;
+		static platform_api * create(event_bus * bus, allocator_type alloc = {}) noexcept;
+
+		static void destroy(platform_api * value = nullptr) noexcept;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	protected:
+		virtual void on_event(event const &) override = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+
+	// make platform api
+	template <class ... Args
+	> ML_NODISCARD auto make_platform_api(Args && ... args) noexcept
+	{
+		return platform_api::create(ML_forward(args)...);
+	}
+
+	// destroy platform api
+	inline void destroy_platform_api(platform_api * value) noexcept
+	{
+		platform_api::destroy(value);
+	}
 }
 
 // global platform_api

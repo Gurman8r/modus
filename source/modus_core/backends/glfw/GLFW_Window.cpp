@@ -1,9 +1,6 @@
 #if defined(ML_IMPL_WINDOW_GLFW)
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 #include "GLFW_Window.hpp"
-
 #include <glfw/glfw3.h>
 
 #if defined(ML_os_windows)
@@ -12,31 +9,6 @@
 #	define GLFW_EXPOSE_NATIVE_WIN32
 #	include <glfw/glfw3native.h>
 #endif
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-bool operator<(GLFWimage const & lhs, GLFWimage const & rhs)
-{
-	return !(std::addressof(lhs) == std::addressof(rhs))
-		&& (lhs.width < rhs.width && lhs.height < rhs.height && lhs.pixels < rhs.pixels);
-}
-
-bool operator==(GLFWimage const & lhs, GLFWimage const & rhs)
-{
-	return (std::addressof(lhs) == std::addressof(rhs))
-		|| (!(lhs < rhs) && !(rhs < lhs));
-}
-
-namespace ml
-{
-	static GLFWimage const * make_glfw_image(size_t w, size_t h, byte_t const * p) noexcept
-	{
-		static ds::set<GLFWimage> cache{};
-		return &cache.find_or_add(GLFWimage{ (int32_t)w, (int32_t)h, (byte_t *)p });
-	}
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 namespace ml
 {
@@ -49,9 +21,7 @@ namespace ml
 		, m_monitor	{}
 		, m_hints	{}
 	{
-		static bool const glfw_init{ glfwInit() == GLFW_TRUE };
-
-		ML_assert("failed initializing glfw window" && glfw_init);
+		static auto const init{ ML_check(get_window_manager()->initialize()) };
 	}
 
 	glfw_window::glfw_window(
@@ -68,9 +38,9 @@ namespace ml
 
 	glfw_window::~glfw_window()
 	{
-		static ML_defer(&) { glfwTerminate(); };
-
 		glfwDestroyWindow(m_window);
+
+		static ML_defer(&) { get_window_manager()->finalize(); };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -84,7 +54,8 @@ namespace ml
 	)
 	{
 		// check already open
-		if (is_open()) {
+		if (is_open())
+		{
 			return debug::error("glfw_window is already open");
 		}
 
@@ -151,7 +122,8 @@ namespace ml
 			m_title.c_str(), // title
 			nullptr, // monitor
 			nullptr // share
-		))) {
+		)))
+		{
 			return debug::error("failed opening glfw_window");
 		}
 
@@ -311,20 +283,19 @@ namespace ml
 	{
 		static window_manager temp
 		{
+			&glfwInit,
+			&glfwTerminate,
 			&glfw_window::extension_supported,
+			&glfw_window::get_proc_address,
 			&glfw_window::get_active_window,
 			&glfw_window::get_monitors,
 			&glfw_window::get_primary_monitor,
-			&glfw_window::get_proc_address,
 			&glfw_window::get_time,
 			&glfw_window::set_active_window,
 			&glfw_window::set_error_callback,
 			&glfw_window::set_swap_interval,
 			&glfw_window::poll_events,
-			&glfw_window::swap_buffers,
-			&glfw_window::create_custom_cursor,
-			&glfw_window::create_standard_cursor,
-			&glfw_window::destroy_cursor
+			&glfw_window::swap_buffers
 		};
 		return std::addressof(temp);
 	}
@@ -444,7 +415,9 @@ namespace ml
 
 	void glfw_window::set_icons(size_t w, size_t h, byte_t const * p, size_t n)
 	{
-		glfwSetWindowIcon(m_window, (int32_t)n, make_glfw_image(w, h, p));
+		GLFWimage temp{ (int32_t)w, (int32_t)h, (byte_t *)p };
+
+		glfwSetWindowIcon(m_window, (int32_t)n, &temp);
 	}
 
 	void glfw_window::set_input_mode(int32_t mode, int32_t value)
@@ -512,116 +485,6 @@ namespace ml
 	{
 		glfwSetWindowUserPointer((GLFWwindow *)m_window, value);
 		return value;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	int32_t glfw_window::extension_supported(cstring value)
-	{
-		return glfwExtensionSupported(value);
-	}
-
-	window_handle glfw_window::get_active_window()
-	{
-		return (window_handle)glfwGetCurrentContext();
-	}
-
-	ds::list<monitor_handle> const & glfw_window::get_monitors()
-	{
-		static ds::list<monitor_handle> temp{};
-		static ML_scope(&) // once
-		{
-			if (int32_t count{}; GLFWmonitor * *monitors{ glfwGetMonitors(&count) })
-			{
-				temp.reserve((size_t)count);
-
-				for (size_t i = 0, imax = (size_t)count; i < imax; ++i)
-				{
-					temp.push_back((monitor_handle)monitors[i]);
-				}
-			}
-		};
-		return temp;
-	}
-
-	void * glfw_window::get_proc_address(cstring value)
-	{
-		return glfwGetProcAddress(value);
-	}
-
-	monitor_handle glfw_window::get_primary_monitor()
-	{
-		return (monitor_handle)glfwGetPrimaryMonitor();
-	}
-
-	duration glfw_window::get_time()
-	{
-		return duration{ glfwGetTime() };
-	}
-
-	void glfw_window::set_active_window(window_handle value)
-	{
-		glfwMakeContextCurrent((GLFWwindow *)value);
-	}
-
-	window_error_callback glfw_window::set_error_callback(window_error_callback fn)
-	{
-		return reinterpret_cast<window_error_callback>(
-			glfwSetErrorCallback(
-				reinterpret_cast<GLFWerrorfun>(fn)));
-	}
-
-	void glfw_window::set_swap_interval(int32_t value)
-	{
-		glfwSwapInterval(value);
-	}
-
-	void glfw_window::poll_events()
-	{
-		glfwPollEvents();
-	}
-
-	void glfw_window::swap_buffers(window_handle value)
-	{
-		glfwSwapBuffers((GLFWwindow *)value);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	cursor_handle glfw_window::create_custom_cursor(size_t w, size_t h, byte_t const * p)
-	{
-		return (cursor_handle)glfwCreateCursor(make_glfw_image(w, h, p), (int32_t)w, (int32_t)h);
-	}
-
-	cursor_handle glfw_window::create_standard_cursor(int32_t value)
-	{
-		return (cursor_handle)glfwCreateStandardCursor(std::invoke([value]() noexcept
-		{
-			switch (value)
-			{
-			default							: return 0;
-			case cursor_shape_arrow			: return GLFW_ARROW_CURSOR;
-			case cursor_shape_ibeam			: return GLFW_IBEAM_CURSOR;
-			case cursor_shape_crosshair		: return GLFW_CROSSHAIR_CURSOR;
-			case cursor_shape_pointing_hand	: return GLFW_POINTING_HAND_CURSOR;
-			case cursor_shape_ew			: return GLFW_RESIZE_EW_CURSOR;
-			case cursor_shape_ns			: return GLFW_RESIZE_NS_CURSOR;
-			case cursor_shape_nesw			: return GLFW_RESIZE_NESW_CURSOR;
-			case cursor_shape_nwse			: return GLFW_RESIZE_NWSE_CURSOR;
-			case cursor_shape_resize_all	: return GLFW_RESIZE_ALL_CURSOR;
-			case cursor_shape_not_allowed	: return GLFW_NOT_ALLOWED_CURSOR;
-
-			// glfw doesn't have these
-			case cursor_shape_hresize		: return GLFW_HRESIZE_CURSOR;
-			case cursor_shape_vresize		: return GLFW_VRESIZE_CURSOR;
-			case cursor_shape_hand			: return GLFW_HAND_CURSOR;
-			}
-		}));
-	}
-
-	void glfw_window::destroy_cursor(cursor_handle value)
-	{
-		glfwDestroyCursor((GLFWcursor *)value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -831,6 +694,118 @@ namespace ml
 		return reinterpret_cast<window_scroll_callback>(
 			glfwSetScrollCallback(m_window,
 				reinterpret_cast<GLFWscrollfun>(m_clbk.on_scroll = fn)));
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	int32_t glfw_window::extension_supported(cstring value)
+	{
+		return glfwExtensionSupported(value);
+	}
+
+	window_handle glfw_window::get_active_window()
+	{
+		return (window_handle)glfwGetCurrentContext();
+	}
+
+	ds::list<monitor_handle> const & glfw_window::get_monitors()
+	{
+		static ds::list<monitor_handle> temp{};
+		static ML_scope(&) // once
+		{
+			if (int32_t count{}; GLFWmonitor * *monitors{ glfwGetMonitors(&count) })
+			{
+				temp.reserve((size_t)count);
+
+				for (size_t i = 0, imax = (size_t)count; i < imax; ++i)
+				{
+					temp.push_back((monitor_handle)monitors[i]);
+				}
+			}
+		};
+		return temp;
+	}
+
+	void * glfw_window::get_proc_address(cstring value)
+	{
+		return glfwGetProcAddress(value);
+	}
+
+	monitor_handle glfw_window::get_primary_monitor()
+	{
+		return (monitor_handle)glfwGetPrimaryMonitor();
+	}
+
+	duration glfw_window::get_time()
+	{
+		return duration{ glfwGetTime() };
+	}
+
+	void glfw_window::set_active_window(window_handle value)
+	{
+		glfwMakeContextCurrent((GLFWwindow *)value);
+	}
+
+	window_error_callback glfw_window::set_error_callback(window_error_callback fn)
+	{
+		return reinterpret_cast<window_error_callback>(
+			glfwSetErrorCallback(
+				reinterpret_cast<GLFWerrorfun>(fn)));
+	}
+
+	void glfw_window::set_swap_interval(int32_t value)
+	{
+		glfwSwapInterval(value);
+	}
+
+	void glfw_window::poll_events()
+	{
+		glfwPollEvents();
+	}
+
+	void glfw_window::swap_buffers(window_handle value)
+	{
+		glfwSwapBuffers((GLFWwindow *)value);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	cursor_handle glfw_window::create_custom_cursor(size_t w, size_t h, byte_t const * p, int32_t x, int32_t y)
+	{
+		GLFWimage temp{ (int32_t)w, (int32_t)h, (byte_t *)p };
+
+		return (cursor_handle)glfwCreateCursor(&temp, x, y);
+	}
+
+	cursor_handle glfw_window::create_standard_cursor(int32_t value)
+	{
+		return (cursor_handle)glfwCreateStandardCursor(std::invoke([value]() noexcept
+		{
+			switch (value)
+			{
+			default							: return 0;
+			case cursor_shape_arrow			: return GLFW_ARROW_CURSOR;
+			case cursor_shape_ibeam			: return GLFW_IBEAM_CURSOR;
+			case cursor_shape_crosshair		: return GLFW_CROSSHAIR_CURSOR;
+			case cursor_shape_pointing_hand	: return GLFW_POINTING_HAND_CURSOR;
+			case cursor_shape_ew			: return GLFW_RESIZE_EW_CURSOR;
+			case cursor_shape_ns			: return GLFW_RESIZE_NS_CURSOR;
+			case cursor_shape_nesw			: return GLFW_RESIZE_NESW_CURSOR;
+			case cursor_shape_nwse			: return GLFW_RESIZE_NWSE_CURSOR;
+			case cursor_shape_resize_all	: return GLFW_RESIZE_ALL_CURSOR;
+			case cursor_shape_not_allowed	: return GLFW_NOT_ALLOWED_CURSOR;
+
+			// glfw doesn't have these
+			case cursor_shape_hresize		: return GLFW_HRESIZE_CURSOR;
+			case cursor_shape_vresize		: return GLFW_VRESIZE_CURSOR;
+			case cursor_shape_hand			: return GLFW_HAND_CURSOR;
+			}
+		}));
+	}
+
+	void glfw_window::destroy_cursor(cursor_handle value)
+	{
+		glfwDestroyCursor((GLFWcursor *)value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

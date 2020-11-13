@@ -119,24 +119,13 @@ namespace ml
 	};
 
 	// default delete
-	template <class T = void> struct default_delete final
+	template <class T> struct default_delete final
 	{
-		using type = std::_Remove_cvref_t<T>;
-
 		constexpr default_delete() noexcept = default;
 
 		template <class U> void operator()(U * value) const noexcept
 		{
-			auto const g{ get_global<memory_manager>() };
-
-			if constexpr (std::is_same_v<type, void>)
-			{
-				g->deallocate(value);
-			}
-			else
-			{
-				g->delete_object(static_cast<type *>(value));
-			}
+			_ML ml_free(value);
 		}
 	};
 }
@@ -424,6 +413,40 @@ namespace ml::globals
 	ML_decl_global(memory_manager) set(memory_manager * value) noexcept;
 }
 
+// c-like interface
+namespace ml
+{
+	// malloc
+	inline void * ml_malloc(size_t size) noexcept
+	{
+		return ML_check(get_global<memory_manager>())->allocate(size);
+	}
+
+	// calloc
+	inline void * ml_calloc(size_t count, size_t size) noexcept
+	{
+		return ML_check(get_global<memory_manager>())->allocate(count, size);
+	}
+
+	// realloc
+	inline void * ml_realloc(void * addr, size_t size) noexcept
+	{
+		return ML_check(get_global<memory_manager>())->reallocate(addr, size);
+	}
+
+	// realloc (sized)
+	inline void * ml_realloc(void * addr, size_t oldsz, size_t newsz) noexcept
+	{
+		return ML_check(get_global<memory_manager>())->reallocate(addr, oldsz, newsz);
+	}
+
+	// free
+	inline void ml_free(void * addr) noexcept
+	{
+		ML_check(get_global<memory_manager>())->deallocate(addr);
+	}
+}
+
 // trackable
 namespace ml
 {
@@ -434,35 +457,13 @@ namespace ml
 
 		virtual ~trackable() noexcept = default;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		ML_NODISCARD void * operator new(size_t size) noexcept { return ml_malloc(size); }
 
-		ML_NODISCARD void * operator new(size_t size) noexcept
-		{
-			auto const g{ ML_check(get_global<memory_manager>()) };
+		ML_NODISCARD void * operator new[](size_t size) noexcept { return ml_malloc(size); }
 
-			return g->allocate(size);
-		}
+		void operator delete(void * addr) noexcept { ml_free(addr); }
 
-		ML_NODISCARD void * operator new[](size_t size) noexcept
-		{
-			auto const g{ ML_check(get_global<memory_manager>()) };
-
-			return g->allocate(size);
-		}
-
-		void operator delete(void * addr) noexcept
-		{
-			auto const g{ ML_check(get_global<memory_manager>()) };
-
-			g->deallocate(addr);
-		}
-
-		void operator delete[](void * addr) noexcept
-		{
-			auto const g{ ML_check(get_global<memory_manager>()) };
-
-			g->deallocate(addr);
-		}
+		void operator delete[](void * addr) noexcept { ml_free(addr); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

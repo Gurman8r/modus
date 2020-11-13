@@ -118,14 +118,48 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// OBJECT WIDGETS
+namespace ml::ImGuiExt
+{
+	template <class T
+	> ImGuiID GetID(T const * p)
+	{
+		return ImGui::GetID(p->Title);
+	}
+
+	template <class T
+	> bool MenuItem(T * p, cstring shortcut = {}, bool enabled = true)
+	{
+		return ImGui::MenuItem(p->Title, shortcut, &p->IsOpen, enabled);
+	}
+
+	template <class T
+	> bool Selectable(T * p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
+	{
+		return ImGui::Selectable(p->Title, &p->IsOpen, flags, size);
+	}
+
+	template <class T
+	> ImGuiWindow * FindWindowByID(T * p)
+	{
+		return ImGui::FindWindowByID(GetID(p));
+	}
+
+	template <class T
+	> ImGuiWindow * FindWindowByName(T * p)
+	{
+		return ImGui::FindWindowByName(p->Title);
+	}
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // PANELS
 namespace ml::ImGuiExt
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// BASIC PANEL
-	template <class Derived
-	> struct ML_NODISCARD BasicPanel
+	template <class Derived> struct ML_NODISCARD BasicPanel
 	{
 		cstring		Title		; // title
 		bool		IsOpen		; // is open
@@ -148,28 +182,12 @@ namespace ml::ImGuiExt
 		void End() noexcept { ImGui::End(); }
 
 		ML_NODISCARD ImGuiID GetID() const noexcept { return ImGuiExt::GetID(this); }
+
+		auto SetWindowFlag(ImGuiWindowFlags_ index, bool value) noexcept
+		{
+			return ML_flag_write(this->WinFlags, (int32_t)index, value);
+		}
 	};
-
-	// BASIC PANEL ID
-	template <class Derived
-	> ImGuiID GetID(BasicPanel<Derived> const * p) noexcept
-	{
-		return ImGui::GetID(p->Title);
-	}
-
-	// BASIC PANEL MENU ITEM
-	template <class Derived
-	> bool MenuItem(BasicPanel<Derived> * p, cstring shortcut = {}, bool enabled = true)
-	{
-		return ImGui::MenuItem(p->Title, shortcut, &p->IsOpen, enabled);
-	}
-
-	// BASIC PANEL SELECTABLE
-	template <class Derived
-	> bool Selectable(BasicPanel<Derived> * p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
-	{
-		return ImGui::Selectable(p->Title, &p->IsOpen, flags, size);
-	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -203,10 +221,29 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// MENUBAR
+namespace ml::ImGuiExt
+{
+	// menubar
+	struct ML_NODISCARD ML_CORE_API MenuBar final : trackable
+	{
+		cstring Title{ "MenuBar"};
+
+		explicit MenuBar(cstring title) noexcept : Title{ title } {}
+
+		ML_NODISCARD ImGuiID GetID() const noexcept { return ImGuiExt::GetID(this); }
+
+		void Configure(json const & j);
+	};
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // DOCKSPACE
 namespace ml::ImGuiExt
 {
-	struct ML_NODISCARD Dockspace : BasicPanel<Dockspace>
+	// dockspace
+	struct ML_NODISCARD ML_CORE_API Dockspace : BasicPanel<Dockspace>
 	{
 		float_t		Border		; // 
 		float_t		Rounding	; // 
@@ -215,7 +252,7 @@ namespace ml::ImGuiExt
 		vec2		Size		; // 
 		int32_t		DockFlags	; // 
 
-		static constexpr auto DockspaceWinFlags
+		static constexpr auto DefaultWindowFlags
 		{
 			ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse |
@@ -227,7 +264,8 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoBackground
 		};
 
-		static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept {
+		static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept
+		{
 			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
 		}
 
@@ -239,7 +277,7 @@ namespace ml::ImGuiExt
 			vec2 const &	padding		= {},
 			float_t			alpha		= {},
 			vec2 const &	docksize	= {},
-			int32_t			winflags	= DockspaceWinFlags,
+			int32_t			winflags	= DefaultWindowFlags,
 			int32_t			dockflags	= ImGuiDockNodeFlags_AutoHideTabBar)
 			: BasicPanel	{ title, open, winflags }
 			, Border		{ border }
@@ -263,17 +301,16 @@ namespace ml::ImGuiExt
 		}
 		{}
 
+		auto SetDockNodeFlag(ImGuiDockNodeFlags_ index, bool value) noexcept
+		{
+			return ML_flag_write(this->DockFlags, (int32_t)index, value);
+		}
+
 		template <class Fn, class ... Args
 		> bool operator()(ImGuiViewport const * vp, Fn && fn, Args && ... args) noexcept
 		{
 			if (!IsOpen || !vp || !IsDockingEnabled()) { return false; }
 
-			// main menu bar
-			ML_flag_write(
-				this->WinFlags,
-				ImGuiWindowFlags_MenuBar,
-				ImGui::FindWindowByName("##MainMenuBar"));
-			
 			ImGuiExt_ScopeID(this);
 			ImGui::SetNextWindowPos(vp->Pos);
 			ImGui::SetNextWindowSize(vp->Size);
@@ -297,6 +334,8 @@ namespace ml::ImGuiExt
 			}
 			return is_open;
 		}
+
+		void Configure(json const & j);
 	};
 }
 

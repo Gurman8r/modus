@@ -3,7 +3,7 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <modus_core/Common.hpp>
+#include <modus_core/detail/Flow.hpp>
 #include <nlohmann/json.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

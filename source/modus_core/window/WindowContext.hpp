@@ -151,15 +151,19 @@ namespace ml
 	// window context
 	struct ML_NODISCARD window_manager final
 	{
+		int32_t (*initialize)();
+
+		void (*finalize)();
+
 		int32_t (*extension_supported)(cstring);
+
+		void * (*get_proc_address)(cstring);
 
 		window_handle (*get_active_window)();
 
 		ds::list<monitor_handle> const & (*get_monitors)();
 
 		monitor_handle (*get_primary_monitor)();
-
-		void * (*get_proc_address)(cstring);
 
 		duration (*get_time)();
 
@@ -172,12 +176,6 @@ namespace ml
 		void (*poll_events)();
 
 		void (*swap_buffers)(window_handle);
-
-		cursor_handle (*create_custom_cursor)(size_t, size_t, byte_t const *);
-
-		cursor_handle (*create_standard_cursor)(int32_t);
-
-		void (*destroy_cursor)(cursor_handle);
 	};
 }
 

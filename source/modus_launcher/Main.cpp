@@ -112,8 +112,7 @@ int32_t main(int32_t argc, char * argv[])
 		}
 	}
 
-	app->get_bus()->new_dummy<app_enter_event, app_exit_event
-	>([&](event const & value) {
+	app->get_bus()->new_dummy<app_enter_event>([&](event const & value) {
 		if (value == app_enter_event::ID) {
 			if (app->attr().contains("scripts")) {
 				for (json const & e : app->attr("scripts")) {
@@ -121,9 +120,6 @@ int32_t main(int32_t argc, char * argv[])
 					PyRun_AnyFileEx(std::fopen(path.c_str(), "r"), path.c_str(), true);
 				}
 			}
-		}
-		else if (value == app_exit_event::ID) {
-			debug::ok("goodbye!");
 		}
 	});
 

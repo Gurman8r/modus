@@ -5,7 +5,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	plugin::plugin(plugin_manager * manager, void * userptr)
-		: event_listener{ manager->get_bus() }
+		: event_listener{ manager->get_app()->get_bus() }
 		, m_app			{ manager->get_app() }
 		, m_manager		{ manager }
 		, m_userptr		{ userptr }

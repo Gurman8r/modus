@@ -68,7 +68,7 @@ namespace ml
 namespace ml
 {
 	// plugin manager
-	struct ML_CORE_API plugin_manager final : non_copyable, trackable, event_listener
+	struct ML_CORE_API plugin_manager final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -180,11 +180,6 @@ namespace ml
 
 		template <class T
 		> ML_NODISCARD auto get_data(size_t i) const & noexcept -> T const & { return m_data.at<T>(i); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		void on_event(event const & value) final {}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

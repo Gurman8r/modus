@@ -2,7 +2,6 @@
 #define _ML_APPLICATION_HPP_
 
 #include <modus_core/engine/GuiApplication.hpp>
-#include <modus_core/engine/PluginManager.hpp>
 
 namespace ml
 {
@@ -14,7 +13,7 @@ namespace ml
 	public:
 		using gui_application::allocator_type;
 
-		explicit application(int32_t argc, char * argv[], allocator_type alloc = {});
+		explicit application(int32 argc, char * argv[], allocator_type alloc = {});
 
 		virtual ~application() noexcept override;
 

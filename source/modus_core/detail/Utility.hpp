@@ -6,8 +6,12 @@
 #include <modus_core/detail/Globals.hpp>
 #include <modus_core/detail/JSON.hpp>
 #include <modus_core/detail/Meta.hpp>
-#include <modus_core/detail/Singleton.hpp>
-#include <modus_core/detail/TypeInfo.hpp>
+#include <modus_core/detail/Singleton.hpp>	// NonCopyable.hpp
+#include <modus_core/detail/TypeInfo.hpp>	// Hash.hpp
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#define _ML_UTIL _ML util::
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -53,22 +57,29 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// Globals
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+// pi
+#define ML_PI 3.14159265359
 
 // Trig
 namespace ml::util
 {
-	template <class T = float_t
-	> static constexpr auto pi_v{ static_cast<T>(3.14159265358979L) };
+	template <class T = float32
+	> static constexpr auto pi
+	{
+		static_cast<T>(ML_PI)
+	};
 
-	template <class T = float_t
-	> static constexpr auto deg2rag_v{ _ML util::pi_v<T> / T{ 180 } };
+	template <class T = float32
+	> constexpr auto deg2rad(T value) noexcept
+	{
+		return value * (pi<T> / static_cast<T>(180));
+	}
 
-	template <class T = float_t
-	> static constexpr auto rad2deg_v{ T{ 180 } / _ML util::pi_v<T> };
+	template <class T = float32
+	> constexpr T rad2deg(T value) noexcept
+	{
+		return value * (static_cast<T>(180) / pi<T>);
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -348,7 +359,7 @@ namespace ml::util
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class V2, class T = float_t
+	template <class V2, class T = float32
 	> ML_NODISCARD constexpr auto aspect(V2 const & v) noexcept
 	{
 		return (T{ 0 } < v[1]) ? (static_cast<T>(v[0]) / static_cast<T>(v[1])) : T{ 0 };
@@ -373,7 +384,7 @@ namespace ml::util
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class R, class T = float_t
+	template <class R, class T = float32
 	> ML_NODISCARD constexpr auto ratio_cast(T v = T{ 1 }) noexcept
 	{
 		if constexpr (((T)R::num == (T)1) && ((T)R::den == (T)1))
@@ -394,7 +405,7 @@ namespace ml::util
 		}
 	}
 
-	template <class T, int64_t Num, int64_t Den
+	template <class T, int64 Num, int64 Den
 	> ML_NODISCARD constexpr auto ratio_cast(T v, std::ratio<Num, Den> const & r)
 	{
 		auto const
@@ -441,79 +452,79 @@ namespace ml::byte_literals
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// kibibyte
-	ML_NODISCARD constexpr uint64_t operator"" _KiB(uint64_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _KiB(uint64 n) noexcept
 	{
 		return _ML util::power_of_2(_ML util::ratio_cast(n, std::kilo{}));
 	}
 
-	ML_NODISCARD constexpr uint64_t operator"" _KiB(float80_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _KiB(float80 n) noexcept
 	{
-		return static_cast<uint64_t>(_ML util::power_of_2(_ML util::ratio_cast(n, std::kilo{})));
+		return static_cast<uint64>(_ML util::power_of_2(_ML util::ratio_cast(n, std::kilo{})));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// mebibyte
-	ML_NODISCARD constexpr uint64_t operator"" _MiB(uint64_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _MiB(uint64 n) noexcept
 	{
 		return _ML util::power_of_2(_ML util::ratio_cast(n, std::mega{}));
 	}
 
-	ML_NODISCARD constexpr uint64_t operator"" _MiB(float80_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _MiB(float80 n) noexcept
 	{
-		return static_cast<uint64_t>(_ML util::power_of_2(_ML util::ratio_cast(n, std::mega{})));
+		return static_cast<uint64>(_ML util::power_of_2(_ML util::ratio_cast(n, std::mega{})));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// gibibyte
-	ML_NODISCARD constexpr uint64_t operator"" _GiB(uint64_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _GiB(uint64 n) noexcept
 	{
 		return _ML util::power_of_2(_ML util::ratio_cast(n, std::giga{}));
 	}
 
-	ML_NODISCARD constexpr uint64_t operator"" _GiB(float80_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _GiB(float80 n) noexcept
 	{
-		return static_cast<uint64_t>(_ML util::power_of_2(_ML util::ratio_cast(n, std::giga{})));
+		return static_cast<uint64>(_ML util::power_of_2(_ML util::ratio_cast(n, std::giga{})));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// tebibyte
-	ML_NODISCARD constexpr uint64_t operator"" _TiB(uint64_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _TiB(uint64 n) noexcept
 	{
 		return _ML util::power_of_2(_ML util::ratio_cast(n, std::tera{}));
 	}
 
-	ML_NODISCARD constexpr uint64_t operator"" _TiB(float80_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _TiB(float80 n) noexcept
 	{
-		return static_cast<uint64_t>(_ML util::power_of_2(_ML util::ratio_cast(n, std::tera{})));
+		return static_cast<uint64>(_ML util::power_of_2(_ML util::ratio_cast(n, std::tera{})));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// pebibyte
-	ML_NODISCARD constexpr uint64_t operator"" _PiB(uint64_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _PiB(uint64 n) noexcept
 	{
 		return _ML util::power_of_2(_ML util::ratio_cast(n, std::peta{}));
 	}
 
-	ML_NODISCARD constexpr uint64_t operator"" _PiB(float80_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _PiB(float80 n) noexcept
 	{
-		return static_cast<uint64_t>(_ML util::power_of_2(_ML util::ratio_cast(n, std::peta{})));
+		return static_cast<uint64>(_ML util::power_of_2(_ML util::ratio_cast(n, std::peta{})));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// exbibyte
-	ML_NODISCARD constexpr uint64_t operator"" _EiB(uint64_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _EiB(uint64 n) noexcept
 	{
 		return _ML util::power_of_2(_ML util::ratio_cast(n, std::exa{}));
 	}
 
-	ML_NODISCARD constexpr uint64_t operator"" _EiB(float80_t n) noexcept
+	ML_NODISCARD constexpr uint64 operator"" _EiB(float80 n) noexcept
 	{
-		return static_cast<uint64_t>(_ML util::power_of_2(_ML util::ratio_cast(n, std::exa{})));
+		return static_cast<uint64>(_ML util::power_of_2(_ML util::ratio_cast(n, std::exa{})));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

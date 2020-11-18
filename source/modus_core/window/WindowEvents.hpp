@@ -10,9 +10,9 @@ namespace ml
 
 	ML_event(window_char_event)
 	{
-		uint32_t const value;
+		uint32 const value;
 
-		constexpr window_char_event(uint32_t value) noexcept
+		constexpr window_char_event(uint32 value) noexcept
 			: value{ value }
 		{
 		}
@@ -22,10 +22,10 @@ namespace ml
 
 	ML_event(window_char_mods_event)
 	{
-		uint32_t const value;
-		int32_t const mods;
+		uint32 const value;
+		int32 const mods;
 
-		constexpr window_char_mods_event(uint32_t value, int32_t mods) noexcept
+		constexpr window_char_mods_event(uint32 value, int32 mods) noexcept
 			: value{ value }, mods{ mods }
 		{
 		}
@@ -44,9 +44,9 @@ namespace ml
 
 	ML_event(window_content_scale_event)
 	{
-		float_t const x, y;
+		float32 const x, y;
 
-		constexpr window_content_scale_event(float_t x, float_t y) noexcept
+		constexpr window_content_scale_event(float32 x, float32 y) noexcept
 			: x{ x }, y{ y }
 		{
 		}
@@ -56,10 +56,10 @@ namespace ml
 
 	ML_event(window_drop_event)
 	{
-		int32_t const count;
+		int32 const count;
 		cstring const * const paths;
 
-		constexpr window_drop_event(int32_t count, cstring const * paths) noexcept
+		constexpr window_drop_event(int32 count, cstring const * paths) noexcept
 			: count{ count }, paths{ paths }
 		{
 		}
@@ -69,9 +69,9 @@ namespace ml
 
 	ML_event(window_cursor_enter_event)
 	{
-		int32_t const entered;
+		int32 const entered;
 
-		constexpr window_cursor_enter_event(int32_t entered) noexcept
+		constexpr window_cursor_enter_event(int32 entered) noexcept
 			: entered{ entered }
 		{
 		}
@@ -81,9 +81,9 @@ namespace ml
 
 	ML_event(window_cursor_pos_event)
 	{
-		float64_t const x, y;
+		float64 const x, y;
 
-		constexpr window_cursor_pos_event(float64_t x, float64_t y) noexcept
+		constexpr window_cursor_pos_event(float64 x, float64 y) noexcept
 			: x{ x }, y{ y }
 		{
 		}
@@ -93,10 +93,10 @@ namespace ml
 
 	ML_event(window_error_event)
 	{
-		int32_t const code;
+		int32 const code;
 		cstring const desc;
 
-		constexpr window_error_event(int32_t code, cstring desc) noexcept
+		constexpr window_error_event(int32 code, cstring desc) noexcept
 			: code{ code }, desc{ desc }
 		{
 		}
@@ -106,9 +106,9 @@ namespace ml
 
 	ML_event(window_focus_event)
 	{
-		int32_t const focused;
+		int32 const focused;
 
-		constexpr window_focus_event(int32_t focused) noexcept
+		constexpr window_focus_event(int32 focused) noexcept
 			: focused{ focused }
 		{
 		}
@@ -118,9 +118,9 @@ namespace ml
 
 	ML_event(window_framebuffer_resize_event)
 	{
-		int32_t const width, height;
+		int32 const width, height;
 
-		constexpr window_framebuffer_resize_event(int32_t width, int32_t height) noexcept
+		constexpr window_framebuffer_resize_event(int32 width, int32 height) noexcept
 			: width{ width }, height{ height }
 		{
 		}
@@ -130,9 +130,9 @@ namespace ml
 
 	ML_event(window_iconify_event)
 	{
-		int32_t const iconified;
+		int32 const iconified;
 
-		constexpr window_iconify_event(int32_t iconified) noexcept
+		constexpr window_iconify_event(int32 iconified) noexcept
 			: iconified{ iconified }
 		{
 		}
@@ -142,25 +142,25 @@ namespace ml
 
 	ML_event(window_key_event)
 	{
-		int32_t const key, scan, action, mods;
+		int32 const key, scan, action, mods;
 
-		constexpr window_key_event(int32_t key, int32_t scan, int32_t action, int32_t mods) noexcept
+		constexpr window_key_event(int32 key, int32 scan, int32 action, int32 mods) noexcept
 			: key{ key }, scan{ scan }, action{ action }, mods{ mods }
 		{
 		}
 
-		constexpr bool is_action	(int32_t a) const noexcept { return action == a; }
-		constexpr bool is_key		(int32_t k) const noexcept { return key == k; }
-		constexpr bool is_mods		(int32_t m) const noexcept { return mods == m; }
-		constexpr bool has_mods		(int32_t m) const noexcept { return (m & mods) == m; }
+		constexpr bool is_action	(int32 a) const noexcept { return action == a; }
+		constexpr bool is_key		(int32 k) const noexcept { return key == k; }
+		constexpr bool is_mods		(int32 m) const noexcept { return mods == m; }
+		constexpr bool has_mods		(int32 m) const noexcept { return (m & mods) == m; }
 		
-		constexpr bool is_release	(int32_t k) const noexcept { return is_key(k) && is_action(0); }
-		constexpr bool is_press		(int32_t k) const noexcept { return is_key(k) && is_action(1); }
-		constexpr bool is_repeat	(int32_t k) const noexcept { return is_key(k) && is_action(2); }
+		constexpr bool is_release	(int32 k) const noexcept { return is_key(k) && is_action(0); }
+		constexpr bool is_press		(int32 k) const noexcept { return is_key(k) && is_action(1); }
+		constexpr bool is_repeat	(int32 k) const noexcept { return is_key(k) && is_action(2); }
 
-		constexpr bool is_release	(int32_t k, int32_t m) const noexcept { return is_release(k) && is_mods(m); }
-		constexpr bool is_press		(int32_t k, int32_t m) const noexcept { return is_press(k) && is_mods(m); }
-		constexpr bool is_repeat	(int32_t k, int32_t m) const noexcept { return is_repeat(k) && is_mods(m); }
+		constexpr bool is_release	(int32 k, int32 m) const noexcept { return is_release(k) && is_mods(m); }
+		constexpr bool is_press		(int32 k, int32 m) const noexcept { return is_press(k) && is_mods(m); }
+		constexpr bool is_repeat	(int32 k, int32 m) const noexcept { return is_repeat(k) && is_mods(m); }
 
 		constexpr bool is_shift		() const noexcept { return has_mods(keymods_shift);  }
 		constexpr bool is_ctrl		() const noexcept { return has_mods(keymods_ctrl); }
@@ -169,12 +169,12 @@ namespace ml
 		constexpr bool is_caps		() const noexcept { return has_mods(keymods_caps_lock); }
 		constexpr bool is_numlk		() const noexcept { return has_mods(keymods_num_lock); }
 
-		constexpr bool is_shift		(int32_t k) const noexcept { return is_press(k) && is_shift();  }
-		constexpr bool is_ctrl		(int32_t k) const noexcept { return is_press(k) && is_ctrl(); }
-		constexpr bool is_alt		(int32_t k) const noexcept { return is_press(k) && is_alt(); }
-		constexpr bool is_super		(int32_t k) const noexcept { return is_press(k) && is_super(); }
-		constexpr bool is_caps		(int32_t k) const noexcept { return is_press(k) && is_caps(); }
-		constexpr bool is_numlk		(int32_t k) const noexcept { return is_press(k) && is_numlk(); }
+		constexpr bool is_shift		(int32 k) const noexcept { return is_press(k) && is_shift();  }
+		constexpr bool is_ctrl		(int32 k) const noexcept { return is_press(k) && is_ctrl(); }
+		constexpr bool is_alt		(int32 k) const noexcept { return is_press(k) && is_alt(); }
+		constexpr bool is_super		(int32 k) const noexcept { return is_press(k) && is_super(); }
+		constexpr bool is_caps		(int32 k) const noexcept { return is_press(k) && is_caps(); }
+		constexpr bool is_numlk		(int32 k) const noexcept { return is_press(k) && is_numlk(); }
 
 		constexpr bool is_new		() const noexcept { return is_ctrl(keycode_n); }
 		constexpr bool is_open		() const noexcept { return is_ctrl(keycode_o); }
@@ -190,9 +190,9 @@ namespace ml
 
 	ML_event(window_maximize_event)
 	{
-		int32_t const maximized;
+		int32 const maximized;
 
-		constexpr window_maximize_event(int32_t maximized) noexcept
+		constexpr window_maximize_event(int32 maximized) noexcept
 			: maximized{ maximized }
 		{
 		}
@@ -202,34 +202,34 @@ namespace ml
 
 	ML_event(window_mouse_event)
 	{
-		int32_t const button, action, mods;
+		int32 const button, action, mods;
 
-		constexpr window_mouse_event(int32_t button, int32_t action, int32_t mods) noexcept
+		constexpr window_mouse_event(int32 button, int32 action, int32 mods) noexcept
 			: button{ button }, action{ action }, mods{ mods }
 		{
 		}
 
-		constexpr bool is_action	(int32_t a) const noexcept { return action == a; }
-		constexpr bool is_button	(int32_t b) const noexcept { return button == b; }
-		constexpr bool is_mods		(int32_t m) const noexcept { return mods == m; }
-		constexpr bool has_mods		(int32_t m) const noexcept { return (m & mods) == m; }
+		constexpr bool is_action	(int32 a) const noexcept { return action == a; }
+		constexpr bool is_button	(int32 b) const noexcept { return button == b; }
+		constexpr bool is_mods		(int32 m) const noexcept { return mods == m; }
+		constexpr bool has_mods		(int32 m) const noexcept { return (m & mods) == m; }
 		
-		constexpr bool is_release	(int32_t b) const noexcept { return is_button(b) && is_action(0); }
-		constexpr bool is_press		(int32_t b) const noexcept { return is_button(b) && is_action(1); }
-		constexpr bool is_repeat	(int32_t b) const noexcept { return is_button(b) && is_action(2); }
+		constexpr bool is_release	(int32 b) const noexcept { return is_button(b) && is_action(0); }
+		constexpr bool is_press		(int32 b) const noexcept { return is_button(b) && is_action(1); }
+		constexpr bool is_repeat	(int32 b) const noexcept { return is_button(b) && is_action(2); }
 
-		constexpr bool is_release	(int32_t b, int32_t m) const noexcept { return is_release(b) && is_mods(m); }
-		constexpr bool is_press		(int32_t b, int32_t m) const noexcept { return is_press(b) && is_mods(m); }
-		constexpr bool is_repeat	(int32_t b, int32_t m) const noexcept { return is_repeat(b) && is_mods(m); }
+		constexpr bool is_release	(int32 b, int32 m) const noexcept { return is_release(b) && is_mods(m); }
+		constexpr bool is_press		(int32 b, int32 m) const noexcept { return is_press(b) && is_mods(m); }
+		constexpr bool is_repeat	(int32 b, int32 m) const noexcept { return is_repeat(b) && is_mods(m); }
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	ML_event(window_position_event)
 	{
-		int32_t const x, y;
+		int32 const x, y;
 
-		constexpr window_position_event(int32_t x, int32_t y) noexcept
+		constexpr window_position_event(int32 x, int32 y) noexcept
 			: x{ x }, y{ y }
 		{
 		}
@@ -248,9 +248,9 @@ namespace ml
 
 	ML_event(window_scroll_event)
 	{
-		float64_t const x, y;
+		float64 const x, y;
 
-		constexpr window_scroll_event(float64_t x, float64_t y) noexcept
+		constexpr window_scroll_event(float64 x, float64 y) noexcept
 			: x{ x }, y{ y }
 		{
 		}
@@ -260,9 +260,9 @@ namespace ml
 
 	ML_event(window_resize_event)
 	{
-		int32_t const width, height;
+		int32 const width, height;
 
-		constexpr window_resize_event(int32_t width, int32_t height) noexcept
+		constexpr window_resize_event(int32 width, int32 height) noexcept
 			: width{ width }, height{ height }
 		{
 		}

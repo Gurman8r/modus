@@ -1,23 +1,15 @@
 #include <modus_core/imgui/ImGuiExt.hpp>
 
-// MENUBAR
-namespace ml::ImGuiExt
-{
-	void MenuBar::Configure(json const & j)
-	{
-	}
-}
-
 // DOCKSPACE
 namespace ml::ImGuiExt
 {
 	void Dockspace::Configure(json const & j)
 	{
-		if (j.contains("alpha"))	j["alpha"	].get_to(this->Alpha);
-		if (j.contains("border"))	j["border"	].get_to(this->Border);
-		if (j.contains("padding"))	j["padding"	].get_to(this->Padding);
+		if (j.contains("alpha"))	j["alpha"].get_to(this->Alpha);
+		if (j.contains("border"))	j["border"].get_to(this->Border);
+		if (j.contains("padding"))	j["padding"].get_to(this->Padding);
 		if (j.contains("rounding"))	j["rounding"].get_to(this->Rounding);
-		if (j.contains("size"))		j["size"	].get_to(this->Size);
+		if (j.contains("size"))		j["size"].get_to(this->Size);
 	}
 }
 
@@ -191,7 +183,7 @@ namespace ml::ImGuiExt
 		if (reclaim_focus) { ImGui::SetKeyboardFocusHere(-1); } // focus previous widget
 	}
 
-	int32_t Terminal::Execute(Line && line)
+	int32 Terminal::Execute(Line && line)
 	{
 		// empty check
 		if (util::trim(line).empty()) { return debug::error(); }
@@ -228,7 +220,8 @@ namespace ml::ImGuiExt
 		})) })
 		{
 			std::invoke(*proc, std::move(line));
-			return debug::ok();
+
+			return debug::good();
 		}
 		else
 		{
@@ -236,7 +229,7 @@ namespace ml::ImGuiExt
 		}
 	}
 
-	int32_t Terminal::InputTextCallbackStub(ImGuiInputTextCallbackData * data)
+	int32 Terminal::InputTextCallbackStub(ImGuiInputTextCallbackData * data)
 	{
 		switch (data->EventFlag)
 		{
@@ -273,7 +266,7 @@ namespace ml::ImGuiExt
 			else if (candidates.size() == 1)
 			{
 				// entirely replace beginning of word
-				data->DeleteChars((int32_t)(first - data->Buf), (int32_t)(last - first));
+				data->DeleteChars((int32)(first - data->Buf), (int32)(last - first));
 				data->InsertChars(data->CursorPos, candidates[0]);
 				data->InsertChars(data->CursorPos, " ");
 			}
@@ -299,7 +292,7 @@ namespace ml::ImGuiExt
 					match_len++;
 				}
 				if (match_len > 0) {
-					data->DeleteChars((int32_t)(first - data->Buf), (int32_t)(last - first));
+					data->DeleteChars((int32)(first - data->Buf), (int32)(last - first));
 					data->InsertChars(data->CursorPos, candidates[0], candidates[0] + match_len);
 				}
 
@@ -314,12 +307,12 @@ namespace ml::ImGuiExt
 
 		// HISTORY
 		case ImGuiInputTextFlags_CallbackHistory: {
-			int32_t const prev_pos{ HistoryPos };
+			int32 const prev_pos{ HistoryPos };
 			if (data->EventKey == ImGuiKey_UpArrow)
 			{
 				if (HistoryPos == -1)
 				{
-					HistoryPos = (int32_t)History.size() - 1;
+					HistoryPos = (int32)History.size() - 1;
 				}
 				else if (HistoryPos > 0)
 				{
@@ -328,7 +321,7 @@ namespace ml::ImGuiExt
 			}
 			else if (data->EventKey == ImGuiKey_DownArrow)
 			{
-				if (HistoryPos != -1 && (++HistoryPos >= (int32_t)History.size()))
+				if (HistoryPos != -1 && (++HistoryPos >= (int32)History.size()))
 				{
 					HistoryPos = -1;
 				}

@@ -111,9 +111,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		event_bus * const		m_bus		; // 
+		event_bus * const	m_bus		; // 
 		ds::list<layer *>	m_layers	; // 
-		size_t					m_index		; // 
+		size_t				m_index		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

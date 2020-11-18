@@ -57,7 +57,7 @@ namespace ml
 
 		ML_NODISCARD vec2 get_content_scale() const noexcept final;
 
-		ML_NODISCARD int32_t get_cursor_mode() const noexcept final;
+		ML_NODISCARD int32 get_cursor_mode() const noexcept final;
 
 		ML_NODISCARD vec2 get_cursor_pos() const noexcept final;
 
@@ -67,15 +67,15 @@ namespace ml
 
 		ML_NODISCARD window_hints_ get_hints() const noexcept final;
 
-		ML_NODISCARD int32_t get_input_mode(int32_t value) const noexcept final;
+		ML_NODISCARD int32 get_input_mode(int32 value) const noexcept final;
 
-		ML_NODISCARD int32_t get_key(int32_t value) const noexcept final;
+		ML_NODISCARD int32 get_key(int32 value) const noexcept final;
 
-		ML_NODISCARD int32_t get_mouse_button(int32_t value) const noexcept final;
+		ML_NODISCARD int32 get_mouse_button(int32 value) const noexcept final;
 
 		ML_NODISCARD window_handle get_native_handle() const noexcept final;
 
-		ML_NODISCARD float_t get_opacity() const noexcept final;
+		ML_NODISCARD float32 get_opacity() const noexcept final;
 
 		ML_NODISCARD vec2i get_position() const noexcept final;
 
@@ -121,7 +121,7 @@ namespace ml
 		
 		void set_cursor(cursor_handle value) noexcept final;
 		
-		void set_cursor_mode(int32_t value) noexcept final;
+		void set_cursor_mode(int32 value) noexcept final;
 		
 		void set_cursor_pos(vec2d const & value) noexcept final;
 
@@ -131,11 +131,11 @@ namespace ml
 
 		void set_focus_on_show(bool value) noexcept final;
 		
-		void set_icons(size_t w, size_t h, byte_t const * p, size_t n = 1) noexcept final;
+		void set_icons(size_t w, size_t h, byte const * p, size_t n = 1) noexcept final;
 
-		void set_input_mode(int32_t mode, int32_t value) noexcept final;
+		void set_input_mode(int32 mode, int32 value) noexcept final;
 		
-		void set_opacity(float_t value) noexcept final;
+		void set_opacity(float32 value) noexcept final;
 
 		void set_position(vec2i const & value) noexcept final;
 		

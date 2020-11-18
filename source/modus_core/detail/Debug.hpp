@@ -7,9 +7,9 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// ok message
+// good message
 #ifndef ML_IMPL_DEBUG_INFO
-#define ML_IMPL_DEBUG_INFO		"[ok]"
+#define ML_IMPL_DEBUG_INFO		"[good]"
 #endif
 
 // error message
@@ -26,7 +26,7 @@
 
 // wassert
 #ifndef ML_IMPL_WASSERT
-#define ML_IMPL_WASSERT ::_wassert
+#define ML_IMPL_WASSERT _CSTD _wassert
 #endif
 
 // assert extended
@@ -88,7 +88,7 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	inline int32_t clear(int32_t exit_code = EXIT_SUCCESS) noexcept
+	inline int32 clear(int32 exit_code = EXIT_SUCCESS) noexcept
 	{
 #ifdef ML_os_windows
 		std::system("cls");
@@ -100,7 +100,7 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	inline int32_t pause(int32_t exit_code = EXIT_SUCCESS) noexcept
+	inline int32 pause(int32 exit_code = EXIT_SUCCESS) noexcept
 	{
 #ifdef ML_os_windows
 		std::system("pause");
@@ -126,28 +126,28 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	constexpr int32_t ok() noexcept { return 1; } // true
+	constexpr int32 good() noexcept { return 1; } // true
 
 	template <class Fmt
-	> int32_t ok(Fmt && fmt) noexcept
+	> int32 good(Fmt && fmt) noexcept
 	{
 		io.out << ML_IMPL_DEBUG_INFO " " << ML_forward(fmt) << "\n";
 
-		return debug::ok();
+		return debug::good();
 	}
 
 	template <class Fmt, class Arg0, class ... Args
-	> int32_t ok(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> int32 good(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
-		return debug::ok(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
+		return debug::good(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	constexpr int32_t error() noexcept { return 0; } // false
+	constexpr int32 error() noexcept { return 0; } // false
 
 	template <class Fmt
-	> int32_t error(Fmt && fmt) noexcept
+	> int32 error(Fmt && fmt) noexcept
 	{
 		io.out << ML_IMPL_DEBUG_ERROR " " << ML_forward(fmt) << "\n";
 
@@ -155,17 +155,17 @@ namespace ml::debug
 	}
 
 	template <class Fmt, class Arg0, class ... Args
-	> int32_t error(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> int32 error(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
 		return debug::error(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	constexpr int32_t warning() noexcept { return -1; } // true
+	constexpr int32 warning() noexcept { return -1; } // true
 
 	template <class Fmt
-	> int32_t warning(Fmt && fmt) noexcept
+	> int32 warning(Fmt && fmt) noexcept
 	{
 		io.out << ML_IMPL_DEBUG_WARNING " " << ML_forward(fmt) << "\n";
 
@@ -173,7 +173,7 @@ namespace ml::debug
 	}
 
 	template <class Fmt, class Arg0, class ... Args
-	> int32_t warning(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> int32 warning(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
 		return debug::warning(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
 	}

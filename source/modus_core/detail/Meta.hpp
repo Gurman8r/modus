@@ -15,7 +15,7 @@
 // https://stackoverflow.com/questions/36580855/construct-tuple-by-passing-the-same-argument-to-each-element-with-explicit-const
 // https://stackoverflow.com/questions/22560100/how-to-initialize-all-tuple-elements-by-the-same-arguments
 
-#include <modus_core/Common.hpp>
+#include <modus_core/Standard.hpp>
 
 #define _ML_META _ML meta:: // meta
 
@@ -60,7 +60,7 @@ namespace ml::meta
 	{
 		if constexpr (0 < sizeof...(args)) // sanity check
 		{
-			(void)std::initializer_list<int32_t>
+			(void)std::initializer_list<int32>
 			{
 				(ML_forward(fn)(ML_forward(args)), 0)...
 			};

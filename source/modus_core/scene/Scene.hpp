@@ -1,7 +1,7 @@
 #ifndef _ML_SCENE_HPP_
 #define _ML_SCENE_HPP_
 
-#include <modus_core/detail/Events.hpp>
+#include <modus_core/detail/LoopSystem.hpp>
 #include <modus_core/detail/Matrix.hpp>
 #include <entt/entt.hpp>
 
@@ -9,24 +9,24 @@ namespace ml
 {
 	struct entity;
 
-	struct ML_CORE_API scene : non_copyable, trackable, event_listener
+	struct ML_CORE_API scene : loop_system
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
 		using entity_list = typename ds::list<ds::ref<entity>>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		virtual ~scene() noexcept override;
+
 		scene(event_bus * bus, allocator_type alloc = {}) noexcept
-			: event_listener{ bus }
+			: loop_system	{ bus, alloc }
 			, m_entities	{ alloc }
 			, m_registry	{}
 		{
 		}
-
-		virtual ~scene() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -54,14 +54,14 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using event_listener::get_bus;
+		using loop_system::get_bus;
 
 	protected:
-		using event_listener::subscribe;
+		using loop_system::subscribe;
 
-		using event_listener::unsubscribe;
+		using loop_system::unsubscribe;
 
-		virtual void on_event(event const &) override {}
+		virtual void on_event(event const &) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

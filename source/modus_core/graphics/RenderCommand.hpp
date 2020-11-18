@@ -87,7 +87,7 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static auto clear(uint32_t mask) noexcept
+		ML_NODISCARD static auto clear(uint32 mask) noexcept
 		{
 			return command{ &render_context::clear, mask };
 		}
@@ -97,12 +97,12 @@ namespace ml::gfx
 			return command{ &render_context::draw, value };
 		}
 
-		ML_NODISCARD static auto draw_arrays(uint32_t mode, uint32_t first, size_t count) noexcept
+		ML_NODISCARD static auto draw_arrays(uint32 mode, uint32 first, size_t count) noexcept
 		{
 			return command{ &render_context::draw_arrays, mode, first, count };
 		}
 
-		ML_NODISCARD static auto draw_indexed(uint32_t mode, size_t count) noexcept
+		ML_NODISCARD static auto draw_indexed(uint32 mode, size_t count) noexcept
 		{
 			return command{ &render_context::draw_indexed, mode, count };
 		}
@@ -154,7 +154,7 @@ namespace ml::gfx
 		}
 
 		template <class Value
-		> ML_NODISCARD static auto bind_texture(Value && value, uint32_t slot = 0) noexcept
+		> ML_NODISCARD static auto bind_texture(Value && value, uint32 slot = 0) noexcept
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{

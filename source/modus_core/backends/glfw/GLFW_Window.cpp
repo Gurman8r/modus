@@ -1,6 +1,7 @@
 #if defined(ML_IMPL_WINDOW_GLFW)
 
-#include "GLFW_Window.hpp"
+#include "./GLFW_Window.hpp"
+
 #include <glfw/glfw3.h>
 
 #if defined(ML_os_windows)
@@ -15,32 +16,32 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	int32_t glfw_initialize()
+	int32 glfw_context::initialize()
 	{
 		return glfwInit();
 	}
 
-	void glfw_finalize()
+	void glfw_context::finalize()
 	{
 		glfwTerminate();
 	}
 
-	int32_t glfw_extension_supported(cstring value)
+	int32 glfw_context::extension_supported(cstring value)
 	{
 		return glfwExtensionSupported(value);
 	}
 
-	window_handle glfw_get_context_current()
+	window_handle glfw_context::get_context_current()
 	{
 		return (window_handle)glfwGetCurrentContext();
 	}
 
-	ds::list<monitor_handle> const & glfw_get_monitors()
+	ds::list<monitor_handle> const & glfw_context::get_monitors()
 	{
 		static ds::list<monitor_handle> temp{};
 		static ML_scope(&) // once
 		{
-			if (int32_t count{}; GLFWmonitor * *monitors{ glfwGetMonitors(&count) })
+			if (int32 count{}; GLFWmonitor * *monitors{ glfwGetMonitors(&count) })
 			{
 				temp.reserve((size_t)count);
 
@@ -53,58 +54,64 @@ namespace ml
 		return temp;
 	}
 
-	void * glfw_get_proc_address(cstring value)
+	void * glfw_context::get_proc_address(cstring value)
 	{
 		return glfwGetProcAddress(value);
 	}
 
-	monitor_handle glfw_get_primary_monitor()
+	monitor_handle glfw_context::get_primary_monitor()
 	{
 		return (monitor_handle)glfwGetPrimaryMonitor();
 	}
 
-	duration glfw_get_time()
+	duration glfw_context::get_time()
 	{
 		return duration{ glfwGetTime() };
 	}
 
-	void glfw_make_context_current(window_handle value)
+	void glfw_context::make_context_current(window_handle value)
 	{
 		glfwMakeContextCurrent((GLFWwindow *)value);
 	}
 
-	window_error_callback glfw_set_error_callback(window_error_callback fn)
+	window_error_callback glfw_context::set_error_callback(window_error_callback fn)
 	{
 		return reinterpret_cast<window_error_callback>(
 			glfwSetErrorCallback(
 				reinterpret_cast<GLFWerrorfun>(fn)));
 	}
 
-	void glfw_swap_interval(int32_t value)
+	void glfw_context::swap_interval(int32 value)
 	{
 		glfwSwapInterval(value);
 	}
 
-	void glfw_poll_events()
+	void glfw_context::poll_events()
 	{
 		glfwPollEvents();
 	}
 
-	void glfw_swap_buffers(window_handle value)
+	void glfw_context::swap_buffers(window_handle value)
 	{
 		glfwSwapBuffers((GLFWwindow *)value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
 
-	cursor_handle glfw_create_custom_cursor(size_t w, size_t h, byte_t const * p, int32_t x, int32_t y)
+// GLFW CURSOR
+namespace ml
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	cursor_handle glfw_cursor::create_custom_cursor(size_t w, size_t h, byte const * p, int32 x, int32 y)
 	{
-		GLFWimage temp{ (int32_t)w, (int32_t)h, (byte_t *)p };
+		GLFWimage temp{ (int32)w, (int32)h, (byte *)p };
 
 		return (cursor_handle)glfwCreateCursor(&temp, x, y);
 	}
 
-	cursor_handle glfw_create_standard_cursor(int32_t value)
+	cursor_handle glfw_cursor::create_standard_cursor(int32 value)
 	{
 		return (cursor_handle)glfwCreateStandardCursor(std::invoke([value]() noexcept
 		{
@@ -130,13 +137,14 @@ namespace ml
 		}));
 	}
 
-	void glfw_destroy_cursor(cursor_handle value)
+	void glfw_cursor::destroy_cursor(cursor_handle value)
 	{
 		glfwDestroyCursor((GLFWcursor *)value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
+
 
 // GLFW WINDOW
 namespace ml
@@ -327,7 +335,7 @@ namespace ml
 		return (vec2)temp;
 	}
 
-	int32_t glfw_window::get_cursor_mode() const
+	int32 glfw_window::get_cursor_mode() const
 	{
 		return glfwGetInputMode(m_window, GLFW_CURSOR);
 	}
@@ -349,17 +357,17 @@ namespace ml
 		return m_hints;
 	}
 
-	int32_t glfw_window::get_input_mode(int32_t mode) const
+	int32 glfw_window::get_input_mode(int32 mode) const
 	{
 		return glfwGetInputMode(m_window, mode);
 	}
 
-	int32_t	glfw_window::get_key(int32_t key) const
+	int32	glfw_window::get_key(int32 key) const
 	{
 		return glfwGetKey(m_window, key);
 	}
 
-	int32_t	glfw_window::get_mouse_button(int32_t button) const
+	int32	glfw_window::get_mouse_button(int32 button) const
 	{
 		return glfwGetMouseButton(m_window, button);
 	}
@@ -373,7 +381,7 @@ namespace ml
 #endif
 	}
 
-	float_t glfw_window::get_opacity() const
+	float32 glfw_window::get_opacity() const
 	{
 		return glfwGetWindowOpacity(m_window);
 	}
@@ -406,21 +414,21 @@ namespace ml
 	{
 		static window_context temp
 		{
-			&glfw_initialize,
-			&glfw_finalize,
-			&glfw_set_error_callback,
-			&glfw_extension_supported,
-			&glfw_get_proc_address,
-			&glfw_get_context_current,
-			&glfw_get_monitors,
-			&glfw_get_primary_monitor,
-			&glfw_get_time,
-			&glfw_make_context_current,
-			&glfw_poll_events,
-			&glfw_swap_buffers,
-			&glfw_swap_interval
+			&glfw_context::initialize,
+			&glfw_context::finalize,
+			&glfw_context::get_time,
+			&glfw_context::poll_events,
+			&glfw_context::swap_buffers,
+			&glfw_context::swap_interval,
+			&glfw_context::extension_supported,
+			&glfw_context::get_proc_address,
+			&glfw_context::get_context_current,
+			&glfw_context::make_context_current,
+			&glfw_context::get_monitors,
+			&glfw_context::get_primary_monitor,
+			&glfw_context::set_error_callback
 		};
-		return std::addressof(temp);
+		return &temp;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -502,7 +510,7 @@ namespace ml
 		glfwSetCursor(m_window, (GLFWcursor *)value);
 	}
 	
-	void glfw_window::set_cursor_mode(int32_t value)
+	void glfw_window::set_cursor_mode(int32 value)
 	{
 		set_input_mode(GLFW_CURSOR, std::invoke([value]() noexcept
 		{
@@ -536,19 +544,19 @@ namespace ml
 		glfwSetWindowAttrib(m_window, GLFW_FOCUS_ON_SHOW, value);
 	}
 
-	void glfw_window::set_icons(size_t w, size_t h, byte_t const * p, size_t n)
+	void glfw_window::set_icons(size_t w, size_t h, byte const * p, size_t n)
 	{
-		GLFWimage temp{ (int32_t)w, (int32_t)h, (byte_t *)p };
+		GLFWimage temp{ (int32)w, (int32)h, (byte *)p };
 
-		glfwSetWindowIcon(m_window, (int32_t)n, &temp);
+		glfwSetWindowIcon(m_window, (int32)n, &temp);
 	}
 
-	void glfw_window::set_input_mode(int32_t mode, int32_t value)
+	void glfw_window::set_input_mode(int32 mode, int32 value)
 	{
 		glfwSetInputMode(m_window, mode, value);
 	}
 
-	void glfw_window::set_opacity(float_t value)
+	void glfw_window::set_opacity(float32 value)
 	{
 		glfwSetWindowOpacity(m_window, value);
 	}

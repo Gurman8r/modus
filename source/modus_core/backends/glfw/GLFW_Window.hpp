@@ -10,43 +10,55 @@ struct GLFWmonitor;
 // GLFW CONTEXT
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	struct glfw_context final : non_copyable
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	static int32_t glfw_initialize();
+		static int32 initialize();
 
-	static void glfw_finalize();
+		static void finalize();
 
-	static int32_t glfw_extension_supported(cstring value);
+		static int32 extension_supported(cstring value);
 
-	static window_handle glfw_get_context_current();
+		static window_handle get_context_current();
 
-	static ds::list<monitor_handle> const & glfw_get_monitors();
+		static ds::list<monitor_handle> const & get_monitors();
 
-	static void * glfw_get_proc_address(cstring value);
+		static void * get_proc_address(cstring value);
 
-	static monitor_handle glfw_get_primary_monitor();
+		static monitor_handle get_primary_monitor();
 
-	static duration glfw_get_time();
+		static duration get_time();
 
-	static void glfw_make_context_current(window_handle value);
+		static void make_context_current(window_handle value);
 
-	static window_error_callback glfw_set_error_callback(window_error_callback fn);
+		static window_error_callback set_error_callback(window_error_callback fn);
 
-	static void glfw_swap_interval(int32_t value);
+		static void swap_interval(int32 value);
 
-	static void glfw_poll_events();
+		static void poll_events();
 
-	static void glfw_swap_buffers(window_handle value);
+		static void swap_buffers(window_handle value);
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+}
 
-	static cursor_handle glfw_create_custom_cursor(size_t w, size_t h, byte_t const * p, int32_t x, int32_t y);
+// GLFW CURSOR
+namespace ml
+{
+	struct glfw_cursor final : non_copyable
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	static cursor_handle glfw_create_standard_cursor(int32_t value);
+		static cursor_handle create_custom_cursor(size_t w, size_t h, byte const * p, int32 x, int32 y);
 
-	static void glfw_destroy_cursor(cursor_handle value);
+		static cursor_handle create_standard_cursor(int32 value);
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		static void destroy_cursor(cursor_handle value);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
 }
 
 // GLFW WINDOW
@@ -110,7 +122,7 @@ namespace ml
 
 		vec2 get_content_scale() const override;
 
-		int32_t get_cursor_mode() const override;
+		int32 get_cursor_mode() const override;
 
 		vec2 get_cursor_pos() const override;
 
@@ -120,15 +132,15 @@ namespace ml
 
 		window_hints_ get_hints() const override;
 
-		int32_t get_input_mode(int32_t mode) const override;
+		int32 get_input_mode(int32 mode) const override;
 
-		int32_t get_key(int32_t key) const override;
+		int32 get_key(int32 key) const override;
 
-		int32_t get_mouse_button(int32_t button) const override;
+		int32 get_mouse_button(int32 button) const override;
 
 		window_handle get_native_handle() const override;
 
-		float_t get_opacity() const override;
+		float32 get_opacity() const override;
 
 		vec2i get_position() const override;
 
@@ -174,7 +186,7 @@ namespace ml
 		
 		void set_cursor(cursor_handle value) override;
 		
-		void set_cursor_mode(int32_t value) override;
+		void set_cursor_mode(int32 value) override;
 		
 		void set_cursor_pos(vec2d const & value) override;
 
@@ -184,11 +196,11 @@ namespace ml
 
 		void set_focus_on_show(bool value) override;
 		
-		void set_icons(size_t w, size_t h, byte_t const * p, size_t n = 1) override;
+		void set_icons(size_t w, size_t h, byte const * p, size_t n = 1) override;
 
-		void set_input_mode(int32_t mode, int32_t value) override;
+		void set_input_mode(int32 mode, int32 value) override;
 
-		void set_opacity(float_t value) override;
+		void set_opacity(float32 value) override;
 		
 		void set_position(vec2i const & value) override;
 		

@@ -48,7 +48,7 @@ namespace ml
 			return m_context;
 		}
 
-		auto set_render_context(ds::ref<gfx::render_context> const & value) noexcept -> ds::ref<gfx::render_context> const &
+		auto set_render_context(ds::ref<gfx::render_context> const & value) noexcept -> ds::ref<gfx::render_context> &
 		{
 			return ML_check(m_device)->set_context(m_context = value);
 		}

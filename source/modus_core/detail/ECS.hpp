@@ -222,13 +222,13 @@ namespace ml::ecs::detail
 		static_assert(0 < grow_base, "growth base negative or zero");
 
 		// growth multiplier
-		static constexpr float_t grow_mult{ util::ratio_cast<GrowMult>() };
+		static constexpr float32 grow_mult{ util::ratio_cast<GrowMult>() };
 		static_assert(1.f <= grow_mult, "expression would result in negative growth");
 
 		// growth calculator
 		static constexpr size_t calc_growth(size_t const cap) noexcept
 		{
-			return (size_t)((float_t)(cap + grow_base) * grow_mult);
+			return (size_t)((float32)(cap + grow_base) * grow_mult);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -392,7 +392,7 @@ namespace ml::ecs
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using traits			= typename U;
 		using self_type			= typename manager<traits>;
 		using tags				= typename traits::tags_type;
@@ -546,7 +546,7 @@ namespace ml::ecs
 			self_type *	m_manager	; // owning manager
 			size_t		m_entity	; // entity index
 			size_t		m_self		; // handle index
-			int32_t		m_counter	; // reference counter
+			int32		m_counter	; // reference counter
 
 			/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		};

@@ -16,9 +16,9 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	render_device * render_device::create(spec_type const & desc, allocator_type alloc) noexcept
+	render_device * render_device::create(spec_type const & desc, allocator_type alloc)
 	{
-		auto const temp{ std::invoke([&]() noexcept -> render_device *
+		auto const temp = std::invoke([&]() noexcept -> render_device *
 		{
 			switch (desc.api)
 			{
@@ -27,14 +27,14 @@ namespace ml::gfx
 			case context_api_vulkan	: return nullptr;
 			case context_api_directx: return nullptr;
 			}
-		}) };
+		});
 
 		begin_singleton<render_device>(temp);
 
 		return temp;
 	}
 
-	void render_device::destroy(render_device * value) noexcept
+	void render_device::destroy(render_device * value)
 	{
 		if (!value) { value = get_global<render_device>(); }
 

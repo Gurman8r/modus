@@ -12,8 +12,8 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type			= typename pmr::polymorphic_allocator<byte_t>;
-		using pixels					= typename ds::list<byte_t>;
+		using allocator_type			= typename pmr::polymorphic_allocator<byte>;
+		using pixels					= typename ds::list<byte>;
 		using iterator					= typename pixels::iterator;
 		using const_iterator			= typename pixels::const_iterator;
 		using reverse_iterator			= typename pixels::reverse_iterator;
@@ -36,12 +36,12 @@ namespace ml
 		{
 		}
 
-		bitmap(byte_t * p, size_t w, size_t h, size_t c, allocator_type alloc = {}) noexcept
+		bitmap(byte * p, size_t w, size_t h, size_t c, allocator_type alloc = {}) noexcept
 			: m_pix{ p, p + (w * h * c), alloc }, m_size{ w, h }, m_channels{ c }, m_path{}
 		{
 		}
 
-		bitmap(byte_t * p, vec2s s, size_t c, allocator_type alloc = {}) noexcept
+		bitmap(byte * p, vec2s s, size_t c, allocator_type alloc = {}) noexcept
 			: m_pix{ p, p + (s[0] * s[1] * c), alloc }, m_size{ s }, m_channels{ c }, m_path{}
 		{
 		}
@@ -168,10 +168,10 @@ namespace ml
 		{
 			return (index >= capacity()) ? std::nullopt : std::make_optional(color32
 			{
-				(m_channels >= 1) ? *((cbegin() + index) + 0) : (byte_t)0,
-				(m_channels >= 2) ? *((cbegin() + index) + 1) : (byte_t)0,
-				(m_channels >= 3) ? *((cbegin() + index) + 2) : (byte_t)0,
-				(m_channels >= 4) ? *((cbegin() + index) + 3) : (byte_t)0
+				(m_channels >= 1) ? *((cbegin() + index) + 0) : (byte)0,
+				(m_channels >= 2) ? *((cbegin() + index) + 1) : (byte)0,
+				(m_channels >= 3) ? *((cbegin() + index) + 2) : (byte)0,
+				(m_channels >= 4) ? *((cbegin() + index) + 3) : (byte)0
 			});
 		}
 
@@ -209,9 +209,9 @@ namespace ml
 
 		ML_NODISCARD auto pix() const & noexcept -> pixels const & { return m_pix; }
 
-		ML_NODISCARD auto data() noexcept -> byte_t * { return m_pix.data(); }
+		ML_NODISCARD auto data() noexcept -> byte * { return m_pix.data(); }
 
-		ML_NODISCARD auto data() const noexcept -> byte_t const * { return m_pix.data(); }
+		ML_NODISCARD auto data() const noexcept -> byte const * { return m_pix.data(); }
 
 		ML_NODISCARD auto size() const & noexcept -> vec2s const & { return m_size; }
 
@@ -231,9 +231,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto operator[](size_t i) & noexcept -> byte_t & { return m_pix[i]; }
+		ML_NODISCARD auto operator[](size_t i) & noexcept -> byte & { return m_pix[i]; }
 
-		ML_NODISCARD auto operator[](size_t i) const & noexcept -> byte_t const & { return m_pix[i]; }
+		ML_NODISCARD auto operator[](size_t i) const & noexcept -> byte const & { return m_pix[i]; }
 
 		ML_NODISCARD auto begin() noexcept -> iterator { return m_pix.begin(); }
 		

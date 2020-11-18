@@ -1,5 +1,4 @@
 #include <modus_core/engine/Application.hpp>
-#include <modus_core/embed/Python.hpp>
 #include <modus_core/engine/PluginManager.hpp>
 
 using namespace ml;
@@ -15,7 +14,7 @@ static class memcfg final : public singleton<memcfg>
 {
 	friend singleton;
 
-	ds::array<byte_t, RESERVE_MEMORY>	data{};
+	ds::array<byte, RESERVE_MEMORY>		data{};
 	pmr::monotonic_buffer_resource		mono{ data.data(), data.size() };
 	pmr::unsynchronized_pool_resource	pool{ &mono };
 	passthrough_resource				view{ &pool, data.data(), data.size() };
@@ -86,18 +85,18 @@ static auto const default_settings{ R"(
 }
 )"_json };
 
+json load_settings(fs::path const & path = SETTINGS_PATH)
+{
+	std::ifstream f{ path };
+	ML_defer(&f) { f.close(); };
+	return f ? json::parse(f) : default_settings;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int32_t main(int32_t argc, char * argv[])
+int32 main(int32 argc, char * argv[])
 {
 	static memory_manager memory{};
-
-	auto load_settings = [](fs::path const & path = SETTINGS_PATH) noexcept
-	{
-		std::ifstream f{ path };
-		ML_defer(&f) { f.close(); };
-		return f ? json::parse(f) : default_settings;
-	};
 
 	auto app{ make_scope<application>(argc, argv) };
 	app->set_app_name(ML__name);
@@ -105,23 +104,13 @@ int32_t main(int32_t argc, char * argv[])
 	app->set_attributes(load_settings());
 	app->set_library_paths(app->attr("paths"));
 
-	auto plugs{ make_scope<plugin_manager>(app.get()) };
+	auto plugins{ make_scope<plugin_manager>(app.get()) };
 	if (app->attr().contains("plugins")) {
 		for (json const & e : app->attr("plugins")) {
-			plugs->install(e["path"]);
+			ML_assert(e.contains("path"));
+			plugins->install(e["path"]);
 		}
 	}
-
-	app->get_bus()->new_dummy<app_enter_event>([&](event const & value) {
-		if (value == app_enter_event::ID) {
-			if (app->attr().contains("scripts")) {
-				for (json const & e : app->attr("scripts")) {
-					auto const path{ app->path_to(e["path"]).string() };
-					PyRun_AnyFileEx(std::fopen(path.c_str(), "r"), path.c_str(), true);
-				}
-			}
-		}
-	});
 
 	return app->exec();
 }

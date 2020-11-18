@@ -9,7 +9,7 @@
 
 namespace ml::testing
 {
-	inline mat4 frustum(float_t l, float_t r, float_t b, float_t t, float_t near, float_t far)
+	inline mat4 frustum(float32 l, float32 r, float32 b, float32 t, float32 near, float32 far)
 	{
 		vec4 const temp{ 2.0f * near, r - l, t - b, far - near };
 		return
@@ -33,10 +33,10 @@ namespace ml::testing
 		};
 	}
 
-	inline mat4 perspective(float_t fovyInDegrees, float_t aspectRatio, float_t znear, float_t zfar)
+	inline mat4 perspective(float32 fovyInDegrees, float32 aspectRatio, float32 znear, float32 zfar)
 	{
-		float_t ymax = znear * std::tanf(fovyInDegrees * 3.141592f / 180.0f);
-		float_t xmax = ymax * aspectRatio;
+		float32 ymax = znear * std::tanf(fovyInDegrees * 3.141592f / 180.0f);
+		float32 xmax = ymax * aspectRatio;
 		return frustum(-xmax, xmax, -ymax, ymax, znear, zfar);
 	}
 
@@ -50,14 +50,14 @@ namespace ml::testing
 		};
 	}
 
-	inline float_t dot(vec3 const & a, vec3 const & b)
+	inline float32 dot(vec3 const & a, vec3 const & b)
 	{
 		return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 	}
 
 	inline vec3 normalize(vec3 const & a)
 	{
-		float_t const il{ 1.f / (std::sqrtf(dot(a, a)) + FLT_EPSILON) };
+		float32 const il{ 1.f / (std::sqrtf(dot(a, a)) + FLT_EPSILON) };
 		return
 		{
 			a[0] * il,
@@ -100,7 +100,7 @@ namespace ml::testing
 		};
 	}
 
-	inline mat4 orthographic(float_t l, float_t r, float_t b, float_t t, float_t zn, float_t zf)
+	inline mat4 orthographic(float32 l, float32 r, float32 b, float32 t, float32 zn, float32 zf)
 	{
 		return
 		{
@@ -136,9 +136,9 @@ namespace ml
 		vec3	up			;
 		vec3	right		;
 		vec3	world_up	;
-		float_t pitch		;
-		float_t yaw			;
-		float_t zoom		;
+		float32 pitch		;
+		float32 yaw			;
+		float32 zoom		;
 	};
 
 	struct ML_NODISCARD orthographic_camera final

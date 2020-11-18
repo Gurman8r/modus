@@ -20,9 +20,9 @@ namespace ml
 			::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &dm);
 			temp =
 			{
-				{ (int32_t)dm.dmPelsWidth, (int32_t)dm.dmPelsHeight },
-				vec4b::fill((byte_t)dm.dmBitsPerPel),
-				(int32_t)dm.dmDisplayFrequency
+				{ (int32)dm.dmPelsWidth, (int32)dm.dmPelsHeight },
+				vec4b::fill((byte)dm.dmBitsPerPel),
+				(int32)dm.dmDisplayFrequency
 			};
 #else
 #	error ""
@@ -40,13 +40,13 @@ namespace ml
 		{
 #ifdef ML_os_windows
 			DEVMODE dm; dm.dmSize = sizeof(dm);
-			for (int32_t i = 0; ::EnumDisplaySettingsW(nullptr, i, &dm); ++i)
+			for (int32 i = 0; ::EnumDisplaySettingsW(nullptr, i, &dm); ++i)
 			{
 				temp.push_back
 				({
-					{ (int32_t)dm.dmPelsWidth, (int32_t)dm.dmPelsHeight },
-					vec4b::fill((byte_t)dm.dmBitsPerPel),
-					(int32_t)dm.dmDisplayFrequency
+					{ (int32)dm.dmPelsWidth, (int32)dm.dmPelsHeight },
+					vec4b::fill((byte)dm.dmBitsPerPel),
+					(int32)dm.dmDisplayFrequency
 				});
 			}
 #else

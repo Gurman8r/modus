@@ -53,7 +53,7 @@ namespace ml
 		}
 		
 		// make current context
-		get_window_context()->make_context_current(get_handle());
+		get_window_context()->set_active_window(get_handle());
 		
 		// centered
 		set_position((video_mode::get_desktop_mode().resolution - vm.resolution) / 2);
@@ -119,7 +119,7 @@ namespace ml
 		return m_backend->get_content_scale();
 	}
 
-	int32_t native_window::get_cursor_mode() const noexcept
+	int32 native_window::get_cursor_mode() const noexcept
 	{
 		return m_backend->get_cursor_mode();
 	}
@@ -144,17 +144,17 @@ namespace ml
 		return m_backend->get_hints();
 	}
 
-	int32_t native_window::get_input_mode(int32_t value) const noexcept
+	int32 native_window::get_input_mode(int32 value) const noexcept
 	{
 		return m_backend->get_input_mode(value);
 	}
 
-	int32_t	native_window::get_key(int32_t value) const noexcept
+	int32	native_window::get_key(int32 value) const noexcept
 	{
 		return m_backend->get_key(value);
 	}
 
-	int32_t	native_window::get_mouse_button(int32_t value) const noexcept
+	int32	native_window::get_mouse_button(int32 value) const noexcept
 	{
 		return m_backend->get_mouse_button(value);
 	}
@@ -164,7 +164,7 @@ namespace ml
 		return m_backend->get_native_handle();
 	}
 
-	float_t native_window::get_opacity() const noexcept
+	float32 native_window::get_opacity() const noexcept
 	{
 		return m_backend->get_opacity();
 	}
@@ -273,7 +273,7 @@ namespace ml
 		m_backend->set_cursor(value);
 	}
 	
-	void native_window::set_cursor_mode(int32_t value) noexcept
+	void native_window::set_cursor_mode(int32 value) noexcept
 	{
 		m_backend->set_cursor_mode(value);
 	}
@@ -298,17 +298,17 @@ namespace ml
 		m_backend->set_focus_on_show(value);
 	}
 
-	void native_window::set_icons(size_t w, size_t h, byte_t const * p, size_t n) noexcept
+	void native_window::set_icons(size_t w, size_t h, byte const * p, size_t n) noexcept
 	{
 		m_backend->set_icons(w, h, p, n);
 	}
 
-	void native_window::set_input_mode(int32_t mode, int32_t value) noexcept
+	void native_window::set_input_mode(int32 mode, int32 value) noexcept
 	{
 		m_backend->set_input_mode(mode, value);
 	}
 
-	void native_window::set_opacity(float_t value) noexcept
+	void native_window::set_opacity(float32 value) noexcept
 	{
 		m_backend->set_opacity(value);
 	}

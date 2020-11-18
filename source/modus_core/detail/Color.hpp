@@ -161,9 +161,9 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_alias color = typename basic_color<float_t>;
+	ML_alias color = typename basic_color<float32>;
 	
-	ML_alias color32 = typename basic_color<byte_t>;
+	ML_alias color32 = typename basic_color<byte>;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -202,6 +202,38 @@ namespace ml
 		static constexpr color aqua		{ 0.0f, 1.0f, 0.5f, 1.0f };
 		static constexpr color azure	{ 0.0f, 0.5f, 1.0f, 1.0f };
 	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	namespace util
+	{
+		ML_NODISCARD inline color rotate_hue(color const & c, float32 degrees) noexcept
+		{
+			// https://stackoverflow.com/a/8510751
+
+			float32 const
+				cosA{ std::cos(util::deg2rad(degrees)) },
+				sinA{ std::sin(util::deg2rad(degrees)) };
+
+			auto m{ mat3::identity() };
+			m.at(0, 0) = cosA + (1.0f - cosA) / 3.0f;
+			m.at(0, 1) = 1.f / 3.f * (1.0f - cosA) - std::sqrt(1.f / 3.f) * sinA;
+			m.at(0, 2) = 1.f / 3.f * (1.0f - cosA) + std::sqrt(1.f / 3.f) * sinA;
+			m.at(1, 0) = 1.f / 3.f * (1.0f - cosA) + std::sqrt(1.f / 3.f) * sinA;
+			m.at(1, 1) = cosA + 1.f / 3.f * (1.0f - cosA);
+			m.at(1, 2) = 1.f / 3.f * (1.0f - cosA) - std::sqrt(1.f / 3.f) * sinA;
+			m.at(2, 0) = 1.f / 3.f * (1.0f - cosA) - std::sqrt(1.f / 3.f) * sinA;
+			m.at(2, 1) = 1.f / 3.f * (1.0f - cosA) + std::sqrt(1.f / 3.f) * sinA;
+			m.at(2, 2) = cosA + 1.f / 3.f * (1.0f - cosA);
+			return
+			{
+				c[0] * m.at(0, 0) + c[1] * m.at(0, 1) + c[2] * m.at(0, 2),
+				c[0] * m.at(1, 0) + c[1] * m.at(1, 1) + c[2] * m.at(1, 2),
+				c[0] * m.at(2, 0) + c[1] * m.at(2, 1) + c[2] * m.at(2, 2),
+				1.f
+			};
+		}
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

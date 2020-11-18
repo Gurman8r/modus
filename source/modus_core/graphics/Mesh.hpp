@@ -10,19 +10,19 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		mesh(uint32_t mode = gfx::primitive_triangles) noexcept
+		mesh(uint32 mode = gfx::primitive_triangles) noexcept
 			: m_vao{ gfx::vertexarray::create({ mode }) }
 		{
 		}
 
-		mesh(ds::list<float_t> const & v, gfx::vertex_layout const & l = {})
+		mesh(ds::list<float32> const & v, gfx::vertex_layout const & l = {})
 			: mesh{}
 		{
 			set_layout(l);
 			add_vertices(v);
 		}
 
-		mesh(ds::list<float_t> const & v, ds::list<uint32_t> const & i, gfx::vertex_layout const & l = {})
+		mesh(ds::list<float32> const & v, ds::list<uint32> const & i, gfx::vertex_layout const & l = {})
 			: mesh{}
 		{
 			set_layout(l);
@@ -35,7 +35,7 @@ namespace ml
 		{
 		}
 
-		mesh(ds::list<vertex> const & v, ds::list<uint32_t> const & i, gfx::vertex_layout const & l = {})
+		mesh(ds::list<vertex> const & v, ds::list<uint32> const & i, gfx::vertex_layout const & l = {})
 			: mesh{ util::contiguous(v), i, l }
 		{
 		}
@@ -73,7 +73,7 @@ namespace ml
 			m_vao->add_vertices(value);
 		}
 
-		void add_vertices(ds::list<float_t> const & value) noexcept
+		void add_vertices(ds::list<float32> const & value) noexcept
 		{
 			if (value.empty())
 			{
@@ -101,7 +101,7 @@ namespace ml
 			m_vao->set_indices(value);
 		}
 
-		void set_indices(ds::list<uint32_t> const & value) noexcept
+		void set_indices(ds::list<uint32> const & value) noexcept
 		{
 			if (value.empty()) { set_indices(nullptr); }
 			else
@@ -117,7 +117,7 @@ namespace ml
 
 		static ds::list<vertex> load_from_file(fs::path const & path);
 
-		static ds::list<vertex> load_from_file(fs::path const & path, int32_t flags);
+		static ds::list<vertex> load_from_file(fs::path const & path, int32 flags);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -7,7 +7,7 @@
 
 // event declaration helper
 #define ML_event(Type) \
-	struct Type final : _ML impl::event_helper<Type>
+	struct Type : _ML impl::event_helper<Type>
 
 namespace ml
 {
@@ -24,6 +24,8 @@ namespace ml
 	struct ML_NODISCARD event
 	{
 	public:
+		ML_NODISCARD constexpr hash_t getid() const noexcept { return m_ID; }
+
 		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_ID; }
 
 		ML_NODISCARD constexpr bool operator==(hash_t value) const noexcept { return m_ID == value; }
@@ -34,8 +36,11 @@ namespace ml
 		constexpr explicit event(hash_t id) noexcept : m_ID{ id } {}
 
 		constexpr event(event const &) = default;
+		
 		constexpr event(event &&) noexcept = default;
+		
 		constexpr event & operator=(event const &) = default;
+		
 		constexpr event & operator=(event &&) noexcept = default;
 
 	private:
@@ -57,8 +62,11 @@ namespace ml
 			constexpr event_helper() noexcept : event{ ID } {}
 
 			constexpr event_helper(helper_base const &) = default;
+			
 			constexpr event_helper(helper_base &&) noexcept = default;
+			
 			constexpr helper_base & operator=(helper_base const &) = default;
+			
 			constexpr helper_base & operator=(helper_base &&) noexcept = default;
 		};
 	}
@@ -84,30 +92,26 @@ namespace ml
 		// subscribe
 		template <class ... Evs> void subscribe() noexcept
 		{
-			ML_assert(m_bus);
-
-			static_assert(0 < sizeof...(Evs), "must subscribe to at least one event");
+			static_assert(0 < sizeof...(Evs), "must provide at least one event type");
 
 			meta::for_types<Evs...>([&](auto tag) noexcept
 			{
-				m_bus->add_listener<decltype(tag)::type>(this);
+				ML_check(m_bus)->add_listener<decltype(tag)::type>(this);
 			});
 		}
 
 		// unsubscribe
 		template <class ... Evs> void unsubscribe() noexcept
 		{
-			ML_assert(m_bus);
-
 			if constexpr (0 == sizeof...(Evs))
 			{
-				m_bus->remove_listener(this);
+				ML_check(m_bus)->remove_listener(this); // all
 			}
 			else
 			{
 				meta::for_types<Evs...>([&](auto tag) noexcept
 				{
-					m_bus->remove_listener<decltype(tag)::type>(this);
+					ML_check(m_bus)->remove_listener<decltype(tag)::type>(this);
 				});
 			}
 		}
@@ -180,7 +184,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using category_type		= typename ds::set<event_listener *>;
 		using categories_type	= typename ds::map<hash_t, category_type>;
 		using event_list		= typename ds::list<ds::scope<event>>;

@@ -255,11 +255,11 @@ namespace ml
 	// matrix<T, 2, 2>
 	template <class T
 	> ML_alias	tmat2	= tmatnxn<T, 2>;
-	ML_alias	mat2b	= tmat2<byte_t>;
-	ML_alias	mat2i	= tmat2<int32_t>;
-	ML_alias	mat2u	= tmat2<uint32_t>;
-	ML_alias	mat2f	= tmat2<float32_t>;
-	ML_alias	mat2d	= tmat2<float64_t>;
+	ML_alias	mat2b	= tmat2<byte>;
+	ML_alias	mat2i	= tmat2<int32>;
+	ML_alias	mat2u	= tmat2<uint32>;
+	ML_alias	mat2f	= tmat2<float32>;
+	ML_alias	mat2d	= tmat2<float64>;
 	ML_alias	mat2s	= tmat2<size_t>;
 	ML_alias	mat2	= mat2f;
 
@@ -268,11 +268,11 @@ namespace ml
 	// matrix<T, 3, 3>
 	template <class T
 	> ML_alias	tmat3	= tmatnxn<T, 3>;
-	ML_alias	mat3b	= tmat3<byte_t>;
-	ML_alias	mat3i	= tmat3<int32_t>;
-	ML_alias	mat3u	= tmat3<uint32_t>;
-	ML_alias	mat3f	= tmat3<float32_t>;
-	ML_alias	mat3d	= tmat3<float64_t>;
+	ML_alias	mat3b	= tmat3<byte>;
+	ML_alias	mat3i	= tmat3<int32>;
+	ML_alias	mat3u	= tmat3<uint32>;
+	ML_alias	mat3f	= tmat3<float32>;
+	ML_alias	mat3d	= tmat3<float64>;
 	ML_alias	mat3s	= tmat3<size_t>;
 	ML_alias	mat3	= mat3f;
 
@@ -281,11 +281,11 @@ namespace ml
 	// matrix<T, 4 ,4>
 	template <class T
 	> ML_alias	tmat4	= tmatnxn<T, 4>;
-	ML_alias	mat4b	= tmat4<byte_t>;
-	ML_alias	mat4i	= tmat4<int32_t>;
-	ML_alias	mat4u	= tmat4<uint32_t>;
-	ML_alias	mat4f	= tmat4<float32_t>;
-	ML_alias	mat4d	= tmat4<float64_t>;
+	ML_alias	mat4b	= tmat4<byte>;
+	ML_alias	mat4i	= tmat4<int32>;
+	ML_alias	mat4u	= tmat4<uint32>;
+	ML_alias	mat4f	= tmat4<float32>;
+	ML_alias	mat4d	= tmat4<float64>;
 	ML_alias	mat4s	= tmat4<size_t>;
 	ML_alias	mat4	= mat4f;
 
@@ -294,11 +294,11 @@ namespace ml
 	// matrix<T, 2, 1>
 	template <class T
 	> ML_alias	tvec2	= tvector<T, 2>;
-	ML_alias	vec2b	= tvec2<byte_t>;
-	ML_alias	vec2i	= tvec2<int32_t>;
-	ML_alias	vec2u	= tvec2<uint32_t>;
-	ML_alias	vec2f	= tvec2<float32_t>;
-	ML_alias	vec2d	= tvec2<float64_t>;
+	ML_alias	vec2b	= tvec2<byte>;
+	ML_alias	vec2i	= tvec2<int32>;
+	ML_alias	vec2u	= tvec2<uint32>;
+	ML_alias	vec2f	= tvec2<float32>;
+	ML_alias	vec2d	= tvec2<float64>;
 	ML_alias	vec2s	= tvec2<size_t>;
 	ML_alias	vec2	= vec2f;
 
@@ -307,11 +307,11 @@ namespace ml
 	// matrix<T, 3, 1>
 	template <class T
 	> ML_alias	tvec3	= tvector<T, 3>;
-	ML_alias	vec3b	= tvec3<byte_t>;
-	ML_alias	vec3i	= tvec3<int32_t>;
-	ML_alias	vec3u	= tvec3<uint32_t>;
-	ML_alias	vec3f	= tvec3<float32_t>;
-	ML_alias	vec3d	= tvec3<float64_t>;
+	ML_alias	vec3b	= tvec3<byte>;
+	ML_alias	vec3i	= tvec3<int32>;
+	ML_alias	vec3u	= tvec3<uint32>;
+	ML_alias	vec3f	= tvec3<float32>;
+	ML_alias	vec3d	= tvec3<float64>;
 	ML_alias	vec3s	= tvec3<size_t>;
 	ML_alias	vec3	= vec3f;
 
@@ -320,11 +320,11 @@ namespace ml
 	// matrix<T, 4, 1>
 	template <class T
 	> ML_alias	tvec4	= tvector<T, 4>;
-	ML_alias	vec4b	= tvec4<byte_t>;
-	ML_alias	vec4i	= tvec4<int32_t>;
-	ML_alias	vec4u	= tvec4<uint32_t>;
-	ML_alias	vec4f	= tvec4<float32_t>;
-	ML_alias	vec4d	= tvec4<float64_t>;
+	ML_alias	vec4b	= tvec4<byte>;
+	ML_alias	vec4i	= tvec4<int32>;
+	ML_alias	vec4u	= tvec4<uint32>;
+	ML_alias	vec4f	= tvec4<float32>;
+	ML_alias	vec4d	= tvec4<float64>;
 	ML_alias	vec4s	= tvec4<size_t>;
 	ML_alias	vec4	= vec4f;
 

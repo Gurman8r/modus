@@ -12,7 +12,7 @@ namespace ml::ds
 {
 	struct transform final
 	{
-		using value_type				= typename float_t;
+		using value_type				= typename float32;
 		using self_type					= typename _ML ds::transform;
 		using storage_type				= typename _ML mat4;
 		using size_type					= typename storage_type::size_type;

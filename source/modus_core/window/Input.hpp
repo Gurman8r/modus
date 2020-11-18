@@ -8,7 +8,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// key code
-	enum keycode_ : int32_t
+	enum keycode_ : int32
 	{
 		keycode_space			= 32,	// space
 		keycode_apostrophe		= 39,	// apostrophe
@@ -137,7 +137,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// key modifiers
-	enum keymods_ : int32_t
+	enum keymods_ : int32
 	{
 		keymods_none		= 0 << 0,	// none
 		keymods_shift		= 0 << 1,	// shift
@@ -150,8 +150,8 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// mouse button
-	enum mouse_button_ : int32_t
+	// mouse buttons
+	enum mouse_button_ : int32
 	{
 		mouse_button_0, // mouse button 0
 		mouse_button_1, // mouse button 1
@@ -167,11 +167,11 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// states
+	// input states
 
-	ML_alias keyboard_state = typename ds::array<int32_t, keycode_MAX>;
+	ML_alias keyboard_state = typename ds::array<int32, keycode_MAX>;
 
-	ML_alias mouse_state = typename ds::array<int32_t, mouse_button_MAX>;
+	ML_alias mouse_state = typename ds::array<int32, mouse_button_MAX>;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

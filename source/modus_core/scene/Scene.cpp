@@ -6,6 +6,12 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	scene::~scene() noexcept
+	{
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	ds::ref<entity> scene::new_entity(ds::string const & name, allocator_type alloc) noexcept
 	{
 		auto & temp
@@ -38,6 +44,12 @@ namespace ml
 	bool scene::load_from_memory(json const & j)
 	{
 		return false;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void scene::on_event(event const &)
+	{
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

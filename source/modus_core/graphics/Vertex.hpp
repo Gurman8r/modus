@@ -11,7 +11,7 @@ namespace ml
 
 		static constexpr size_t size{ 8 };
 
-		using storage_type = typename ds::array<float_t, size>;
+		using storage_type = typename ds::array<float32, size>;
 
 		explicit vertex(vec3 const & p, vec3 const & n, vec2 const & t) : m_data{
 			p[0], p[1], p[2], n[0], n[1], n[2], t[0], t[1]
@@ -19,7 +19,7 @@ namespace ml
 		{
 		}
 
-		vertex(std::initializer_list<float_t> init) : m_data{}
+		vertex(std::initializer_list<float32> init) : m_data{}
 		{
 			for (auto it{ init.begin() }; it != init.end(); ++it)
 			{
@@ -76,9 +76,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto operator[](size_t const i) & noexcept -> float_t & { return m_data[i]; }
+		auto operator[](size_t const i) & noexcept -> float32 & { return m_data[i]; }
 		
-		auto operator[](size_t const i) const & noexcept -> float_t const & { return m_data[i]; }
+		auto operator[](size_t const i) const & noexcept -> float32 const & { return m_data[i]; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -129,7 +129,7 @@ namespace ml::util
 
 	ML_NODISCARD inline auto contiguous(ds::list<vertex> const & v) noexcept
 	{
-		ds::list<float_t> temp{};
+		ds::list<float32> temp{};
 		if (size_t const imax{ v.size() * vertex::size })
 		{
 			temp.reserve(imax);

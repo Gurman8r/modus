@@ -5,7 +5,6 @@
 
 namespace ml
 {
-	// base platform api
 	class ML_CORE_API platform_api
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

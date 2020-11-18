@@ -15,7 +15,7 @@ namespace ml
 
 		float_rect bounds{};
 		
-		uint32_t advance{};
+		uint32 advance{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -25,17 +25,17 @@ namespace ml
 		
 		auto size() const noexcept -> vec2 { return bounds.size(); }
 		
-		auto left() const noexcept -> float_t { return bearing()[0]; }
+		auto left() const noexcept -> float32 { return bearing()[0]; }
 		
-		auto top() const noexcept -> float_t { return bearing()[1]; }
+		auto top() const noexcept -> float32 { return bearing()[1]; }
 		
-		auto width() const noexcept -> float_t { return size()[0]; }
+		auto width() const noexcept -> float32 { return size()[0]; }
 		
-		auto height() const noexcept -> float_t { return size()[1]; }
+		auto height() const noexcept -> float32 { return size()[1]; }
 		
 		auto offset() const noexcept -> vec2 { return { left(), -top() }; }
 		
-		auto step() const noexcept -> float_t { return (float_t)(advance >> 6); }
+		auto step() const noexcept -> float32 { return (float32)(advance >> 6); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -53,9 +53,9 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
-		using page				= typename ds::map<uint32_t, glyph>;
-		using page_table		= typename ds::map<uint32_t, page>;
+		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
+		using page				= typename ds::map<uint32, glyph>;
+		using page_table		= typename ds::map<uint32, page>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -123,9 +123,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD glyph load_glyph(uint32_t c, uint32_t size);
+		ML_NODISCARD glyph load_glyph(uint32 c, uint32 size);
 
-		ML_NODISCARD glyph & get_glyph(uint32_t c, uint32_t size) noexcept
+		ML_NODISCARD glyph & get_glyph(uint32 c, uint32 size) noexcept
 		{
 			return m_pages[size].find_or_add_fn(c, &font::load_glyph, this, c, size);
 		}

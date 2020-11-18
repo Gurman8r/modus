@@ -1,7 +1,7 @@
 #ifndef _ML_GLOBALS_HPP_
 #define _ML_GLOBALS_HPP_
 
-#include <modus_core/Common.hpp>
+#include <modus_core/Standard.hpp>
 #include <modus_core/Export.hpp>
 
 #define _ML_GLOBALS _ML globals:: // globals

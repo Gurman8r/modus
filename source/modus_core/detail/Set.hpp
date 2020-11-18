@@ -20,7 +20,7 @@ namespace ml::ds
 
 		using value_type		= typename _Ty;
 		using compare_type		= typename _Pr;
-		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using difference_type	= typename ptrdiff_t;
 		using size_type			= typename size_t;
 

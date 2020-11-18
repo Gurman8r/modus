@@ -1,6 +1,6 @@
 #if defined(ML_IMPL_RENDERER_OPENGL)
 
-#include "OpenGL_RenderAPI.hpp"
+#include "./OpenGL_RenderAPI.hpp"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -56,13 +56,16 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// helpers / disambiguation
-
 // get error
 #define ML_glGetError() _ML gfx::_error<_ML gfx::to_user>( glGetError() )
 
+// enable error checking
+#if ML_is_debug && !defined(ML_IMPL_GFX_CHECK)
+#define ML_IMPL_GFX_CHECK
+#endif
+
 // check error
-#if ML_is_debug || defined(ML_IMPL_GFX_CHECK)
+#ifdef ML_IMPL_GFX_CHECK
 #	define ML_glCheck(expr) do{ (expr); gl_check_error(#expr, __FILE__, __LINE__); } while(0)
 #else
 #	define ML_glCheck(expr) (expr)
@@ -108,7 +111,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _action(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _action(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -143,13 +146,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _error(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _error(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -186,13 +189,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _equation(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _equation(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -221,13 +224,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _facet(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _facet(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -264,13 +267,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _factor(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _factor(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -311,13 +314,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _format(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _format(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -374,13 +377,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _order(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _order(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -403,13 +406,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _predicate(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _predicate(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -444,13 +447,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _primitive(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _primitive(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -485,13 +488,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _shader_type(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _shader_type(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -516,13 +519,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _texture_type(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _texture_type(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -549,13 +552,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _type(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _type(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -592,13 +595,13 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class convt> constexpr uint32_t _usage(uint32_t value) noexcept
+	template <class convt> constexpr uint32 _usage(uint32 value) noexcept
 	{
 		if constexpr (convt{} == to_impl{})
 		{
@@ -623,7 +626,7 @@ namespace ml::gfx
 		else
 		{
 			static_assert(0, "invalid enum conversion");
-			return static_cast<uint32_t>(-1);
+			return static_cast<uint32>(-1);
 		}
 	}
 
@@ -653,9 +656,9 @@ namespace ml::gfx
 	}
 
 	// get program info log
-	static void gl_get_program_info_log(uint32_t obj, ds::string & buf) noexcept
+	static void gl_get_program_info_log(uint32 obj, ds::string & buf) noexcept
 	{
-		int32_t max_len{};
+		int32 max_len{};
 		ML_glCheck(glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &max_len));
 		buf.resize((size_t)max_len);
 		ML_glCheck(glGetProgramInfoLog(obj, max_len, &max_len, buf.data()));
@@ -698,7 +701,7 @@ namespace ml::gfx
 
 		// extensions
 		{
-			int32_t num{};
+			int32 num{};
 			ML_glCheck(glGetIntegerv(GL_NUM_EXTENSIONS, &num));
 			m_info.extensions.reserve(num);
 
@@ -719,13 +722,13 @@ namespace ml::gfx
 		m_info.texture_edge_clamp_available = true;
 #endif
 		// max texture slots
-		ML_glCheck(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (int32_t *)&m_info.max_texture_slots));
+		ML_glCheck(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (int32 *)&m_info.max_texture_slots));
 
 		// max color attachments
-		ML_glCheck(glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, (int32_t *)&m_info.max_color_attachments));
+		ML_glCheck(glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, (int32 *)&m_info.max_color_attachments));
 
 		// max samples
-		ML_glCheck(glGetIntegerv(GL_MAX_SAMPLES, (int32_t *)&m_info.max_samples));
+		ML_glCheck(glGetIntegerv(GL_MAX_SAMPLES, (int32 *)&m_info.max_samples));
 
 		// shaders available
 #if defined(GL_ARB_shading_language_100) \
@@ -750,47 +753,82 @@ namespace ml::gfx
 
 	ds::ref<render_context> opengl_render_device::new_context(spec<render_context> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_render_context>(alloc, this, desc);
+		return m_refs.push_back<ds::ref<render_context>>
+		(
+			alloc_ref<opengl_render_context>(alloc, this, desc)
+		);
 	}
 
 	ds::ref<vertexarray> opengl_render_device::new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_vertexarray>(alloc, this, desc);
+		return m_refs.push_back<ds::ref<vertexarray>>
+		(
+			alloc_ref<opengl_vertexarray>(alloc, this, desc)
+		);
 	}
 
 	ds::ref<vertexbuffer> opengl_render_device::new_vertexbuffer(spec<vertexbuffer> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_vertexbuffer>(alloc, this, desc);
+		return m_refs.push_back<ds::ref<vertexbuffer>>
+		(
+			alloc_ref<opengl_vertexbuffer>(alloc, this, desc)
+		);
 	}
 
 	ds::ref<indexbuffer> opengl_render_device::new_indexbuffer(spec<indexbuffer> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_indexbuffer>(alloc, this, desc);
+		return m_refs.push_back<ds::ref<indexbuffer>>
+		(
+			alloc_ref<opengl_indexbuffer>(alloc, this, desc)
+		);
 	}
 
 	ds::ref<texture2d> opengl_render_device::new_texture2d(spec<texture2d> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_texture2d>(alloc, this, desc);
+		return m_refs.push_back<ds::ref<texture2d>>
+		(
+			alloc_ref<opengl_texture2d>(alloc, this, desc)
+		);
+	}
+
+	ds::ref<texture3d> opengl_render_device::new_texture3d(spec<texture3d> const & desc, allocator_type alloc) noexcept
+	{
+		return m_refs.push_back<ds::ref<texture3d>>
+		(
+			alloc_ref<opengl_texture3d>(alloc, this, desc)
+		);
 	}
 
 	ds::ref<texturecube> opengl_render_device::new_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_texturecube>(alloc, this, desc);
+		return m_refs.push_back<ds::ref<texturecube>>
+		(
+			alloc_ref<opengl_texturecube>(alloc, this, desc)
+		);
 	}
 
 	ds::ref<framebuffer> opengl_render_device::new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_framebuffer>(alloc, this, desc);
+		return m_refs.push_back<ds::ref<framebuffer>>
+		(
+			alloc_ref<opengl_framebuffer>(alloc, this, desc)
+		);
 	}
 
 	ds::ref<program> opengl_render_device::new_program(spec<program> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_program>(alloc, this, desc);
+		return m_refs.push_back<ds::ref<program>>
+		(
+			alloc_ref<opengl_program>(alloc, this, desc)
+		);
 	}
 
 	ds::ref<shader> opengl_render_device::new_shader(spec<shader> const & desc, allocator_type alloc) noexcept
 	{
-		return alloc_ref<opengl_shader>(alloc, this, desc);
+		return m_refs.push_back<ds::ref<shader>>
+		(
+			alloc_ref<opengl_shader>(alloc, this, desc)
+		);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -822,9 +860,9 @@ namespace ml::gfx
 	{
 		if (static alpha_state temp{}; !value) { value = &temp; }
 
-		ML_glCheck(glGetBooleanv(GL_ALPHA_TEST, (uint8_t *)&value->enabled));
+		ML_glCheck(glGetBooleanv(GL_ALPHA_TEST, (uint8 *)&value->enabled));
 
-		ML_glCheck(glGetIntegerv(GL_ALPHA_TEST_FUNC, (int32_t *)&value->pred));
+		ML_glCheck(glGetIntegerv(GL_ALPHA_TEST_FUNC, (int32 *)&value->pred));
 		value->pred = _predicate<to_user>(value->pred);
 
 		ML_glCheck(glGetFloatv(GL_ALPHA_TEST_REF, &value->ref));
@@ -836,26 +874,26 @@ namespace ml::gfx
 	{
 		if (static blend_state temp{}; !value) { value = &temp; }
 
-		ML_glCheck(glGetBooleanv(GL_BLEND, (uint8_t *)&value->enabled));
+		ML_glCheck(glGetBooleanv(GL_BLEND, (uint8 *)&value->enabled));
 
 		ML_glCheck(glGetFloatv(GL_BLEND_COLOR, value->color));
 
-		ML_glCheck(glGetIntegerv(GL_BLEND_EQUATION_RGB, (int32_t *)&value->color_equation));
+		ML_glCheck(glGetIntegerv(GL_BLEND_EQUATION_RGB, (int32 *)&value->color_equation));
 		value->color_equation = _equation<to_user>(value->color_equation);
 
-		ML_glCheck(glGetIntegerv(GL_BLEND_SRC_RGB, (int32_t *)&value->color_sfactor));
+		ML_glCheck(glGetIntegerv(GL_BLEND_SRC_RGB, (int32 *)&value->color_sfactor));
 		value->color_sfactor = _factor<to_user>(value->color_sfactor);
 
-		ML_glCheck(glGetIntegerv(GL_BLEND_DST_RGB, (int32_t *)&value->color_dfactor));
+		ML_glCheck(glGetIntegerv(GL_BLEND_DST_RGB, (int32 *)&value->color_dfactor));
 		value->color_dfactor = _factor<to_user>(value->color_dfactor);
 
-		ML_glCheck(glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (int32_t *)&value->alpha_equation));
+		ML_glCheck(glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (int32 *)&value->alpha_equation));
 		value->alpha_equation = _equation<to_user>(value->alpha_equation);
 
-		ML_glCheck(glGetIntegerv(GL_BLEND_SRC_ALPHA, (int32_t *)&value->alpha_sfactor));
+		ML_glCheck(glGetIntegerv(GL_BLEND_SRC_ALPHA, (int32 *)&value->alpha_sfactor));
 		value->alpha_sfactor = _factor<to_user>(value->alpha_sfactor);
 
-		ML_glCheck(glGetIntegerv(GL_BLEND_DST_ALPHA, (int32_t *)&value->alpha_dfactor));
+		ML_glCheck(glGetIntegerv(GL_BLEND_DST_ALPHA, (int32 *)&value->alpha_dfactor));
 		value->alpha_dfactor = _factor<to_user>(value->alpha_dfactor);
 
 		return value;
@@ -874,12 +912,12 @@ namespace ml::gfx
 	{
 		if (static cull_state temp{}; !value) { value = &temp; }
 
-		ML_glCheck(glGetBooleanv(GL_CULL_FACE, (uint8_t *)&value->enabled));
+		ML_glCheck(glGetBooleanv(GL_CULL_FACE, (uint8 *)&value->enabled));
 
-		ML_glCheck(glGetIntegerv(GL_CULL_FACE_MODE, (int32_t *)&value->facet));
+		ML_glCheck(glGetIntegerv(GL_CULL_FACE_MODE, (int32 *)&value->facet));
 		value->facet = _facet<to_user>(value->facet);
 
-		ML_glCheck(glGetIntegerv(GL_FRONT_FACE, (int32_t *)&value->order));
+		ML_glCheck(glGetIntegerv(GL_FRONT_FACE, (int32 *)&value->order));
 		value->order = _order<to_user>(value->order);
 
 		return value;
@@ -889,9 +927,9 @@ namespace ml::gfx
 	{
 		if (static depth_state temp{}; !value) { value = &temp; }
 
-		ML_glCheck(glGetBooleanv(GL_DEPTH_TEST, (uint8_t *)&value->enabled));
+		ML_glCheck(glGetBooleanv(GL_DEPTH_TEST, (uint8 *)&value->enabled));
 
-		ML_glCheck(glGetIntegerv(GL_DEPTH_FUNC, (int32_t *)&value->pred));
+		ML_glCheck(glGetIntegerv(GL_DEPTH_FUNC, (int32 *)&value->pred));
 		value->pred = _predicate<to_user>(value->pred);
 		
 		ML_glCheck(glGetFloatv(GL_DEPTH_RANGE, value->range));
@@ -903,22 +941,22 @@ namespace ml::gfx
 	{
 		if (static stencil_state temp{}; !value) { value = &temp; }
 
-		ML_glCheck(glGetBooleanv(GL_STENCIL_TEST, (uint8_t *)&value->enabled));
+		ML_glCheck(glGetBooleanv(GL_STENCIL_TEST, (uint8 *)&value->enabled));
 		{
-			ML_glCheck(glGetIntegerv(GL_STENCIL_FUNC, (int32_t *)&value->front.pred));
+			ML_glCheck(glGetIntegerv(GL_STENCIL_FUNC, (int32 *)&value->front.pred));
 			value->front.pred = _predicate<to_user>(value->front.pred);
 
 			ML_glCheck(glGetIntegerv(GL_STENCIL_REF, &value->front.ref));
 
-			ML_glCheck(glGetIntegerv(GL_STENCIL_VALUE_MASK, (int32_t *)&value->front.mask));
+			ML_glCheck(glGetIntegerv(GL_STENCIL_VALUE_MASK, (int32 *)&value->front.mask));
 		}
 		{
-			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_FUNC, (int32_t *)&value->back.pred));
+			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_FUNC, (int32 *)&value->back.pred));
 			value->back.pred = _predicate<to_user>(value->back.pred);
 
 			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_REF, &value->back.ref));
 
-			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_VALUE_MASK, (int32_t *)&value->back.mask));
+			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_VALUE_MASK, (int32 *)&value->back.mask));
 		}
 
 		return value;
@@ -1010,9 +1048,9 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void opengl_render_context::clear(uint32_t mask)
+	void opengl_render_context::clear(uint32 mask)
 	{
-		uint32_t temp{};
+		uint32 temp{};
 		ML_flag_map(temp, GL_COLOR_BUFFER_BIT	, mask, clear_color		);
 		ML_flag_map(temp, GL_DEPTH_BUFFER_BIT	, mask, clear_depth		);
 		ML_flag_map(temp, GL_STENCIL_BUFFER_BIT	, mask, clear_stencil	);
@@ -1050,14 +1088,14 @@ namespace ml::gfx
 		}
 	}
 
-	void opengl_render_context::draw_arrays(uint32_t prim, size_t first, size_t count)
+	void opengl_render_context::draw_arrays(uint32 prim, size_t first, size_t count)
 	{
-		ML_glCheck(glDrawArrays(_primitive<to_impl>(prim), (uint32_t)first, (uint32_t)count));
+		ML_glCheck(glDrawArrays(_primitive<to_impl>(prim), (uint32)first, (uint32)count));
 	}
 
-	void opengl_render_context::draw_indexed(uint32_t prim, size_t count)
+	void opengl_render_context::draw_indexed(uint32 prim, size_t count)
 	{
-		ML_glCheck(glDrawElements(_primitive<to_impl>(prim), (uint32_t)count, GL_UNSIGNED_INT, nullptr));
+		ML_glCheck(glDrawElements(_primitive<to_impl>(prim), (uint32)count, GL_UNSIGNED_INT, nullptr));
 	}
 
 	void opengl_render_context::flush()
@@ -1069,29 +1107,29 @@ namespace ml::gfx
 
 	void opengl_render_context::bind_vertexarray(vertexarray const * value)
 	{
-		ML_glCheck(glBindVertexArray(value ? ML_handle(uint32_t, value->get_handle()) : NULL));
+		ML_glCheck(glBindVertexArray(value ? ML_handle(uint32, value->get_handle()) : NULL));
 	}
 
 	void opengl_render_context::bind_vertexbuffer(vertexbuffer const * value)
 	{
-		ML_glCheck(glBindBuffer(GL_ARRAY_BUFFER, value ? ML_handle(uint32_t, value->get_handle()) : NULL));
+		ML_glCheck(glBindBuffer(GL_ARRAY_BUFFER, value ? ML_handle(uint32, value->get_handle()) : NULL));
 	}
 
 	void opengl_render_context::bind_indexbuffer(indexbuffer const * value)
 	{
-		ML_glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, value ? ML_handle(uint32_t, value->get_handle()) : NULL));
+		ML_glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, value ? ML_handle(uint32, value->get_handle()) : NULL));
 	}
 
-	void opengl_render_context::bind_texture(texture const * value, uint32_t slot)
+	void opengl_render_context::bind_texture(texture const * value, uint32 slot)
 	{
-		ML_glCheck(glBindTextureUnit(slot, value ? ML_handle(uint32_t, value->get_handle()) : NULL));
+		ML_glCheck(glBindTextureUnit(slot, value ? ML_handle(uint32, value->get_handle()) : NULL));
 	}
 
 	void opengl_render_context::bind_framebuffer(framebuffer const * value)
 	{
 		if (value)
 		{
-			ML_glCheck(glBindFramebuffer(GL_FRAMEBUFFER, ML_handle(uint32_t, value->get_handle())));
+			ML_glCheck(glBindFramebuffer(GL_FRAMEBUFFER, ML_handle(uint32, value->get_handle())));
 
 			set_viewport({ vec2i::zero(), value->get_size() });
 		}
@@ -1103,7 +1141,7 @@ namespace ml::gfx
 
 	void opengl_render_context::bind_program(program const * value)
 	{
-		ML_glCheck(ML_glUseProgram(value ? ML_handle(uint32_t, value->get_handle()) : NULL));
+		ML_glCheck(ML_glUseProgram(value ? ML_handle(uint32, value->get_handle()) : NULL));
 	}
 
 	void opengl_render_context::bind_shader(shader const * value)
@@ -1111,54 +1149,54 @@ namespace ml::gfx
 		ML_glCheck(glUseProgramStages(
 			m_handle,
 			GL_VERTEX_SHADER_BIT,
-			value ? ML_handle(uint32_t, value->get_handle()) : NULL));
+			value ? ML_handle(uint32, value->get_handle()) : NULL));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	void opengl_render_context::upload(uniform_id loc, bool value)
 	{
-		ML_glCheck(ML_glUniform1i(ML_handle(int32_t, loc), (int32_t)value));
+		ML_glCheck(ML_glUniform1i(ML_handle(int32, loc), (int32)value));
 	}
 
-	void opengl_render_context::upload(uniform_id loc, int32_t value)
+	void opengl_render_context::upload(uniform_id loc, int32 value)
 	{
-		ML_glCheck(ML_glUniform1i(ML_handle(int32_t, loc), value));
+		ML_glCheck(ML_glUniform1i(ML_handle(int32, loc), value));
 	}
 
-	void opengl_render_context::upload(uniform_id loc, float_t value)
+	void opengl_render_context::upload(uniform_id loc, float32 value)
 	{
-		ML_glCheck(ML_glUniform1f(ML_handle(int32_t, loc), value));
+		ML_glCheck(ML_glUniform1f(ML_handle(int32, loc), value));
 	}
 
 	void opengl_render_context::upload(uniform_id loc, vec2f const & value)
 	{
-		ML_glCheck(ML_glUniform2f(ML_handle(int32_t, loc), value[0], value[1]));
+		ML_glCheck(ML_glUniform2f(ML_handle(int32, loc), value[0], value[1]));
 	}
 
 	void opengl_render_context::upload(uniform_id loc, vec3f const & value)
 	{
-		ML_glCheck(ML_glUniform3f(ML_handle(int32_t, loc), value[0], value[1], value[2]));
+		ML_glCheck(ML_glUniform3f(ML_handle(int32, loc), value[0], value[1], value[2]));
 	}
 
 	void opengl_render_context::upload(uniform_id loc, vec4f const & value)
 	{
-		ML_glCheck(ML_glUniform4f(ML_handle(int32_t, loc), value[0], value[1], value[2], value[3]));
+		ML_glCheck(ML_glUniform4f(ML_handle(int32, loc), value[0], value[1], value[2], value[3]));
 	}
 
 	void opengl_render_context::upload(uniform_id loc, mat2f const & value)
 	{
-		ML_glCheck(ML_glUniformMatrix2fv(ML_handle(int32_t, loc), false, value));
+		ML_glCheck(ML_glUniformMatrix2fv(ML_handle(int32, loc), false, value));
 	}
 
 	void opengl_render_context::upload(uniform_id loc, mat3f const & value)
 	{
-		ML_glCheck(ML_glUniformMatrix3fv(ML_handle(int32_t, loc), false, value));
+		ML_glCheck(ML_glUniformMatrix3fv(ML_handle(int32, loc), false, value));
 	}
 
 	void opengl_render_context::upload(uniform_id loc, mat4f const & value)
 	{
-		ML_glCheck(ML_glUniformMatrix4fv(ML_handle(int32_t, loc), false, value));
+		ML_glCheck(ML_glUniformMatrix4fv(ML_handle(int32, loc), false, value));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1207,19 +1245,19 @@ namespace ml::gfx
 		{
 			auto const & e{ m_layout.elements()[i] };
 
-			if (auto const type{ std::invoke([&]() noexcept -> uint32_t
+			if (auto const type{ std::invoke([&]() noexcept -> uint32
 			{
 				switch (e.get_base_type())
 				{
 				default					: return 0			; // unknown
 				case hashof_v<bool>		: return GL_BOOL	; // bool
-				case hashof_v<int32_t>	: return GL_INT		; // int
-				case hashof_v<float_t>	: return GL_FLOAT	; // float
+				case hashof_v<int32>	: return GL_INT		; // int
+				case hashof_v<float32>	: return GL_FLOAT	; // float
 				}
 			}) }; type == GL_INT)
 			{
 				ML_glCheck(glVertexAttribIPointer(
-					(uint32_t)i,
+					(uint32)i,
 					e.get_component_count(),
 					type,
 					m_layout.stride(),
@@ -1228,14 +1266,14 @@ namespace ml::gfx
 			else
 			{
 				ML_glCheck(glVertexAttribPointer(
-					(uint32_t)i,
+					(uint32)i,
 					e.get_component_count(),
 					type,
 					e.normalized,
 					m_layout.stride(),
 					reinterpret_cast<addr_t>(e.offset)));
 			}
-			ML_glCheck(glEnableVertexAttribArray((uint32_t)i));
+			ML_glCheck(glEnableVertexAttribArray((uint32)i));
 		}
 	}
 
@@ -1259,13 +1297,13 @@ namespace ml::gfx
 	opengl_vertexbuffer::opengl_vertexbuffer(render_device * parent, spec_type const & desc, allocator_type alloc)
 		: vertexbuffer{ parent }
 		, m_usage{ desc.usage }
-		, m_buffer{ bufcpy<float_t>(desc.count, desc.data), alloc }
+		, m_buffer{ bufcpy<float32>(desc.count, desc.data), alloc }
 	{
 		ML_glCheck(glGenBuffers(1, &m_handle));
 		ML_glCheck(glBindBuffer(GL_ARRAY_BUFFER, m_handle));
 		ML_glCheck(glBufferData(
 			GL_ARRAY_BUFFER,
-			(uint32_t)m_buffer.size(),
+			(uint32)m_buffer.size(),
 			m_buffer.data(),
 			_usage<to_impl>(m_usage)));
 	}
@@ -1288,11 +1326,11 @@ namespace ml::gfx
 
 	void opengl_vertexbuffer::set_data(size_t count, addr_t data, size_t offset)
 	{
-		m_buffer = bufcpy<float_t>(count, data);
+		m_buffer = bufcpy<float32>(count, data);
 		ML_glCheck(glBufferSubData(
 			GL_ARRAY_BUFFER,
 			offset,
-			(uint32_t)m_buffer.size(),
+			(uint32)m_buffer.size(),
 			m_buffer.data()));
 	}
 
@@ -1309,13 +1347,13 @@ namespace ml::gfx
 	opengl_indexbuffer::opengl_indexbuffer(render_device * parent, spec_type const & desc, allocator_type alloc)
 		: indexbuffer	{ parent }
 		, m_usage		{ desc.usage }
-		, m_buffer		{ bufcpy<uint32_t>(desc.count, desc.data), alloc }
+		, m_buffer		{ bufcpy<uint32>(desc.count, desc.data), alloc }
 	{
 		ML_glCheck(glGenBuffers(1, &m_handle));
 		ML_glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_handle));
 		ML_glCheck(glBufferData(
 			GL_ELEMENT_ARRAY_BUFFER,
-			(uint32_t)m_buffer.size(),
+			(uint32)m_buffer.size(),
 			m_buffer.data(),
 			_usage<to_impl>(m_usage)));
 	}
@@ -1338,11 +1376,11 @@ namespace ml::gfx
 
 	void opengl_indexbuffer::set_data(size_t count, addr_t data, size_t offset)
 	{
-		m_buffer = bufcpy<uint32_t>(count, data);
+		m_buffer = bufcpy<uint32>(count, data);
 		ML_glCheck(glBufferSubData(
 			GL_ELEMENT_ARRAY_BUFFER,
 			offset,
-			(uint32_t)m_buffer.size(),
+			(uint32)m_buffer.size(),
 			m_buffer.data()));
 	}
 
@@ -1541,6 +1579,55 @@ namespace ml::gfx
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// texture3d
+namespace ml::gfx
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	opengl_texture3d::opengl_texture3d(render_device * parent, spec_type const & desc, allocator_type alloc)
+		: texture3d	{ parent }
+		, m_size	{ desc.size }
+		, m_format	{ desc.format }
+		, m_flags	{ desc.flags }
+	{
+		ML_glCheck(glGenTextures(1, &m_handle));
+	}
+
+	opengl_texture3d::~opengl_texture3d()
+	{
+		ML_glCheck(glDeleteTextures(1, &m_handle));
+	}
+
+	bool opengl_texture3d::revalue()
+	{
+		if (!m_locked) { return debug::error("texture3d is not locked"); }
+
+		if (m_handle) { ML_glCheck(glDeleteTextures(1, &m_handle)); }
+		
+		ML_glCheck(glGenTextures(1, &m_handle));
+		
+		return (bool)m_handle;
+	}
+
+	void opengl_texture3d::lock()
+	{
+		m_locked = true;
+
+		debug::warning("texture lock/unlock NYI");
+	}
+
+	void opengl_texture3d::unlock()
+	{
+		m_locked = false;
+
+		debug::warning("texture lock/unlock NYI");
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // texturecube
 namespace ml::gfx
 {
@@ -1676,9 +1763,9 @@ namespace ml::gfx
 
 			ML_glCheck(glFramebufferTexture2D(
 				GL_FRAMEBUFFER,
-				GL_COLOR_ATTACHMENT0 + (uint32_t)i,
+				GL_COLOR_ATTACHMENT0 + (uint32)i,
 				GL_TEXTURE_2D,
-				ML_handle(uint32_t, m_attachments[i]->get_handle()),
+				ML_handle(uint32, m_attachments[i]->get_handle()),
 				0));
 		}
 
@@ -1699,7 +1786,7 @@ namespace ml::gfx
 			GL_FRAMEBUFFER,
 			GL_DEPTH_STENCIL_ATTACHMENT,
 			GL_TEXTURE_2D,
-			ML_handle(uint32_t, m_depth->get_handle()),
+			ML_handle(uint32, m_depth->get_handle()),
 			0));
 
 		// check status
@@ -1730,7 +1817,7 @@ namespace ml::gfx
 		location = p.m_uniforms.find_or_add_fn(hashof(name, util::strlen(name)), [&
 		]() noexcept
 		{
-			int32_t temp{};
+			int32 temp{};
 			ML_glCheck(temp = ML_glGetUniformLocation(self, name));
 			return ML_handle(uniform_id, temp);
 		});
@@ -1768,20 +1855,20 @@ namespace ml::gfx
 		return (bool)m_handle;
 	}
 
-	bool opengl_program::attach(uint32_t type, size_t count, cstring * str, int32_t const * len)
+	bool opengl_program::attach(uint32 type, size_t count, cstring * str, int32 const * len)
 	{
 		if (!count || !str || !*str || m_shaders.contains(type)) { return false; }
 
 		// create shader
-		uint32_t temp{};
+		uint32 temp{};
 		ML_glCheck(temp = ML_glCreateShader(_shader_type<to_impl>(type)));
 
 		// compile shader
-		ML_glCheck(ML_glShaderSource(temp, (uint32_t)count, str, len));
+		ML_glCheck(ML_glShaderSource(temp, (uint32)count, str, len));
 		ML_glCheck(ML_glCompileShader(temp));
 
 		// check compile errors
-		int32_t success{};
+		int32 success{};
 		ML_glCheck(ML_glGetShaderCompileStatus(temp, &success));
 		if (!success)
 		{
@@ -1799,15 +1886,15 @@ namespace ml::gfx
 		return success;
 	}
 
-	bool opengl_program::detach(uint32_t type)
+	bool opengl_program::detach(uint32 type)
 	{
 		if (auto const it{ m_shaders.find(type) })
 		{
 			// detach shader
-			ML_glCheck(ML_glDetachShader(m_handle, ML_handle(uint32_t, *it->second)));
+			ML_glCheck(ML_glDetachShader(m_handle, ML_handle(uint32, *it->second)));
 
 			// delete shader
-			ML_glCheck(ML_glDeleteShader(ML_handle(uint32_t, *it->second)));
+			ML_glCheck(ML_glDeleteShader(ML_handle(uint32, *it->second)));
 
 			m_shaders.erase(it->first);
 
@@ -1824,7 +1911,7 @@ namespace ml::gfx
 		ML_glCheck(ML_glLinkProgram(m_handle));
 
 		// check linker errors
-		int32_t success{};
+		int32 success{};
 		ML_glCheck(ML_glGetProgramLinkStatus(m_handle, &success));
 		if (!success)
 		{
@@ -1852,7 +1939,7 @@ namespace ml::gfx
 		loc = s.m_uniforms.find_or_add_fn(hashof(name, util::strlen(name)), [&
 		]() noexcept
 		{
-			int32_t temp{};
+			int32 temp{};
 			ML_glCheck(temp = ML_glGetUniformLocation(self, name));
 			return ML_handle(uniform_id, temp);
 		});
@@ -1878,7 +1965,7 @@ namespace ml::gfx
 		ML_glCheck(ML_glDeleteProgram(m_handle));
 	}
 
-	bool opengl_shader::compile(uint32_t type, size_t count, cstring * str, int32_t const * len)
+	bool opengl_shader::compile(uint32 type, size_t count, cstring * str, int32 const * len)
 	{
 		if (!count || !str || !*str) { return false; }
 
@@ -1891,17 +1978,17 @@ namespace ml::gfx
 		m_type = type;
 		m_code = { str, str + count };
 
-		uint32_t temp{};
+		uint32 temp{};
 		ML_glCheck(temp = ML_glCreateShader(_shader_type<to_impl>(type)));
 		if (temp)
 		{
-			ML_glCheck(ML_glShaderSource(temp, (uint32_t)count, str, len));
+			ML_glCheck(ML_glShaderSource(temp, (uint32)count, str, len));
 			ML_glCheck(ML_glCompileShader(temp));
 
 			ML_glCheck(m_handle = ML_glCreateProgram());
 			if (m_handle)
 			{
-				int32_t compiled{};
+				int32 compiled{};
 				ML_glCheck(ML_glGetShaderCompileStatus(temp, &compiled));
 				ML_glCheck(glProgramParameteri(m_handle, GL_PROGRAM_SEPARABLE, true));
 				if (m_log.clear(); compiled)
@@ -1927,59 +2014,59 @@ namespace ml::gfx
 
 	void opengl_shader::do_upload(uniform_id loc, bool value)
 	{
-		ML_glCheck(glProgramUniform1i(m_handle, ML_handle(int32_t, loc), (int32_t)value));
+		ML_glCheck(glProgramUniform1i(m_handle, ML_handle(int32, loc), (int32)value));
 	}
 
-	void opengl_shader::do_upload(uniform_id loc, int32_t value)
+	void opengl_shader::do_upload(uniform_id loc, int32 value)
 	{
-		ML_glCheck(glProgramUniform1i(m_handle, ML_handle(int32_t, loc), value));
+		ML_glCheck(glProgramUniform1i(m_handle, ML_handle(int32, loc), value));
 	}
 
-	void opengl_shader::do_upload(uniform_id loc, uint32_t value)
+	void opengl_shader::do_upload(uniform_id loc, uint32 value)
 	{
-		ML_glCheck(glProgramUniform1i(m_handle, ML_handle(int32_t, loc), (int32_t)value));
+		ML_glCheck(glProgramUniform1i(m_handle, ML_handle(int32, loc), (int32)value));
 	}
 
-	void opengl_shader::do_upload(uniform_id loc, float_t value)
+	void opengl_shader::do_upload(uniform_id loc, float32 value)
 	{
-		ML_glCheck(glProgramUniform1f(m_handle, ML_handle(int32_t, loc), value));
+		ML_glCheck(glProgramUniform1f(m_handle, ML_handle(int32, loc), value));
 	}
 
 	void opengl_shader::do_upload(uniform_id loc, vec2f const & value)
 	{
-		ML_glCheck(glProgramUniform2f(m_handle, ML_handle(int32_t, loc), value[0], value[1]));
+		ML_glCheck(glProgramUniform2f(m_handle, ML_handle(int32, loc), value[0], value[1]));
 	}
 
 	void opengl_shader::do_upload(uniform_id loc, vec3f const & value)
 	{
-		ML_glCheck(glProgramUniform3f(m_handle, ML_handle(int32_t, loc), value[0], value[1], value[2]));
+		ML_glCheck(glProgramUniform3f(m_handle, ML_handle(int32, loc), value[0], value[1], value[2]));
 	}
 
 	void opengl_shader::do_upload(uniform_id loc, vec4f const & value)
 	{
-		ML_glCheck(glProgramUniform4f(m_handle, ML_handle(int32_t, loc), value[0], value[1], value[2], value[3]));
+		ML_glCheck(glProgramUniform4f(m_handle, ML_handle(int32, loc), value[0], value[1], value[2], value[3]));
 	}
 
 	void opengl_shader::do_upload(uniform_id loc, mat2f const & value, bool transpose)
 	{
-		ML_glCheck(glProgramUniformMatrix2fv(m_handle, ML_handle(int32_t, loc), 1, transpose, value));
+		ML_glCheck(glProgramUniformMatrix2fv(m_handle, ML_handle(int32, loc), 1, transpose, value));
 	}
 
 	void opengl_shader::do_upload(uniform_id loc, mat3f const & value, bool transpose)
 	{
-		ML_glCheck(glProgramUniformMatrix3fv(m_handle, ML_handle(int32_t, loc), 1, transpose, value));
+		ML_glCheck(glProgramUniformMatrix3fv(m_handle, ML_handle(int32, loc), 1, transpose, value));
 	}
 
 	void opengl_shader::do_upload(uniform_id loc, mat4f const & value, bool transpose)
 	{
-		ML_glCheck(glProgramUniformMatrix4fv(m_handle, ML_handle(int32_t, loc), 1, transpose, value));
+		ML_glCheck(glProgramUniformMatrix4fv(m_handle, ML_handle(int32, loc), 1, transpose, value));
 	}
 	
-	void opengl_shader::do_upload(uniform_id loc, ds::ref<texture> const & value, uint32_t slot)
+	void opengl_shader::do_upload(uniform_id loc, ds::ref<texture> const & value, uint32 slot)
 	{
 		get_context()->bind_texture(value.get(), slot);
 
-		ML_glCheck(glProgramUniform1i(m_handle, ML_handle(int32_t, loc), (int32_t)slot));
+		ML_glCheck(glProgramUniform1i(m_handle, ML_handle(int32, loc), (int32)slot));
 	}
 }
 

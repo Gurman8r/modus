@@ -2,9 +2,7 @@
 #define _ML_CORE_APPLICATION_HPP_
 
 #include <modus_core/detail/LoopSystem.hpp>
-#include <modus_core/detail/Events.hpp>
 
-// CORE APP
 namespace ml
 {
 	// core application
@@ -12,18 +10,35 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		using subsystem = typename loop_system::subsystem;
-
-		explicit core_application(int32_t argc, char * argv[], allocator_type alloc = {});
+		explicit core_application(int32 argc, char * argv[], allocator_type alloc = {});
 
 		virtual ~core_application() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
+		int32 exec() noexcept
+		{
+			ML_check(m_main_loop)->process();
+
+			return m_exit_code;
+		}
+
+		void exit(int32 value) noexcept
+		{
+			ML_check(m_main_loop)->halt();
+
+			m_exit_code = value;
+		}
+
+		void quit() noexcept
+		{
+			this->exit(EXIT_SUCCESS);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ML_NODISCARD auto app_file_name() const noexcept -> fs::path const &
 		{
 			return m_app_file_name;
@@ -84,10 +99,19 @@ namespace ml
 			return m_library_paths[i];
 		}
 
-		ML_NODISCARD auto path_to(fs::path const & value = {}) const noexcept -> fs::path
+		ML_NODISCARD auto main_loop() const noexcept -> ds::ref<loop_system> const &
 		{
-			return library_paths(0).native() + value.native();
+			return m_main_loop;
 		}
+
+		ML_NODISCARD auto path_to(fs::path const & value) const noexcept -> fs::path
+		{
+			return m_library_paths.empty()
+				? value
+				: m_library_paths.front().native() + value.native();
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		auto set_app_name(ds::string const & value) noexcept -> ds::string &
 		{
@@ -109,21 +133,7 @@ namespace ml
 			return m_library_paths = value;
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	public:
-		int32_t exec();
-
-		void exit(int32_t exit_code);
-
-		void quit() noexcept { this->exit(EXIT_SUCCESS); }
-
-		ML_NODISCARD auto get_main_loop() const noexcept -> subsystem const &
-		{
-			return m_main_loop;
-		}
-
-		auto set_main_loop(subsystem const & value) noexcept -> subsystem &
+		auto set_main_loop(ds::ref<loop_system> const & value) noexcept -> ds::ref<loop_system> &
 		{
 			return m_main_loop = value;
 		}
@@ -131,14 +141,14 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		ML_NODISCARD bool initialize_interpreter();
-
-		void finalize_interpreter();
+		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		virtual void on_event(event const & value) override;
+		ML_NODISCARD bool initialize_interpreter();
+
+		void finalize_interpreter();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -150,10 +160,11 @@ namespace ml
 		ds::list<ds::string>	m_arguments		; // 
 		json					m_attributes	; // 
 		ds::list<fs::path>		m_library_paths	; // 
+
+		int32					m_exit_code		; // 
+		event_bus				m_dispatcher	; // 
+		ds::ref<loop_system>	m_main_loop		; // 
 		
-		int32_t		m_exit_code		; // 
-		event_bus	m_dispatcher	; // 
-		subsystem	m_main_loop		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -165,20 +176,6 @@ namespace ml::globals
 	ML_decl_global(core_application) get() noexcept;
 
 	ML_decl_global(core_application) set(core_application * value) noexcept;
-}
-
-// EVENTS
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ML_event(app_enter_event) {};
-
-	ML_event(app_exit_event) {};
-
-	ML_event(app_idle_event) {};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_CORE_APPLICATION_HPP_

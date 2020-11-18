@@ -1,7 +1,6 @@
 #ifndef _ML_STREAM_SNIPER_HPP_
 #define _ML_STREAM_SNIPER_HPP_
 
-#include <modus_core/detail/NonCopyable.hpp>
 #include <modus_core/detail/String.hpp>
 
 namespace ml
@@ -87,6 +86,10 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+
+	ML_alias stream_sniper = typename basic_stream_sniper<char>;
+
+	ML_alias wstream_sniper = typename basic_stream_sniper<wchar_t>;
 }
 
 #endif // !_ML_STREAM_SNIPER_HPP_

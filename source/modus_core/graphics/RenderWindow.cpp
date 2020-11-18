@@ -58,7 +58,8 @@ namespace ml
 		}
 
 		// create render context
-		set_render_context(m_device->new_context({
+		set_render_context(m_device->new_context
+		({
 			cs.api,
 			cs.major,
 			cs.minor,
@@ -70,8 +71,8 @@ namespace ml
 		}));
 
 		// setup states
-		get_render_context()->execute(
-
+		get_render_context()->execute
+		(
 			// alpha state
 			gfx::command::set_alpha_state
 			({

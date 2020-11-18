@@ -6,9 +6,9 @@
 
 #include <Windows.h>
 
-extern INT main(INT, PZPSTR);
+extern INT main(INT, CHAR*[]);
 
-INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, INT nCmdShow)
+INT CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, INT nCmdShow)
 {
 	return main(__argc, __argv);
 }

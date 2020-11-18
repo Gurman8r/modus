@@ -12,7 +12,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using iterator			= typename ds::list<node *>::iterator;
 		using const_iterator	= typename ds::list<node *>::const_iterator;
 

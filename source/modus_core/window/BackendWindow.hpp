@@ -10,7 +10,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -49,7 +49,7 @@ namespace ml
 
 		virtual vec2 get_content_scale() const = 0;
 
-		virtual int32_t get_cursor_mode() const = 0;
+		virtual int32 get_cursor_mode() const = 0;
 
 		virtual vec2 get_cursor_pos() const = 0;
 
@@ -59,20 +59,20 @@ namespace ml
 
 		virtual window_hints_ get_hints() const = 0;
 
-		ML_NODISCARD inline bool has_hints(int32_t value) const noexcept
+		ML_NODISCARD inline bool has_hints(int32 value) const noexcept
 		{
-			return ML_flag_read((int32_t)get_hints(), value);
+			return ML_flag_read((int32)get_hints(), value);
 		}
 
-		virtual int32_t get_input_mode(int32_t) const = 0;
+		virtual int32 get_input_mode(int32) const = 0;
 
-		virtual int32_t get_key(int32_t) const = 0;
+		virtual int32 get_key(int32) const = 0;
 
-		virtual int32_t get_mouse_button(int32_t) const = 0;
+		virtual int32 get_mouse_button(int32) const = 0;
 
 		virtual window_handle get_native_handle() const = 0;
 
-		virtual float_t get_opacity() const = 0;
+		virtual float32 get_opacity() const = 0;
 
 		virtual vec2i get_position() const = 0;
 
@@ -118,7 +118,7 @@ namespace ml
 
 		virtual void set_cursor(cursor_handle) = 0;
 
-		virtual void set_cursor_mode(int32_t) = 0;
+		virtual void set_cursor_mode(int32) = 0;
 
 		virtual void set_cursor_pos(vec2d const &) = 0;
 
@@ -128,11 +128,11 @@ namespace ml
 
 		virtual void set_focus_on_show(bool) = 0;
 
-		virtual void set_icons(size_t, size_t, byte_t const *, size_t) = 0;
+		virtual void set_icons(size_t, size_t, byte const *, size_t) = 0;
 
-		virtual void set_input_mode(int32_t, int32_t) = 0;
+		virtual void set_input_mode(int32, int32) = 0;
 
-		virtual void set_opacity(float_t) = 0;
+		virtual void set_opacity(float32) = 0;
 
 		virtual void set_position(vec2i const &) = 0;
 

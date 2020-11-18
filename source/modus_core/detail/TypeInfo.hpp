@@ -143,12 +143,12 @@ namespace ml
 	};
 
 #ifdef ML_cc_msvc
-	template <> struct nameof_t<int64_t> final
+	template <> struct nameof_t<int64> final
 	{
 		static constexpr auto value{ "long long" }; // __int64
 	};
 
-	template <> struct nameof_t<uint64_t> final
+	template <> struct nameof_t<uint64> final
 	{
 		static constexpr auto value{ "unsigned long long" }; // unsigned __int64
 	};
@@ -161,13 +161,13 @@ namespace ml
 	template <class T
 	> ML_NODISCARD constexpr static_string nameof() noexcept
 	{
-		return nameof_t<T>::value;
+		return _ML nameof_t<T>::value;
 	}
 
 	template <class T
 	> constexpr static_string nameof_v
 	{
-		nameof<T>()
+		_ML nameof<T>()
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -177,30 +177,30 @@ namespace ml
 	template <class T
 	> ML_NODISCARD constexpr hash_t hashof() noexcept
 	{
-		return hashof(static_string{ nameof_t<T>::value });
+		return _ML hashof(static_string{ nameof_t<T>::value });
 	}
 
 	template <class T
 	> constexpr hash_t hashof_v
 	{
-		hashof<T>()
+		_ML hashof<T>()
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	static_assert("test type info"
 		&& nameof_v<bool>			== "bool"
-		&& nameof_v<int8_t>			== "signed char"
-		&& nameof_v<int16_t>		== "short"
-		&& nameof_v<int32_t>		== "int"
-		&& nameof_v<int64_t>		== "long long"
-		&& nameof_v<uint8_t>		== "unsigned char"
-		&& nameof_v<uint16_t>		== "unsigned short"
-		&& nameof_v<uint32_t>		== "unsigned int"
-		&& nameof_v<uint64_t>		== "unsigned long long"
-		&& nameof_v<float32_t>		== "float"
-		&& nameof_v<float64_t>		== "double"
-		&& nameof_v<float80_t>		== "long double"
+		&& nameof_v<int8>			== "signed char"
+		&& nameof_v<int16>			== "short"
+		&& nameof_v<int32>			== "int"
+		&& nameof_v<int64>			== "long long"
+		&& nameof_v<uint8>			== "unsigned char"
+		&& nameof_v<uint16>			== "unsigned short"
+		&& nameof_v<uint32>			== "unsigned int"
+		&& nameof_v<uint64>			== "unsigned long long"
+		&& nameof_v<float32>		== "float"
+		&& nameof_v<float64>		== "double"
+		&& nameof_v<float80>		== "long double"
 		&& nameof_v<char>			== "char"
 		&& nameof_v<wchar_t>		== "wchar_t"
 		&& nameof_v<char16_t>		== "char16_t"
@@ -226,15 +226,15 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class ...> struct typeof;
+	template <class ...> struct typeof_t;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class T> struct typeof<T> final
+	template <class T> struct typeof_t<T> final
 	{
-		constexpr typeof() noexcept = default;
+		constexpr typeof_t() noexcept = default;
 
-		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return this->hash(); }
+		ML_NODISCARD constexpr operator hash_t const & () const noexcept { return m_hash; }
 
 		ML_NODISCARD static constexpr hash_t const & hash() noexcept { return hashof_v<T>; }
 
@@ -243,24 +243,24 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct typeof<> final
+	template <> struct typeof_t<> final
 	{
-		constexpr typeof() noexcept
+		constexpr typeof_t() noexcept
 			: m_name{}, m_hash{}
 		{
 		}
 
 		template <class ... T
-		> constexpr typeof(typeof<T...> const & other) noexcept
+		> constexpr typeof_t(typeof_t<T...> const & other) noexcept
 			: m_hash{ other.hash() }, m_name{ other.name() }
 		{
 		}
 
-		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return this->hash(); }
+		ML_NODISCARD constexpr operator hash_t const & () const noexcept { return m_hash; }
 
-		ML_NODISCARD constexpr hash_t const & hash() const & noexcept { return m_hash; }
+		ML_NODISCARD constexpr hash_t const & hash() const noexcept { return m_hash; }
 
-		ML_NODISCARD constexpr static_string const & name() const & noexcept { return m_name; }
+		ML_NODISCARD constexpr static_string const & name() const noexcept { return m_name; }
 
 	private:
 		hash_t			m_hash	; // hash code
@@ -269,48 +269,57 @@ namespace ml
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// get type
+	// typeof
+	template <class T
+	> ML_NODISCARD constexpr auto typeof() noexcept
+	{
+		return _ML typeof_t<T>{};
+	}
 
+	// variable typeof
 	template <class T
 	> static constexpr auto typeof_v
 	{
-		typeof<T>{}
+		_ML typeof<T>()
 	};
+
+	// macro typeof
+#define ML_typeof(T) _ML typeof_v<T>
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class ... L, class ... R
-	> ML_NODISCARD constexpr bool operator==(typeof<L...> const & lhs, typeof<R...> const & rhs) noexcept
+	> ML_NODISCARD constexpr bool operator==(typeof_t<L...> const & lhs, typeof_t<R...> const & rhs) noexcept
 	{
 		return (hash_t)lhs == (hash_t)rhs;
 	}
 
 	template <class ... L, class ... R
-	> ML_NODISCARD constexpr bool operator!=(typeof<L...> const & lhs, typeof<R...> const & rhs) noexcept
+	> ML_NODISCARD constexpr bool operator!=(typeof_t<L...> const & lhs, typeof_t<R...> const & rhs) noexcept
 	{
 		return (hash_t)lhs != (hash_t)rhs;
 	}
 
 	template <class ... L, class ... R
-	> ML_NODISCARD constexpr bool operator<(typeof<L...> const & lhs, typeof<R...> const & rhs) noexcept
+	> ML_NODISCARD constexpr bool operator<(typeof_t<L...> const & lhs, typeof_t<R...> const & rhs) noexcept
 	{
 		return (hash_t)lhs < (hash_t)rhs;
 	}
 
 	template <class ... L, class ... R
-	> ML_NODISCARD constexpr bool operator>(typeof<L...> const & lhs, typeof<R...> const & rhs) noexcept
+	> ML_NODISCARD constexpr bool operator>(typeof_t<L...> const & lhs, typeof_t<R...> const & rhs) noexcept
 	{
 		return (hash_t)lhs > (hash_t)rhs;
 	}
 
 	template <class ... L, class ... R
-	> ML_NODISCARD constexpr bool operator<=(typeof<L...> const & lhs, typeof<R...> const & rhs) noexcept
+	> ML_NODISCARD constexpr bool operator<=(typeof_t<L...> const & lhs, typeof_t<R...> const & rhs) noexcept
 	{
 		return (hash_t)lhs <= (hash_t)rhs;
 	}
 
 	template <class ... L, class ... R
-	> ML_NODISCARD constexpr bool operator>=(typeof<L...> const & lhs, typeof<R...> const & rhs) noexcept
+	> ML_NODISCARD constexpr bool operator>=(typeof_t<L...> const & lhs, typeof_t<R...> const & rhs) noexcept
 	{
 		return (hash_t)lhs >= (hash_t)rhs;
 	}
@@ -322,9 +331,9 @@ namespace ml
 
 namespace std
 {
-	template <class ... T> struct equal_to<_ML typeof<T...>>
+	template <class ... T> struct equal_to<_ML typeof_t<T...>>
 	{
-		using type = _ML typeof<T...>;
+		using type = _ML typeof_t<T...>;
 
 		ML_NODISCARD constexpr bool operator()(type const & lhs, type const & rhs) const
 		{
@@ -332,9 +341,9 @@ namespace std
 		}
 	};
 
-	template <class ... T> struct hash<_ML typeof<T...>>
+	template <class ... T> struct hash<_ML typeof_t<T...>>
 	{
-		using type = _ML typeof<T...>;
+		using type = _ML typeof_t<T...>;
 
 		ML_NODISCARD constexpr size_t operator()(type const & value) const noexcept
 		{

@@ -1,7 +1,7 @@
 #ifndef _ML_HASH_HPP_
 #define _ML_HASH_HPP_
 
-#include <modus_core/Common.hpp>
+#include <modus_core/Standard.hpp>
 
 namespace ml::util
 {

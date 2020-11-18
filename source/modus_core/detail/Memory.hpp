@@ -12,10 +12,10 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using pointer			= typename byte_t *;
-		using const_pointer		= typename byte_t const *;
-		using reference			= typename byte_t &;
-		using const_reference	= typename byte_t const &;
+		using pointer			= typename byte *;
+		using const_pointer		= typename byte const *;
+		using reference			= typename byte &;
+		using const_reference	= typename byte const &;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
@@ -43,9 +43,9 @@ namespace ml
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto fraction() const noexcept -> float_t { return (float_t)m_used / (float_t)m_capacity; }
+		ML_NODISCARD auto fraction() const noexcept -> float32 { return (float32)m_used / (float32)m_capacity; }
 
-		ML_NODISCARD auto percentage() const noexcept -> float_t { return fraction() * 100.f; }
+		ML_NODISCARD auto percentage() const noexcept -> float32 { return fraction() * 100.f; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -107,7 +107,7 @@ namespace ml
 	};
 }
 
-// deleters
+// smart pointers
 namespace ml
 {
 	// no delete
@@ -128,12 +128,7 @@ namespace ml
 			delete value;
 		}
 	};
-}
 
-// pointers
-namespace ml
-{
-	// smart pointers
 	namespace ds
 	{
 		// shared pointer
@@ -153,7 +148,7 @@ namespace ml
 		> ML_alias scary = typename std::unique_ptr<T, no_delete>;
 	}
 
-	template <class T, class Alloc = pmr::polymorphic_allocator<byte_t>, class ... Args
+	template <class T, class Alloc = pmr::polymorphic_allocator<byte>, class ... Args
 	> ML_NODISCARD ds::ref<T> alloc_ref(Alloc alloc, Args && ... args)
 	{
 		return std::allocate_shared<T>(alloc, ML_forward(args)...);
@@ -188,7 +183,7 @@ namespace ml
 	// memory record
 	struct ML_NODISCARD memory_record final
 	{
-		byte_t * addr; size_t index; size_t count; size_t size;
+		byte * addr; size_t index; size_t count; size_t size;
 
 		constexpr operator bool() const noexcept
 		{
@@ -221,13 +216,13 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
 		enum : size_t { id_addr, id_index, id_count, id_size };
 
 		using record_storage = typename ds::batch_vector
 		<
-			byte_t *	,	// address
+			byte *	,	// address
 			size_t		,	// index
 			size_t		,	// count
 			size_t			// size
@@ -235,12 +230,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit memory_manager(passthrough_resource & mres);
-
 		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource()) noexcept(false)
 			: memory_manager{ *reinterpret_cast<passthrough_resource *>(mres) }
 		{
 		}
+
+		explicit memory_manager(passthrough_resource & mres);
 
 		~memory_manager() noexcept;
 
@@ -349,7 +344,7 @@ namespace ml
 		}
 
 		// get record address
-		ML_NODISCARD auto get_record_addr(size_t i) const noexcept -> byte_t *
+		ML_NODISCARD auto get_record_addr(size_t i) const noexcept -> byte *
 		{
 			return m_records.at<id_addr>(i);
 		}
@@ -390,7 +385,7 @@ namespace ml
 			if (auto const i{ m_records.lookup<id_addr>(addr) }; i != m_records.npos)
 			{
 				m_alloc.deallocate(
-					(byte_t *)addr,
+					(byte *)addr,
 					m_records.at<id_count>(i) *
 					m_records.at<id_size>(i));
 
@@ -418,7 +413,7 @@ namespace ml::globals
 	ML_decl_global(memory_manager) set(memory_manager * value) noexcept;
 }
 
-// c-like interface
+// standard interface
 namespace ml
 {
 	// malloc

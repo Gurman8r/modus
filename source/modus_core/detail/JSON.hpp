@@ -3,7 +3,7 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <modus_core/detail/Flow.hpp>
+#include <modus_core/Standard.hpp>
 #include <nlohmann/json.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -13,10 +13,10 @@ namespace ml
 	ML_alias json = typename nlohmann::basic_json
 	<
 		std::map,
-		std::vector, std::string, bool, int64_t, uint64_t, float64_t,
+		std::vector, std::string, bool, int64, uint64, float64,
 		std::allocator,
 		nlohmann::adl_serializer,
-		std::vector<uint8_t>
+		std::vector<uint8>
 	>;
 }
 

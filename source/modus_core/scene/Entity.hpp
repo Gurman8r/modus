@@ -12,7 +12,7 @@ namespace ml
 		virtual ~entity() noexcept override = default;
 
 		entity(scene * scene, entt::entity handle) noexcept
-			: event_listener{ scene->get_bus() }
+			: event_listener{ ML_check(scene)->get_bus() }
 			, m_scene		{ scene }
 			, m_handle		{ handle }
 		{

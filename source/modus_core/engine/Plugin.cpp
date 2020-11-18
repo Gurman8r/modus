@@ -1,4 +1,5 @@
 #include <modus_core/engine/Application.hpp>
+#include <modus_core/engine/PluginManager.hpp>
 
 namespace ml
 {

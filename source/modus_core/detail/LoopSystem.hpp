@@ -11,9 +11,10 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type			= typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type			= typename pmr::polymorphic_allocator<byte>;
 		using loop_condition			= typename ds::method<bool()>;
 		using loop_callback				= typename ds::method<void()>;
+		using idle_callback				= typename ds::method<void(float32)>;
 		using event_callback			= typename ds::method<void(event const &)>;
 		using subsystem					= typename ds::ref<loop_system>;
 		using subsystem_list			= typename ds::list<subsystem>;
@@ -28,10 +29,13 @@ namespace ml
 
 		loop_system(event_bus * bus, allocator_type alloc = {}) noexcept
 			: event_listener{ bus }
-			, m_locked		{}
-			, m_uptime		{ false }
+			, m_running		{}
+			, m_main_timer	{}
+			, m_idle_timer	{}
+			, m_idle_delta	{}
+			, m_idle_index	{}
 			, m_subsystems	{ alloc }
-			, m_loopcond	{}
+			, m_condition	{}
 			, m_on_enter	{}
 			, m_on_exit		{}
 			, m_on_idle		{}
@@ -41,10 +45,13 @@ namespace ml
 
 		explicit loop_system(loop_system const & other, allocator_type alloc = {})
 			: event_listener{ other.get_bus() }
-			, m_locked		{}
-			, m_uptime		{ false }
+			, m_running		{}
+			, m_main_timer	{}
+			, m_idle_timer	{}
+			, m_idle_delta	{}
+			, m_idle_index	{}
 			, m_subsystems	{ other.m_subsystems, alloc }
-			, m_loopcond	{ other.m_loopcond }
+			, m_condition	{ other.m_condition }
 			, m_on_enter	{ other.m_on_enter }
 			, m_on_exit		{ other.m_on_exit }
 			, m_on_idle		{ other.m_on_idle }
@@ -77,9 +84,9 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				std::swap(m_locked, other.m_locked);
+				std::swap(m_running, other.m_running);
 				m_subsystems.swap(other.m_subsystems);
-				m_loopcond.swap(m_loopcond);
+				m_condition.swap(m_condition);
 				m_on_enter.swap(m_on_enter);
 				m_on_exit.swap(m_on_exit);
 				m_on_idle.swap(m_on_idle);
@@ -89,21 +96,48 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		using event_listener::get_bus;
+
 		using event_listener::subscribe;
 
 		using event_listener::unsubscribe;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD bool running() const noexcept { return m_running; }
+
+		ML_NODISCARD auto total_time() const noexcept -> duration { return m_main_timer.elapsed(); }
+
+		ML_NODISCARD auto delta_time() const noexcept -> duration { return m_idle_delta; }
+
+		ML_NODISCARD auto loop_index() const noexcept { return m_idle_index; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		template <bool Recurse = true
-		> int32_t process() noexcept
+		> void halt() noexcept
+		{
+			m_running = false;
+
+			if constexpr (Recurse) for (subsystem & e : m_subsystems)
+			{
+				e->halt();
+			}
+		}
+
+		template <bool Recurse = true
+		> int32 process() noexcept
 		{
 			// lock
-			if (m_locked) { return EXIT_FAILURE * 1; }
-			else { m_locked = true; } ML_defer(&) { m_locked = false; };
+			if (m_running) { return EXIT_FAILURE * 1; }
+			else { m_running = true; } ML_defer(&) { m_running = false; };
 
-			// uptime
-			m_uptime.restart(); ML_defer(&) { m_uptime.stop(); };
+			// timers
+			m_main_timer.restart(); ML_defer(&)
+			{
+				m_main_timer.stop();
+				m_idle_timer.stop();
+			};
 
 			// enter
 			this->run_enter_callback<Recurse>();
@@ -112,23 +146,26 @@ namespace ml
 			ML_defer(&) { this->run_exit_callback<Recurse>(); };
 			
 			// idle
-			if (!this->run_loop_condition()) { return EXIT_FAILURE * 2; }
-			do { this->run_idle_callback<Recurse>(); }
-			while (this->run_loop_condition());
+			if (!this->check_loop_condition()) { return EXIT_FAILURE * 2; }
+			do
+			{
+				m_idle_timer.restart();
+
+				this->run_idle_callback<Recurse>(m_idle_delta.count());
+
+				++m_idle_index;
+
+				m_idle_delta = m_idle_timer.elapsed();
+			}
+			while (this->check_loop_condition());
 			return EXIT_SUCCESS;
 		}
 
-		ML_NODISCARD bool running() const noexcept { return m_locked; }
-
-		ML_NODISCARD auto uptime() const noexcept -> duration { return m_uptime.elapsed(); }
-
-		void kill() noexcept { this->set_loop_condition(nullptr); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool run_loop_condition() const noexcept
+		ML_NODISCARD bool check_loop_condition() const noexcept
 		{
-			return m_loopcond && m_loopcond();
+			return m_running && m_condition && m_condition();
 		}
 
 		template <bool Recurse = false
@@ -144,9 +181,9 @@ namespace ml
 		}
 
 		template <bool Recurse = false
-		> void run_idle_callback() noexcept
+		> void run_idle_callback(float32 dt) noexcept
 		{
-			loop_system::run<Recurse>(&loop_system::m_on_idle, this);
+			loop_system::run<Recurse>(&loop_system::m_on_idle, this, dt);
 		}
 
 		template <bool Recurse = false
@@ -157,13 +194,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_loop_condition() const noexcept -> loop_condition const & { return m_loopcond; }
+		ML_NODISCARD auto get_loop_condition() const noexcept -> loop_condition const & { return m_condition; }
 
 		ML_NODISCARD auto get_enter_callback() const noexcept -> loop_callback const & { return m_on_enter; }
 
 		ML_NODISCARD auto get_exit_callback() const noexcept -> loop_callback const & { return m_on_exit; }
 
-		ML_NODISCARD auto get_idle_callback() const noexcept -> loop_callback const & { return m_on_idle; }
+		ML_NODISCARD auto get_idle_callback() const noexcept -> idle_callback const & { return m_on_idle; }
 
 		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const & { return m_on_event; }
 
@@ -172,7 +209,7 @@ namespace ml
 		template <class Fn, class ... Args
 		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition
 		{
-			return util::chain(m_loopcond, ML_forward(fn), ML_forward(args)...);
+			return util::chain(m_condition, ML_forward(fn), ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
@@ -188,9 +225,9 @@ namespace ml
 		}
 
 		template <class Fn, class ... Args
-		> auto set_idle_callback(Fn && fn, Args && ... args) -> loop_callback
+		> auto set_idle_callback(Fn && fn, Args && ... args) -> idle_callback
 		{
-			return util::chain(m_on_idle, ML_forward(fn), ML_forward(args)...);
+			return util::chain(m_on_idle, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 		template <class Fn, class ... Args
@@ -198,6 +235,14 @@ namespace ml
 		{
 			return util::chain(m_on_enter, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto subsystems() & noexcept -> subsystem_list & { return m_subsystems; }
+
+		ML_NODISCARD auto subsystems() const & noexcept -> subsystem_list const & { return m_subsystems; }
+
+		ML_NODISCARD auto subsystems() && noexcept -> subsystem_list && { return std::move(m_subsystems); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -267,14 +312,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto subsystems() & noexcept -> subsystem_list & { return m_subsystems; }
-
-		ML_NODISCARD auto subsystems() const & noexcept -> subsystem_list const & { return m_subsystems; }
-
-		ML_NODISCARD auto subsystems() && noexcept -> subsystem_list && { return std::move(m_subsystems); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	protected:
 		// handle event
 		virtual void on_event(event const & value) override
@@ -284,7 +321,36 @@ namespace ml
 
 		// execute member pointer
 		template <bool Recurse = false, class D, class C, class ... Args
-		> static void run(D C::*mp, C * self, Args && ... args)
+		> static void run(D C::*mp, C * self, Args && ... args) noexcept
+		{
+			static_assert(std::is_base_of_v<loop_system, C>, "?");
+
+			if constexpr (std::is_same_v<C, loop_system>)
+			{
+				loop_system::run_static<Recurse>(mp, self, ML_forward(args)...);
+			}
+			else
+			{
+				loop_system::run_dynamic<Recurse>(mp, self, ML_forward(args)...);
+			}
+		}
+
+		template <bool Recurse = false, class D, class ... Args
+		> static void run_static(D loop_system::*mp, loop_system * self, Args && ... args) noexcept
+		{
+			if (!self || !mp) { return; } else if (self->*mp)
+			{
+				std::invoke(self->*mp, ML_forward(args)...);
+			}
+
+			if constexpr (Recurse) for (subsystem & e : self->m_subsystems)
+			{
+				loop_system::run_static<true>(mp, self, ML_forward(args)...);
+			}
+		}
+
+		template <bool Recurse = false, class D, class C, class ... Args
+		> static void run_dynamic(D C::*mp, C * self, Args && ... args) noexcept
 		{
 			static_assert(std::is_base_of_v<loop_system, C>, "?");
 
@@ -295,28 +361,25 @@ namespace ml
 
 			if constexpr (Recurse) for (subsystem & e : self->m_subsystems)
 			{
-				if constexpr (std::is_same_v<C, loop_system>)
-				{
-					loop_system::run<true>(mp, e.get(), ML_forward(args)...);
-				}
-				else
-				{
-					loop_system::run<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
-				}
+				loop_system::run_dynamic<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		bool			m_locked		; // process locked
-		timer			m_uptime		; // process timer
-		subsystem_list	m_subsystems	; // subsystem list
-		loop_condition	m_loopcond		; // loop condition
-		loop_callback	m_on_enter		, // enter callback
-						m_on_exit		, // exit callback
-						m_on_idle		; // idle callback
-		event_callback	m_on_event		; // event callback
+		bool					m_running		; // running
+		timer					m_main_timer	, // main timer
+								m_idle_timer	; // idle timer
+		duration				m_idle_delta	; // idle delta
+		uint64					m_idle_index	; // idle index
+
+		subsystem_list			m_subsystems	; // subsystem list
+		loop_condition			m_condition		; // loop condition
+		loop_callback			m_on_enter		, // enter callback
+								m_on_exit		; // exit callback
+		idle_callback			m_on_idle		; // idle callback
+		event_callback			m_on_event		; // event callback
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

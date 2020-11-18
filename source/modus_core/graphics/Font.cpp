@@ -19,9 +19,7 @@ namespace ml
 	font::~font() noexcept
 	{
 		if (m_stroker) { FT_Stroker_Done((FT_Stroker)m_stroker); }
-
 		if (m_face) { FT_Done_Face((FT_Face)m_face); }
-
 		if (m_library) { FT_Done_FreeType((FT_Library)m_library); }
 	}
 
@@ -30,11 +28,29 @@ namespace ml
 	bool font::load_from_file(fs::path const & path)
 	{
 		if (m_library) { return false; }
-		
-		ML_assert(!FT_Init_FreeType((FT_Library *)&m_library));
-		ML_assert(!FT_New_Face((FT_Library)m_library, path.string().c_str(), 0, (FT_Face *)&m_face));
-		ML_assert(!FT_Stroker_New((FT_Library)m_library, (FT_Stroker *)&m_stroker));
-		ML_assert(!FT_Select_Charmap((FT_Face)m_face, FT_ENCODING_UNICODE));
+
+		auto failure = [&]() {
+			if (m_stroker)	{ FT_Stroker_Done((FT_Stroker)m_stroker); }
+			if (m_face)		{ FT_Done_Face((FT_Face)m_face); }
+			if (m_library)	{ FT_Done_FreeType((FT_Library)m_library); }
+			return false;
+		};
+
+		if (FT_Init_FreeType((FT_Library *)&m_library)) {
+			return failure();
+		}
+
+		if (FT_New_Face((FT_Library)m_library, path.string().c_str(), 0, (FT_Face *)&m_face)) {
+			return failure();
+		}
+
+		if (FT_Stroker_New((FT_Library)m_library, (FT_Stroker *)&m_stroker)) {
+			return failure();
+		}
+
+		if (FT_Select_Charmap((FT_Face)m_face, FT_ENCODING_UNICODE)) {
+			return failure();
+		}
 
 		m_family = ((FT_Face)m_face)->family_name;
 
@@ -43,7 +59,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	glyph font::load_glyph(uint32_t c, uint32_t size)
+	glyph font::load_glyph(uint32 c, uint32 size)
 	{
 		glyph g{};
 
@@ -62,7 +78,7 @@ namespace ml
 		}
 
 		// set advance
-		g.advance = (uint32_t)((FT_Face)m_face)->glyph->advance.x;
+		g.advance = (uint32)((FT_Face)m_face)->glyph->advance.x;
 
 		// set bounds
 		g.bounds = float_rect
@@ -74,13 +90,15 @@ namespace ml
 		};
 
 		// create texture
-		g.graphic = gfx::make_texture2d(
+		g.graphic = gfx::make_texture2d
+		(
 			(vec2i)g.size(),
 			gfx::texture_format{ gfx::format_rgba, gfx::format_red },
 			gfx::texture_flags_default,
 			(std::isspace(c, {}) || !std::isgraph(c, {})
 				? nullptr
-				: ((FT_Face)m_face)->glyph->bitmap.buffer));
+				: ((FT_Face)m_face)->glyph->bitmap.buffer)
+		);
 
 		return g;
 	}

@@ -1,4 +1,5 @@
 #include <modus_core/engine/Application.hpp>
+#include <modus_core/engine/PluginManager.hpp>
 
 namespace ml
 {
@@ -41,11 +42,11 @@ namespace ml
 		{
 			return nullptr;
 		}
-		else if (plugin * const p{ m_data.get<plugin_installer>().back().create(this, userptr) })
+		else if (plugin * const p{ get_data<plugin_installer>().back().create(this, userptr) })
 		{
-			m_data.get<plugin_instance>().back().reset(p);
+			get_data<plugin_instance>().back().reset(p);
 
-			return m_data.get<plugin_id>().back();
+			return get_data<plugin_id>().back();
 		}
 		else
 		{

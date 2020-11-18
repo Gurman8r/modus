@@ -77,7 +77,7 @@ namespace ml::ImGuiExt
 
 	// WINDOW
 	template <class Fn, class ... Args
-	> bool Window(cstring title, bool * open, int32_t flags, Fn && fn, Args && ... args) noexcept
+	> bool Window(cstring title, bool * open, int32 flags, Fn && fn, Args && ... args) noexcept
 	{
 		return ImGuiExt::BeginEnd(
 			std::bind(&ImGui::Begin, title, open, flags),
@@ -87,7 +87,7 @@ namespace ml::ImGuiExt
 
 	// CHILD WINDOW EX
 	template <class Fn, class ... Args
-	> bool ChildWindowEx(cstring name, ImGuiID id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
+	> bool ChildWindowEx(cstring name, ImGuiID id, vec2 const & size, bool border, int32 flags, Fn && fn, Args && ... args) noexcept
 	{
 		return ImGuiExt::BeginEnd(
 			std::bind(&ImGui::BeginChildEx, name, id, size, border, flags),
@@ -97,7 +97,7 @@ namespace ml::ImGuiExt
 
 	// CHILD WINDOW
 	template <class Fn, class ... Args
-	> bool ChildWindow(cstring id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
+	> bool ChildWindow(cstring id, vec2 const & size, bool border, int32 flags, Fn && fn, Args && ... args) noexcept
 	{
 		return ImGuiExt::ChildWindowEx
 		(
@@ -107,7 +107,7 @@ namespace ml::ImGuiExt
 
 	// CHILD WINDOW
 	template <class Fn, class ... Args
-	> bool ChildWindow(ImGuiID id, vec2 const & size, bool border, int32_t flags, Fn && fn, Args && ... args) noexcept
+	> bool ChildWindow(ImGuiID id, vec2 const & size, bool border, int32 flags, Fn && fn, Args && ... args) noexcept
 	{
 		return ImGuiExt::ChildWindowEx
 		(
@@ -118,7 +118,7 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// OBJECT WIDGETS
+// OBJECT HELPERS
 namespace ml::ImGuiExt
 {
 	template <class T
@@ -134,7 +134,7 @@ namespace ml::ImGuiExt
 	}
 
 	template <class T
-	> bool Selectable(T * p, int32_t flags = ImGuiSelectableFlags_None, vec2 const & size = {})
+	> bool Selectable(T * p, int32 flags = ImGuiSelectableFlags_None, vec2 const & size = {})
 	{
 		return ImGui::Selectable(p->Title, &p->IsOpen, flags, size);
 	}
@@ -151,9 +151,9 @@ namespace ml::ImGuiExt
 	{
 		cstring		Title		; // title
 		bool		IsOpen		; // is open
-		int32_t		WinFlags	; // window flags
+		int32		WinFlags	; // window flags
 
-		constexpr BasicPanel(cstring title, bool open = false, int32_t winflags = ImGuiWindowFlags_None) noexcept
+		constexpr BasicPanel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
 			: Title		{ title }
 			, IsOpen	{ open }
 			, WinFlags	{ winflags }
@@ -173,7 +173,7 @@ namespace ml::ImGuiExt
 
 		auto SetWindowFlag(ImGuiWindowFlags_ index, bool value) noexcept
 		{
-			return ML_flag_write(this->WinFlags, (int32_t)index, value);
+			return ML_flag_write(this->WinFlags, (int32)index, value);
 		}
 	};
 
@@ -182,7 +182,7 @@ namespace ml::ImGuiExt
 	// PANEL
 	struct ML_NODISCARD Panel : BasicPanel<Panel>
 	{
-		constexpr Panel(cstring title, bool open = false, int32_t winflags = ImGuiWindowFlags_None) noexcept
+		constexpr Panel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
 			: BasicPanel{ title, open, winflags }
 		{
 		}
@@ -196,7 +196,8 @@ namespace ml::ImGuiExt
 		{
 			if (!IsOpen) { return false; }
 			ImGuiExt_ScopeID(this);
-			return ImGuiExt::BeginEnd(
+			return ImGuiExt::BeginEnd
+			(
 				std::bind(&Panel::Begin, this),
 				std::bind(&Panel::End, this),
 				ML_forward(fn), ML_forward(args)...
@@ -209,36 +210,18 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// MENUBAR
-namespace ml::ImGuiExt
-{
-	// menubar
-	struct ML_NODISCARD ML_CORE_API MenuBar final : trackable
-	{
-		cstring Title{ "MenuBar"};
-
-		explicit MenuBar(cstring title) noexcept : Title{ title } {}
-
-		ML_NODISCARD ImGuiID GetID() const noexcept { return ImGuiExt::GetID(this); }
-
-		void Configure(json const & j);
-	};
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 // DOCKSPACE
 namespace ml::ImGuiExt
 {
 	// dockspace
 	struct ML_NODISCARD ML_CORE_API Dockspace : BasicPanel<Dockspace>
 	{
-		float_t		Border		; // 
-		float_t		Rounding	; // 
+		float32		Border		; // 
+		float32		Rounding	; // 
 		vec2		Padding		; // 
-		float_t		Alpha		; // 
+		float32		Alpha		; // 
 		vec2		Size		; // 
-		int32_t		DockFlags	; // 
+		int32		DockFlags	; // 
 
 		static constexpr auto DefaultWindowFlags
 		{
@@ -252,21 +235,21 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoBackground
 		};
 
-		static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept
+		static bool IsDockingEnabled() noexcept
 		{
-			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
+			return ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
 		}
 
 		constexpr Dockspace(
 			cstring			title		= "Dockspace",
 			bool			open		= true,
-			float_t			border		= {},
-			float_t			rounding	= {},
+			float32			border		= {},
+			float32			rounding	= {},
 			vec2 const &	padding		= {},
-			float_t			alpha		= {},
+			float32			alpha		= {},
 			vec2 const &	docksize	= {},
-			int32_t			winflags	= DefaultWindowFlags,
-			int32_t			dockflags	= ImGuiDockNodeFlags_AutoHideTabBar)
+			int32			winflags	= DefaultWindowFlags,
+			int32			dockflags	= ImGuiDockNodeFlags_AutoHideTabBar)
 			: BasicPanel	{ title, open, winflags }
 			, Border		{ border }
 			, Rounding		{ rounding }
@@ -291,7 +274,7 @@ namespace ml::ImGuiExt
 
 		auto SetDockNodeFlag(ImGuiDockNodeFlags_ index, bool value) noexcept
 		{
-			return ML_flag_write(this->DockFlags, (int32_t)index, value);
+			return ML_flag_write(this->DockFlags, (int32)index, value);
 		}
 
 		template <class Fn, class ... Args
@@ -312,13 +295,21 @@ namespace ml::ImGuiExt
 			ImGui::PopStyleVar(3);
 			if (is_open)
 			{
-				std::invoke(ML_forward(fn), ML_forward(args)...);
+				if (ImGuiID const id{ GetID() }; !ImGui::DockBuilderGetNode(id))
+				{
+					ImGui::DockBuilderRemoveNode(id);
+					ImGui::DockBuilderAddNode(id, this->DockFlags);
+					std::invoke(ML_forward(fn), this, ML_forward(args)...);
+					ImGui::DockBuilderFinish(id);
+				}
 
-				ImGui::DockSpace(
+				ImGui::DockSpace
+				(
 					GetID(),
 					Size,
 					ImGuiDockNodeFlags_PassthruCentralNode | DockFlags,
-					nullptr);
+					nullptr
+				);
 			}
 			return is_open;
 		}
@@ -336,11 +327,13 @@ namespace ml::ImGuiExt
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
 		using Line = typename ds::string;
 
 		using LineBuffer = typename ds::list<Line>;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using PrinterSignature = typename void(LineBuffer const &, size_t);
 
@@ -451,7 +444,7 @@ namespace ml::ImGuiExt
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
 		using InputBuffer = typename ds::array<char, 256>;
 		
@@ -477,7 +470,7 @@ namespace ml::ImGuiExt
 
 		ds::list<Line> History; // history
 
-		int32_t HistoryPos; // history pos
+		int32 HistoryPos; // history pos
 
 		// colors
 		struct ML_NODISCARD {
@@ -499,7 +492,7 @@ namespace ml::ImGuiExt
 		
 		void DrawInput();
 
-		int32_t Execute(Line && line);
+		int32 Execute(Line && line);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -548,7 +541,7 @@ namespace ml::ImGuiExt
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		int32_t InputTextCallbackStub(ImGuiInputTextCallbackData * data);
+		int32 InputTextCallbackStub(ImGuiInputTextCallbackData * data);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

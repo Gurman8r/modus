@@ -1,10 +1,11 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <modus_core/engine/Application.hpp>
+#include <modus_core/engine/EngineEvents.hpp>
+#include <modus_core/engine/PluginManager.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/scene/Components.hpp>
-#include <modus_core/engine/PluginManager.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -28,7 +29,7 @@ namespace ml
 		};
 
 		// terminal
-		basic_stream_sniper<> m_cout{ &std::cout };
+		stream_sniper m_cout{ &std::cout };
 		ImGuiExt::Terminal m_term{};
 
 		// rendering
@@ -56,36 +57,57 @@ namespace ml
 			switch (value)
 			{
 			case app_enter_event::ID: {
-				if (bitmap i{ get_app()->path_to("resource/modus_launcher.png"), false }) {
+				auto && ev{ (app_enter_event &&)value };
+
+				if (bitmap i{ get_app()->path_to("resource/modus_launcher.png"), false })
+				{
 					get_app()->get_window()->set_icons(i.width(), i.height(), i.data());
 				}
+
 				m_fb.push_back(gfx::make_framebuffer((vec2i)m_resolution));
+
 			} break;
 	
 			case app_exit_event::ID: {
-				m_cout.update(nullptr);
+				auto && ev{ (app_exit_event &&)value };
 			} break;
 	
 			case app_idle_event::ID: {
+				auto && ev{ (app_idle_event &&)value };
+
+				auto const dt{ get_app()->main_loop()->delta_time().count() };
+
+				m_clear_color = util::rotate_hue(m_clear_color, 10.f * dt);
+				
 				m_term.Output.Dump(m_cout.sstr());
+				
 				for (auto & fb : m_fb) { fb->resize(m_resolution); }
-				get_app()->get_window()->get_render_context()->execute(
+				
+				get_app()->get_window()->get_render_context()->execute
+				(
 					gfx::command::bind_framebuffer(m_fb[0]),
 					gfx::command::set_clear_color(m_clear_color),
 					gfx::command::clear(gfx::clear_color | gfx::clear_depth),
 					gfx::command([&](gfx::render_context * ctx) noexcept { /* custom rendering */ }),
-					gfx::command::bind_framebuffer(nullptr));
+					gfx::command::bind_framebuffer(nullptr)
+				);
+
 			} break;
 	
 			case imgui_dockspace_event::ID: {
 				auto && ev{ (imgui_dockspace_event &&)value };
+
 				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, ev->GetID());
+
 			} break;
 	
 			case imgui_render_event::ID: {
+				auto && ev{ (imgui_render_event &&)value };
+
 				draw_menubar(); // MENUBAR
 				draw_terminal(); // TERMINAL
 				draw_viewport(); // VIEWPORT
+
 			} break;
 			}
 		}
@@ -100,12 +122,13 @@ namespace ml
 					}
 					if (ImGui::MenuItem("open")) {
 					}
+					ImGui::Separator();
 					if (ImGui::MenuItem("close")) {
 					}
 					ImGui::Separator();
 					if (ImGui::MenuItem("save")) {
 					}
-					if (ImGui::MenuItem("save as...")) {
+					if (ImGui::MenuItem("save as")) {
 					}
 					ImGui::Separator();
 					if (ImGui::MenuItem("quit", "alt+f4")) {
@@ -234,7 +257,7 @@ namespace ml
 					ImGui::Separator();
 					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 					ImGui::Separator();
-					auto const fps{ get_app()->get_frame_rate() };
+					auto const fps{ get_app()->get_fps() };
 					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 					ImGui::Separator();
 					ImGui::EndMenuBar();

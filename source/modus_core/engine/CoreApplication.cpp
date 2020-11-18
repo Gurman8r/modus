@@ -1,19 +1,19 @@
 #include <modus_core/engine/CoreApplication.hpp>
+#include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/embed/Python.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	core_application::core_application(int32_t argc, char * argv[], allocator_type alloc)
+	core_application::core_application(int32 argc, char * argv[], allocator_type alloc)
 		: event_listener	{ std::addressof(m_dispatcher) }
 		, m_app_file_name	{ argv[0] }
 		, m_app_file_path	{ fs::current_path() }
 		, m_app_name		{ fs::path{ argv[0] }.stem().string(), alloc }
 		, m_app_version		{ alloc }
 		, m_arguments		{ argv, argv + argc, alloc }
-		, m_library_paths		{ alloc }
-
+		, m_library_paths	{ alloc }
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_dispatcher		{ alloc }
 		, m_main_loop		{ alloc_ref<loop_system>(alloc, get_bus()) }
@@ -34,60 +34,12 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	int32_t core_application::exec()
-	{
-		m_main_loop->process();
-
-		return m_exit_code;
-	}
-
-	void core_application::exit(int32_t exit_code)
-	{
-		m_exit_code = exit_code;
-
-		m_main_loop->kill();
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	bool core_application::initialize_interpreter()
-	{
-		if (Py_IsInitialized()) { return false; }
-
-		PyObjectArenaAllocator alloc
-		{
-			get_global<memory_manager>()->get_resource(),
-			[](auto mres, size_t s) { return ((pmr::memory_resource *)mres)->allocate(s); },
-			[](auto mres, void * p, size_t s) { return ((pmr::memory_resource *)mres)->deallocate(p, s); }
-		};
-		PyObject_SetArenaAllocator(&alloc);
-
-		Py_SetProgramName(app_file_name().c_str());
-
-		Py_SetPythonHome(library_paths(0).c_str());
-
-		Py_InitializeEx(1);
-
-		return Py_IsInitialized();
-	}
-
-	void core_application::finalize_interpreter()
-	{
-		if (Py_IsInitialized())
-		{
-			Py_FinalizeEx();
-		}
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	void core_application::on_event(event const & value)
 	{
 		switch (value)
 		{
 		case app_enter_event::ID: {
 			auto && ev{ (app_enter_event &&)value };
-			ML_assert(initialize_interpreter());
 		} break;
 
 		case app_exit_event::ID: {
@@ -101,20 +53,53 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool core_application::initialize_interpreter()
+	{
+		if (Py_IsInitialized()) { return false; }
+		PyObject_SetArenaAllocator(std::invoke([g = get_global<memory_manager>()]() noexcept
+		{
+			static PyObjectArenaAllocator al
+			{
+				ML_check(g)->get_resource(),
+				[](auto mres, size_t s) {
+					return ((pmr::memory_resource *)mres)->allocate(s);
+				},
+				[](auto mres, void * p, size_t s) {
+					return ((pmr::memory_resource *)mres)->deallocate(p, s);
+				}
+			};
+			return &al;
+		}));
+		Py_SetProgramName(app_file_name().c_str());
+		Py_SetPythonHome(library_paths(0).c_str());
+		Py_InitializeEx(1);
+		return Py_IsInitialized();
+	}
+
+	void core_application::finalize_interpreter()
+	{
+		if (Py_IsInitialized())
+		{
+			Py_FinalizeEx();
+		}
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 // global core_application
 namespace ml::globals
 {
-	static core_application * g_core_app{};
+	static core_application * g_core_application{};
 
 	ML_impl_global(core_application) get() noexcept
 	{
-		return g_core_app;
+		return g_core_application;
 	}
 
 	ML_impl_global(core_application) set(core_application * value) noexcept
 	{
-		return g_core_app = value;
+		return g_core_application = value;
 	}
 }

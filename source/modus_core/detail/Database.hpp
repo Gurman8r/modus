@@ -11,11 +11,11 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type = typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
 		using category_type = typename ds::hashmap<ds::string, ds::ref<std::any>>;
 
-		using categories_type = typename ds::hashmap<typeof<>, category_type>;
+		using categories_type = typename ds::hashmap<typeof_t<>, category_type>;
 
 		using iterator = typename categories_type::iterator;
 
@@ -39,7 +39,7 @@ namespace ml
 		template <class Type
 		> ML_NODISCARD category_type & category() noexcept
 		{
-			return this->all()[typeof_v<Type>];
+			return this->all()[ML_typeof(Type)];
 		}
 
 		// get element
@@ -182,13 +182,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto type() const noexcept -> typeof<> { return typeof_v<value_type>; }
+		ML_NODISCARD auto type() const noexcept -> typeof_t<> { return ML_typeof(value_type); }
 
 		ML_NODISCARD auto name() const noexcept -> ds::string const & { return m_name; }
 
 		ML_NODISCARD auto database() const noexcept -> simple_database * { return m_db; }
 
-		ML_NODISCARD auto use_count() const noexcept -> int32_t { return m_ptr.use_count(); }
+		ML_NODISCARD auto use_count() const noexcept -> int32 { return m_ptr.use_count(); }
 
 		ML_NODISCARD bool expired() const noexcept { return m_ptr.expired(); }
 		

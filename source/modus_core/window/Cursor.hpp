@@ -3,7 +3,7 @@
 
 // WIP
 
-#include <modus_core/Common.hpp>
+#include <modus_core/Standard.hpp>
 
 namespace ml
 {
@@ -14,7 +14,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// cursor mode
-	enum cursor_mode_ : int32_t
+	enum cursor_mode_ : int32
 	{
 		cursor_mode_normal		, // normal
 		cursor_mode_hidden		, // hidden
@@ -24,7 +24,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// cursor shape
-	enum cursor_shape_ : int32_t
+	enum cursor_shape_ : int32
 	{
 		cursor_shape_arrow			, // arrow
 		cursor_shape_ibeam			, // ibeam

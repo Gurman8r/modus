@@ -13,13 +13,23 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using clock_type	= typename _Clock;
-		using self_type		= typename basic_timer<clock_type>;
-		using time_point	= typename clock_type::time_point;
+		using clock_type = typename _Clock;
+
+		using self_type = typename basic_timer<clock_type>;
+
+		using time_point = typename clock_type::time_point;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		basic_timer(bool running = true) noexcept
+		basic_timer() noexcept
+			: m_running		{}
+			, m_start_time	{}
+			, m_stop_time	{}
+			, m_elapsed		{}
+		{
+		}
+
+		basic_timer(bool running) noexcept
 			: m_running		{ running }
 			, m_start_time	{ clock_type::now() }
 			, m_stop_time	{ m_start_time }
@@ -27,8 +37,9 @@ namespace ml
 		{
 		}
 
-		basic_timer(self_type && other) noexcept
+		basic_timer(self_type && other) noexcept : basic_timer{}
 		{
+			this->swap(std::move(other));
 		}
 
 		self_type & operator=(self_type && other) noexcept
@@ -42,33 +53,46 @@ namespace ml
 			if (this != std::addressof(other))
 			{
 				std::swap(m_running, other.m_running);
+				m_start_time.swap(other.m_start_time);
+				m_stop_time.swap(other.m_stop_time);
+				m_elapsed.swap(other.m_elapsed);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto elapsed() const noexcept -> duration
+		{
+			if (m_running)
+			{
+				return clock_type::now() - m_start_time;
+			}
+			else
+			{
+				return m_elapsed;
+			}
+		}
 
 		ML_NODISCARD bool running() const noexcept
 		{
 			return m_running;
 		}
 
-		ML_NODISCARD duration elapsed() const noexcept
-		{
-			return m_running ? (clock_type::now() - m_start_time) : m_elapsed;
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		self_type & start() & noexcept
+		auto start() noexcept -> self_type &
 		{
 			if (!m_running)
 			{
-				this->restart();
+				return this->restart();
 			}
-			return (*this);
+			else
+			{
+				return (*this);
+			}
 		}
 
-		self_type & restart() & noexcept
+		auto restart() noexcept -> self_type &
 		{
 			m_running = true;
 			
@@ -79,24 +103,29 @@ namespace ml
 			return (*this);
 		}
 
-		self_type & stop() & noexcept
+		auto stop() noexcept -> self_type &
 		{
 			if (m_running)
 			{
 				m_running = false;
-				
+
 				m_elapsed = ((m_stop_time = clock_type::now()) - m_start_time);
+
+				return (*this);
 			}
-			return (*this);
+			else
+			{
+				return (*this);
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		time_point	m_start_time; // 
-		time_point	m_stop_time	; // 
-		duration	m_elapsed	; // 
-		bool		m_running	; // 
+		bool		m_running		; // 
+		time_point	m_start_time	; // 
+		time_point	m_stop_time		; // 
+		duration	m_elapsed		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

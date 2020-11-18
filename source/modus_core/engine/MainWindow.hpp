@@ -2,7 +2,6 @@
 #define _ML_MAIN_WINDOW_HPP_
 
 #include <modus_core/detail/Events.hpp>
-#include <modus_core/engine/PlatformAPI.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
@@ -50,43 +49,24 @@ namespace ml
 
 		void end_imgui_frame();
 
-		template <class ... Args
-		> void do_imgui_frame(Args && ... args) noexcept
+		template <class Fn, class ... Args
+		> void do_imgui_frame(Fn && fn, Args && ... args) noexcept
 		{
 			this->begin_imgui_frame();
 
-			if constexpr (0 < sizeof...(Args)) { std::invoke(ML_forward(args)...); }
+			std::invoke(ML_forward(fn), this, ML_forward(args)...);
 
 			this->end_imgui_frame();
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_imgui() const noexcept -> ds::scary<ImGuiContext> const &
 		{
 			return m_imgui;
 		}
 
-		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MenuBar *
-		{
-			return const_cast<ImGuiExt::MenuBar *>(&m_menubar);
-		}
-
 		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace *
 		{
 			return const_cast<ImGuiExt::Dockspace *>(&m_dockspace);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD std::optional<fs::path> get_open_file_name(cstring filter = "") const
-		{
-			return platform_api::get_open_file_name(get_native_handle(), filter);
-		}
-
-		ML_NODISCARD std::optional<fs::path> get_save_file_name(cstring filter = "") const
-		{
-			return platform_api::get_save_file_name(get_native_handle(), filter);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -99,13 +79,12 @@ namespace ml
 
 		using event_listener::unsubscribe;
 
-		virtual void on_event(event const & value) override {}
+		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		ds::scary<ImGuiContext>	m_imgui		; // imgui
-		ImGuiExt::MenuBar		m_menubar	; // menubar
 		ImGuiExt::Dockspace		m_dockspace	; // dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

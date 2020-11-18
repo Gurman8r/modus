@@ -130,9 +130,9 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_alias float_rect = basic_rect<float_t>;
-	ML_alias int_rect	= basic_rect<int32_t>;
-	ML_alias uint_rect	= basic_rect<uint32_t>;
+	ML_alias float_rect = basic_rect<float32>;
+	ML_alias int_rect	= basic_rect<int32>;
+	ML_alias uint_rect	= basic_rect<uint32>;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

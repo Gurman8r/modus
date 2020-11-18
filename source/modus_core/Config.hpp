@@ -246,6 +246,11 @@
 // TYPES
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// byte
+#ifndef ML_byte
+#define ML_byte                 unsigned char
+#endif
+
 // integers
 #if defined(ML_cc_msvc)
 #   define  ML_int8             signed __int8
@@ -267,30 +272,6 @@
 #   define  ML_uint64           unsigned long long
 #endif
 
-// bool
-#ifndef ML_bool
-#    define ML_bool             bool
-#endif
-
-// byte
-#ifndef ML_byte
-#   define ML_byte              unsigned char
-#endif
-
-// intmax
-#if (ML_arch == 32)
-#   define ML_intmax            ML_int32
-#   define ML_uintmax           ML_uint32
-#else
-#   define ML_intmax            ML_int64
-#   define ML_uintmax           ML_uint64
-#endif
-
-// ulong
-#ifndef ML_ulong
-#   define ML_ulong             unsigned long
-#endif
-
 // floats
 #define ML_float32              float
 #define ML_float64              double
@@ -298,7 +279,7 @@
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-// MISC
+// ATTRIBUTES
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // has attribute
@@ -306,13 +287,6 @@
 #   define ML_has_attr(expr)    __has_cpp_attribute(expr)
 #else
 #   define ML_has_attr(expr)    (0)
-#endif
-
-// has include
-#ifdef __has_include
-#   define ML_has_include(expr) __has_include(expr)
-#else
-#   define ML_has_include(expr) (0)
 #endif
 
 // nodiscard
@@ -348,7 +322,7 @@
 #   define ML_NEVER_INLINE
 #endif
 
-// api visibility
+// visibility
 #ifndef ML_STATIC
 #   ifdef ML_cc_msvc
 #      define ML_API_EXPORT     __declspec(dllexport)

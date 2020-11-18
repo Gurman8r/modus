@@ -1,9 +1,9 @@
 #include <modus_core/graphics/Bitmap.hpp>
 
-#define STBI_MALLOC(s)				ml::ml_malloc(s)
-#define STBI_FREE(p)				ml::ml_free(p)
-#define STBI_REALLOC(p, s)			ml::ml_realloc(p, s)
-#define STBI_REALLOC_SIZED(p, o, n) ml::ml_realloc(p, o, n)
+#define STBI_MALLOC(s)				_ML ml_malloc(s)
+#define STBI_FREE(p)				_ML ml_free(p)
+#define STBI_REALLOC(p, s)			_ML ml_realloc(p, s)
+#define STBI_REALLOC_SIZED(p, o, n) _ML ml_realloc(p, o, n)
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -28,14 +28,14 @@ namespace ml
 
 		stbi_set_flip_vertically_on_load(flip_v);
 
-		if (byte_t * const temp
+		if (byte * const temp
 		{
 			stbi_load(
 				path.string().c_str(),
-				(int32_t *)&size[0],
-				(int32_t *)&size[1],
-				(int32_t *)&channels,
-				(int32_t)req)
+				(int32 *)&size[0],
+				(int32 *)&size[1],
+				(int32 *)&channels,
+				(int32)req)
 		}
 		; !temp) { return false; }
 		else

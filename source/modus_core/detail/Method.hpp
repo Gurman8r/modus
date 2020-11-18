@@ -29,7 +29,7 @@ namespace ml::util
 		}
 		else
 		{
-			clbk = ML_forward(fn);
+			clbk = Clbk{ ML_forward(fn) };
 		}
 		
 		return prev;

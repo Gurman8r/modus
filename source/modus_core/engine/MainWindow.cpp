@@ -9,7 +9,6 @@ namespace ml
 		: event_listener{ bus }
 		, render_window	{ alloc }
 		, m_imgui		{}
-		, m_menubar		{ "##MainMenuBar" }
 		, m_dockspace	{ "##MainDockspace" }
 	{
 		ImGui::SetAllocatorFunctions(
@@ -130,25 +129,33 @@ namespace ml
 
 		ImGui::Render();
 
-		get_render_context()->execute(
-			gfx::command::set_viewport(get_framebuffer_size()),
-			gfx::command::set_clear_color(colors::black),
-			gfx::command::clear(gfx::clear_color));
+		get_render_context()->execute([&](gfx::render_context * ctx)
+		{
+			ctx->set_viewport(get_framebuffer_size());
+			ctx->set_clear_color(colors::black);
+			ctx->clear(gfx::clear_color);
+		});
 
 		_ML ImGui_RenderDrawData(&get_imgui()->Viewports[0]->DrawDataP);
 
 		if (get_imgui()->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			auto const backup_context{ get_window_context()->get_context_current() };
+			auto const backup{ get_window_context()->get_active_window() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			get_window_context()->make_context_current(backup_context);
+			get_window_context()->set_active_window(backup);
 		}
 
 		if (has_hints(window_hints_doublebuffer))
 		{
 			get_window_context()->swap_buffers(get_handle());
 		}
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void main_window::on_event(event const & value)
+	{
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

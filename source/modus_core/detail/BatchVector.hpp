@@ -6,13 +6,12 @@
 namespace ml::ds
 {
 	// tuple<vector<Ts>...>
-	template <class ... _Ts
-	> struct batch_vector final
+	template <class ... _Ts> struct batch_vector
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using self_type			= typename _ML ds::batch_vector<_Ts...>;
-		using allocator_type	= typename pmr::polymorphic_allocator<byte_t>;
+		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using value_types		= typename meta::list<_Ts...>;
 		using value_tuple		= typename meta::tuple<value_types>;
 		using vector_types		= typename meta::remap<ds::list, value_types>;
@@ -892,30 +891,42 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <size_t I, class It = const_iterator_i<I>, class U = value_i<I>
-		> iterator_i<I> insert(It it, U && value) noexcept
+		template <size_t I, class It = const_iterator_i<I>, class ... Args
+		> auto emplace(It && it, Args && ... args) noexcept -> iterator_i<I>
 		{
-			if constexpr (std::is_scalar_v<It>)
-			{
-				return this->get<I>().emplace(this->begin<I>() + it, ML_forward(value));
-			}
-			else
-			{
-				return this->get<I>().emplace(it, ML_forward(value));
-			}
+			return this->get<I>().emplace
+			(
+				this->get_iterator<I>(ML_forward(it)), ML_forward(args)...
+			);
+		}
+
+		template <class T, class It = const_iterator_t<T>, class ... Args
+		> auto emplace(It && it, Args && ... args) noexcept -> iterator_t<T>
+		{
+			return this->get<I>().emplace
+			(
+				this->get_iterator<T>(ML_forward(it)), ML_forward(args)...
+			);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <size_t I, class It = const_iterator_i<I>, class U = value_i<I>
+		> auto insert(It && it, U && value) noexcept -> iterator_i<I>
+		{
+			return this->get<I>().emplace
+			(
+				this->get_iterator<I>(ML_forward(it)), ML_forward(value)
+			);
 		}
 
 		template <class T, class It = const_iterator_t<T>, class U = value_t<T>
-		> iterator_t<T> insert(It it, U && value) noexcept
+		> auto insert(It && it, U && value) noexcept -> iterator_t<T>
 		{
-			if constexpr (std::is_scalar_v<It>)
-			{
-				return this->get<T>().emplace(this->begin<T>() + it, ML_forward(value));
-			}
-			else
-			{
-				return this->get<T>().emplace(it, ML_forward(value));
-			}
+			return this->get<T>().emplace
+			(
+				this->get_iterator<T>(ML_forward(it)), ML_forward(value)
+			);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -927,35 +938,18 @@ namespace ml::ds
 		}
 
 		template <class T, class U = value_t<T>
-		> decltype(auto) push_back(U && value)
+		> decltype(auto) push_back(U && value) noexcept
 		{
 			return this->get<T>().emplace_back(ML_forward(value));
 		}
 
-		template <
-			class Tpl	= value_tuple,
-			size_t I	= tuple_size,
-			size_t N	= std::tuple_size_v<Tpl>
-		> decltype(auto) push_back(Tpl && value)
-		{
-			static_assert(tuple_size <= N);
-			if constexpr (I < N)
-			{
-				this->push_back<I>(std::get<I>(ML_forward(value)));
-
-				return this->push_back<Tpl, I + 1, N>(ML_forward(value));
-			}
-			else
-			{
-				return this->back();
-			}
-		}
-
 		template <class ... Args
-		> decltype(auto) push_back(Args && ... args)
+		> decltype(auto) push_back(Args && ... args) noexcept
 		{
-			return this->push_back<value_tuple, 0, tuple_size
-			>(value_tuple{ ML_forward(args)... });
+			return this->impl_push_back<0, value_tuple, tuple_size>
+			(
+				value_tuple{ ML_forward(args)... }
+			);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1003,6 +997,60 @@ namespace ml::ds
 		> void swap(size_t const lhs, size_t const rhs) noexcept
 		{
 			this->for_types<Ts...>([&](auto & v) noexcept { std::swap(v[lhs], v[rhs]); });
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <size_t I, class It = iterator_i<I>
+		> ML_NODISCARD auto get_iterator(It && it) const noexcept -> iterator_i<I>
+		{
+			if constexpr (std::is_scalar_v<std::decay_t<decltype(it)>>)
+			{
+				return this->begin<I>() + it;
+			}
+			else
+			{
+				return it;
+			}
+		}
+
+		template <class T, class It = iterator_t<T>
+		> ML_NODISCARD auto get_iterator(It && it) const noexcept -> iterator_t<T>
+		{
+			if constexpr (std::is_scalar_v<std::decay_t<decltype(it)>>)
+			{
+				return this->begin<T>() + it;
+			}
+			else
+			{
+				return it;
+			}
+		}
+
+		template <size_t I, class It = const_iterator_i<I>
+		> ML_NODISCARD auto get_const_iterator(It && it) const noexcept -> const_iterator_i<I>
+		{
+			if constexpr (std::is_scalar_v<std::decay_t<decltype(it)>>)
+			{
+				return this->cbegin<I>() + it;
+			}
+			else
+			{
+				return it;
+			}
+		}
+
+		template <class T, class It = const_iterator_t<T>
+		> ML_NODISCARD auto get_const_iterator(It && it) const noexcept -> const_iterator_t<T>
+		{
+			if constexpr (std::is_scalar_v<std::decay_t<decltype(it)>>)
+			{
+				return this->cbegin<T>() + it;
+			}
+			else
+			{
+				return it;
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1113,6 +1161,27 @@ namespace ml::ds
 			return this->compare(value) >= 0;
 		}
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		
+	protected:
+		// push_back implementation
+		template <size_t Idx, class Tpl, size_t Max
+		> decltype(auto) impl_push_back(Tpl && value) noexcept
+		{
+			static_assert(self_type::tuple_size <= Max);
+
+			if constexpr (Idx < Max)
+			{
+				this->push_back<Idx>(std::get<Idx>(ML_forward(value)));
+
+				return this->impl_push_back<Idx + 1, Tpl, Max>(ML_forward(value));
+			}
+			else
+			{
+				return this->back();
+			}
+		}
+		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:

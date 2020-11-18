@@ -16,7 +16,7 @@ namespace ml
 
 		vec2i	resolution		{ 640, 480 }	; // 
 		vec4b	bits_per_pixel	{ 8, 8, 8, 8 }	; // 
-		int32_t	refresh_rate	{ -1 }			; // 
+		int32	refresh_rate	{ -1 }			; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

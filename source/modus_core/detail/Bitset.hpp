@@ -20,9 +20,9 @@ namespace ml::ds
 		using array_type = typename _ML ds::array<bool, bit_count>;
 
 		using value_type = typename std::conditional_t<
-			bit_count <= sizeof(uint32_t) * 8,
-			uint32_t,
-			uint64_t
+			bit_count <= sizeof(uint32) * 8,
+			uint32,
+			uint64
 		>;
 
 		static constexpr ptrdiff_t bits_per_word{ sizeof(value_type) * 8 };

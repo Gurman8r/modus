@@ -1,16 +1,23 @@
 #include <modus_core/engine/Application.hpp>
+#include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/embed/Python.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	application::application(int32_t argc, char * argv[], allocator_type alloc)
+	application::application(int32 argc, char * argv[], allocator_type alloc)
 		: gui_application{ argc, argv, alloc }
 	{
 		ML_assert(begin_singleton<application>(this));
 
-		subscribe<imgui_dockspace_event, imgui_render_event>();
+		subscribe<
+			imgui_dockspace_event,
+			imgui_render_event,
+			window_cursor_pos_event,
+			window_key_event,
+			window_mouse_event
+		>();
 	}
 
 	application::~application() noexcept
@@ -27,6 +34,16 @@ namespace ml
 		{
 		case app_enter_event::ID: {
 			auto && ev{ (app_enter_event &&)value };
+
+			ML_assert(initialize_interpreter());
+			if (attr().contains("scripts")) {
+				for (json const & e : attr("scripts")) {
+					ML_assert(e.contains("path"));
+					auto const path{ path_to(e["path"]).string() };
+					PyRun_AnyFileEx(std::fopen(path.c_str(), "r"), path.c_str(), true);
+				}
+			}
+
 		} break;
 
 		case app_exit_event::ID: {
@@ -45,16 +62,16 @@ namespace ml
 			auto && ev{ (imgui_render_event &&)value };
 		} break;
 
+		case window_cursor_pos_event::ID: {
+			auto && ev{ (window_cursor_pos_event &&)value };
+		} break;
+
 		case window_key_event::ID: {
 			auto && ev{ (window_key_event &&)value };
 		} break;
 
 		case window_mouse_event::ID: {
 			auto && ev{ (window_mouse_event &&)value };
-		} break;
-
-		case window_cursor_pos_event::ID: {
-			auto && ev{ (window_cursor_pos_event &&)value };
 		} break;
 		}
 	}
@@ -65,15 +82,15 @@ namespace ml
 // global application
 namespace ml::globals
 {
-	static application * g_app{};
+	static application * g_application{};
 
 	ML_impl_global(application) get() noexcept
 	{
-		return g_app;
+		return g_application;
 	}
 
 	ML_impl_global(application) set(application * value) noexcept
 	{
-		return g_app = value;
+		return g_application = value;
 	}
 }

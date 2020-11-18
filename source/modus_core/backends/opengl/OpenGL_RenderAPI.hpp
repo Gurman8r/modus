@@ -23,16 +23,16 @@ namespace ml::gfx
 
 		ds::batch_vector
 		<
-			ds::ref<render_context>,
-			ds::ref<vertexarray>,
-			ds::ref<vertexbuffer>,
-			ds::ref<indexbuffer>,
-			ds::ref<texture2d>,
-			ds::ref<texture3d>,
-			ds::ref<texturecube>,
-			ds::ref<framebuffer>,
-			ds::ref<program>,
-			ds::ref<shader>
+			ds::unown<render_context>,
+			ds::unown<vertexarray>,
+			ds::unown<vertexbuffer>,
+			ds::unown<indexbuffer>,
+			ds::unown<texture2d>,
+			ds::unown<texture3d>,
+			ds::unown<texturecube>,
+			ds::unown<framebuffer>,
+			ds::unown<program>,
+			ds::unown<shader>
 		>
 		m_refs{};
 

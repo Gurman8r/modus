@@ -316,7 +316,7 @@ namespace ml
 		// handle event
 		virtual void on_event(event const & value) override
 		{
-			run_event_callback(value);
+			this->run_event_callback(value);
 		}
 
 		// execute member pointer
@@ -325,19 +325,6 @@ namespace ml
 		{
 			static_assert(std::is_base_of_v<loop_system, C>, "?");
 
-			if constexpr (std::is_same_v<C, loop_system>)
-			{
-				loop_system::run_static<Recurse>(mp, self, ML_forward(args)...);
-			}
-			else
-			{
-				loop_system::run_dynamic<Recurse>(mp, self, ML_forward(args)...);
-			}
-		}
-
-		template <bool Recurse = false, class D, class ... Args
-		> static void run_static(D loop_system::*mp, loop_system * self, Args && ... args) noexcept
-		{
 			if (!self || !mp) { return; } else if (self->*mp)
 			{
 				std::invoke(self->*mp, ML_forward(args)...);
@@ -345,23 +332,14 @@ namespace ml
 
 			if constexpr (Recurse) for (subsystem & e : self->m_subsystems)
 			{
-				loop_system::run_static<true>(mp, self, ML_forward(args)...);
-			}
-		}
-
-		template <bool Recurse = false, class D, class C, class ... Args
-		> static void run_dynamic(D C::*mp, C * self, Args && ... args) noexcept
-		{
-			static_assert(std::is_base_of_v<loop_system, C>, "?");
-
-			if (!self || !mp) { return; } else if (self->*mp)
-			{
-				std::invoke(self->*mp, ML_forward(args)...);
-			}
-
-			if constexpr (Recurse) for (subsystem & e : self->m_subsystems)
-			{
-				loop_system::run_dynamic<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
+				if constexpr (std::is_same_v<C, loop_system>)
+				{
+					loop_system::run<true>(mp, self, ML_forward(args)...);
+				}
+				else
+				{
+					loop_system::run<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
+				}
 			}
 		}
 

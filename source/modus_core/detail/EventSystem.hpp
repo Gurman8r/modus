@@ -167,7 +167,7 @@ namespace ml
 
 		void on_event(event const & value) noexcept final
 		{
-			if (m_on_event) { m_on_event(value); }
+			(void)((!m_on_event) || ((m_on_event(value)), 0));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

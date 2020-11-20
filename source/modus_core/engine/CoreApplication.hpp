@@ -154,11 +154,9 @@ namespace ml
 		ds::list<ds::string>	m_arguments		; // 
 		json					m_attributes	; // 
 		ds::list<fs::path>		m_library_paths	; // 
-
 		int32					m_exit_code		; // 
 		event_bus				m_dispatcher	; // 
 		
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }

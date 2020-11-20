@@ -47,14 +47,14 @@ namespace ml
 	public:
 		virtual int32 exec() override
 		{
-			ML_check(m_main_loop)->process();
+			m_main_loop.process();
 
 			return core_application::exec();
 		}
 
 		virtual void exit(int32 exit_code) override
 		{
-			ML_check(m_main_loop)->halt();
+			m_main_loop.halt();
 
 			core_application::exit(exit_code);
 		}
@@ -67,23 +67,14 @@ namespace ml
 			return &m_fps_tracker;
 		}
 
-		ML_NODISCARD auto get_main_loop() const noexcept -> ds::ref<loop_system> const &
+		ML_NODISCARD auto get_main_loop() const noexcept -> loop_system *
 		{
-			return m_main_loop;
+			return const_cast<loop_system *>(&m_main_loop);
 		}
 
 		ML_NODISCARD auto get_main_window() const noexcept -> main_window *
 		{
 			return const_cast<main_window *>(&m_main_window);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		auto set_main_loop(ds::ref<loop_system> const & value) noexcept -> ds::ref<loop_system> &
-		{
-			ML_assert(!m_main_loop || !m_main_loop->running());
-
-			return m_main_loop = value;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -101,11 +92,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		int32					m_exit_code		; // exit code
-		event_bus				m_dispatcher	; // dispatcher
-		ds::ref<loop_system>	m_main_loop		; // main loop
-		main_window				m_main_window	; // main window
-		fps_tracker<>			m_fps_tracker	; // fps tracker
+		loop_system		m_main_loop		; // main loop
+		main_window		m_main_window	; // main window
+		fps_tracker<>	m_fps_tracker	; // fps tracker
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

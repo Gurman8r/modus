@@ -12,8 +12,8 @@ namespace ml
 	gui_application::gui_application(int32 argc, char * argv[], allocator_type alloc)
 		: core_application	{ argc, argv, alloc }
 		, m_main_window		{ get_bus(), alloc }
+		, m_main_loop		{ get_bus(), alloc }
 		, m_fps_tracker		{}
-		, m_main_loop		{ alloc_ref<loop_system>(alloc, get_bus()) }
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
@@ -21,10 +21,10 @@ namespace ml
 
 		main_window::set_error_callback([](int32 code, cstring desc) { /* TODO */ });
 
-		m_main_loop->set_loop_condition(&main_window::is_open, get_main_window());
-		m_main_loop->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
-		m_main_loop->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
-		m_main_loop->set_idle_callback([&](auto) { get_bus()->fire<app_idle_event>(); });
+		m_main_loop.set_loop_condition(&main_window::is_open, &m_main_window);
+		m_main_loop.set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
+		m_main_loop.set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
+		m_main_loop.set_idle_callback([&](auto) { get_bus()->fire<app_idle_event>(); });
 	}
 
 	gui_application::~gui_application() noexcept
@@ -108,7 +108,7 @@ namespace ml
 			auto && ev{ (app_idle_event &&)value };
 
 			// update fps
-			m_fps_tracker(m_main_loop->delta_time());
+			m_fps_tracker(m_main_loop.delta_time());
 
 			// imgui frame
 			m_main_window.do_frame([&

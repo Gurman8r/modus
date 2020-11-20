@@ -123,6 +123,11 @@ namespace ml
 			ImGui::RenderPlatformWindowsDefault();
 			main_window::set_active_window(backup);
 		}
+
+		if (has_hints(window_hints_doublebuffer))
+		{
+			main_window::swap_buffers(get_handle());
+		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -132,9 +137,9 @@ namespace ml
 		return _ML ImGui_LoadStyle(path, m_imgui->Style);
 	}
 
-	bool ml::main_window::load_theme(json const & j)
+	bool main_window::load_theme(json const & j)
 	{
-		return _ML ImGui_LoadStyle(j, m_imgui->Style);
+		return false;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

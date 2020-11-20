@@ -1,6 +1,8 @@
 #ifndef _ML_VERTEX_HPP_
 #define _ML_VERTEX_HPP_
 
+// FIXME: needs to be a template
+
 #include <modus_core/detail/Matrix.hpp>
 
 namespace ml

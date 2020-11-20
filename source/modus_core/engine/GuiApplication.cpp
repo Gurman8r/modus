@@ -13,6 +13,7 @@ namespace ml
 		: core_application	{ argc, argv, alloc }
 		, m_main_window		{ get_bus(), alloc }
 		, m_fps_tracker		{}
+		, m_main_loop		{ alloc_ref<loop_system>(alloc, get_bus()) }
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
@@ -20,11 +21,10 @@ namespace ml
 
 		main_window::set_error_callback([](int32 code, cstring desc) { /* TODO */ });
 
-		auto main_loop{ get_main_loop() };
-		main_loop->set_loop_condition(&main_window::is_open, get_main_window());
-		main_loop->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
-		main_loop->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
-		main_loop->set_idle_callback([&](auto) { get_bus()->fire<app_idle_event>(); });
+		m_main_loop->set_loop_condition(&main_window::is_open, get_main_window());
+		m_main_loop->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
+		m_main_loop->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
+		m_main_loop->set_idle_callback([&](auto) { get_bus()->fire<app_idle_event>(); });
 	}
 
 	gui_application::~gui_application() noexcept
@@ -84,16 +84,16 @@ namespace ml
 				);
 
 				// theme
-				if (win_prefs.contains("imgui_theme")) {
-					json & theme_prefs{ win_prefs["imgui_theme"] };
+				if (win_prefs.contains("theme")) {
+					json & theme_prefs{ win_prefs["theme"] };
 					if (theme_prefs.contains("path")) {
 						m_main_window.load_theme(path_to(theme_prefs["path"]));
 					}
 				}
 
 				// dockspace
-				if (win_prefs.contains("imgui_dockspace")) {
-					json & dock_prefs{ win_prefs["imgui_dockspace"] };
+				if (win_prefs.contains("dockspace")) {
+					json & dock_prefs{ win_prefs["dockspace"] };
 					m_main_window.get_dockspace()->Configure(dock_prefs);
 				}
 			}
@@ -108,31 +108,26 @@ namespace ml
 			auto && ev{ (app_idle_event &&)value };
 
 			// update fps
-			m_fps_tracker(get_main_loop()->delta_time());
+			m_fps_tracker(m_main_loop->delta_time());
 
 			// imgui frame
 			m_main_window.do_frame([&
 				, context	= m_main_window.get_imgui().get()
 				, menubar	= m_main_window.get_menubar()
-				, docker	= m_main_window.get_dockspace()
+				, dockspace	= m_main_window.get_dockspace()
 			](auto)
 			{
-				docker->SetWindowFlag(
+				dockspace->SetWindowFlag(
 					ImGuiWindowFlags_MenuBar,
 					ImGui::FindWindowByName(menubar->Title));
 
-				(*docker)(context->Viewports[0], [&](auto) noexcept
+				(*dockspace)(context->Viewports[0], [&](auto) noexcept
 				{
-					get_bus()->fire<imgui_dockspace_event>(docker);
+					get_bus()->fire<imgui_dockspace_event>(dockspace);
 				});
 
 				get_bus()->fire<imgui_render_event>(context);
 			});
-
-			if (m_main_window.has_hints(window_hints_doublebuffer))
-			{
-				main_window::swap_buffers(m_main_window.get_handle());
-			}
 
 		} break;
 		}

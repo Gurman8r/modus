@@ -1,7 +1,7 @@
 #ifndef _ML_CORE_APPLICATION_HPP_
 #define _ML_CORE_APPLICATION_HPP_
 
-#include <modus_core/detail/LoopSystem.hpp>
+#include <modus_core/detail/EventSystem.hpp>
 
 namespace ml
 {
@@ -20,47 +20,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		int32 exec() noexcept
+		virtual int32 exec()
 		{
-			ML_check(m_main_loop)->process();
-
 			return m_exit_code;
 		}
 
-		void exit(int32 value) noexcept
+		virtual void exit(int32 value)
 		{
-			ML_check(m_main_loop)->halt();
-
 			m_exit_code = value;
 		}
 
 		void quit() noexcept
 		{
 			this->exit(EXIT_SUCCESS);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_main_loop() const noexcept -> ds::ref<loop_system> const &
-		{
-			return m_main_loop;
-		}
-
-		auto set_main_loop(ds::ref<loop_system> const & value) noexcept -> ds::ref<loop_system> &
-		{
-			ML_assert(!m_main_loop || !m_main_loop->running());
-			return m_main_loop = value;
-		}
-
-		template <class Loop = loop_system, class ... Args
-		> auto new_main_loop(Args && ... args) noexcept -> ds::ref<Loop>
-		{
-			static_assert(std::is_base_of_v<loop_system, Loop>);
-
-			return std::static_pointer_cast<Loop>
-			(
-				set_main_loop(_ML make_ref<Loop>(get_bus(), ML_forward(args)...))
-			);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -185,7 +157,6 @@ namespace ml
 
 		int32					m_exit_code		; // 
 		event_bus				m_dispatcher	; // 
-		ds::ref<loop_system>	m_main_loop		; // 
 		
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

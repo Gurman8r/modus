@@ -64,10 +64,10 @@ static auto const default_settings{ R"(
 			"resizable"		: true,
 			"visible"		: false
 		},
-		"imgui_theme": {
+		"theme": {
 			"path": "resource/modus_launcher.style"
 		},
-		"imgui_dockspace": {
+		"dockspace": {
 			"alpha"		: 0,
 			"border"	: 0,
 			"padding"	: [ 0, 0 ],
@@ -77,7 +77,7 @@ static auto const default_settings{ R"(
 	},
 
 	"plugins": [
-		{ "path": "./plugins/sandbox" }
+		{ "path": "plugins/sandbox" }
 	],
 
 	"scripts": [
@@ -103,7 +103,7 @@ int32 main(int32 argc, char * argv[])
 	app.set_app_version(app.attr("app_version"));
 	app.set_arguments(app.attr("arguments"));
 	app.set_library_paths(app.attr("library_paths"));
-	return app.exec();
+	return app.get_main_loop()->process();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -3,6 +3,7 @@
 
 #include <modus_core/engine/CoreApplication.hpp>
 #include <modus_core/engine/MainWindow.hpp>
+#include <modus_core/detail/LoopSystem.hpp>
 
 namespace ml
 {
@@ -44,18 +45,50 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_main_window() const noexcept -> main_window *
+		virtual int32 exec() override
 		{
-			return const_cast<main_window *>(&m_main_window);
+			ML_check(m_main_loop)->process();
+
+			return core_application::exec();
 		}
 
+		virtual void exit(int32 exit_code) override
+		{
+			ML_check(m_main_loop)->halt();
+
+			core_application::exit(exit_code);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		ML_NODISCARD auto get_fps() const noexcept -> fps_tracker<> const *
 		{
 			return &m_fps_tracker;
 		}
 
+		ML_NODISCARD auto get_main_loop() const noexcept -> ds::ref<loop_system> const &
+		{
+			return m_main_loop;
+		}
+
+		ML_NODISCARD auto get_main_window() const noexcept -> main_window *
+		{
+			return const_cast<main_window *>(&m_main_window);
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		auto set_main_loop(ds::ref<loop_system> const & value) noexcept -> ds::ref<loop_system> &
+		{
+			ML_assert(!m_main_loop || !m_main_loop->running());
+
+			return m_main_loop = value;
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		ML_NODISCARD std::optional<fs::path> open_file_name(ds::string const & filter = "") const;
 
 		ML_NODISCARD std::optional<fs::path> save_file_name(ds::string const & filter = "") const;
@@ -68,8 +101,11 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		main_window		m_main_window	; // main window
-		fps_tracker<>	m_fps_tracker	; // fps tracker
+		int32					m_exit_code		; // exit code
+		event_bus				m_dispatcher	; // dispatcher
+		ds::ref<loop_system>	m_main_loop		; // main loop
+		main_window				m_main_window	; // main window
+		fps_tracker<>			m_fps_tracker	; // fps tracker
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

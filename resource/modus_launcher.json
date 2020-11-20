@@ -32,10 +32,10 @@
 			"resizable"		: true,
 			"visible"		: false
 		},
-		"imgui_theme": {
+		"theme": {
 			"path": "resource/modus_launcher.style"
 		},
-		"imgui_dockspace": {
+		"dockspace": {
 			"alpha"		: 0,
 			"border"	: 0,
 			"padding"	: [ 0, 0 ],
@@ -45,7 +45,7 @@
 	},
 
 	"plugins": [
-		{ "path": "./plugins/sandbox" }
+		{ "path": "plugins/sandbox" }
 	],
 
 	"scripts": [

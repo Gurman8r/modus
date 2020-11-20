@@ -62,8 +62,6 @@ namespace ml
 			case app_enter_event::ID: {
 				auto && ev{ (app_enter_event &&)value };
 
-				auto active_scene{ get_app()->set_active_scene(make_ref<scene>(get_bus())) };
-
 				if (bitmap const icon{ get_app()->path_to("resource/modus_launcher.png"), false })
 				{
 					get_app()->get_main_window()->set_icon(icon);

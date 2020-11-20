@@ -1135,12 +1135,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context())->bind_vertexarray(this);
+			get_context()->bind_vertexarray(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context())->bind_vertexarray(nullptr);
+			get_context()->bind_vertexarray(nullptr);
 		}
 	};
 
@@ -1220,12 +1220,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context())->bind_vertexbuffer(this);
+			get_context()->bind_vertexbuffer(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context())->bind_vertexbuffer(nullptr);
+			get_context()->bind_vertexbuffer(nullptr);
 		}
 	};
 
@@ -1307,12 +1307,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context())->bind_indexbuffer(this);
+			get_context()->bind_indexbuffer(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context())->bind_indexbuffer(nullptr);
+			get_context()->bind_indexbuffer(nullptr);
 		}
 	};
 
@@ -1428,12 +1428,12 @@ namespace ml::gfx
 	public:
 		inline void bind(uint32 slot = 0) const noexcept
 		{
-			ML_check(get_context())->bind_texture(this, slot);
+			get_context()->bind_texture(this, slot);
 		}
 
 		inline void unbind(uint32 slot = 0) const noexcept
 		{
-			ML_check(get_context())->bind_texture(nullptr, slot);
+			get_context()->bind_texture(nullptr, slot);
 		}
 	};
 }
@@ -1802,17 +1802,17 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context())->bind_framebuffer(this);
+			get_context()->bind_framebuffer(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context())->bind_framebuffer(nullptr);
+			get_context()->bind_framebuffer(nullptr);
 		}
 
 		inline void bind_texture(uint32 slot = 0) const noexcept
 		{
-			ML_check(get_context())->bind_texture
+			get_context()->bind_texture
 			(
 				get_color_attachments()[(size_t)slot].get(), slot
 			);
@@ -1903,12 +1903,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context())->bind_program(this);
+			get_context()->bind_program(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context())->bind_program(nullptr);
+			get_context()->bind_program(nullptr);
 		}
 
 		inline void bind_textures() const noexcept
@@ -1933,7 +1933,7 @@ namespace ml::gfx
 				}
 				else
 				{
-					ML_check(get_context())->upload(loc, ML_forward(value));
+					get_context()->upload(loc, ML_forward(value));
 				}
 			});
 		}
@@ -2019,12 +2019,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context())->bind_shader(this);
+			get_context()->bind_shader(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context())->bind_shader(nullptr);
+			get_context()->bind_shader(nullptr);
 		}
 
 		inline void bind_textures() noexcept

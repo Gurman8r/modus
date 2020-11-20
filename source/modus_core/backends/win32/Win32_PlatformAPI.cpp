@@ -9,7 +9,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	std::optional<fs::path> win32_platform_api::get_open_file_name(window_handle window, cstring filter)
+	std::optional<fs::path> win32_platform_api::open_file_name(window_handle window, cstring filter)
 	{
 		OPENFILENAMEA ofn;
 		CHAR szFile[MAX_PATH]{};
@@ -24,7 +24,7 @@ namespace ml
 		return (GetOpenFileNameA(&ofn) == TRUE) ? std::make_optional(ofn.lpstrFile) : std::nullopt;
 	}
 
-	std::optional<fs::path> win32_platform_api::get_save_file_name(window_handle window, cstring filter)
+	std::optional<fs::path> win32_platform_api::save_file_name(window_handle window, cstring filter)
 	{
 		OPENFILENAMEA ofn;
 		CHAR szFile[MAX_PATH]{};

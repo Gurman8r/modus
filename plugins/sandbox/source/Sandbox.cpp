@@ -21,14 +21,14 @@ namespace ml
 		// panels
 		enum
 		{
-			terminal_panel,
 			viewport_panel,
+			terminal_panel,
 			MAX_PANEL
 		};
 		ImGuiExt::Panel m_panels[MAX_PANEL]
 		{
-			{ "terminal", true, ImGuiWindowFlags_MenuBar },
 			{ "viewport", true, ImGuiWindowFlags_MenuBar },
+			{ "terminal", true, ImGuiWindowFlags_MenuBar },
 		};
 
 		// terminal
@@ -106,43 +106,74 @@ namespace ml
 	
 			case imgui_render_event::ID: {
 				auto && ev{ (imgui_render_event &&)value };
-				draw_menubar(); // MENUBAR
-				draw_terminal(); // TERMINAL
+
+				// MENUBAR
+				(*get_app()->get_main_window()->get_menubar())([&]()
+				{
+					if (ImGui::BeginMenu("file")) {
+						if (ImGui::MenuItem("new")) {
+						}
+						if (ImGui::MenuItem("open")) {
+						}
+						ImGui::Separator();
+						if (ImGui::MenuItem("close")) {
+						}
+						ImGui::Separator();
+						if (ImGui::MenuItem("save")) {
+						}
+						if (ImGui::MenuItem("save as")) {
+						}
+						ImGui::Separator();
+						if (ImGui::MenuItem("quit", "alt+f4")) {
+							get_app()->quit();
+						}
+						ImGui::EndMenu();
+					}
+					if (ImGui::BeginMenu("tools")) {
+						ImGuiExt::MenuItem(m_panels + terminal_panel);
+						ImGuiExt::MenuItem(m_panels + viewport_panel);
+						ImGui::EndMenu();
+					}
+				});
+				
 				draw_viewport(); // VIEWPORT
+				draw_terminal(); // TERMINAL
+
 			} break;
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void draw_menubar()
+		void draw_viewport()
 		{
-			if (ImGui::BeginMainMenuBar()) {
-				if (ImGui::BeginMenu("file")) {
-					if (ImGui::MenuItem("new")) {
-					}
-					if (ImGui::MenuItem("open")) {
-					}
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+			if (!m_panels[viewport_panel]([&]() noexcept
+			{
+				ImGui::PopStyleVar(1);
+
+				if (ImGui::BeginMenuBar()) {
+					ImGuiExt::HelpMarker("viewport");
 					ImGui::Separator();
-					if (ImGui::MenuItem("close")) {
-					}
+					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 					ImGui::Separator();
-					if (ImGui::MenuItem("save")) {
-					}
-					if (ImGui::MenuItem("save as")) {
-					}
+					auto const fps{ get_app()->get_fps()->value };
+					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 					ImGui::Separator();
-					if (ImGui::MenuItem("quit", "alt+f4")) {
-						get_app()->quit();
-					}
-					ImGui::EndMenu();
+					ImGui::EndMenuBar();
 				}
-				if (ImGui::BeginMenu("tools")) {
-					ImGuiExt::MenuItem(m_panels + terminal_panel);
-					ImGuiExt::MenuItem(m_panels + viewport_panel);
-					ImGui::EndMenu();
-				}
-				ImGui::EndMainMenuBar();
+
+				m_resolution = (vec2)ImGui::GetContentRegionAvail();
+
+				ImGui::Image(
+					m_fb[0]->get_color_attachments()[0]->get_handle(),
+					(vec2)m_resolution,
+					{ 0, 1 }, { 1, 0 },
+					colors::white,
+					colors::clear);
+			}))
+			{
+				ImGui::PopStyleVar(1);
 			}
 		}
 
@@ -240,38 +271,6 @@ namespace ml
 					// evaluate
 					PyRun_SimpleString(line.c_str());
 				});
-			}))
-			{
-				ImGui::PopStyleVar(1);
-			}
-		}
-
-		void draw_viewport()
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
-			if (!m_panels[viewport_panel]([&]() noexcept
-			{
-				ImGui::PopStyleVar(1);
-
-				if (ImGui::BeginMenuBar()) {
-					ImGuiExt::HelpMarker("viewport");
-					ImGui::Separator();
-					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-					ImGui::Separator();
-					auto const fps{ get_app()->get_fps()->value };
-					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
-					ImGui::Separator();
-					ImGui::EndMenuBar();
-				}
-
-				m_resolution = (vec2)ImGui::GetContentRegionAvail();
-
-				ImGui::Image(
-					m_fb[0]->get_color_attachments()[0]->get_handle(),
-					(vec2)m_resolution,
-					{ 0, 1 }, { 1, 0 },
-					colors::white,
-					colors::clear);
 			}))
 			{
 				ImGui::PopStyleVar(1);

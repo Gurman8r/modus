@@ -10,8 +10,8 @@ namespace ml
 		: event_listener{ bus }
 		, render_window	{ alloc }
 		, m_imgui		{}
-		, m_menubar		{ "##MainMenuBar" }
-		, m_dockspace	{ "##MainDockspace" }
+		, m_menubar		{}
+		, m_dockspace	{}
 	{
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, auto u) { return ((memory_manager *)u)->allocate(s); },
@@ -58,8 +58,8 @@ namespace ml
 		if (!render_window::open(title, vm, cs, hints)) { return false; }
 
 		// install callbacks
-		if (static event_bus * helper; helper = get_bus())
 		{
+			static event_bus * helper; helper = get_bus();
 			set_char_callback([](auto w, auto ... x) { helper->fire<window_char_event>(x...); });
 			set_char_mods_callback([](auto w, auto ... x) { helper->fire<window_char_mods_event>(x...); });
 			set_close_callback([](auto w, auto ... x) { helper->fire<window_close_event>(x...); });
@@ -116,7 +116,7 @@ namespace ml
 
 		_ML ImGui_RenderDrawData(&m_imgui->Viewports[0]->DrawDataP);
 
-		if (m_dockspace.IsDockingEnabled(m_imgui->IO))
+		if (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
 			auto const backup{ main_window::get_active_window() };
 			ImGui::UpdatePlatformWindows();

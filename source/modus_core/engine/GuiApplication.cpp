@@ -18,6 +18,8 @@ namespace ml
 
 		ML_assert(main_window::initialize());
 
+		main_window::set_error_callback([](int32 code, cstring desc) { /* TODO */ });
+
 		auto main_loop{ get_main_loop() };
 		main_loop->set_loop_condition(&main_window::is_open, get_main_window());
 		main_loop->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
@@ -36,12 +38,20 @@ namespace ml
 
 	std::optional<fs::path> gui_application::open_file_name(ds::string const & filter) const
 	{
-		return platform_api::open_file_name(m_main_window.get_native_handle(), filter.c_str());
+		if (!m_main_window.is_open()) { return std::nullopt; }
+		else
+		{
+			return platform_api::open_file_name(m_main_window.get_native_handle(), filter.c_str());
+		}
 	}
 
 	std::optional<fs::path> gui_application::save_file_name(ds::string const & filter) const
 	{
-		return platform_api::save_file_name(m_main_window.get_native_handle(), filter.c_str());
+		if (!m_main_window.is_open()) { return std::nullopt; }
+		else
+		{
+			return platform_api::save_file_name(m_main_window.get_native_handle(), filter.c_str());
+		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -62,15 +72,12 @@ namespace ml
 				ML_assert(m_main_window.open
 				(
 					app_name(),
-
 					(win_prefs.contains("video_mode")
 						? win_prefs["video_mode"]
 						: video_mode{}),
-
 					(win_prefs.contains("context_settings")
 						? win_prefs["context_settings"]
 						: context_settings{}),
-
 					(win_prefs.contains("window_hints")
 						? win_prefs["window_hints"]
 						: window_hints_default))
@@ -112,7 +119,7 @@ namespace ml
 			{
 				docker->SetWindowFlag(
 					ImGuiWindowFlags_MenuBar,
-					ImGuiExt::FindWindowByName(menubar));
+					ImGui::FindWindowByName(menubar->Title));
 
 				(*docker)(context->Viewports[0], [&](auto) noexcept
 				{

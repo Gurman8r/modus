@@ -221,7 +221,16 @@ namespace ml::ImGuiExt
 {
 	struct ML_NODISCARD MainMenuBar final
 	{
-		cstring Title{ "##MainMenuBar" };
+		static constexpr cstring Title{ "##MainMenuBar" };
+
+		template <class Fn, class ... Args
+		> bool operator()(Fn && fn, Args && ... args) noexcept
+		{
+			return ImGuiExt::BeginEnd(
+				&ImGui::BeginMainMenuBar,
+				&ImGui::EndMainMenuBar,
+				ML_forward(fn), ML_forward(args)...);
+		}
 	};
 }
 
@@ -252,7 +261,7 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoBackground
 		};
 
-		ML_NODISCARD static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept
+		ML_NODISCARD static bool DockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept
 		{
 			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
 		}
@@ -306,7 +315,7 @@ namespace ml::ImGuiExt
 		template <class Fn, class ... Args
 		> bool operator()(ImGuiViewport const * vp, Fn && fn, Args && ... args) noexcept
 		{
-			if (!IsOpen || !vp || !IsDockingEnabled()) { return false; }
+			if (!IsOpen || !vp || !DockingEnabled()) { return false; }
 
 			ImGuiExt_ScopeID(this);
 			ImGui::SetNextWindowPos(vp->Pos);

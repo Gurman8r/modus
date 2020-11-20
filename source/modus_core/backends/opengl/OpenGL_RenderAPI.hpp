@@ -40,7 +40,7 @@ namespace ml::gfx
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		opengl_render_device(allocator_type alloc);
+		opengl_render_device(spec_type const & desc, allocator_type alloc);
 
 		~opengl_render_device() final;
 

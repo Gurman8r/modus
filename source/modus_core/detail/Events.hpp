@@ -77,6 +77,10 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		explicit event_listener(event_bus * bus) noexcept : m_bus{ ML_check(bus) }
+		{
+		}
+
 		virtual ~event_listener() noexcept { this->unsubscribe(); }
 
 		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
@@ -86,22 +90,10 @@ namespace ml
 	protected:
 		friend event_bus;
 
-		template <class Bus = event_bus> event_listener(Bus * bus) noexcept
-			: m_bus{ ML_check(bus) }
-			, m_index{ m_bus->make_id() }
-		{
-			static_assert(std::is_base_of_v<Bus, event_bus>);
-		}
-
 		event_listener(event_listener const &) = default;
 		event_listener(event_listener &&) noexcept = default;
 		event_listener & operator=(event_listener const &) = default;
 		event_listener & operator=(event_listener &&) noexcept = default;
-
-		ML_NODISCARD bool operator<(event_listener const & other) const noexcept
-		{
-			return m_index < other.m_index;
-		}
 
 		// on event
 		virtual void on_event(event const &) = 0;
@@ -140,8 +132,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		event_bus *	m_bus	; // event bus
-		uint64		m_index	; // bus index
+		event_bus * m_bus; // event bus
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -204,16 +195,8 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		struct comparator final
-		{
-			ML_NODISCARD bool operator()(event_listener * a, event_listener * b) const noexcept
-			{
-				return (a && b) ? (*a < *b) : (a < b);
-			}
-		};
-
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
-		using category_type		= typename ds::set<event_listener *, comparator>;
+		using category_type		= typename ds::set<event_listener *>;
 		using categories_type	= typename ds::map<hash_t, category_type>;
 		using event_queue		= typename ds::list<ds::scope<event>>;
 		using dummy_ref			= typename ds::ref<dummy_listener>;
@@ -230,13 +213,8 @@ namespace ml
 			: m_cats	{ alloc }
 			, m_queue	{ alloc }
 			, m_dummies	{ alloc }
-			, m_counter	{}
 		{
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto make_id() noexcept -> uint64 { return ++m_counter; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -355,7 +333,6 @@ namespace ml
 		categories_type	m_cats		; // listener storage
 		event_queue		m_queue		; // event queue
 		dummy_list		m_dummies	; // dummy listeners
-		uint64			m_counter	; // id counter
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -22,10 +22,17 @@ namespace ml::gfx
 		{
 			switch (desc.api)
 			{
-			default					: return nullptr;
-			case context_api_opengl	: return ::new (alloc.allocate(sizeof(opengl_render_device))) opengl_render_device{ alloc };
-			case context_api_vulkan	: return nullptr;
-			case context_api_directx: return nullptr;
+			default: return nullptr;
+			
+			case context_api_opengl:
+				return ::new (alloc.allocate(sizeof(opengl_render_device)))
+					opengl_render_device{ desc, alloc };
+			
+			case context_api_vulkan:
+				return nullptr;
+			
+			case context_api_directx:
+				return nullptr;
 			}
 		});
 

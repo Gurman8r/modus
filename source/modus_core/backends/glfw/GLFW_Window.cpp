@@ -145,7 +145,6 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-
 // GLFW WINDOW
 namespace ml
 {
@@ -157,26 +156,11 @@ namespace ml
 		, m_monitor	{}
 		, m_hints	{}
 	{
-		static auto const init{ ML_check(get_window_context()->initialize()) };
-	}
-
-	glfw_window::glfw_window(
-		ds::string			const & title,
-		video_mode			const & vm,
-		context_settings	const & cs,
-		window_hints_				hints,
-		void *						userptr,
-		allocator_type				alloc
-	) noexcept : self_type{ alloc }
-	{
-		ML_assert(this->open(title, vm, cs, hints, userptr));
 	}
 
 	glfw_window::~glfw_window()
 	{
 		glfwDestroyWindow(m_window);
-
-		static ML_defer(&) { get_window_context()->finalize(); };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -359,12 +343,12 @@ namespace ml
 		return glfwGetInputMode(m_window, mode);
 	}
 
-	int32	glfw_window::get_key(int32 key) const
+	int32 glfw_window::get_key(int32 key) const
 	{
 		return glfwGetKey(m_window, key);
 	}
 
-	int32	glfw_window::get_mouse_button(int32 button) const
+	int32 glfw_window::get_mouse_button(int32 button) const
 	{
 		return glfwGetMouseButton(m_window, button);
 	}

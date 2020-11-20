@@ -7,7 +7,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	core_application::core_application(int32 argc, char * argv[], allocator_type alloc)
-		: event_listener	{ std::addressof(m_dispatcher) }
+		: event_listener	{ &m_dispatcher }
 		, m_app_file_name	{ argv[0] }
 		, m_app_file_path	{ fs::current_path() }
 		, m_app_name		{ fs::path{ argv[0] }.stem().string(), alloc }

@@ -16,6 +16,8 @@ namespace ml
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
+		ML_assert(m_window.get_window_context()->initialize());
+
 		main_loop()->set_loop_condition(&main_window::is_open, &m_window);
 		main_loop()->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
 		main_loop()->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
@@ -24,19 +26,21 @@ namespace ml
 
 	gui_application::~gui_application() noexcept
 	{
+		m_window.get_window_context()->finalize();
+
 		ML_assert(end_singleton<gui_application>(this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	std::optional<fs::path> gui_application::get_open_file_name(cstring filter) const
+	std::optional<fs::path> gui_application::get_open_file_name(ds::string const & filter) const
 	{
-		return platform_api::get_open_file_name(m_window.get_native_handle(), filter);
+		return platform_api::get_open_file_name(m_window.get_native_handle(), filter.c_str());
 	}
 
-	std::optional<fs::path> gui_application::get_save_file_name(cstring filter) const
+	std::optional<fs::path> gui_application::get_save_file_name(ds::string const & filter) const
 	{
-		return platform_api::get_save_file_name(m_window.get_native_handle(), filter);
+		return platform_api::get_save_file_name(m_window.get_native_handle(), filter.c_str());
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

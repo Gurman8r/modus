@@ -673,7 +673,7 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	opengl_render_device::opengl_render_device(allocator_type alloc) : render_device{}
+	opengl_render_device::opengl_render_device(spec_type const & desc, allocator_type alloc) : render_device{}
 	{
 		static bool const opengl_init{ ML_IMPL_OPENGL_INIT() };
 		ML_assert("failed initializing opengl device" && opengl_init);

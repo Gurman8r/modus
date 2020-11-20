@@ -54,9 +54,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD std::optional<fs::path> get_open_file_name(cstring filter = "") const;
+		ML_NODISCARD std::optional<fs::path> get_open_file_name(ds::string const & filter = "") const;
 
-		ML_NODISCARD std::optional<fs::path> get_save_file_name(cstring filter = "") const;
+		ML_NODISCARD std::optional<fs::path> get_save_file_name(ds::string const & filter = "") const;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

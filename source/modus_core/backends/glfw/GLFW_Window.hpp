@@ -69,23 +69,9 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using self_type = glfw_window;
-
-		using base_type = backend_window;
-
-		using base_type::allocator_type;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		using backend_window::allocator_type;
 
 		glfw_window(allocator_type alloc = {}) noexcept;
-
-		glfw_window(
-			ds::string			const & title,
-			video_mode			const & vm		= {},
-			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default,
-			void *						userptr	= nullptr,
-			allocator_type				alloc	= {}) noexcept;
 
 		~glfw_window() final;
 

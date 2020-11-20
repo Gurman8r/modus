@@ -18,11 +18,10 @@ namespace ml
 
 		ML_assert(main_window::initialize());
 
-		auto mainloop{ new_main_loop(get_bus(), alloc) };
-		mainloop->set_loop_condition(&main_window::is_open, &m_window);
-		mainloop->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
-		mainloop->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
-		mainloop->set_idle_callback([&](auto) { get_bus()->fire<app_idle_event>(); });
+		get_main_loop()->set_loop_condition(&main_window::is_open, &m_window);
+		get_main_loop()->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
+		get_main_loop()->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
+		get_main_loop()->set_idle_callback([&](auto) { get_bus()->fire<app_idle_event>(); });
 	}
 
 	gui_application::~gui_application() noexcept
@@ -34,12 +33,12 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	std::optional<fs::path> gui_application::get_open_file_name(ds::string const & filter) const
+	std::optional<fs::path> gui_application::open_file_name(ds::string const & filter) const
 	{
 		return platform_api::get_open_file_name(m_window.get_native_handle(), filter.c_str());
 	}
 
-	std::optional<fs::path> gui_application::get_save_file_name(ds::string const & filter) const
+	std::optional<fs::path> gui_application::save_file_name(ds::string const & filter) const
 	{
 		return platform_api::get_save_file_name(m_window.get_native_handle(), filter.c_str());
 	}

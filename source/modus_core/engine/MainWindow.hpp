@@ -67,14 +67,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		using event_listener::get_bus;
-
 	protected:
-		using event_listener::subscribe;
-
-		using event_listener::unsubscribe;
-
 		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

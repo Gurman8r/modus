@@ -16,7 +16,7 @@ namespace ml
 		, m_library_paths	{ alloc }
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_dispatcher		{ alloc }
-		, m_main_loop		{}
+		, m_main_loop		{ alloc_ref<loop_system>(alloc, get_bus()) }
 	{
 		ML_assert(begin_singleton<core_application>(this));
 		

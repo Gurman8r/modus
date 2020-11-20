@@ -11,14 +11,14 @@ namespace ml
 
 	gui_application::gui_application(int32 argc, char * argv[], allocator_type alloc)
 		: core_application	{ argc, argv, alloc }
-		, m_window			{ get_bus(), alloc }
+		, m_main_window		{ get_bus(), alloc }
 		, m_fps_tracker		{}
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
 		ML_assert(main_window::initialize());
 
-		auto main_loop{ new_main_loop() };
+		auto main_loop{ get_main_loop() };
 		main_loop->set_loop_condition(&main_window::is_open, get_main_window());
 		main_loop->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
 		main_loop->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
@@ -36,12 +36,12 @@ namespace ml
 
 	std::optional<fs::path> gui_application::open_file_name(ds::string const & filter) const
 	{
-		return platform_api::open_file_name(m_window.get_native_handle(), filter.c_str());
+		return platform_api::open_file_name(m_main_window.get_native_handle(), filter.c_str());
 	}
 
 	std::optional<fs::path> gui_application::save_file_name(ds::string const & filter) const
 	{
-		return platform_api::save_file_name(m_window.get_native_handle(), filter.c_str());
+		return platform_api::save_file_name(m_main_window.get_native_handle(), filter.c_str());
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -54,26 +54,40 @@ namespace ml
 		case app_enter_event::ID: {
 			auto && ev{ (app_enter_event &&)value };
 
-			// open window
-			ML_assert(attr().contains("window"));
-			json & window_prefs{ attr("window") };
-			ML_assert(m_window.open(
-				window_prefs["title"],
-				window_prefs["video"],
-				window_prefs["context"],
-				window_prefs["hints"]));
+			// main window
+			if (attr().contains("main_window")) {
+				json & win_prefs{ attr("main_window") };
 
-			// configure imgui
-			if (attr().contains("imgui")) {
-				json & gui_prefs{ attr("imgui") };
-				if (gui_prefs.contains("dockspace")) {
-					m_window.get_dockspace()->Configure(gui_prefs["dockspace"]);
-				}
-				if (gui_prefs.contains("style")) {
-					json & style_prefs{ gui_prefs["style"] };
-					if (style_prefs.is_string()) {
-						m_window.load_imgui_style(path_to(style_prefs));
+				// open
+				ML_assert(m_main_window.open
+				(
+					app_name(),
+
+					(win_prefs.contains("video_mode")
+						? win_prefs["video_mode"]
+						: video_mode{}),
+
+					(win_prefs.contains("context_settings")
+						? win_prefs["context_settings"]
+						: context_settings{}),
+
+					(win_prefs.contains("window_hints")
+						? win_prefs["window_hints"]
+						: window_hints_default))
+				);
+
+				// theme
+				if (win_prefs.contains("imgui_theme")) {
+					json & theme_prefs{ win_prefs["imgui_theme"] };
+					if (theme_prefs.contains("path")) {
+						m_main_window.load_theme(path_to(theme_prefs["path"]));
 					}
+				}
+
+				// dockspace
+				if (win_prefs.contains("imgui_dockspace")) {
+					json & dock_prefs{ win_prefs["imgui_dockspace"] };
+					m_main_window.get_dockspace()->Configure(dock_prefs);
 				}
 			}
 
@@ -90,14 +104,15 @@ namespace ml
 			m_fps_tracker(get_main_loop()->delta_time());
 
 			// imgui frame
-			m_window.do_imgui_frame([&
-				, context	= m_window.get_imgui().get()
-				, docker	= m_window.get_dockspace()
+			m_main_window.do_frame([&
+				, context	= m_main_window.get_imgui().get()
+				, menubar	= m_main_window.get_menubar()
+				, docker	= m_main_window.get_dockspace()
 			](auto)
 			{
 				docker->SetWindowFlag(
 					ImGuiWindowFlags_MenuBar,
-					ImGui::FindWindowByName("##MainMenuBar"));
+					ImGuiExt::FindWindowByName(menubar));
 
 				(*docker)(context->Viewports[0], [&](auto) noexcept
 				{
@@ -107,9 +122,9 @@ namespace ml
 				get_bus()->fire<imgui_render_event>(context);
 			});
 
-			if (m_window.has_hints(window_hints_doublebuffer))
+			if (m_main_window.has_hints(window_hints_doublebuffer))
 			{
-				main_window::swap_buffers(m_window.get_handle());
+				main_window::swap_buffers(m_main_window.get_handle());
 			}
 
 		} break;

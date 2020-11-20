@@ -1,7 +1,6 @@
 #ifndef _ML_CORE_APPLICATION_HPP_
 #define _ML_CORE_APPLICATION_HPP_
 
-#include <modus_core/detail/Layers.hpp>
 #include <modus_core/detail/LoopSystem.hpp>
 
 namespace ml
@@ -146,6 +145,11 @@ namespace ml
 			return m_app_version = value;
 		}
 
+		auto set_arguments(ds::list<ds::string> const & value) -> ds::list<ds::string> &
+		{
+			return m_arguments = value;
+		}
+
 		auto set_attributes(json const & value) noexcept -> json &
 		{
 			return m_attributes = value;
@@ -159,14 +163,14 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		virtual void on_event(event const & value) override;
+		ML_NODISCARD bool initialize_interpreter();
+
+		void finalize_interpreter();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		ML_NODISCARD bool initialize_interpreter();
-
-		void finalize_interpreter();
+		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

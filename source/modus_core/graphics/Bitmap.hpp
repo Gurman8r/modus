@@ -127,17 +127,19 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void dump(bitmap & other) noexcept
+		void dump() noexcept
 		{
-			this->dump(other.m_pix);
+			pixels{}.swap(m_pix);
 		}
 
 		void dump(pixels & other) noexcept
 		{
-			if (std::addressof(m_pix) != std::addressof(other))
-			{
-				m_pix.swap(other);
-			}
+			m_pix.swap(other);
+		}
+
+		void dump(bitmap & other) noexcept
+		{
+			m_pix.swap(other.m_pix);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

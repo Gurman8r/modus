@@ -2,6 +2,8 @@
 #define _ML_APPLICATION_HPP_
 
 #include <modus_core/engine/GuiApplication.hpp>
+#include <modus_core/engine/PluginManager.hpp>
+#include <modus_core/scene/Scene.hpp>
 
 namespace ml
 {
@@ -19,8 +21,32 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
+		ML_NODISCARD auto get_plugin_manager() const -> plugin_manager *
+		{
+			return const_cast<plugin_manager *>(&m_plugin_manager);
+		}
+
+		ML_NODISCARD auto get_active_scene() const -> ds::ref<scene> const &
+		{
+			return m_active_scene;
+		}
+
+		auto set_active_scene(ds::ref<scene> const & value) -> ds::ref<scene> &
+		{
+			return m_active_scene = value;
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	protected:
 		virtual void on_event(event const & value) override;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	private:
+		plugin_manager	m_plugin_manager; // plugin manager
+		ds::ref<scene>	m_active_scene	; // active scene
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

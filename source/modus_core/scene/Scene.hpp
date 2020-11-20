@@ -9,7 +9,7 @@ namespace ml
 {
 	struct entity;
 
-	struct ML_CORE_API scene : loop_system
+	struct ML_CORE_API scene : event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -22,7 +22,7 @@ namespace ml
 		virtual ~scene() noexcept override;
 
 		scene(event_bus * bus, allocator_type alloc = {}) noexcept
-			: loop_system	{ bus, alloc }
+			: event_listener{ bus }
 			, m_entities	{ alloc }
 			, m_registry	{}
 		{
@@ -53,14 +53,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		using loop_system::get_bus;
-
 	protected:
-		using loop_system::subscribe;
-
-		using loop_system::unsubscribe;
-
 		virtual void on_event(event const &) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

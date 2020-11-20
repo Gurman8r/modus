@@ -5,6 +5,9 @@
 using impl_window	= _ML glfw_window;
 using impl_context	= _ML glfw_context;
 using impl_cursor	= _ML glfw_cursor;
+
+#else
+#error "native window unavailable"
 #endif
 
 namespace ml

@@ -1,6 +1,4 @@
 #include <modus_core/engine/Application.hpp>
-#include <modus_core/engine/PluginManager.hpp>
-#include <modus_core/engine/EngineEvents.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -33,23 +31,18 @@ static class memcfg final : public singleton<memcfg>
 
 static auto const default_settings{ R"(
 {
-	"paths": [
-		"../../../"
-	],
-	"plugins": [
-		{ "path": "./plugins/sandbox" }
-	],
-	"scripts": [
-		{ "path": "resource/modus_launcher.py" }
-	],
-	"window": {
-		"title": "modus launcher",
-		"video": {
+	"app_name"		: "modus launcher",
+	"app_version"	: "alpha",
+	"arguments"		: [],
+	"library_paths" : [ "../../../" ],
+
+	"main_window": {
+		"video_mode": {
 			"resolution"	: [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
 			"refresh_rate"	: -1
 		},
-		"context": {
+		"context_settings": {
 			"api"			: "opengl",
 			"major"			: 4,
 			"minor"			: 6,
@@ -59,7 +52,7 @@ static auto const default_settings{ R"(
 			"multisample"	: true,
 			"srgb_capable"	: false
 		},
-		"hints": {
+		"window_hints": {
 			"auto_iconify"	: true,
 			"decorated"		: true,
 			"doublebuffer"	: false,
@@ -70,18 +63,26 @@ static auto const default_settings{ R"(
 			"maximized"		: true,
 			"resizable"		: true,
 			"visible"		: false
-		}
-	},
-	"imgui": {
-		"style": "resource/modus_launcher.style",
-		"dockspace": {
+		},
+		"imgui_theme": {
+			"path": "resource/modus_launcher.style"
+		},
+		"imgui_dockspace": {
 			"alpha"		: 0,
 			"border"	: 0,
 			"padding"	: [ 0, 0 ],
 			"rounding"	: 0,
 			"size"		: [ 0, 0 ]
 		}
-	}
+	},
+
+	"plugins": [
+		{ "path": "./plugins/sandbox" }
+	],
+
+	"scripts": [
+		{ "path": "resource/modus_launcher.py" }
+	]
 }
 )"_json };
 
@@ -97,19 +98,11 @@ int32 main(int32 argc, char * argv[])
 	};
 
 	application app{ argc, argv };
-	app.set_app_name(ML_lib_name);
-	app.set_app_version(ML_lib_ver);
 	app.set_attributes(load_settings());
-	app.set_library_paths(app.attr("paths"));
-
-	plugin_manager plugins{ &app };
-	if (app.attr().contains("plugins")) {
-		for (json const & e : app.attr("plugins")) {
-			ML_assert(e.contains("path"));
-			plugins.install(e["path"]);
-		}
-	}
-
+	app.set_app_name(app.attr("app_name"));
+	app.set_app_version(app.attr("app_version"));
+	app.set_arguments(app.attr("arguments"));
+	app.set_library_paths(app.attr("library_paths"));
 	return app.exec();
 }
 

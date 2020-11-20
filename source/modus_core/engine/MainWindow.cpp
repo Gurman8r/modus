@@ -10,6 +10,7 @@ namespace ml
 		: event_listener{ bus }
 		, render_window	{ alloc }
 		, m_imgui		{}
+		, m_menubar		{ "##MainMenuBar" }
 		, m_dockspace	{ "##MainDockspace" }
 	{
 		ImGui::SetAllocatorFunctions(
@@ -89,12 +90,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool main_window::load_imgui_style(fs::path const & path)
-	{
-		return _ML ImGui_LoadStyle(path, m_imgui->Style);
-	}
-
-	void main_window::begin_imgui_frame()
+	void main_window::begin_frame()
 	{
 		main_window::poll_events();
 
@@ -105,7 +101,7 @@ namespace ml
 		ImGui::PushID(this);
 	}
 
-	void main_window::end_imgui_frame()
+	void main_window::end_frame()
 	{
 		ImGui::PopID();
 
@@ -127,6 +123,18 @@ namespace ml
 			ImGui::RenderPlatformWindowsDefault();
 			main_window::set_active_window(backup);
 		}
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool main_window::load_theme(fs::path const & path)
+	{
+		return _ML ImGui_LoadStyle(path, m_imgui->Style);
+	}
+
+	bool ml::main_window::load_theme(json const & j)
+	{
+		return _ML ImGui_LoadStyle(j, m_imgui->Style);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

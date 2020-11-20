@@ -70,16 +70,16 @@ namespace ml::util
 		pi_t<T>::value
 	};
 
-	template <class T = float32
-	> constexpr auto deg2rad(T value) noexcept
+	template <class T = float32, class U = T
+	> constexpr auto deg2rad(U value) noexcept
 	{
-		return value * (pi_v<T> / static_cast<T>(180));
+		return static_cast<T>(value) * (pi_v<T> / static_cast<T>(180));
 	}
 
-	template <class T = float32
-	> constexpr T rad2deg(T value) noexcept
+	template <class T = float32, class U = T
+	> constexpr T rad2deg(U value) noexcept
 	{
-		return value * (static_cast<T>(180) / pi_v<T>);
+		return static_cast<T>(value) * (static_cast<T>(180) / pi_v<T>);
 	}
 }
 
@@ -121,16 +121,18 @@ namespace ml::util
 		return temp;
 	}
 
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// constructor
 	template <class T, class ... Args
-	> T * construct(T * ptr, Args && ... args) noexcept
+	> void construct(T * ptr, Args && ... args)
 	{
-		return ::new (ptr) T{ ML_forward(args)... };
+		::new (ptr) T{ ML_forward(args)... };
 	}
 
 	// destructor
 	template <class T
-	> void destruct(T * ptr) noexcept
+	> void destruct(T * ptr)
 	{
 		ptr->~T();
 	}

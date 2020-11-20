@@ -46,7 +46,7 @@ namespace ml
 	public:
 		ML_NODISCARD auto get_main_window() const noexcept -> main_window *
 		{
-			return const_cast<main_window *>(&m_window);
+			return const_cast<main_window *>(&m_main_window);
 		}
 
 		ML_NODISCARD auto get_fps() const noexcept -> fps_tracker<> const *
@@ -68,9 +68,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		main_window m_window; // main window
-
-		fps_tracker<> m_fps_tracker; // fps tracker
+		main_window		m_main_window	; // main window
+		fps_tracker<>	m_fps_tracker	; // fps tracker
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

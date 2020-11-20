@@ -122,9 +122,15 @@ namespace ml::ImGuiExt
 namespace ml::ImGuiExt
 {
 	template <class T
-	> ImGuiID GetID(T const * p)
+	> ML_NODISCARD ImGuiID GetID(T const * p)
 	{
 		return ImGui::GetID(p->Title);
+	}
+
+	template <class T
+	> ML_NODISCARD ImGuiWindow * FindWindowByName(T const * p)
+	{
+		return ImGui::FindWindowByName(p->Title);
 	}
 
 	template <class T
@@ -154,8 +160,8 @@ namespace ml::ImGuiExt
 		int32		WindowFlags	; // window flags
 
 		constexpr BasicPanel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
-			: Title		{ title }
-			, IsOpen	{ open }
+			: Title			{ title }
+			, IsOpen		{ open }
 			, WindowFlags	{ winflags }
 		{
 		}
@@ -210,6 +216,17 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// MAIN MENU BAR
+namespace ml::ImGuiExt
+{
+	struct ML_NODISCARD MainMenuBar final
+	{
+		cstring Title{ "##MainMenuBar" };
+	};
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // DOCKSPACE
 namespace ml::ImGuiExt
 {
@@ -241,7 +258,7 @@ namespace ml::ImGuiExt
 		}
 
 		constexpr Dockspace(
-			cstring			title		= "Dockspace",
+			cstring			title		= "##MainDockspace",
 			bool			open		= true,
 			float32			border		= {},
 			float32			rounding	= {},
@@ -271,6 +288,15 @@ namespace ml::ImGuiExt
 			other.DockNodeFlags
 		}
 		{}
+
+		void Configure(json const & j)
+		{
+			if (j.contains("alpha"))	j["alpha"].get_to(this->Alpha);
+			if (j.contains("border"))	j["border"].get_to(this->Border);
+			if (j.contains("padding"))	j["padding"].get_to(this->Padding);
+			if (j.contains("rounding"))	j["rounding"].get_to(this->Rounding);
+			if (j.contains("size"))		j["size"].get_to(this->Size);
+		}
 
 		auto SetDockNodeFlag(ImGuiDockNodeFlags_ index, bool value) noexcept
 		{
@@ -313,15 +339,6 @@ namespace ml::ImGuiExt
 			}
 			return is_open;
 		}
-
-		void Configure(json const & j)
-		{
-			if (j.contains("alpha"))	j["alpha"].get_to(this->Alpha);
-			if (j.contains("border"))	j["border"].get_to(this->Border);
-			if (j.contains("padding"))	j["padding"].get_to(this->Padding);
-			if (j.contains("rounding"))	j["rounding"].get_to(this->Rounding);
-			if (j.contains("size"))		j["size"].get_to(this->Size);
-		}
 	};
 }
 
@@ -330,6 +347,7 @@ namespace ml::ImGuiExt
 // TEXT LOG
 namespace ml::ImGuiExt
 {
+	// text log
 	struct ML_CORE_API ML_NODISCARD TextLog final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

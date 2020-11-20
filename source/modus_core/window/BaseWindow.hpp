@@ -127,6 +127,12 @@ namespace ml
 
 		virtual void set_icons(size_t, size_t, byte const *, size_t) = 0;
 
+		template <class Bitmap = struct bitmap
+		> inline void set_icon(Bitmap && value, size_t count = 1) noexcept
+		{
+			this->set_icons(value.width(), value.height(), value.data(), count);
+		}
+
 		virtual void set_input_mode(int32, int32) = 0;
 
 		virtual void set_opacity(float32) = 0;

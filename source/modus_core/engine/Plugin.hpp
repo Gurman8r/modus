@@ -14,9 +14,24 @@ namespace ml
 
 	ML_decl_handle(plugin_id);
 
-	// base plugin
+	// plugin
 	struct ML_CORE_API plugin : non_copyable, trackable, event_listener
 	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
+
+		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_alloc; }
+
+		ML_NODISCARD auto get_app() const noexcept -> application * { return m_app; }
+
+		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager * { return m_manager; }
+
+		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
+
+		void set_user_pointer(void * value) noexcept { m_userptr = value; }
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
@@ -24,20 +39,12 @@ namespace ml
 
 		plugin(plugin_manager * manager, void * userptr = nullptr);
 
-		virtual ~plugin() noexcept override = default;
-
 		virtual void on_event(event const &) override = 0;
 
-	public:
-		ML_NODISCARD auto get_app() const noexcept -> application * { return m_app; }
-		
-		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager * { return m_manager; }
-
-		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
-
-		auto set_user_pointer(void * value) noexcept -> void * { return m_userptr = value; }
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
+		allocator_type			m_alloc		; // allocator
 		application * const		m_app		; // application
 		plugin_manager * const	m_manager	; // plugin manager
 		void *					m_userptr	; // user pointer

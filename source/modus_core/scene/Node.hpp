@@ -3,67 +3,73 @@
 
 // WIP
 
-#include <modus_core/Export.hpp>
 #include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {
-	struct node : non_copyable, trackable
+	struct node : trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
-		using iterator			= typename ds::list<node *>::iterator;
-		using const_iterator	= typename ds::list<node *>::const_iterator;
+		using allocator_type			= typename pmr::polymorphic_allocator<byte>;
+		using node_ref					= typename ds::ref<node>;
+		using node_list					= typename ds::list<node_ref>;
+		using iterator					= typename node_list::iterator;
+		using const_iterator			= typename node_list::const_iterator;
+		using reverse_iterator			= typename node_list::reverse_iterator;
+		using const_reverse_iterator	= typename node_list::const_reverse_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual ~node() noexcept override
-		{
-			clear_children();
-		}
-
 		node(allocator_type alloc = {}) noexcept
-			: m_name	{ alloc }
-			, m_parent	{}
+			: m_parent	{}
 			, m_children{ alloc }
 		{
 		}
 
-		node(ds::string const & n, allocator_type alloc = {})
-			: m_name	{ alloc }
-			, m_parent	{}
+		node(node * parent, allocator_type alloc = {})
+			: m_parent	{ parent }
 			, m_children{ alloc }
 		{
 		}
 
-		node(ds::string const & n, std::initializer_list<node *> const & c, allocator_type alloc = {})
-			: m_name	{ n, alloc }
-			, m_parent	{}
-			, m_children{ alloc }
+		node(node_list const & children, allocator_type alloc = {})
+			: m_parent	{}
+			, m_children{ children, alloc }
 		{
-			set_children(c);
 		}
 
-		node(node * p, ds::string const & n, ds::list<node *> const & c, allocator_type alloc = {}) noexcept
-			: m_name	{ alloc }
-			, m_parent	{ p }
-			, m_children{ alloc }
+		node(node * parent, node_list const & children, allocator_type alloc = {})
+			: m_parent	{ parent }
+			, m_children{ children, alloc }
 		{
-			set_children(c);
+		}
+
+		node(node const & other, allocator_type alloc = {})
+			: m_parent	{ other.m_parent }
+			, m_children{ other.m_children, alloc }
+		{
 		}
 
 		node(node && other, allocator_type alloc = {}) noexcept
-			: m_name	{ alloc }
-			, m_parent	{}
+			: m_parent	{}
 			, m_children{ alloc }
 		{
-			swap(std::move(other));
+			this->swap(std::move(other));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		node & operator=(node const & other)
+		{
+			node temp{ other };
+			this->swap(temp);
+			return (*this);
 		}
 
 		node & operator=(node && other) noexcept
 		{
-			swap(std::move(other));
+			this->swap(std::move(other));
 			return (*this);
 		}
 
@@ -71,7 +77,6 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				m_name.swap(other.m_name);
 				std::swap(m_parent, other.m_parent);
 				m_children.swap(other.m_children);
 			}
@@ -79,121 +84,104 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto child_count() const noexcept -> size_t { return m_children.size(); }
-
-		ML_NODISCARD auto get_child(size_t i) noexcept -> node * { return m_children[i]; }
-		
-		ML_NODISCARD auto get_child(size_t i) const noexcept -> node const * { return m_children[i]; }
-
-		ML_NODISCARD auto get_children() noexcept -> ds::list<node *> & { return m_children; }
-
-		ML_NODISCARD auto get_children() const noexcept -> ds::list<node *> const & { return m_children; }
-
-		ML_NODISCARD auto get_name() const noexcept -> ds::string { return m_name; }
-
-		ML_NODISCARD auto get_parent() const noexcept -> node * { return m_parent; }
-
-		ML_NODISCARD bool is_child_of(node const * value) const noexcept
+		ML_NODISCARD auto get_parent() const noexcept -> node *
 		{
-			return m_parent == value;
+			return m_parent;
 		}
 
-		ML_NODISCARD bool is_parent_of(node const * value) const noexcept
+		auto set_parent(node * value) noexcept -> node *
 		{
-			return value && value->is_child_of(this);
-		}
-
-		node * add_child(node * value) noexcept
-		{
-			return !is_parent_of(value) ? m_children.emplace_back(value) : nullptr;
-		}
-
-		void clear_children() noexcept
-		{
-			for (node * c : m_children)
-			{
-				delete c;
-				c = nullptr;
-			}
-			m_children.clear();
-		}
-
-		void detach_children()
-		{
-			for (node * c : m_children)
-			{
-				c->set_parent(m_parent);
-			}
-		}
-
-		node * find(ds::string const & name) noexcept
-		{
-			if (auto const it{ std::find_if(begin(), end(), [&name
-			](auto c) { return c && c->m_name == name; }) }
-			; it != end())
-			{
-				return (*it);
-			}
-			else
-			{
-				return nullptr;
-			}
-		}
-
-		void remove_child(node * value) noexcept
-		{
-			if (auto const it{ std::find(begin(), end(), value) }; it != end())
-			{
-				delete (*it);
-				(*it) = nullptr;
-				m_children.erase(it);
-			}
-		}
-
-		void set_children(ds::list<node *> const & value) noexcept
-		{
-			for (node * c : (m_children = value))
-			{
-				c->set_parent(this);
-			}
-		}
-
-		void set_name(ds::string const & value) noexcept
-		{
-			m_name = value;
-		}
-
-		void set_parent(node * value) noexcept
-		{
-			m_parent = value;
+			return (value != this && value != m_parent) ? (m_parent = value) : nullptr;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto operator[](size_t i) noexcept -> node * { return get_child(i); }
+		auto add_child(node_ref const & value) noexcept -> node_ref
+		{
+			if (this == value.get()) { return nullptr; }
+			else if (auto const it{ find_child(value) }
+			; it != m_children.end()) { return *it; }
+			else { return m_children.emplace_back(value); }
+		}
 
-		ML_NODISCARD auto operator[](size_t i) const noexcept -> node const * { return get_child(i); }
+		auto delete_child(node_ref const & value) noexcept -> iterator
+		{
+			if (this == value.get()) { return m_children.end(); }
+			else if (auto const it{ find_child(value) }
+			; it == m_children.end()) { return it; }
+			else { return m_children.erase(it); }
+		}
+
+		template <class Derived = node, class ... Args
+		> auto new_child(Args && ... args) noexcept -> ds::ref<Derived>
+		{
+			static_assert(std::is_base_of_v<node, Derived>, "?");
+
+			return std::static_pointer_cast<Derived>(m_children.emplace_back
+			(
+				_ML make_ref<Derived>(ML_forward(args)...)
+			));
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto begin() noexcept -> iterator { return m_children.begin(); }
-		
-		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_children.begin(); }
-		
-		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return m_children.cbegin(); }
-		
-		ML_NODISCARD auto end() noexcept -> iterator { return m_children.end(); }
-		
-		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_children.end(); }
-		
-		ML_NODISCARD auto cend() const noexcept -> const_iterator { return m_children.cend(); }
+		ML_NODISCARD auto get_children() & noexcept -> node_list &
+		{
+			return m_children;
+		}
+
+		ML_NODISCARD auto get_children() const & noexcept -> node_list const &
+		{
+			return m_children;
+		}
+
+		ML_NODISCARD auto get_children() && noexcept -> node_list &&
+		{
+			return std::move(m_children);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD bool has_child(node const * value) const noexcept
+		{
+			return m_children.end() != find_child_if([value](node_ref const & e) noexcept
+			{
+				return value == e.get();
+			});
+		}
+
+		ML_NODISCARD bool has_child(node_ref const & value) const noexcept
+		{
+			return m_children.end() != find_child(value);
+		}
+
+		ML_NODISCARD auto find_child(node_ref const & value) noexcept -> iterator
+		{
+			return std::find(m_children.begin(), m_children.end(), value);
+		}
+
+		ML_NODISCARD auto find_child(node_ref const & value) const noexcept -> const_iterator
+		{
+			return std::find(m_children.cbegin(), m_children.cend(), value);
+		}
+
+		template <class Pr
+		> ML_NODISCARD auto find_child_if(Pr && pr) noexcept -> iterator
+		{
+			return std::find_if(m_children.begin(), m_children.end(), ML_forward(pr));
+		}
+
+		template <class Pr
+		> ML_NODISCARD auto find_child_if(Pr && pr) const noexcept -> const_iterator
+		{
+			return std::find_if(m_children.cbegin(), m_children.cend(), ML_forward(pr));
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::string			m_name		; // 
-		node *				m_parent	; // 
-		ds::list<node *>	m_children	; // 
+		node *		m_parent	;
+		node_list	m_children	;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

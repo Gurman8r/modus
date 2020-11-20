@@ -1,21 +1,16 @@
 {
-	"paths": [
-		"../../../"
-	],
-	"plugins": [
-		{ "path": "./plugins/sandbox" }
-	],
-	"scripts": [
-		{ "path": "resource/modus_launcher.py" }
-	],
-	"window": {
-		"title": "modus launcher",
-		"video": {
+	"app_name"		: "modus launcher",
+	"app_version"	: "alpha",
+	"arguments"		: [],
+	"library_paths" : [ "../../../" ],
+
+	"main_window": {
+		"video_mode": {
 			"resolution"	: [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
 			"refresh_rate"	: -1
 		},
-		"context": {
+		"context_settings": {
 			"api"			: "opengl",
 			"major"			: 4,
 			"minor"			: 6,
@@ -25,7 +20,7 @@
 			"multisample"	: true,
 			"srgb_capable"	: false
 		},
-		"hints": {
+		"window_hints": {
 			"auto_iconify"	: true,
 			"decorated"		: true,
 			"doublebuffer"	: false,
@@ -36,16 +31,24 @@
 			"maximized"		: true,
 			"resizable"		: true,
 			"visible"		: false
-		}
-	},
-	"imgui": {
-		"style": "resource/modus_launcher.style",
-		"dockspace": {
+		},
+		"imgui_theme": {
+			"path": "resource/modus_launcher.style"
+		},
+		"imgui_dockspace": {
 			"alpha"		: 0,
 			"border"	: 0,
 			"padding"	: [ 0, 0 ],
 			"rounding"	: 0,
 			"size"		: [ 0, 0 ]
 		}
-	}
+	},
+
+	"plugins": [
+		{ "path": "./plugins/sandbox" }
+	],
+
+	"scripts": [
+		{ "path": "resource/modus_launcher.py" }
+	]
 }

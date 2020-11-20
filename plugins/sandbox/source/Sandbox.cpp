@@ -36,7 +36,7 @@ namespace ml
 		ImGuiExt::Terminal m_term{};
 
 		// rendering
-		vec2 m_resolution{ 1280, 720 };
+		vec2i m_resolution{ 1280, 720 };
 		color m_clear_color{ 0.223f, 0.f, 0.46f, 1.f };
 		ds::list<ds::ref<gfx::framebuffer>> m_fb{};
 
@@ -62,9 +62,11 @@ namespace ml
 			case app_enter_event::ID: {
 				auto && ev{ (app_enter_event &&)value };
 
-				if (bitmap i{ get_app()->path_to("resource/modus_launcher.png"), false })
+				auto active_scene{ get_app()->set_active_scene(make_ref<scene>(get_bus())) };
+
+				if (bitmap const icon{ get_app()->path_to("resource/modus_launcher.png"), false })
 				{
-					get_app()->get_main_window()->set_icons(i.width(), i.height(), i.data());
+					get_app()->get_main_window()->set_icon(icon);
 				}
 
 				m_fb.push_back(gfx::make_framebuffer((vec2i)m_resolution));
@@ -262,9 +264,11 @@ namespace ml
 					ImGui::EndMenuBar();
 				}
 
+				m_resolution = (vec2)ImGui::GetContentRegionAvail();
+
 				ImGui::Image(
 					m_fb[0]->get_color_attachments()[0]->get_handle(),
-					m_resolution = ImGui::GetContentRegionAvail(),
+					(vec2)m_resolution,
 					{ 0, 1 }, { 1, 0 },
 					colors::white,
 					colors::clear);
@@ -284,16 +288,12 @@ extern "C"
 {
 	ML_PLUGIN_API ml::plugin * ml_plugin_create(ml::plugin_manager * manager, void * userptr)
 	{
-		auto const g{ ML_check(ml::get_global<ml::memory_manager>()) };
-
-		return g->new_object<ml::sandbox>(manager, userptr);
+		return manager->allocate_plugin<ml::sandbox>(userptr);
 	}
 
 	ML_PLUGIN_API void ml_plugin_destroy(ml::plugin_manager * manager, ml::plugin * ptr)
 	{
-		auto const g{ ML_check(ml::get_global<ml::memory_manager>()) };
-
-		return g->delete_object((ml::sandbox *)ptr);
+		manager->deallocate_plugin<ml::sandbox>(ptr);
 	}
 }
 

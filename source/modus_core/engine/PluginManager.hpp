@@ -18,6 +18,14 @@ namespace ml
 
 		ds::string name, path, ext; // file info
 
+		plugin_details(plugin_details const &) = default;
+		plugin_details(plugin_details &&) noexcept = default;
+		plugin_details & operator=(plugin_details const &) = default;
+		plugin_details & operator=(plugin_details &&) noexcept = default;
+
+	private:
+		friend plugin_manager;
+
 		explicit plugin_details(shared_library & lib) noexcept
 			: hash	{ lib.hash() }
 			, name	{ lib.path().stem().string() }
@@ -25,11 +33,6 @@ namespace ml
 			, ext	{ lib.path().extension().string() }
 		{
 		}
-
-		plugin_details(plugin_details const &) = default;
-		plugin_details(plugin_details &&) noexcept = default;
-		plugin_details & operator=(plugin_details const &) = default;
-		plugin_details & operator=(plugin_details &&) noexcept = default;
 	};
 }
 
@@ -42,6 +45,14 @@ namespace ml
 		plugin * (*create)(plugin_manager *, void *); // create plugin
 		
 		void (*destroy)(plugin_manager *, plugin *); // destroy plugin
+
+		plugin_installer(plugin_installer const &) = default;
+		plugin_installer(plugin_installer &&) noexcept = default;
+		plugin_installer & operator=(plugin_installer const &) = default;
+		plugin_installer & operator=(plugin_installer &&) noexcept = default;
+
+	private:
+		friend plugin_manager;
 		
 		explicit plugin_installer(shared_library & lib) noexcept
 			: create{ lib.get_proc<plugin *, plugin_manager *, void *>("ml_plugin_create") }
@@ -49,11 +60,6 @@ namespace ml
 		{
 			ML_assert(create && destroy);
 		}
-
-		plugin_installer(plugin_installer const &) = default;
-		plugin_installer(plugin_installer &&) noexcept = default;
-		plugin_installer & operator=(plugin_installer const &) = default;
-		plugin_installer & operator=(plugin_installer &&) noexcept = default;
 	};
 }
 
@@ -84,36 +90,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		plugin_manager(application * app, allocator_type alloc = {}) noexcept;
+		plugin_manager(application * app, allocator_type alloc = {});
 
 		~plugin_manager() noexcept final { this->uninstall_all(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		ML_NODISCARD auto get_app() const noexcept -> application *
-		{
-			return m_app;
-		}
-
-		void broadcast(event const & value) noexcept
-		{
-			for (auto & e : m_data.get<plugin_instance>())
-			{
-				e->on_event(value);
-			}
-		}
-
-		template <class Ev, class ... Args
-		> void broadcast(Args && ... args) noexcept
-		{
-			this->broadcast(Ev{ ML_forward(args)... });
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	public:
 		plugin_id install(fs::path const & path, void * userptr = nullptr);
 
 		bool uninstall(plugin_id value);
@@ -124,6 +106,90 @@ namespace ml
 
 			while (!ids.empty()) { this->uninstall(ids.back()); }
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Derived, class ... Args
+		> auto allocate_plugin(Args && ... args) noexcept -> Derived *
+		{
+			static_assert(std::is_base_of_v<plugin, Derived>);
+			
+			auto ptr{ (Derived *)m_alloc.allocate(sizeof(Derived)) };
+			
+			util::construct(ptr, this, ML_forward(args)...);
+			
+			return ptr;
+		}
+
+		template <class Derived
+		> void deallocate_plugin(plugin * value)
+		{
+			static_assert(std::is_base_of_v<plugin, Derived>);
+
+			util::destruct((Derived *)value);
+
+			m_alloc.deallocate((byte *)value, sizeof(Derived));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Ev
+		> void fire_event(Ev && value) noexcept
+		{
+			for (auto & p : get_data<plugin_instance>())
+			{
+				p->on_event(ML_forward(value));
+			}
+		}
+
+		template <class Ev, class ... Args
+		> void fire_event(Args && ... args) noexcept
+		{
+			this->fire_event(Ev{ ML_forward(args)... });
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Ev
+		> void send_event(plugin_id id, Ev && value) noexcept
+		{
+			if (auto i{ m_data.lookup<plugin_id>(id) }; i != m_data.npos)
+			{
+				auto & p{ m_data.at<plugin_instance>(i) };
+
+				p->on_event(ML_forward(value));
+			}
+		}
+
+		template <class Ev, class ... Args
+		> void send_event(plugin_id id, Args && ... args) noexcept
+		{
+			this->send_event(id, Ev{ ML_forward(args)... });
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_alloc; }
+
+		ML_NODISCARD auto get_app() const noexcept -> application * { return m_app; }
+
+		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
+
+		ML_NODISCARD auto get_data() noexcept -> plugin_storage & { return m_data; }
+
+		ML_NODISCARD auto get_data() const noexcept -> plugin_storage const & { return m_data; }
+
+		template <class T
+		> ML_NODISCARD auto get_data() & noexcept -> ds::list<T> & { return m_data.get<T>(); }
+
+		template <class T
+		> ML_NODISCARD auto get_data() const & noexcept -> ds::list<T> const & { return m_data.get<T>(); }
+
+		template <class T
+		> ML_NODISCARD auto get_data(size_t i) & noexcept -> T & { return m_data.at<T>(i); }
+
+		template <class T
+		> ML_NODISCARD auto get_data(size_t i) const & noexcept -> T const & { return m_data.at<T>(i); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -155,30 +221,14 @@ namespace ml
 		{
 			return m_data.contains<plugin_instance>(value);
 		}
-		
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_data() noexcept -> plugin_storage & { return m_data; }
-
-		ML_NODISCARD auto get_data() const noexcept -> plugin_storage const & { return m_data; }
-
-		template <class T
-		> ML_NODISCARD auto get_data() & noexcept -> ds::list<T> & { return m_data.get<T>(); }
-
-		template <class T
-		> ML_NODISCARD auto get_data() const & noexcept -> ds::list<T> const & { return m_data.get<T>(); }
-
-		template <class T
-		> ML_NODISCARD auto get_data(size_t i) & noexcept -> T & { return m_data.at<T>(i); }
-
-		template <class T
-		> ML_NODISCARD auto get_data(size_t i) const & noexcept -> T const & { return m_data.at<T>(i); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		application * const	m_app; // application
-		plugin_storage		m_data; // plugin data
+		allocator_type		m_alloc	; // allocator
+		application * const	m_app	; // application
+		event_bus * const	m_bus	; // event bus
+		plugin_storage		m_data	; // plugin data
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -124,7 +124,7 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	constexpr int32 success() noexcept { return 1; } // true
+	ML_NODISCARD constexpr int32 success() noexcept { return 1; } // true
 
 	template <class Str
 	> int32 success(Str && str) noexcept
@@ -145,7 +145,7 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	constexpr int32 failure() noexcept { return 0; } // false
+	ML_NODISCARD constexpr int32 failure() noexcept { return 0; } // false
 
 	template <class Str
 	> int32 failure(Str && str) noexcept
@@ -166,7 +166,7 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	constexpr int32 warning() noexcept { return -1; } // true
+	ML_NODISCARD constexpr int32 warning() noexcept { return -1; } // true
 
 	template <class Str
 	> int32 warning(Str && str) noexcept

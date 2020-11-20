@@ -167,7 +167,7 @@ namespace ml
 
 		void on_event(event const & value) noexcept final
 		{
-			(void)((!m_on_event) || ((m_on_event(value)), 0));
+			if (m_on_event) { m_on_event(value); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -211,7 +211,6 @@ namespace ml
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using category			= typename ds::set<event_listener *, comparator>;
 		using categories		= typename ds::map<hash_t, category>;
-		using counter			= typename util::signed_counter;
 		using event_queue		= typename ds::list<ds::scope<event>>;
 		using dummy_ref			= typename ds::ref<dummy_listener>;
 		using dummy_list		= typename ds::list<dummy_ref>;

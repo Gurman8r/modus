@@ -5,9 +5,11 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	plugin_manager::plugin_manager(application * app, allocator_type alloc) noexcept
-		: m_app	{ ML_check(app) }
-		, m_data{ alloc }
+	plugin_manager::plugin_manager(application * app, allocator_type alloc)
+		: m_alloc	{ alloc }
+		, m_app		{ app }
+		, m_bus		{ app->get_bus() }
+		, m_data	{ alloc }
 	{
 	}
 

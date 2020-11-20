@@ -9,7 +9,9 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	application::application(int32 argc, char * argv[], allocator_type alloc)
-		: gui_application{ argc, argv, alloc }
+		: gui_application	{ argc, argv, alloc }
+		, m_plugin_manager	{ this, alloc }
+		, m_active_scene	{}
 	{
 		ML_assert(begin_singleton<application>(this));
 
@@ -37,12 +39,26 @@ namespace ml
 		case app_enter_event::ID: {
 			auto && ev{ (app_enter_event &&)value };
 
+			// install plugins
+			if (attr().contains("plugins")) {
+				for (json const & e : attr("plugins")) {
+					if (e.contains("path")) {
+						auto const path{ e["path"].get<fs::path>() };
+						if (!m_plugin_manager.install(path)) {
+							debug::warning("failed installing plugin: \'{0}\'", path);
+						}
+					}
+				}
+				m_plugin_manager.fire_event(ev);
+			}
+
+			// execute scripts
 			ML_assert(initialize_interpreter());
 			if (attr().contains("scripts")) {
 				for (json const & e : attr("scripts")) {
-					ML_assert(e.contains("path"));
-					auto const path{ path_to(e["path"]).string() };
-					PyRun_AnyFileEx(std::fopen(path.c_str(), "r"), path.c_str(), true);
+					if (e.contains("path")) {
+						py::eval_file(path_to(e["path"]).string());
+					}
 				}
 			}
 

@@ -7,6 +7,11 @@
 
 namespace ml
 {
+	namespace ImGuiExt
+	{
+		
+	}
+
 	// main window
 	struct ML_CORE_API main_window : event_listener, render_window
 	{
@@ -37,33 +42,42 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool load_imgui_style(fs::path const & path);
-
-		void begin_imgui_frame();
-
-		void end_imgui_frame();
-
-		template <class Fn, class ... Args
-		> void do_imgui_frame(Fn && fn, Args && ... args) noexcept
-		{
-			this->begin_imgui_frame();
-
-			std::invoke(ML_forward(fn), this, ML_forward(args)...);
-
-			this->end_imgui_frame();
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD auto get_imgui() const noexcept -> ds::scary<ImGuiContext> const &
 		{
 			return m_imgui;
+		}
+
+		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MainMenuBar *
+		{
+			return const_cast<ImGuiExt::MainMenuBar *>(&m_menubar);
 		}
 
 		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace *
 		{
 			return const_cast<ImGuiExt::Dockspace *>(&m_dockspace);
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void begin_frame();
+
+		void end_frame();
+
+		template <class Fn, class ... Args
+		> void do_frame(Fn && fn, Args && ... args) noexcept
+		{
+			this->begin_frame();
+
+			std::invoke(ML_forward(fn), this, ML_forward(args)...);
+
+			this->end_frame();
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		bool load_theme(fs::path const & path);
+
+		bool load_theme(json const & j);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -74,6 +88,7 @@ namespace ml
 
 	private:
 		ds::scary<ImGuiContext>	m_imgui		; // imgui
+		ImGuiExt::MainMenuBar	m_menubar	; // menubar
 		ImGuiExt::Dockspace		m_dockspace	; // dockspace
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

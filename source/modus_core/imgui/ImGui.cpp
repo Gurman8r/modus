@@ -191,5 +191,10 @@ namespace ml
 		return true;
 	}
 
+	bool ImGui_LoadStyle(json const & j, ImGuiStyle & ref)
+	{
+		return false;
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

@@ -305,7 +305,9 @@ namespace ml
 		template <class T, class ... Args
 		> ML_NODISCARD T * new_object(Args && ... args) noexcept
 		{
-			return util::construct(this->allocate_object<T>(), ML_forward(args)...);
+			auto ptr{ this->allocate_object<T>() };
+			util::construct(ptr, ML_forward(args)...);
+			return ptr;
 		}
 
 		// delete object

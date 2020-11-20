@@ -676,7 +676,7 @@ namespace ml::gfx
 	opengl_render_device::opengl_render_device(allocator_type alloc) : render_device{}
 	{
 		static bool const opengl_init{ ML_IMPL_OPENGL_INIT() };
-		ML_assert_msg(opengl_init, "failed initializing opengl device");
+		ML_assert("failed initializing opengl device" && opengl_init);
 
 		// renderer
 		ML_glCheck(m_info.renderer = (cstring)glGetString(GL_RENDERER));
@@ -753,72 +753,52 @@ namespace ml::gfx
 
 	ds::ref<render_context> opengl_render_device::new_context(spec<render_context> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_render_context>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<render_context>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<render_context>>(alloc_ref<opengl_render_context>(alloc, this, desc)).lock();
 	}
 
 	ds::ref<vertexarray> opengl_render_device::new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_vertexarray>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<vertexarray>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<vertexarray>>(alloc_ref<opengl_vertexarray>(alloc, this, desc)).lock();
 	}
 
 	ds::ref<vertexbuffer> opengl_render_device::new_vertexbuffer(spec<vertexbuffer> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_vertexbuffer>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<vertexbuffer>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<vertexbuffer>>(alloc_ref<opengl_vertexbuffer>(alloc, this, desc)).lock();
 	}
 
 	ds::ref<indexbuffer> opengl_render_device::new_indexbuffer(spec<indexbuffer> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_indexbuffer>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<indexbuffer>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<indexbuffer>>(alloc_ref<opengl_indexbuffer>(alloc, this, desc)).lock();
 	}
 
 	ds::ref<texture2d> opengl_render_device::new_texture2d(spec<texture2d> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_texture2d>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<texture2d>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<texture2d>>(alloc_ref<opengl_texture2d>(alloc, this, desc)).lock();
 	}
 
 	ds::ref<texture3d> opengl_render_device::new_texture3d(spec<texture3d> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_texture3d>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<texture3d>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<texture3d>>(alloc_ref<opengl_texture3d>(alloc, this, desc)).lock();
 	}
 
 	ds::ref<texturecube> opengl_render_device::new_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_texturecube>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<texturecube>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<texturecube>>(alloc_ref<opengl_texturecube>(alloc, this, desc)).lock();
 	}
 
 	ds::ref<framebuffer> opengl_render_device::new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_framebuffer>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<framebuffer>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<framebuffer>>(alloc_ref<opengl_framebuffer>(alloc, this, desc)).lock();
 	}
 
 	ds::ref<program> opengl_render_device::new_program(spec<program> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_program>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<program>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<program>>(alloc_ref<opengl_program>(alloc, this, desc)).lock();
 	}
 
 	ds::ref<shader> opengl_render_device::new_shader(spec<shader> const & desc, allocator_type alloc) noexcept
 	{
-		auto sp{ alloc_ref<opengl_shader>(alloc, this, desc) };
-		m_refs.push_back<ds::unown<shader>>(sp);
-		return sp;
+		return m_objs.push_back<ds::unown<shader>>(alloc_ref<opengl_shader>(alloc, this, desc)).lock();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1414,7 +1394,7 @@ namespace ml::gfx
 
 	bool opengl_texture2d::revalue()
 	{
-		if (!m_locked) { return debug::error("texture2d is not locked"); }
+		if (!m_locked) { return debug::failure("texture2d is not locked"); }
 
 		if (m_handle) { ML_glCheck(glDeleteTextures(1, &m_handle)); }
 		
@@ -1439,7 +1419,7 @@ namespace ml::gfx
 
 	void opengl_texture2d::update(vec2i const & size, addr_t data)
 	{
-		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
 
 		if (m_handle && (m_size == size)) { return; }
 		else { m_size = size; }
@@ -1464,7 +1444,7 @@ namespace ml::gfx
 
 	void opengl_texture2d::update(vec2i const & pos, vec2i const & size, addr_t data)
 	{
-		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
 
 		if (m_handle && (m_size == size)) { return; }
 		else { m_size = size; }
@@ -1489,7 +1469,7 @@ namespace ml::gfx
 
 	void opengl_texture2d::set_mipmapped(bool value)
 	{
-		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
 
 		ML_flag_write(m_flags, texture_flags_mipmap, value);
 
@@ -1506,7 +1486,7 @@ namespace ml::gfx
 
 	void opengl_texture2d::set_repeated(bool value)
 	{
-		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
 
 		ML_flag_write(m_flags, texture_flags_repeat, value);
 
@@ -1530,7 +1510,7 @@ namespace ml::gfx
 
 	void opengl_texture2d::set_smooth(bool value)
 	{
-		if (!m_locked) { return (void)debug::error("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
 
 		ML_flag_write(m_flags, texture_flags_smooth, value);
 
@@ -1547,7 +1527,7 @@ namespace ml::gfx
 
 	bitmap opengl_texture2d::copy_to_image() const
 	{
-		if (!m_locked) { debug::error("texture2d is not locked"); return bitmap{}; }
+		if (!m_locked) { debug::failure("texture2d is not locked"); return bitmap{}; }
 
 		bitmap temp{ m_size, calc_bits_per_pixel(m_format.color) };
 		if (m_handle)
@@ -1590,7 +1570,7 @@ namespace ml::gfx
 
 	bool opengl_texture3d::revalue()
 	{
-		if (!m_locked) { return debug::error("texture3d is not locked"); }
+		if (!m_locked) { return debug::failure("texture3d is not locked"); }
 
 		if (m_handle) { ML_glCheck(glDeleteTextures(1, &m_handle)); }
 		
@@ -1639,7 +1619,7 @@ namespace ml::gfx
 
 	bool opengl_texturecube::revalue()
 	{
-		if (!m_locked) { return debug::error("texturecube is not locked"); }
+		if (!m_locked) { return debug::failure("texturecube is not locked"); }
 
 		if (m_handle) { ML_glCheck(glDeleteTextures(1, &m_handle)); }
 		
@@ -1782,7 +1762,7 @@ namespace ml::gfx
 		// check status
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		{
-			debug::error("framebuffer is not complete");
+			debug::failure("framebuffer is not complete");
 		}
 	}
 
@@ -1804,7 +1784,7 @@ namespace ml::gfx
 
 		if (self != last) { ML_glCheck(ML_glUseProgram(self)); }
 
-		location = p.m_uniforms.find_or_add_fn(hashof(name, util::strlen(name)), [&
+		location = p.m_uniforms.find_or_add_fn(hashof(name, std::strlen(name)), [&
 		]() noexcept
 		{
 			int32 temp{};
@@ -1926,7 +1906,7 @@ namespace ml::gfx
 
 		if (self != last) { ML_glCheck(ML_glUseProgram(self)); }
 
-		loc = s.m_uniforms.find_or_add_fn(hashof(name, util::strlen(name)), [&
+		loc = s.m_uniforms.find_or_add_fn(hashof(name, std::strlen(name)), [&
 		]() noexcept
 		{
 			int32 temp{};

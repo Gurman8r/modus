@@ -92,18 +92,10 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				m_pix		= other.m_pix;
-				m_size		= other.m_size;
-				m_channels	= other.m_channels;
-				m_path		= other.m_path;
-			}
-		}
-
-		void dump(pixels & other) noexcept
-		{
-			if (std::addressof(m_pix) != std::addressof(other))
-			{
-				m_pix.swap(other);
+				m_pix = other.m_pix;
+				m_size = other.m_size;
+				m_channels = other.m_channels;
+				m_path = other.m_path;
 			}
 		}
 
@@ -131,6 +123,21 @@ namespace ml
 		bool load_from_file(fs::path const & path, bool flip_v = true, size_t req = 0)
 		{
 			return load_from_file((m_path = path), m_pix, m_size, m_channels, flip_v, req);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void dump(bitmap & other) noexcept
+		{
+			this->dump(other.m_pix);
+		}
+
+		void dump(pixels & other) noexcept
+		{
+			if (std::addressof(m_pix) != std::addressof(other))
+			{
+				m_pix.swap(other);
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

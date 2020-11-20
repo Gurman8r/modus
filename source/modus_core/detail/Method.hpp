@@ -17,7 +17,7 @@ namespace ml::ds
 
 namespace ml::util
 {
-	// bind callback and return its previous value
+	// bind method and return its previous value
 	template <class Clbk, class Fn, class ... Args
 	> constexpr auto chain(Clbk & clbk, Fn && fn, Args && ... args) noexcept
 	{

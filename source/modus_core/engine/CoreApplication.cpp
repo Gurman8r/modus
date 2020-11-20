@@ -57,15 +57,17 @@ namespace ml
 	bool core_application::initialize_interpreter()
 	{
 		if (Py_IsInitialized()) { return false; }
-		PyObject_SetArenaAllocator(std::invoke([g = get_global<memory_manager>()]() noexcept
+		PyObject_SetArenaAllocator(std::invoke([]() noexcept
 		{
 			static PyObjectArenaAllocator al
 			{
-				ML_check(g)->get_resource(),
-				[](auto mres, size_t s) {
+				pmr::get_default_resource(),
+				[](auto mres, size_t s)
+				{
 					return ((pmr::memory_resource *)mres)->allocate(s);
 				},
-				[](auto mres, void * p, size_t s) {
+				[](auto mres, void * p, size_t s)
+				{
 					return ((pmr::memory_resource *)mres)->deallocate(p, s);
 				}
 			};

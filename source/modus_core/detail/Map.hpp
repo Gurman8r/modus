@@ -27,7 +27,7 @@ namespace ml::ds
 		static constexpr size_type thresh{ _Th };
 
 		template <class T = key_type
-		> using key_storage = typename ds::set<T, thresh, compare_type>;
+		> using key_storage = typename ds::set<T, compare_type, thresh>;
 
 		template <class T = value_type
 		> using value_storage = typename ds::list<T>;
@@ -631,8 +631,8 @@ namespace ml::ds
 	template <
 		class	_Kt,					// key type
 		class	_Vt,					// value type
-		size_t	_Th = 42,				// search heuristic
-		class	_Pr = std::less<_Kt>	// key comparator predicate type
+		class	_Pr = std::less<_Kt>,	// key comparator predicate type
+		size_t	_Th = 42				// search heuristic
 	> ML_alias map = basic_flat_map
 	<
 		flat_map_traits<_Kt, _Vt, _Pr, _Th>
@@ -640,15 +640,15 @@ namespace ml::ds
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class K, class V, size_t T = 42, class P = std::less<K>
-	> void to_json(json & j, ds::map<K, V, T, P> const & v)
+	template <class K, class V, class P = std::less<K>, size_t T = 42
+	> void to_json(json & j, ds::map<K, V, P, T> const & v)
 	{
 		j["keys"	] = v.keys();
 		j["values"	] = v.values();
 	}
 
-	template <class K, class V, size_t T = 42, class P = std::less<K>
-	> void from_json(json const & j, ds::map<K, V, T, P> & v)
+	template <class K, class V, class P = std::less<K>, size_t T = 42
+	> void from_json(json const & j, ds::map<K, V, P, T> & v)
 	{
 		using M = typename ds::map<K, V, T, P>;
 		using K = typename M::key_storage;

@@ -5,46 +5,44 @@
 #include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Method.hpp>
 
-// event declaration helper
-#define ML_event(Type) \
-	struct Type : _ML impl::event_helper<Type>
-
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// EVENT SYSTEM
-	struct event			; // event base
-	struct event_listener	; // event listener
-	struct event_bus		; // event bus
+	struct event;
+	struct event_listener;
+	struct dummy_listener;
+	struct event_bus;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	// EVENT BASE
 	struct ML_NODISCARD event
 	{
-	public:
-		ML_NODISCARD constexpr hash_t getid() const noexcept { return m_ID; }
+		bool consume() noexcept { return !m_used && (m_used = true); }
 
-		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_ID; }
+		ML_NODISCARD bool used() const noexcept { return m_used; }
 
-		ML_NODISCARD constexpr bool operator==(hash_t value) const noexcept { return m_ID == value; }
+		ML_NODISCARD constexpr hash_t get_id() const noexcept { return m_id; }
 
-		ML_NODISCARD constexpr bool operator!=(hash_t value) const noexcept { return m_ID != value; }
+		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_id; }
+
+		ML_NODISCARD constexpr bool operator==(hash_t value) const noexcept { return m_id == value; }
+
+		ML_NODISCARD constexpr bool operator!=(hash_t value) const noexcept { return m_id != value; }
 
 	protected:
-		constexpr explicit event(hash_t id) noexcept : m_ID{ id } {}
+		constexpr explicit event(hash_t id) noexcept : m_id{ id }, m_used{} {}
 
 		constexpr event(event const &) = default;
-		
 		constexpr event(event &&) noexcept = default;
-		
 		constexpr event & operator=(event const &) = default;
-		
 		constexpr event & operator=(event &&) noexcept = default;
 
 	private:
-		hash_t m_ID; // ID
+		hash_t m_id; // ID
+		bool m_used; // used
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -52,9 +50,9 @@ namespace ml
 	// EVENT HELPER
 	namespace impl
 	{
-		template <class Derived> struct event_helper : event
+		template <class Derived
+		> struct event_helper : event
 		{
-		public:
 			using helper_base = event_helper<Derived>;
 
 			enum : hash_t { ID = hashof_v<Derived> };
@@ -62,14 +60,15 @@ namespace ml
 			constexpr event_helper() noexcept : event{ ID } {}
 
 			constexpr event_helper(helper_base const &) = default;
-			
 			constexpr event_helper(helper_base &&) noexcept = default;
-			
 			constexpr helper_base & operator=(helper_base const &) = default;
-			
 			constexpr helper_base & operator=(helper_base &&) noexcept = default;
 		};
 	}
+
+	// event declarator helper
+#define ML_event(Type) \
+	struct Type : _ML impl::event_helper<Type>
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -78,15 +77,33 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		explicit event_listener(event_bus * bus) noexcept : m_bus{ ML_check(bus) } {}
-
 		virtual ~event_listener() noexcept { this->unsubscribe(); }
 
 		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	protected:
-		// handle event
+		friend event_bus;
+
+		template <class Bus = event_bus> event_listener(Bus * bus) noexcept
+			: m_bus{ ML_check(bus) }
+			, m_index{ m_bus->make_id() }
+		{
+			static_assert(std::is_base_of_v<Bus, event_bus>);
+		}
+
+		event_listener(event_listener const &) = default;
+		event_listener(event_listener &&) noexcept = default;
+		event_listener & operator=(event_listener const &) = default;
+		event_listener & operator=(event_listener &&) noexcept = default;
+
+		ML_NODISCARD bool operator<(event_listener const & other) const noexcept
+		{
+			return m_index < other.m_index;
+		}
+
+		// on event
 		virtual void on_event(event const &) = 0;
 
 		// subscribe
@@ -94,38 +111,37 @@ namespace ml
 		{
 			static_assert(0 < sizeof...(Evs), "must provide at least one event type");
 
+			ML_assert(m_bus);
+
 			meta::for_types<Evs...>([&](auto tag) noexcept
 			{
-				ML_check(m_bus)->add_listener<decltype(tag)::type>(this);
+				m_bus->add_listener<decltype(tag)::type>(this);
 			});
 		}
 
 		// unsubscribe
 		template <class ... Evs> void unsubscribe() noexcept
 		{
+			ML_assert(m_bus);
+
 			if constexpr (0 == sizeof...(Evs))
 			{
-				ML_check(m_bus)->remove_listener(this); // all
+				m_bus->remove_listener(this); // remove from all events
 			}
 			else
 			{
 				meta::for_types<Evs...>([&](auto tag) noexcept
 				{
-					ML_check(m_bus)->remove_listener<decltype(tag)::type>(this);
+					m_bus->remove_listener<decltype(tag)::type>(this);
 				});
 			}
 		}
 
-	protected:
-		friend event_bus;
-
-		event_listener(event_listener const &) = default;
-		event_listener(event_listener &&) noexcept = default;
-		event_listener & operator=(event_listener const &) = default;
-		event_listener & operator=(event_listener &&) noexcept = default;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		event_bus * m_bus; // event bus
+		event_bus *	m_bus	; // event bus
+		uint64		m_index	; // bus index
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -137,7 +153,6 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
 		using event_callback = typename ds::method< void(event const &) >;
 
 		explicit dummy_listener(event_bus * bus) noexcept : event_listener{ bus }
@@ -145,10 +160,12 @@ namespace ml
 		}
 
 		template <class Fn, class ... Args
-		> dummy_listener(event_bus * bus, Fn && fn, Args && ... args) noexcept : event_listener{ bus }
+		> dummy_listener(event_bus * bus, Fn && fn, Args && ... args) noexcept : dummy_listener{ bus }
 		{
 			this->set_event_callback(ML_forward(fn), ML_forward(args)...);
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using event_listener::subscribe;
 
@@ -156,8 +173,10 @@ namespace ml
 
 		void on_event(event const & value) noexcept final
 		{
-			if (m_on_event) { std::invoke(m_on_event, value); }
+			if (m_on_event) { m_on_event(value); }
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const &
 		{
@@ -169,6 +188,8 @@ namespace ml
 		{
 			return util::chain(m_on_event, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		event_callback m_on_event;
@@ -183,11 +204,18 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
+		struct comparator final
+		{
+			ML_NODISCARD bool operator()(event_listener * a, event_listener * b) const noexcept
+			{
+				return (a && b) ? (*a < *b) : (a < b);
+			}
+		};
+
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
-		using category_type		= typename ds::set<event_listener *>;
+		using category_type		= typename ds::set<event_listener *, comparator>;
 		using categories_type	= typename ds::map<hash_t, category_type>;
-		using event_list		= typename ds::list<ds::scope<event>>;
+		using event_queue		= typename ds::list<ds::scope<event>>;
 		using dummy_ref			= typename ds::ref<dummy_listener>;
 		using dummy_list		= typename ds::list<dummy_ref>;
 
@@ -202,18 +230,24 @@ namespace ml
 			: m_cats	{ alloc }
 			, m_queue	{ alloc }
 			, m_dummies	{ alloc }
+			, m_counter	{}
 		{
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void fire(event const & value) noexcept
+		ML_NODISCARD auto make_id() noexcept -> uint64 { return ++m_counter; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Ev = event
+		> void fire(Ev && value) noexcept
 		{
 			if (auto const cat{ m_cats.find(value) })
 			{
 				for (auto const listener : (*cat->second))
 				{
-					listener->on_event(value);
+					ML_check(listener)->on_event(ML_forward(value));
 				}
 			}
 		}
@@ -228,7 +262,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_queue() const noexcept -> event_list const &
+		ML_NODISCARD auto get_queue() const noexcept -> event_queue const &
 		{
 			return m_queue;
 		}
@@ -245,7 +279,7 @@ namespace ml
 		{
 			for (auto const & ev : m_queue)
 			{
-				this->fire(*ev.get());
+				this->fire(*ML_check(ev.get()));
 			}
 			m_queue.clear();
 		}
@@ -258,7 +292,7 @@ namespace ml
 		}
 
 		template <class ... Evs, class ... Args
-		> auto new_dummy(Args && ... args) noexcept -> dummy_ref const &
+		> auto new_dummy(Args && ... args) noexcept -> dummy_ref &
 		{
 			auto temp{ _ML make_ref<dummy_listener>(this, ML_forward(args)...) };
 
@@ -319,8 +353,9 @@ namespace ml
 
 	private:
 		categories_type	m_cats		; // listener storage
-		event_list		m_queue		; // event queue
+		event_queue		m_queue		; // event queue
 		dummy_list		m_dummies	; // dummy listeners
+		uint64			m_counter	; // id counter
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -1,6 +1,7 @@
 #ifndef _ML_CORE_APPLICATION_HPP_
 #define _ML_CORE_APPLICATION_HPP_
 
+#include <modus_core/detail/Layers.hpp>
 #include <modus_core/detail/LoopSystem.hpp>
 
 namespace ml
@@ -135,6 +136,7 @@ namespace ml
 
 		auto set_main_loop(ds::ref<loop_system> const & value) noexcept -> ds::ref<loop_system> &
 		{
+			ML_assert(!m_main_loop || !m_main_loop->running());
 			return m_main_loop = value;
 		}
 

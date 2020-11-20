@@ -1,6 +1,9 @@
 #include <modus_core/engine/GuiApplication.hpp>
-#include <modus_core/engine/EngineEvents.hpp>
+#include <modus_core/engine/PlatformAPI.hpp>
 #include <modus_core/embed/Python.hpp>
+#include <modus_core/engine/EngineEvents.hpp>
+#include <modus_core/window/WindowEvents.hpp>
+#include <modus_core/imgui/ImGuiEvents.hpp>
 
 namespace ml
 {
@@ -9,7 +12,7 @@ namespace ml
 	gui_application::gui_application(int32 argc, char * argv[], allocator_type alloc)
 		: core_application	{ argc, argv, alloc }
 		, m_window			{ get_bus(), alloc }
-		, m_fps				{}
+		, m_fps_tracker		{}
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
@@ -22,6 +25,18 @@ namespace ml
 	gui_application::~gui_application() noexcept
 	{
 		ML_assert(end_singleton<gui_application>(this));
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	std::optional<fs::path> gui_application::get_open_file_name(cstring filter) const
+	{
+		return platform_api::get_open_file_name(m_window.get_native_handle(), filter);
+	}
+
+	std::optional<fs::path> gui_application::get_save_file_name(cstring filter) const
+	{
+		return platform_api::get_save_file_name(m_window.get_native_handle(), filter);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -41,14 +56,13 @@ namespace ml
 				window_prefs["title"],
 				window_prefs["video"],
 				window_prefs["context"],
-				window_prefs["hints"]
-			));
+				window_prefs["hints"]));
 
 			// configure imgui
 			if (attr().contains("imgui")) {
 				json & gui_prefs{ attr("imgui") };
 				if (gui_prefs.contains("dockspace")) {
-					m_window.get_dockspace()->Configure(gui_prefs["dockspace"]);
+					m_window.get_docker()->Configure(gui_prefs["dockspace"]);
 				}
 				if (gui_prefs.contains("style")) {
 					json & style_prefs{ gui_prefs["style"] };
@@ -67,28 +81,22 @@ namespace ml
 		case app_idle_event::ID: {
 			auto && ev{ (app_idle_event &&)value };
 
-			// fps
-			auto const dt{ main_loop()->delta_time().count() };
-			m_fps.accum += dt - m_fps.times[m_fps.index];
-			m_fps.times[m_fps.index] = dt;
-			m_fps.index = (m_fps.index + 1) % m_fps.times.size();
-			m_fps.value = (0.f < m_fps.accum)
-				? 1.f / (m_fps.accum / (float32)m_fps.times.size())
-				: FLT_MAX;
+			// update fps
+			m_fps_tracker(main_loop()->delta_time());
 
-			// imgui
+			// imgui frame
 			m_window.do_imgui_frame([&
 				, context	= m_window.get_imgui().get()
-				, dockspace	= m_window.get_dockspace()
-			](auto) noexcept
+				, docker	= m_window.get_docker()
+			](auto)
 			{
-				dockspace->SetWindowFlag(
+				docker->SetWindowFlag(
 					ImGuiWindowFlags_MenuBar,
 					ImGui::FindWindowByName("##MainMenuBar"));
 
-				(*dockspace)(context->Viewports[0], [&](auto) noexcept
+				(*docker)(context->Viewports[0], [&](auto) noexcept
 				{
-					get_bus()->fire<imgui_dockspace_event>(dockspace);
+					get_bus()->fire<imgui_dockspace_event>(docker);
 				});
 
 				get_bus()->fire<imgui_render_event>(context);

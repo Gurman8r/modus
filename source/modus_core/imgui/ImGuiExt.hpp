@@ -7,7 +7,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // SCOPE ID
-namespace ml::ImGuiExt::Impl
+namespace ml::ImGuiExt::impl
 {
 	// IMPL SCOPE ID
 	struct ML_NODISCARD ImplScopeID final
@@ -21,7 +21,7 @@ namespace ml::ImGuiExt::Impl
 
 // Scope ID
 #define ImGuiExt_ScopeID(...) \
-	auto ML_anon = _ML ImGuiExt::Impl::ImplScopeID{ ##__VA_ARGS__ }
+	auto ML_anon = _ML ImGuiExt::impl::ImplScopeID{ ##__VA_ARGS__ }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -151,21 +151,21 @@ namespace ml::ImGuiExt
 	{
 		cstring		Title		; // title
 		bool		IsOpen		; // is open
-		int32		WinFlags	; // window flags
+		int32		WindowFlags	; // window flags
 
 		constexpr BasicPanel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
 			: Title		{ title }
 			, IsOpen	{ open }
-			, WinFlags	{ winflags }
+			, WindowFlags	{ winflags }
 		{
 		}
 
 		constexpr BasicPanel(BasicPanel const & other) noexcept
-			: BasicPanel{ other.Title, other.IsOpen, other.WinFlags }
+			: BasicPanel{ other.Title, other.IsOpen, other.WindowFlags }
 		{
 		}
 
-		bool Begin() noexcept { return IsOpen && ImGui::Begin(Title, &IsOpen, WinFlags); }
+		bool Begin() noexcept { return IsOpen && ImGui::Begin(Title, &IsOpen, WindowFlags); }
 
 		void End() noexcept { ImGui::End(); }
 
@@ -173,7 +173,7 @@ namespace ml::ImGuiExt
 
 		auto SetWindowFlag(ImGuiWindowFlags_ index, bool value) noexcept
 		{
-			return ML_flag_write(this->WinFlags, (int32)index, value);
+			return ML_flag_write(this->WindowFlags, (int32)index, value);
 		}
 	};
 
@@ -214,14 +214,14 @@ namespace ml::ImGuiExt
 namespace ml::ImGuiExt
 {
 	// dockspace
-	struct ML_NODISCARD ML_CORE_API Dockspace : BasicPanel<Dockspace>
+	struct ML_NODISCARD Dockspace : BasicPanel<Dockspace>
 	{
-		float32		Border		; // 
-		float32		Rounding	; // 
-		vec2		Padding		; // 
-		float32		Alpha		; // 
-		vec2		Size		; // 
-		int32		DockFlags	; // 
+		float32		Border			; // 
+		float32		Rounding		; // 
+		vec2		Padding			; // 
+		float32		Alpha			; // 
+		vec2		Size			; // 
+		int32		DockNodeFlags	; // 
 
 		static constexpr auto DefaultWindowFlags
 		{
@@ -235,9 +235,9 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoBackground
 		};
 
-		static bool IsDockingEnabled() noexcept
+		ML_NODISCARD static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept
 		{
-			return ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable;
+			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
 		}
 
 		constexpr Dockspace(
@@ -256,7 +256,7 @@ namespace ml::ImGuiExt
 			, Padding		{ padding }
 			, Alpha			{ alpha }
 			, Size			{ docksize }
-			, DockFlags		{ dockflags }
+			, DockNodeFlags		{ dockflags }
 		{}
 
 		constexpr Dockspace(Dockspace const & other) noexcept : Dockspace{
@@ -267,14 +267,14 @@ namespace ml::ImGuiExt
 			other.Padding,
 			other.Alpha,
 			other.Size,
-			other.WinFlags,
-			other.DockFlags
+			other.WindowFlags,
+			other.DockNodeFlags
 		}
 		{}
 
 		auto SetDockNodeFlag(ImGuiDockNodeFlags_ index, bool value) noexcept
 		{
-			return ML_flag_write(this->DockFlags, (int32)index, value);
+			return ML_flag_write(DockNodeFlags, (int32)index, value);
 		}
 
 		template <class Fn, class ... Args
@@ -298,7 +298,7 @@ namespace ml::ImGuiExt
 				if (ImGuiID const id{ GetID() }; !ImGui::DockBuilderGetNode(id))
 				{
 					ImGui::DockBuilderRemoveNode(id);
-					ImGui::DockBuilderAddNode(id, this->DockFlags);
+					ImGui::DockBuilderAddNode(id, DockNodeFlags);
 					std::invoke(ML_forward(fn), this, ML_forward(args)...);
 					ImGui::DockBuilderFinish(id);
 				}
@@ -307,14 +307,21 @@ namespace ml::ImGuiExt
 				(
 					GetID(),
 					Size,
-					ImGuiDockNodeFlags_PassthruCentralNode | DockFlags,
+					ImGuiDockNodeFlags_PassthruCentralNode | DockNodeFlags,
 					nullptr
 				);
 			}
 			return is_open;
 		}
 
-		void Configure(json const & j);
+		void Configure(json const & j)
+		{
+			if (j.contains("alpha"))	j["alpha"].get_to(this->Alpha);
+			if (j.contains("border"))	j["border"].get_to(this->Border);
+			if (j.contains("padding"))	j["padding"].get_to(this->Padding);
+			if (j.contains("rounding"))	j["rounding"].get_to(this->Rounding);
+			if (j.contains("size"))		j["size"].get_to(this->Size);
+		}
 	};
 }
 
@@ -492,7 +499,7 @@ namespace ml::ImGuiExt
 		
 		void DrawInput();
 
-		int32 Execute(Line && line);
+		int32 Execute(Line line);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

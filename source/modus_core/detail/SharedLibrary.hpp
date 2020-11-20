@@ -1,7 +1,7 @@
 #ifndef _ML_SHARED_LIBRARY_HPP_
 #define _ML_SHARED_LIBRARY_HPP_
 
-#include <modus_core/detail/Map.hpp>
+#include <modus_core/detail/Hashmap.hpp>
 #include <modus_core/detail/Memory.hpp>
 
 namespace ml
@@ -16,7 +16,7 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 		
-		using proc_table = typename ds::map<hash_t, void *>;
+		using proc_table = typename ds::hashmap<ds::string, void *>;
 
 		template <class Ret> using proc_result = typename std::conditional_t
 		<
@@ -95,14 +95,9 @@ namespace ml
 
 		bool close();
 
-		void * get_proc(cstring name);
+		void * get_proc(ds::string const & name);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void * get_proc(ds::string const & name) noexcept
-		{
-			return this->get_proc(name.c_str());
-		}
 
 		template <class Ret, class ... Args, class Name
 		> auto get_proc(Name && name) noexcept

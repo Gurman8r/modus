@@ -19,23 +19,23 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		operator bool() const noexcept { return (bool)graphic; }
+		ML_NODISCARD operator bool() const noexcept { return (bool)graphic; }
 
-		auto bearing() const noexcept -> vec2 { return bounds.position(); }
+		ML_NODISCARD auto bearing() const noexcept -> vec2 { return bounds.position(); }
 		
-		auto size() const noexcept -> vec2 { return bounds.size(); }
+		ML_NODISCARD auto size() const noexcept -> vec2 { return bounds.size(); }
 		
-		auto left() const noexcept -> float32 { return bearing()[0]; }
+		ML_NODISCARD auto left() const noexcept -> float32 { return bearing()[0]; }
 		
-		auto top() const noexcept -> float32 { return bearing()[1]; }
+		ML_NODISCARD auto top() const noexcept -> float32 { return bearing()[1]; }
 		
-		auto width() const noexcept -> float32 { return size()[0]; }
+		ML_NODISCARD auto width() const noexcept -> float32 { return size()[0]; }
 		
-		auto height() const noexcept -> float32 { return size()[1]; }
+		ML_NODISCARD auto height() const noexcept -> float32 { return size()[1]; }
 		
-		auto offset() const noexcept -> vec2 { return { left(), -top() }; }
+		ML_NODISCARD auto offset() const noexcept -> vec2 { return { left(), -top() }; }
 		
-		auto step() const noexcept -> float32 { return (float32)(advance >> 6); }
+		ML_NODISCARD auto step() const noexcept -> float32 { return (float32)(advance >> 6); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -283,9 +283,6 @@ namespace ml
 		_ML typeof<T>()
 	};
 
-	// macro typeof
-#define ML_typeof(T) _ML typeof_v<T>
-	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class ... L, class ... R

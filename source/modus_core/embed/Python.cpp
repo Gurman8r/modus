@@ -22,20 +22,18 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	struct ml_info {};
 	py::class_<ml_info>(m, "info")
-		.def_property_readonly_static("author"		, [](py::object) { return ML__author; })
-		.def_property_readonly_static("date"		, [](py::object) { return ML__date; })
-		.def_property_readonly_static("name"		, [](py::object) { return ML__name; })
-		.def_property_readonly_static("time"		, [](py::object) { return ML__time; })
-		.def_property_readonly_static("url"			, [](py::object) { return ML__url; })
-		.def_property_readonly_static("ver"			, [](py::object) { return ML__version; })
-		.def_property_readonly_static("arch"		, [](py::object) { return ML_arch; })
-		.def_property_readonly_static("cc_name"		, [](py::object) { return ML_cc_name; })
-		.def_property_readonly_static("cc_version"	, [](py::object) { return ML_cc_version; })
-		.def_property_readonly_static("is_debug"	, [](py::object) { return ML_is_debug; })
-		.def_property_readonly_static("config"		, [](py::object) { return ML_configuration; })
-		.def_property_readonly_static("lang"		, [](py::object) { return ML_lang; })
-		.def_property_readonly_static("platform"	, [](py::object) { return ML_platform; })
-		.def_property_readonly_static("os_name"		, [](py::object) { return ML_os_name; })
+		.def_property_readonly_static("lib_auth"		, [](py::object) { return ML_lib_author; })
+		.def_property_readonly_static("lib_name"		, [](py::object) { return ML_lib_name; })
+		.def_property_readonly_static("lib_url"			, [](py::object) { return ML_lib_url; })
+		.def_property_readonly_static("lib_ver"			, [](py::object) { return ML_lib_ver; })
+		.def_property_readonly_static("is_debug"		, [](py::object) { return ML_is_debug; })
+		.def_property_readonly_static("configuration"	, [](py::object) { return ML_configuration; })
+		.def_property_readonly_static("cc_lang"			, [](py::object) { return ML_cc_lang; })
+		.def_property_readonly_static("cc_name"			, [](py::object) { return ML_cc_name; })
+		.def_property_readonly_static("cc_ver"			, [](py::object) { return ML_cc_ver; })
+		.def_property_readonly_static("os"				, [](py::object) { return ML_os_name; })
+		.def_property_readonly_static("arch"			, [](py::object) { return ML_arch; })
+		.def_property_readonly_static("platform"		, [](py::object) { return ML_platform; })
 		;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -99,7 +97,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	py::class_<json>(m, "json")
+	py::class_<json>(m, "json") // FIXME
 		.def(py::init<>())
 		.def(py::init<json const &>())
 		.def(py::init<py::handle>())
@@ -144,12 +142,13 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	py::class_<memory_record>(py_mem, "record")
 		.def(py::init<>())
 		.def(py::init<memory_record const &>())
-		.def(py::init([&rec = get_global<memory_manager>()->get_storage()](intptr_t p)
+		.def(py::init([g = get_global<memory_manager>()](intptr_t p) -> memory_record
 		{
-			if (auto const i{ rec.lookup<memory_manager::id_addr>((byte *)p) }; i != rec.npos) {
-				return get_global<memory_manager>()->get_record(i);
+			if (auto const i{ g->get_storage().lookup<memory_manager::id_addr>((byte *)p) }
+			; i != g->get_storage().npos) {
+				return g->get_record(i);
 			} else {
-				return memory_record{};
+				return {};
 			}
 		}))
 		.def_property_readonly("addr", [](memory_record const & o) { return (intptr_t)o.addr; })
@@ -289,7 +288,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		;
 
 	// KEY CODE
-	py::class_<keycode_>(m, "key_code")
+	py::class_<keycode_>(m, "keycode")
 		.def_property_readonly_static("space"			, [](py::object) { return (int32)keycode_space; })
 		.def_property_readonly_static("apostrophe"		, [](py::object) { return (int32)keycode_apostrophe; })
 		.def_property_readonly_static("comma"			, [](py::object) { return (int32)keycode_comma; })
@@ -413,7 +412,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		;
 
 	// KEY MODS
-	py::class_<keymods_>(m, "key_mods")
+	py::class_<keymods_>(m, "keymods")
 		.def_property_readonly_static("none", [](py::object) { return (int32)keymods_none; })
 		.def_property_readonly_static("shift", [](py::object) { return (int32)keymods_shift; })
 		.def_property_readonly_static("ctrl", [](py::object) { return (int32)keymods_ctrl; })

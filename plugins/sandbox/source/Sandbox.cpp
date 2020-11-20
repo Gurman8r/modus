@@ -1,11 +1,14 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <modus_core/engine/Application.hpp>
-#include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/engine/PluginManager.hpp>
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/scene/Components.hpp>
+
+#include <modus_core/engine/EngineEvents.hpp>
+#include <modus_core/window/WindowEvents.hpp>
+#include <modus_core/imgui/ImGuiEvents.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -61,7 +64,7 @@ namespace ml
 
 				if (bitmap i{ get_app()->path_to("resource/modus_launcher.png"), false })
 				{
-					get_app()->get_window()->set_icons(i.width(), i.height(), i.data());
+					get_app()->get_main_window()->set_icons(i.width(), i.height(), i.data());
 				}
 
 				m_fb.push_back(gfx::make_framebuffer((vec2i)m_resolution));
@@ -75,15 +78,15 @@ namespace ml
 			case app_idle_event::ID: {
 				auto && ev{ (app_idle_event &&)value };
 
-				auto const dt{ get_app()->main_loop()->delta_time().count() };
+				auto const dt{ get_app()->main_loop()->delta_time() };
 
-				m_clear_color = util::rotate_hue(m_clear_color, 10.f * dt);
+				m_clear_color = util::rotate_hue(m_clear_color, dt * 10);
 				
 				m_term.Output.Dump(m_cout.sstr());
 				
 				for (auto & fb : m_fb) { fb->resize(m_resolution); }
 				
-				get_app()->get_window()->get_render_context()->execute
+				get_app()->get_main_window()->get_render_context()->execute
 				(
 					gfx::command::bind_framebuffer(m_fb[0]),
 					gfx::command::set_clear_color(m_clear_color),
@@ -96,18 +99,14 @@ namespace ml
 	
 			case imgui_dockspace_event::ID: {
 				auto && ev{ (imgui_dockspace_event &&)value };
-
 				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, ev->GetID());
-
 			} break;
 	
 			case imgui_render_event::ID: {
 				auto && ev{ (imgui_render_event &&)value };
-
 				draw_menubar(); // MENUBAR
 				draw_terminal(); // TERMINAL
 				draw_viewport(); // VIEWPORT
-
 			} break;
 			}
 		}
@@ -148,7 +147,7 @@ namespace ml
 		void draw_terminal()
 		{
 			if (m_panels[terminal_panel].IsOpen) {
-				auto const winsize{ (vec2)get_app()->get_window()->get_size() };
+				auto const winsize{ (vec2)get_app()->get_main_window()->get_size() };
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
@@ -283,14 +282,14 @@ namespace ml
 
 extern "C"
 {
-	ML_PLUGIN_API ml::plugin * ml_plugin_install(ml::plugin_manager * manager, void * userptr)
+	ML_PLUGIN_API ml::plugin * ml_plugin_create(ml::plugin_manager * manager, void * userptr)
 	{
 		auto const g{ ML_check(ml::get_global<ml::memory_manager>()) };
 
 		return g->new_object<ml::sandbox>(manager, userptr);
 	}
 
-	ML_PLUGIN_API void ml_plugin_uninstall(ml::plugin_manager * manager, ml::plugin * ptr)
+	ML_PLUGIN_API void ml_plugin_destroy(ml::plugin_manager * manager, ml::plugin * ptr)
 	{
 		auto const g{ ML_check(ml::get_global<ml::memory_manager>()) };
 

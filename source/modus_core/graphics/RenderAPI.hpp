@@ -662,15 +662,9 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static render_device * create(spec_type const & desc, allocator_type alloc = {});
+		ML_NODISCARD static render_device * create(spec_type const & desc = {}, allocator_type alloc = {});
 
 		static void destroy(render_device * value = nullptr);
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD virtual ds::ref<render_context> const & get_context() const noexcept = 0;
-
-		virtual ds::ref<render_context> & set_context(ds::ref<render_context> const & value) noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -679,6 +673,34 @@ namespace ml::gfx
 		ML_NODISCARD virtual device_info const & get_info() const noexcept = 0;
 
 		ML_NODISCARD virtual typeof_t<> const & get_self_type() const noexcept = 0;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD virtual ds::ref<render_context> const & get_active_context() const noexcept = 0;
+
+		virtual ds::ref<render_context> & set_active_context(ds::ref<render_context> const & value) noexcept = 0;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD virtual ds::list<ds::unown<render_context>> const & get_contexts() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<vertexarray>> const & get_vertexarrays() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<vertexbuffer>> const & get_vertexbuffers() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<indexbuffer>> const & get_indexbuffers() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<texture2d>> const & get_texture2ds() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<texture3d>> const & get_texture3ds() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<texturecube>> const & get_texturecubes() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<framebuffer>> const & get_framebuffers() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<program>> const & get_programs() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<shader>> const & get_shaders() const noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -746,7 +768,7 @@ namespace ml::gfx
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		static constexpr typeof_t<> s_base_type{ ML_typeof(Derived) };
+		static constexpr typeof_t<> s_base_type{ typeof_v<Derived> };
 
 		render_device * const m_parent;
 
@@ -761,6 +783,8 @@ namespace ml::gfx
 
 		virtual ~render_object() override = default;
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ML_NODISCARD virtual object_id get_handle() const noexcept = 0;
 
 		ML_NODISCARD virtual typeof_t<> const & get_self_type() const noexcept = 0;
@@ -773,7 +797,7 @@ namespace ml::gfx
 
 		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const &
 		{
-			return ML_check(m_parent)->get_context();
+			return ML_check(m_parent)->get_active_context();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -808,7 +832,7 @@ namespace ml::gfx
 	struct ML_NODISCARD alpha_state final
 	{
 		bool		enabled		{ true }						; // enable alpha test
-		uint32	pred		{ predicate_greater }			; // alpha test predicate
+		uint32		pred		{ predicate_greater }			; // alpha test predicate
 		float32		ref			{ 0.001f }						; // alpha test reference
 	};
 
@@ -833,7 +857,7 @@ namespace ml::gfx
 	// cull state
 	struct ML_NODISCARD cull_state final
 	{
-		bool			enabled	{ true }						; // enable face culling
+		bool		enabled	{ true }						; // enable face culling
 		uint32		facet	{ facet_back }					; // front / back / front&back
 		uint32		order	{ order_ccw }					; // cull order
 	};
@@ -843,9 +867,9 @@ namespace ml::gfx
 	// depth state
 	struct ML_NODISCARD depth_state final
 	{
-		bool			enabled	{ true }						; // enable depth test
+		bool		enabled	{ true }						; // enable depth test
 		uint32		pred	{ predicate_less }				; // depth test predicate
-		vec2			range	{ 0.f, 1.f }					; // depth test range
+		vec2		range	{ 0.f, 1.f }					; // depth test range
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -853,11 +877,11 @@ namespace ml::gfx
 	// stencil state
 	struct ML_NODISCARD stencil_state final
 	{
-		bool			enabled	{ true }						; // enable stencil test
+		bool		enabled	{ true }						; // enable stencil test
 		struct
 		{
 			uint32	pred	{ predicate_always }			; // stencil test predicate
-			int32		ref		{ 0 }							; // stencil test reference
+			int32	ref		{ 0 }							; // stencil test reference
 			uint32	mask	{ 0xffffffff }					; // stencil test mask
 		}
 		front, back{ front };
@@ -1890,7 +1914,7 @@ namespace ml::gfx
 		inline void bind_textures() const noexcept
 		{
 			uint32 slot{};
-			get_textures().for_each([&, &ctx = get_device()->get_context()
+			get_textures().for_each([&, ctx = ML_check(get_context().get())
 			](uniform_id loc, ds::ref<texture> const & tex) noexcept
 			{
 				ctx->bind_texture(tex.get(), slot);
@@ -1909,7 +1933,7 @@ namespace ml::gfx
 				}
 				else
 				{
-					get_context()->upload(loc, ML_forward(value));
+					ML_check(get_context())->upload(loc, ML_forward(value));
 				}
 			});
 		}

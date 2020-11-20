@@ -20,7 +20,7 @@
 namespace ml::ds
 {
 	template <ML_STRING_TEMPLATE(Ch, Tr, Al)
-	> ML_alias basic_string = typename _STD basic_string // basic_string
+	> ML_alias basic_string = typename std::basic_string // basic_string
 	<
 		Ch, Tr, Al
 	>;
@@ -38,7 +38,7 @@ namespace ml::ds
 namespace ml::ds
 {
 	template <ML_STRING_TEMPLATE(Ch, Tr, Al)
-	> ML_alias basic_stringstream = typename _STD basic_stringstream // basic_stringstream
+	> ML_alias basic_stringstream = typename std::basic_stringstream // basic_stringstream
 	<
 		Ch, Tr, Al
 	>;

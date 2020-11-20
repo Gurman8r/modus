@@ -223,14 +223,14 @@ namespace ml
 		using record_storage = typename ds::batch_vector
 		<
 			byte *	,	// address
-			size_t		,	// index
-			size_t		,	// count
-			size_t			// size
+			size_t	,	// index
+			size_t	,	// count
+			size_t		// size
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource()) noexcept(false)
+		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource())
 			: memory_manager{ *reinterpret_cast<passthrough_resource *>(mres) }
 		{
 		}

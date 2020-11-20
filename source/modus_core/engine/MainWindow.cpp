@@ -1,5 +1,6 @@
 #include <modus_core/engine/MainWindow.hpp>
 #include <modus_core/window/WindowEvents.hpp>
+#include <modus_core/imgui/ImGuiEvents.hpp>
 
 namespace ml
 {
@@ -12,8 +13,8 @@ namespace ml
 		, m_dockspace	{ "##MainDockspace" }
 	{
 		ImGui::SetAllocatorFunctions(
-			[](size_t s, void * u) { return ((memory_manager *)u)->allocate(s); },
-			[](void * p, void * u) { return ((memory_manager *)u)->deallocate(p); },
+			[](size_t s, auto u) { return ((memory_manager *)u)->allocate(s); },
+			[](void * p, auto u) { return ((memory_manager *)u)->deallocate(p); },
 			get_global<memory_manager>());
 		
 		m_imgui.reset(ML_check(ImGui::CreateContext()));
@@ -39,6 +40,8 @@ namespace ml
 
 	main_window::~main_window() noexcept
 	{
+		_ML ImGui_Shutdown();
+
 		ImGui::DestroyContext(m_imgui.release());
 	}
 
@@ -52,20 +55,11 @@ namespace ml
 		void *						userptr
 	)
 	{
-		// check open
-		if (is_open())
-		{
-			return debug::error("main_window is already open");
-		}
-
 		// open base
-		if (!render_window::open(title, vm, cs, hints, userptr))
-		{
-			return debug::error("failed opening main_window");
-		}
+		if (!render_window::open(title, vm, cs, hints, userptr)) { return false; }
 
 		// install callbacks
-		if (static event_bus * helper; ML_check(helper = get_bus()))
+		if (static event_bus * helper; helper = get_bus())
 		{
 			set_char_callback([](auto w, auto ... x) { helper->fire<window_char_event>(x...); });
 			set_char_mods_callback([](auto w, auto ... x) { helper->fire<window_char_mods_event>(x...); });
@@ -87,9 +81,9 @@ namespace ml
 		}
 
 		// imgui
-		if (!initialize_imgui())
+		if (!_ML ImGui_Init(get_handle(), true))
 		{
-			return debug::error("failed starting imgui");
+			return debug::failure("failed starting imgui");
 		}
 
 		return true;
@@ -97,19 +91,9 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool main_window::initialize_imgui(bool install_callbacks)
-	{
-		return _ML ImGui_Init(get_handle(), install_callbacks);
-	}
-
-	void main_window::finalize_imgui()
-	{
-		_ML ImGui_Shutdown();
-	}
-
 	bool main_window::load_imgui_style(fs::path const & path)
 	{
-		return _ML ImGui_LoadStyle(path, get_imgui()->Style);
+		return _ML ImGui_LoadStyle(path, m_imgui->Style);
 	}
 
 	void main_window::begin_imgui_frame()
@@ -136,9 +120,9 @@ namespace ml
 			ctx->clear(gfx::clear_color);
 		});
 
-		_ML ImGui_RenderDrawData(&get_imgui()->Viewports[0]->DrawDataP);
+		_ML ImGui_RenderDrawData(&m_imgui->Viewports[0]->DrawDataP);
 
-		if (get_imgui()->IO.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		if (m_dockspace.IsDockingEnabled(m_imgui->IO))
 		{
 			auto const backup{ get_window_context()->get_active_window() };
 			ImGui::UpdatePlatformWindows();

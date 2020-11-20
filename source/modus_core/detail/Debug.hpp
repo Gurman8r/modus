@@ -7,53 +7,44 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// good message
-#ifndef ML_IMPL_DEBUG_INFO
-#define ML_IMPL_DEBUG_INFO		"[good]"
+// success message
+#ifndef ML_DEBUG_MSG_SUCCESS
+#define ML_DEBUG_MSG_SUCCESS "[ok] "
 #endif
 
-// error message
-#ifndef ML_IMPL_DEBUG_ERROR
-#define ML_IMPL_DEBUG_ERROR		"[error]"
+// failure message
+#ifndef ML_DEBUG_MSG_FAILURE
+#define ML_DEBUG_MSG_FAILURE "[error] "
 #endif
 
 // warning message
-#ifndef ML_IMPL_DEBUG_WARNING
-#define ML_IMPL_DEBUG_WARNING	"[warn]"
+#ifndef ML_DEBUG_MSG_WARNING
+#define ML_DEBUG_MSG_WARNING "[warning] "
 #endif
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// wassert
-#ifndef ML_IMPL_WASSERT
-#define ML_IMPL_WASSERT _CSTD _wassert
+// assert implementation
+#ifndef ML_IMPL_ASSERT
+#define ML_IMPL_ASSERT ::_wassert
 #endif
 
 // assert extended
 #define ML_assert_ext(expr, msg, file, line) \
-	(void)((!!(expr)) || (ML_IMPL_WASSERT(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
-
-// assert message
-#define ML_assert_msg(expr, msg) \
-	ML_assert_ext(expr, msg, __FILE__, __LINE__)
+	(void)((!!(expr)) || (ML_IMPL_ASSERT(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
 
 // assert
 #define ML_assert(expr) \
-	ML_assert_msg(expr, #expr)
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// check message
-#define ML_check_msg(expr, msg) ([](auto const & x) noexcept -> auto const &	\
-	{																			\
-		ML_assert_ext(x, msg, __FILE__, __LINE__);								\
-		return x;																\
-	}																			\
-	)(expr)
+	ML_assert_ext(expr, ML_to_string(expr), __FILE__, __LINE__)
 
 // check
-#define ML_check(expr) \
-	ML_check_msg(expr, "CHECK: " ML_to_string(expr))
+#define ML_check(expr)												\
+	([](auto const & x) noexcept -> auto const &					\
+	{																\
+		ML_assert_ext(x, ML_to_string(expr), __FILE__, __LINE__);	\
+		return x;													\
+	}																\
+	)(expr)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -78,13 +69,17 @@ namespace ml::debug
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	static struct // io
+	static struct ML_NODISCARD // io
 	{
-		std::ostream & out	{ std::cout };
-		std::ostream & err	{ std::cerr };
-		std::istream & in	{ std::cin };
+		std::reference_wrapper<std::ostream>	out		{	std::cout	};
+		std::reference_wrapper<std::ostream>	err		{	std::cerr	};
+		std::reference_wrapper<std::istream>	in		{	std::cin	};
+
+		std::reference_wrapper<std::wostream>	wout	{	std::wcout	};
+		std::reference_wrapper<std::wostream>	werr	{	std::wcerr	};
+		std::reference_wrapper<std::wistream>	win		{	std::wcin	};
 	}
-	const io;
+	io;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -105,77 +100,89 @@ namespace ml::debug
 #ifdef ML_os_windows
 		std::system("pause");
 #else
-		io.in.get();
+		(io.in.get()).get();
 #endif
 		return exit_code;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class Fmt
-	> auto & puts(Fmt && fmt) noexcept
+	template <class Str
+	> auto puts(Str && str) noexcept -> std::ostream &
 	{
-		return io.out << ML_forward(fmt) << "\n";
+		return io.out.get() << ML_forward(str) << "\n";
 	}
 
 	template <class Fmt, class Arg0, class ... Args
-	> auto & puts(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> auto puts(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept -> std::ostream &
 	{
-		return debug::puts(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
+		return _ML_DEBUG puts
+		(
+			util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
+		);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	constexpr int32 good() noexcept { return 1; } // true
+	constexpr int32 success() noexcept { return 1; } // true
 
-	template <class Fmt
-	> int32 good(Fmt && fmt) noexcept
+	template <class Str
+	> int32 success(Str && str) noexcept
 	{
-		io.out << ML_IMPL_DEBUG_INFO " " << ML_forward(fmt) << "\n";
+		io.out.get() << ML_DEBUG_MSG_SUCCESS << ML_forward(str) << "\n";
 
-		return debug::good();
+		return _ML_DEBUG success();
 	}
 
 	template <class Fmt, class Arg0, class ... Args
-	> int32 good(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> int32 success(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
-		return debug::good(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
+		return _ML_DEBUG success
+		(
+			util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
+		);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	constexpr int32 error() noexcept { return 0; } // false
+	constexpr int32 failure() noexcept { return 0; } // false
 
-	template <class Fmt
-	> int32 error(Fmt && fmt) noexcept
+	template <class Str
+	> int32 failure(Str && str) noexcept
 	{
-		io.out << ML_IMPL_DEBUG_ERROR " " << ML_forward(fmt) << "\n";
+		io.out.get() << ML_DEBUG_MSG_FAILURE << ML_forward(str) << "\n";
 
-		return debug::error();
+		return _ML_DEBUG failure();
 	}
 
 	template <class Fmt, class Arg0, class ... Args
-	> int32 error(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> int32 failure(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
-		return debug::error(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
+		return _ML_DEBUG failure
+		(
+			util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
+		);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	constexpr int32 warning() noexcept { return -1; } // true
 
-	template <class Fmt
-	> int32 warning(Fmt && fmt) noexcept
+	template <class Str
+	> int32 warning(Str && str) noexcept
 	{
-		io.out << ML_IMPL_DEBUG_WARNING " " << ML_forward(fmt) << "\n";
+		io.out.get() << ML_DEBUG_MSG_WARNING << ML_forward(str) << "\n";
 
-		return debug::warning();
+		return _ML_DEBUG warning();
 	}
 
 	template <class Fmt, class Arg0, class ... Args
 	> int32 warning(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
-		return debug::warning(util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...));
+		return _ML_DEBUG warning
+		(
+			util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
+		);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

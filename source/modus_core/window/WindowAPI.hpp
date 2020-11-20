@@ -87,7 +87,7 @@ namespace ml
 	ML_alias window_cursor_enter_callback		= void(*)(window_handle, int32);
 	ML_alias window_cursor_pos_callback			= void(*)(window_handle, float64, float64);
 	ML_alias window_drop_callback				= void(*)(window_handle, int32, cstring[]);
-	ML_alias window_error_callback				= void(*)(int32, cstring); // error callback
+	ML_alias window_error_callback				= void(*)(int32, cstring); // context error callback
 	ML_alias window_focus_callback				= void(*)(window_handle, int32);
 	ML_alias window_framebuffer_resize_callback	= void(*)(window_handle, int32, int32);
 	ML_alias window_iconify_callback			= void(*)(window_handle, int32);

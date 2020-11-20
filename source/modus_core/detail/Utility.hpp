@@ -11,10 +11,6 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define _ML_UTIL _ML util::
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 // macro min
 #define ML_min(a, b)				((a) < (b) ? (a) : (b))
 
@@ -57,34 +53,39 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// pi
-#define ML_PI 3.14159265359
-
-// Trig
+// trig
 namespace ml::util
 {
+#define ML_pi 3.14159265359
+
 	template <class T = float32
-	> static constexpr auto pi
+	> struct pi_t final
 	{
-		static_cast<T>(ML_PI)
+		static constexpr auto value{ static_cast<T>(ML_pi) };
+	};
+
+	template <class T = float32
+	> static constexpr auto pi_v
+	{
+		pi_t<T>::value
 	};
 
 	template <class T = float32
 	> constexpr auto deg2rad(T value) noexcept
 	{
-		return value * (pi<T> / static_cast<T>(180));
+		return value * (pi_v<T> / static_cast<T>(180));
 	}
 
 	template <class T = float32
 	> constexpr T rad2deg(T value) noexcept
 	{
-		return value * (static_cast<T>(180) / pi<T>);
+		return value * (static_cast<T>(180) / pi_v<T>);
 	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// Misc
+// misc
 namespace ml::util
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -144,7 +145,7 @@ namespace ml::util
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-// Comparison
+// comparison
 namespace ml::util
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -178,7 +179,7 @@ namespace ml::util
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-// Min / Max / Clamp
+// min / max
 namespace ml::util
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -214,17 +215,9 @@ namespace ml::util
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	template <class T, class Lo, class Hi
-	> constexpr decltype(auto) clamp(T && value, Lo && lo, Hi && hi)
-	{
-		return ML_clamp(ML_forward(value), ML_forward(lo), ML_forward(hi));
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-// Maths
+// maths
 namespace ml::util
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -446,7 +439,7 @@ namespace ml::util
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-// Size Literals
+// byte literals
 namespace ml::byte_literals
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

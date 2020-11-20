@@ -14,7 +14,6 @@ namespace ml
 	// plugin details
 	struct ML_NODISCARD plugin_details final : trackable
 	{
-	public:
 		hash_t hash; // hash code
 
 		ds::string name, path, ext; // file info
@@ -28,11 +27,8 @@ namespace ml
 		}
 
 		plugin_details(plugin_details const &) = default;
-		
 		plugin_details(plugin_details &&) noexcept = default;
-		
 		plugin_details & operator=(plugin_details const &) = default;
-		
 		plugin_details & operator=(plugin_details &&) noexcept = default;
 	};
 }
@@ -43,24 +39,20 @@ namespace ml
 	// plugin installer
 	struct ML_NODISCARD plugin_installer final : trackable
 	{
-	public:
 		plugin * (*create)(plugin_manager *, void *); // create plugin
 		
 		void (*destroy)(plugin_manager *, plugin *); // destroy plugin
 		
 		explicit plugin_installer(shared_library & lib) noexcept
-			: create{ lib.get_proc<plugin *, plugin_manager *, void *>("ml_plugin_install") }
-			, destroy{ lib.get_proc<void, plugin_manager *, plugin *>("ml_plugin_uninstall") }
+			: create{ lib.get_proc<plugin *, plugin_manager *, void *>("ml_plugin_create") }
+			, destroy{ lib.get_proc<void, plugin_manager *, plugin *>("ml_plugin_destroy") }
 		{
 			ML_assert(create && destroy);
 		}
 
 		plugin_installer(plugin_installer const &) = default;
-		
 		plugin_installer(plugin_installer &&) noexcept = default;
-		
 		plugin_installer & operator=(plugin_installer const &) = default;
-		
 		plugin_installer & operator=(plugin_installer &&) noexcept = default;
 	};
 }

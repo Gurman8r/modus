@@ -352,7 +352,7 @@ namespace ml::ds
 
 		ML_NODISCARD auto front() const noexcept -> const_reference { return m_data.front(); }
 		
-		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_data.get_allocator(); }
+		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return {}; }
 
 		ML_NODISCARD auto max_size() const noexcept -> size_type { return m_data.max_size(); }
 
@@ -383,40 +383,22 @@ namespace ml::ds
 		}
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator==(U const & value) const noexcept
-		{
-			return this->compare(value) == 0;
-		}
+		> ML_NODISCARD bool operator==(U const & value) const noexcept { return this->compare(value) == 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator!=(U const & value) const noexcept
-		{
-			return this->compare(value) != 0;
-		}
+		> ML_NODISCARD bool operator!=(U const & value) const noexcept { return this->compare(value) != 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator<(U const & value) const noexcept
-		{
-			return this->compare(value) < 0;
-		}
+		> ML_NODISCARD bool operator<(U const & value) const noexcept { return this->compare(value) < 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator>(U const & value) const noexcept
-		{
-			return this->compare(value) > 0;
-		}
+		> ML_NODISCARD bool operator>(U const & value) const noexcept { return this->compare(value) > 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator<=(U const & value) const noexcept
-		{
-			return this->compare(value) <= 0;
-		}
+		> ML_NODISCARD bool operator<=(U const & value) const noexcept { return this->compare(value) <= 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator>=(U const & value) const noexcept
-		{
-			return this->compare(value) >= 0;
-		}
+		> ML_NODISCARD bool operator>=(U const & value) const noexcept { return this->compare(value) >= 0; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -537,8 +519,8 @@ namespace ml::ds
 	// FLAT SET | sorted vector of unique elements
 	template <
 		class	_Ty,					// value type
-		size_t	_Th = 42,				// search heuristic
-		class	_Pr = std::less<_Ty>	// comparator predicate type
+		class	_Pr = std::less<_Ty>,	// comparator predicate type
+		size_t	_Th = 42				// search heuristic
 	> ML_alias set = typename basic_flat_set
 	<
 		flat_set_traits<_Ty, _Pr, false, _Th>
@@ -547,8 +529,8 @@ namespace ml::ds
 	// FLAT MULTISET | sorted vector of elements
 	template <
 		class	_Ty,					// value type
-		size_t	_Th = 42,				// search heuristic
-		class	_Pr = std::less<_Ty>	// comparator predicate type
+		class	_Pr = std::less<_Ty>,	// comparator predicate type
+		size_t	_Th = 42				// search heuristic
 	> ML_alias multiset = typename basic_flat_set
 	<
 		flat_set_traits<_Ty, _Pr, true, _Th>

@@ -39,7 +39,7 @@ namespace ml
 		template <class Type
 		> ML_NODISCARD category_type & category() noexcept
 		{
-			return this->all()[ML_typeof(Type)];
+			return this->all()[typeof_v<Type>];
 		}
 
 		// get element
@@ -182,7 +182,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto type() const noexcept -> typeof_t<> { return ML_typeof(value_type); }
+		ML_NODISCARD auto type() const noexcept -> typeof_t<> { return typeof_v<value_type>; }
 
 		ML_NODISCARD auto name() const noexcept -> ds::string const & { return m_name; }
 

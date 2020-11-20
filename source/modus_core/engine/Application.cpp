@@ -1,6 +1,8 @@
 #include <modus_core/engine/Application.hpp>
-#include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/embed/Python.hpp>
+#include <modus_core/engine/EngineEvents.hpp>
+#include <modus_core/window/WindowEvents.hpp>
+#include <modus_core/imgui/ImGuiEvents.hpp>
 
 namespace ml
 {

@@ -137,7 +137,7 @@ namespace ml
 
 		void (*finalize)();
 
-		duration(*get_time)();
+		duration (*get_time)();
 
 		void (*poll_events)();
 
@@ -149,15 +149,15 @@ namespace ml
 
 		void * (*get_proc_address)(cstring);
 
-		window_handle(*get_active_window)();
+		window_handle (*get_active_window)();
 
 		void (*set_active_window)(window_handle);
 
 		ds::list<monitor_handle> const & (*get_monitors)();
 
-		monitor_handle(*get_primary_monitor)();
+		monitor_handle (*get_primary_monitor)();
 
-		window_error_callback(*set_error_callback)(window_error_callback);
+		window_error_callback (*set_error_callback)(window_error_callback);
 	};
 }
 

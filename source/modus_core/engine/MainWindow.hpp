@@ -4,7 +4,6 @@
 #include <modus_core/detail/Events.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/imgui/ImGuiEvents.hpp>
 
 namespace ml
 {
@@ -30,18 +29,15 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual bool open(
+		ML_NODISCARD virtual bool open(
 			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
-			void *						userptr	= nullptr) override;
+			void *						userptr	= nullptr
+		) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		bool initialize_imgui(bool install_callbacks = true);
-
-		void finalize_imgui();
 
 		bool load_imgui_style(fs::path const & path);
 
@@ -59,12 +55,14 @@ namespace ml
 			this->end_imgui_frame();
 		}
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ML_NODISCARD auto get_imgui() const noexcept -> ds::scary<ImGuiContext> const &
 		{
 			return m_imgui;
 		}
 
-		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace *
+		ML_NODISCARD auto get_docker() const noexcept -> ImGuiExt::Dockspace *
 		{
 			return const_cast<ImGuiExt::Dockspace *>(&m_dockspace);
 		}

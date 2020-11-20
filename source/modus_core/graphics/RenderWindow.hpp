@@ -29,12 +29,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
-		virtual bool open(
+		ML_NODISCARD virtual bool open(
 			ds::string			const &	title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
-			void *						userptr	= nullptr) override;
+			void *						userptr	= nullptr
+		) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -45,19 +46,18 @@ namespace ml
 
 		ML_NODISCARD auto get_render_context() const noexcept -> ds::ref<gfx::render_context> const &
 		{
-			return m_context;
+			return ML_check(m_device)->get_active_context();
 		}
 
 		auto set_render_context(ds::ref<gfx::render_context> const & value) noexcept -> ds::ref<gfx::render_context> &
 		{
-			return ML_check(m_device)->set_context(m_context = value);
+			return ML_check(m_device)->set_active_context(value);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::scary<gfx::render_device>	m_device; // render device
-		ds::ref<gfx::render_context>	m_context; // render context
+		ds::scary<gfx::render_device> m_device; // render device
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

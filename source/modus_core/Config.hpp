@@ -2,15 +2,13 @@
 #define _ML_CONFIG_HPP_
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-// PROJECT
+// LIBRARY INFO
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define ML__author              "Melody Gurman"
-#define ML__name                "modus"
-#define ML__version             "alpha"
-#define ML__url                 "https://www.github.com/Gurman8r/modus"
-#define ML__date                __DATE__
-#define ML__time                __TIME__
+#define ML_lib_author           "Melody Gurman"
+#define ML_lib_name             "modus"
+#define ML_lib_ver              "alpha"
+#define ML_lib_url              "https://www.github.com/Gurman8r/modus"
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -34,33 +32,33 @@
 
 #if defined(__cplusplus)
 #   if defined(_MSVC_LANG)
-#       define ML_lang           _MSVC_LANG
+#       define ML_cc_lang       _MSVC_LANG
 #   else
-#       define ML_lang           __cplusplus
+#       define ML_cc_lang       __cplusplus
 #   endif
 
-#   if (ML_lang >= 201907L)
+#   if (ML_cc_lang >= 201907L)
 //                              C++20
 #       define ML_has_cxx20     1
 #       define ML_has_cxx17     1
 #       define ML_has_cxx14     1
 #       define ML_has_cxx11     1
 
-#   elif (ML_lang >= 201703L)
+#   elif (ML_cc_lang >= 201703L)
 //                              C++17
 #       define ML_has_cxx20     0
 #       define ML_has_cxx17     1
 #       define ML_has_cxx14     1
 #       define ML_has_cxx11     1
 
-#   elif (ML_lang >= 201402L)
+#   elif (ML_cc_lang >= 201402L)
 //                              C++14
 #       define ML_has_cxx20     0
 #       define ML_has_cxx17     0
 #       define ML_has_cxx14     1
 #       define ML_has_cxx11     1
 
-#   elif (ML_lang >= 201103L)
+#   elif (ML_cc_lang >= 201103L)
 //                              C++11
 #       define ML_has_cxx20     0
 #       define ML_has_cxx17     0
@@ -170,14 +168,14 @@
 #if defined(_MSC_VER)
 //                              Visual Studio
 #   define ML_cc_msvc           _MSC_VER
-#   define ML_cc_version        ML_cc_msvc
-#   if (ML_cc_version >= 1920)
+#   define ML_cc_ver        ML_cc_msvc
+#   if (ML_cc_ver >= 1920)
 #       define ML_cc_name       "Visual Studio 2019"
-#   elif (ML_cc_version >= 1910)
+#   elif (ML_cc_ver >= 1910)
 #       define ML_cc_name       "Visual Studio 2017"
-#   elif (ML_cc_version >= 1900)
+#   elif (ML_cc_ver >= 1900)
 #       define ML_cc_name       "Visual Studio 2015"
-#   elif (ML_cc_version >= 1800)
+#   elif (ML_cc_ver >= 1800)
 #       define ML_cc_name       "Visual Studio 2013"
 #   else
 #       error "this version of Visual Studio is not supported"
@@ -186,7 +184,7 @@
 #elif defined(__clang__)
 //                              Clang / LLVM
 #   define ML_cc_clang          __clang__
-#   define ML_cc_version        ML_cc_clang
+#   define ML_cc_ver            ML_cc_clang
 #   define ML_cc_name           "Clang/LLVM"
 
 #elif (defined(__GNUC__) || defined(__GNUG__)) && !defined(__clang__)
@@ -196,7 +194,7 @@
 #   else
 #       define ML_cc_gcc        __GNUG__
 #   endif
-#   define ML_cc_version        ML_cc_gcc
+#   define ML_cc_ver            ML_cc_gcc
 #   define ML_cc_name           "GCC"
 
 #elif defined(__ICC) || defined(__INTEL_COMPILER)
@@ -206,7 +204,7 @@
 #   else
 #       define ML_cc_intel      __INTEL_COMPILER
 #   endif
-#   define ML_cc_version        ML_cc_intel
+#   define ML_cc_ver            ML_cc_intel
 #   define ML_cc_name           "Intel"
 
 #elif defined(__MINGW32__) || defined(__MINGW64__)
@@ -216,25 +214,25 @@
 #   else
 #       define ML_cc_mingw      __MINGW32__
 #   endif
-#   define ML_cc_version        ML_cc_mingw
+#   define ML_cc_ver            ML_cc_mingw
 #   define ML_cc_name           "MinGW"
 
 #elif defined(__EMSCRIPTEN__)
 //                              Emscripten
 #   define ML_cc_emscripten     __EMSCRIPTEN__
-#   define ML_cc_version        ML_cc_emscripten
+#   define ML_cc_ver            ML_cc_emscripten
 #   define ML_cc_name           "Emscripten"
 
 #elif defined(__asmjs__)
 //                              asm.js
 #   define ML_cc_asmjs          __asmjs__
-#   define ML_cc_version        ML_cc_asmjs
+#   define ML_cc_ver            ML_cc_asmjs
 #   define ML_cc_name           "asm.js"
 
 #elif defined(__wasm__)
 //                              WebAssembly
 #   define ML_cc_wasm           __wasm__
-#   define ML_cc_version        ML_cc_wasm
+#   define ML_cc_ver            ML_cc_wasm
 #   define ML_cc_name           "WebAssembly"
 
 #else
@@ -312,14 +310,14 @@
 
 // inlining
 #ifdef ML_cc_msvc
-#   define ML_FORCE_INLINE      __forceinline
-#   define ML_NEVER_INLINE      __declspec(noinline)
+#   define ML_INLINE            __forceinline
+#   define ML_NOINLINE          __declspec(noinline)
 #elif defined(ML_cc_clang) || defined(ML_cc_gcc)
-#   define ML_FORCE_INLINE      inline __attribute__((always_inline))
-#   define ML_NEVER_INLINE      __attribute__((noinline))
+#   define ML_INLINE            inline __attribute__((always_inline))
+#   define ML_NOINLINE          __attribute__((noinline))
 #else
-#   define ML_FORCE_INLINE      inline
-#   define ML_NEVER_INLINE
+#   define ML_INLINE            inline
+#   define ML_NOINLINE
 #endif
 
 // visibility
@@ -327,7 +325,7 @@
 #   ifdef ML_cc_msvc
 #      define ML_API_EXPORT     __declspec(dllexport)
 #      define ML_API_IMPORT     __declspec(dllimport)
-#   elif (defined(ML_cc_clang) || defined(ML_cc_gcc)) && (ML_cc_version >= 4)
+#   elif (defined(ML_cc_clang) || defined(ML_cc_gcc)) && (ML_cc_ver >= 4)
 #      define ML_API_EXPORT    __attribute__((visibility("default")))
 #      define ML_API_IMPORT    __attribute__((visibility("hidden")))
 #   else

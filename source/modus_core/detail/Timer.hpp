@@ -53,13 +53,18 @@ namespace ml
 			if (this != std::addressof(other))
 			{
 				std::swap(m_running, other.m_running);
-				m_start_time.swap(other.m_start_time);
-				m_stop_time.swap(other.m_stop_time);
-				m_elapsed.swap(other.m_elapsed);
+				std::swap(m_start_time, other.m_start_time);
+				std::swap(m_stop_time, other.m_stop_time);
+				std::swap(m_elapsed, other.m_elapsed);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD bool running() const noexcept
+		{
+			return m_running;
+		}
 
 		ML_NODISCARD auto elapsed() const noexcept -> duration
 		{
@@ -73,22 +78,14 @@ namespace ml
 			}
 		}
 
-		ML_NODISCARD bool running() const noexcept
-		{
-			return m_running;
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		auto start() noexcept -> self_type &
 		{
-			if (!m_running)
-			{
-				return this->restart();
-			}
+			if (m_running) { return (*this); }
 			else
 			{
-				return (*this);
+				return this->restart();
 			}
 		}
 
@@ -105,16 +102,13 @@ namespace ml
 
 		auto stop() noexcept -> self_type &
 		{
-			if (m_running)
+			if (!m_running) { return (*this); }
+			else
 			{
 				m_running = false;
 
 				m_elapsed = ((m_stop_time = clock_type::now()) - m_start_time);
 
-				return (*this);
-			}
-			else
-			{
 				return (*this);
 			}
 		}

@@ -1,16 +1,33 @@
 #ifndef _ML_GUI_APPLICATION_HPP_
 #define _ML_GUI_APPLICATION_HPP_
 
-// WIP
-
 #include <modus_core/engine/CoreApplication.hpp>
 #include <modus_core/engine/MainWindow.hpp>
-#include <modus_core/engine/PlatformAPI.hpp>
-#include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/window/WindowEvents.hpp>
 
 namespace ml
 {
+	// fps tracker
+	template <size_t N = 120
+	> struct ML_NODISCARD fps_tracker final : non_copyable, trackable
+	{
+		float32					value{}; // 
+		float32					accum{}; // 
+		size_t					index{}; // 
+		ds::array<float32, N>	times{}; // 
+
+		void operator()(float32 dt) noexcept
+		{
+			accum += dt - times[index];
+			times[index] = dt;
+			index = (index + 1) % times.size();
+			value = (0.f < accum) ? (1.f / (accum / (float32)times.size())) : FLT_MAX;
+		}
+	};
+}
+
+namespace ml
+{
+	// gui application
 	struct ML_CORE_API gui_application : core_application
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -25,28 +42,21 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_fps() const noexcept -> float32
-		{
-			return m_fps.value;
-		}
-
-		ML_NODISCARD auto get_window() const noexcept -> main_window *
+		ML_NODISCARD auto get_main_window() const noexcept -> main_window *
 		{
 			return const_cast<main_window *>(&m_window);
 		}
 
+		ML_NODISCARD auto get_fps() const noexcept -> float32
+		{
+			return m_fps_tracker.value;
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		ML_NODISCARD auto open_file_name(cstring filter = "") const -> std::optional<fs::path>
-		{
-			return platform_api::get_open_file_name(m_window.get_native_handle(), filter);
-		}
+		ML_NODISCARD std::optional<fs::path> get_open_file_name(cstring filter = "") const;
 
-		ML_NODISCARD auto save_file_name(cstring filter = "") const -> std::optional<fs::path>
-		{
-			return platform_api::get_save_file_name(m_window.get_native_handle(), filter);
-		}
+		ML_NODISCARD std::optional<fs::path> get_save_file_name(cstring filter = "") const;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -56,16 +66,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		struct ML_NODISCARD // fps
-		{
-			float32					value; // 
-			float32					accum; // 
-			size_t					index; // 
-			ds::array<float32, 120>	times; // 
-		}
-		m_fps;
+		main_window m_window; // main window
 
-		main_window m_window; //
+		fps_tracker<> m_fps_tracker; // fps tracker
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

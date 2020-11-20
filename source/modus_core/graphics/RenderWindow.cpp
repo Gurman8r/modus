@@ -8,7 +8,6 @@ namespace ml
 	render_window::render_window(allocator_type alloc) noexcept
 		: native_window	{ alloc }
 		, m_device		{}
-		, m_context		{}
 	{
 	}
 
@@ -39,27 +38,18 @@ namespace ml
 		void *						userptr
 	)
 	{
-		// check already open
-		if (is_open())
-		{
-			return debug::error("render_window is already open");
-		}
+		// open base
+		if (!native_window::open(title, vm, cs, hints, userptr)) { return false; }
 
-		// open render_window
-		if (!native_window::open(title, vm, cs, hints, userptr))
-		{
-			return debug::error("failed opening render_window");
-		}
-
-		// create render device
+		// setup device
 		if (m_device.reset(gfx::make_device(cs.api)); !m_device)
 		{
-			return debug::error("failed creating device");
+			return debug::failure("failed creating render device");
 		}
 
-		// create render context
-		set_render_context(m_device->new_context
-		({
+		// setup context
+		set_render_context(m_device->new_context(
+		{
 			cs.api,
 			cs.major,
 			cs.minor,
@@ -68,10 +58,8 @@ namespace ml
 			cs.stencil_bits,
 			cs.multisample,
 			cs.srgb_capable
-		}));
-
-		// setup states
-		get_render_context()->execute
+		}
+		))->execute
 		(
 			// alpha state
 			gfx::command::set_alpha_state

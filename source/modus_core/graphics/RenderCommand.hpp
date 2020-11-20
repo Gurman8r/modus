@@ -37,7 +37,7 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// render command
-	class command final : public ds::method< void(render_context *) >
+	class command : public ds::method< void(render_context *) >
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

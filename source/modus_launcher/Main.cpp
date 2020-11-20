@@ -1,5 +1,6 @@
 #include <modus_core/engine/Application.hpp>
 #include <modus_core/engine/PluginManager.hpp>
+#include <modus_core/engine/EngineEvents.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -18,8 +19,7 @@ static class memcfg final : public singleton<memcfg>
 	pmr::monotonic_buffer_resource		mono{ data.data(), data.size() };
 	pmr::unsynchronized_pool_resource	pool{ &mono };
 	passthrough_resource				view{ &pool, data.data(), data.size() };
-
-	memcfg() noexcept { pmr::set_default_resource(&view); }
+	memory_manager						mman{ pmr::set_default_resource(&view) };
 
 	~memcfg() noexcept { pmr::set_default_resource(nullptr); }
 
@@ -85,22 +85,20 @@ static auto const default_settings{ R"(
 }
 )"_json };
 
-json load_settings(fs::path const & path = SETTINGS_PATH)
-{
-	std::ifstream f{ path };
-	ML_defer(&f) { f.close(); };
-	return f ? json::parse(f) : default_settings;
-}
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 int32 main(int32 argc, char * argv[])
 {
-	static memory_manager memory{};
+	auto load_settings = [](fs::path const & path = SETTINGS_PATH)
+	{
+		std::ifstream f{ path };
+		ML_defer(&f) { f.close(); };
+		return f ? json::parse(f) : default_settings;
+	};
 
 	auto app{ make_scope<application>(argc, argv) };
-	app->set_app_name(ML__name);
-	app->set_app_version(ML__version);
+	app->set_app_name(ML_lib_name);
+	app->set_app_version(ML_lib_ver);
 	app->set_attributes(load_settings());
 	app->set_library_paths(app->attr("paths"));
 

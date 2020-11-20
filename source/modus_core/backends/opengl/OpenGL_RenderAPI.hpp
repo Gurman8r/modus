@@ -16,12 +16,13 @@ namespace ml::gfx
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_render_device) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_render_device> };
 
-		device_info				m_info		{}; // device info
-		ds::ref<render_context>	m_context	{}; // render context
+		device_info m_info{}; // device info
 
-		ds::batch_vector
+		ds::ref<render_context> m_context{}; // active context
+
+		ds::batch_vector // all objects
 		<
 			ds::unown<render_context>,
 			ds::unown<vertexarray>,
@@ -34,7 +35,7 @@ namespace ml::gfx
 			ds::unown<program>,
 			ds::unown<shader>
 		>
-		m_refs{};
+		m_objs{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -42,18 +43,6 @@ namespace ml::gfx
 		opengl_render_device(allocator_type alloc);
 
 		~opengl_render_device() final;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ds::ref<render_context> const & get_context() const noexcept final
-		{
-			return m_context;
-		}
-
-		ds::ref<render_context> & set_context(ds::ref<render_context> const & value) noexcept final
-		{
-			return m_context = value;
-		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -65,7 +54,40 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
+		ds::ref<render_context> const & get_active_context() const noexcept final
+		{
+			return m_context;
+		}
+
+		ds::ref<render_context> & set_active_context(ds::ref<render_context> const & value) noexcept final
+		{
+			return m_context = value;
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ds::list<ds::unown<render_context>> const & get_contexts() const noexcept final { return m_objs.get<ds::unown<render_context>>(); }
+
+		ds::list<ds::unown<vertexarray>> const & get_vertexarrays() const noexcept { return m_objs.get<ds::unown<vertexarray>>(); }
+
+		ds::list<ds::unown<vertexbuffer>> const & get_vertexbuffers() const noexcept { return m_objs.get<ds::unown<vertexbuffer>>(); }
+
+		ds::list<ds::unown<indexbuffer>> const & get_indexbuffers() const noexcept { return m_objs.get<ds::unown<indexbuffer>>(); }
+
+		ds::list<ds::unown<texture2d>> const & get_texture2ds() const noexcept { return m_objs.get<ds::unown<texture2d>>(); }
+
+		ds::list<ds::unown<texture3d>> const & get_texture3ds() const noexcept { return m_objs.get<ds::unown<texture3d>>(); }
+
+		ds::list<ds::unown<texturecube>> const & get_texturecubes() const noexcept { return m_objs.get<ds::unown<texturecube>>(); }
+
+		ds::list<ds::unown<framebuffer>> const & get_framebuffers() const noexcept { return m_objs.get<ds::unown<framebuffer>>(); }
+
+		ds::list<ds::unown<program>> const & get_programs() const noexcept { return m_objs.get<ds::unown<program>>(); }
+
+		ds::list<ds::unown<shader>> const & get_shaders() const noexcept { return m_objs.get<ds::unown<shader>>(); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ds::ref<render_context> new_context(spec<render_context> const & desc, allocator_type alloc) noexcept final;
 
 		ds::ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept final;
@@ -101,7 +123,7 @@ namespace ml::gfx
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_render_context) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_render_context> };
 
 		spec_type	m_desc		{}; // context settings
 		uint32		m_handle	{}; // pipeline handle (WIP)
@@ -214,7 +236,7 @@ namespace ml::gfx
 	struct opengl_vertexarray final : vertexarray
 	{
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_vertexarray) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_vertexarray> };
 
 		uint32							m_handle	{}; // handle
 		vertex_layout					m_layout	{}; // buffer layout
@@ -259,7 +281,7 @@ namespace ml::gfx
 	struct opengl_vertexbuffer final : vertexbuffer
 	{
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_vertexbuffer) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_vertexbuffer> };
 
 		uint32			m_handle	{}; // handle
 		uint32 const	m_usage		{}; // draw usage
@@ -298,7 +320,7 @@ namespace ml::gfx
 	struct opengl_indexbuffer final : indexbuffer
 	{
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_indexbuffer) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_indexbuffer> };
 
 		uint32			m_handle	{}; // handle
 		uint32 const	m_usage		{}; // usage
@@ -337,7 +359,7 @@ namespace ml::gfx
 	struct opengl_texture2d final : texture2d
 	{
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_texture2d) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_texture2d> };
 
 		vec2i			m_size		{}			; // 
 		texture_format	m_format	{}			; // 
@@ -390,7 +412,7 @@ namespace ml::gfx
 	struct opengl_texture3d : texture3d
 	{
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_texture3d) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_texture3d> };
 
 		vec2i			m_size		{}			; // 
 		texture_format	m_format	{}			; // 
@@ -431,7 +453,7 @@ namespace ml::gfx
 	struct opengl_texturecube : texturecube
 	{
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_texturecube) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_texturecube> };
 
 		vec2i			m_size		{}			; // 
 		texture_format	m_format	{}			; // 
@@ -472,7 +494,7 @@ namespace ml::gfx
 	struct opengl_framebuffer final : framebuffer
 	{
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_framebuffer) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_framebuffer> };
 
 		vec2i							m_size			{}; // 
 		texture_format					m_format		{}; // 
@@ -536,7 +558,7 @@ namespace ml::gfx
 	struct opengl_program final : program
 	{
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_program) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_program> };
 
 		uint32									m_handle		{}; // handle
 		ds::string								m_error_log		{}; // error log
@@ -622,7 +644,7 @@ namespace ml::gfx
 	struct opengl_shader final : shader
 	{
 	private:
-		static constexpr typeof_t<> s_self_type{ ML_typeof(opengl_shader) };
+		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_shader> };
 
 		uint32									m_type		{}; // type
 		ds::list<ds::string>					m_code		{}; // code

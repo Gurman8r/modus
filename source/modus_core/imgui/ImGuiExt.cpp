@@ -1,18 +1,5 @@
 #include <modus_core/imgui/ImGuiExt.hpp>
 
-// DOCKSPACE
-namespace ml::ImGuiExt
-{
-	void Dockspace::Configure(json const & j)
-	{
-		if (j.contains("alpha"))	j["alpha"].get_to(this->Alpha);
-		if (j.contains("border"))	j["border"].get_to(this->Border);
-		if (j.contains("padding"))	j["padding"].get_to(this->Padding);
-		if (j.contains("rounding"))	j["rounding"].get_to(this->Rounding);
-		if (j.contains("size"))		j["size"].get_to(this->Size);
-	}
-}
-
 // TEXT LOG
 namespace ml::ImGuiExt
 {
@@ -49,12 +36,26 @@ namespace ml::ImGuiExt
 	TextLog::Printer TextLog::Printer::Default{ [
 	](ds::list<pmr::string> const & lines, size_t i) noexcept
 	{
-		color c{ colors::white };
-		if (!std::strncmp(lines[i].c_str(), "# ", 2)) {
+		auto check_prefix = [&lines, i](auto str) noexcept -> bool
+		{
+			return !std::strncmp(lines[i].c_str(), str, std::strlen(str));
+		};
+
+		color c;
+		if (check_prefix( "# ")) {
 			c = { 1.0f, 0.8f, 0.6f, 1.0f };
 		}
-		else if (!std::strncmp(lines[i].c_str(), "[error] ", 8)) {
+		else if (check_prefix(ML_DEBUG_MSG_SUCCESS)) {
+			c = colors::lime;
+		}
+		else if (check_prefix(ML_DEBUG_MSG_FAILURE)) {
 			c = colors::red;
+		}
+		else if (check_prefix(ML_DEBUG_MSG_WARNING)) {
+			c = colors::yellow;
+		}
+		else {
+			c = colors::white;
 		}
 
 		ImGui::PushStyleColor(ImGuiCol_Text, c);
@@ -183,10 +184,10 @@ namespace ml::ImGuiExt
 		if (reclaim_focus) { ImGui::SetKeyboardFocusHere(-1); } // focus previous widget
 	}
 
-	int32 Terminal::Execute(Line && line)
+	int32 Terminal::Execute(Line line)
 	{
 		// empty check
-		if (util::trim(line).empty()) { return debug::error(); }
+		if (util::trim(line).empty()) { return debug::failure(); }
 		
 		// append line
 		Output.Printf("# %s\n", line.c_str());
@@ -199,7 +200,7 @@ namespace ml::ImGuiExt
 		// validate line
 		if ((line.front() != '/' && Mode.empty()) || util::trim_front(line, [
 		](char c) { return c == '/' || util::is_whitespace(c); }).empty()) {
-			return debug::error();
+			return debug::failure();
 		}
 
 		// process command
@@ -221,11 +222,11 @@ namespace ml::ImGuiExt
 		{
 			std::invoke(*proc, std::move(line));
 
-			return debug::good();
+			return debug::success();
 		}
 		else
 		{
-			return debug::error("unknown command: {0} {1}", name, line);
+			return debug::failure("unknown command: {0} {1}", name, line);
 		}
 	}
 

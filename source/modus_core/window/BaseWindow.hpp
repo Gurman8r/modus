@@ -17,7 +17,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
-		virtual bool open(
+		ML_NODISCARD virtual bool open(
 			ds::string			const &	title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
@@ -41,74 +41,74 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual int_rect get_bounds() const = 0;
+		ML_NODISCARD virtual int_rect get_bounds() const = 0;
 
-		virtual window_callbacks const & get_callbacks() const = 0;
+		ML_NODISCARD virtual window_callbacks const & get_callbacks() const = 0;
 
-		virtual ds::string get_clipboard() const = 0;
+		ML_NODISCARD virtual ds::string get_clipboard() const = 0;
 
-		virtual vec2 get_content_scale() const = 0;
+		ML_NODISCARD virtual vec2 get_content_scale() const = 0;
 
-		virtual int32 get_cursor_mode() const = 0;
+		ML_NODISCARD virtual int32 get_cursor_mode() const = 0;
 
-		virtual vec2 get_cursor_pos() const = 0;
+		ML_NODISCARD virtual vec2 get_cursor_pos() const = 0;
 
-		virtual vec2i get_framebuffer_size() const = 0;
+		ML_NODISCARD virtual vec2i get_framebuffer_size() const = 0;
 
-		virtual window_handle get_handle() const = 0;
+		ML_NODISCARD virtual window_handle get_handle() const = 0;
 
-		virtual window_hints_ get_hints() const = 0;
+		ML_NODISCARD virtual window_hints_ get_hints() const = 0;
 
-		inline bool has_hints(int32 value) const noexcept
+		ML_NODISCARD inline bool has_hints(int32 value) const noexcept
 		{
 			return ML_flag_read((int32)get_hints(), value);
 		}
 
-		virtual int32 get_input_mode(int32) const = 0;
+		ML_NODISCARD virtual int32 get_input_mode(int32) const = 0;
 
-		virtual int32 get_key(int32) const = 0;
+		ML_NODISCARD virtual int32 get_key(int32) const = 0;
 
-		virtual int32 get_mouse_button(int32) const = 0;
+		ML_NODISCARD virtual int32 get_mouse_button(int32) const = 0;
 
-		virtual window_handle get_native_handle() const = 0;
+		ML_NODISCARD virtual window_handle get_native_handle() const = 0;
 
-		virtual float32 get_opacity() const = 0;
+		ML_NODISCARD virtual float32 get_opacity() const = 0;
 
-		virtual vec2i get_position() const = 0;
+		ML_NODISCARD virtual vec2i get_position() const = 0;
 
-		virtual vec2i get_size() const = 0;
+		ML_NODISCARD virtual vec2i get_size() const = 0;
 
-		virtual ds::string const & get_title() const = 0;
+		ML_NODISCARD virtual ds::string const & get_title() const = 0;
 
-		virtual void * get_user_pointer() const = 0;
+		ML_NODISCARD virtual void * get_user_pointer() const = 0;
 
-		virtual window_context const * get_window_context() const = 0;
+		ML_NODISCARD virtual window_context const * get_window_context() const = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual bool is_auto_iconify() const = 0;
+		ML_NODISCARD virtual bool is_auto_iconify() const = 0;
 
-		virtual bool is_decorated() const = 0;
+		ML_NODISCARD virtual bool is_decorated() const = 0;
 
-		virtual bool is_floating() const = 0;
+		ML_NODISCARD virtual bool is_floating() const = 0;
 
-		virtual bool is_focused() const = 0;
+		ML_NODISCARD virtual bool is_focused() const = 0;
 
-		virtual bool is_focus_on_show() const = 0;
+		ML_NODISCARD virtual bool is_focus_on_show() const = 0;
 
-		virtual bool is_hovered() const = 0;
+		ML_NODISCARD virtual bool is_hovered() const = 0;
 
-		virtual bool is_iconified() const = 0;
+		ML_NODISCARD virtual bool is_iconified() const = 0;
 
-		virtual bool is_maximized() const = 0;
+		ML_NODISCARD virtual bool is_maximized() const = 0;
 
-		virtual bool is_open() const = 0;
+		ML_NODISCARD virtual bool is_open() const = 0;
 
-		virtual bool is_resizable() const = 0;
+		ML_NODISCARD virtual bool is_resizable() const = 0;
 
-		virtual bool is_transparent() const = 0;
+		ML_NODISCARD virtual bool is_transparent() const = 0;
 
-		virtual bool is_visible() const = 0;
+		ML_NODISCARD virtual bool is_visible() const = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -150,39 +150,39 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		virtual window_char_callback get_char_callback() const = 0;
+		ML_NODISCARD virtual window_char_callback get_char_callback() const = 0;
 		
-		virtual window_char_mods_callback get_char_mods_callback() const = 0;
+		ML_NODISCARD virtual window_char_mods_callback get_char_mods_callback() const = 0;
 		
-		virtual window_close_callback get_close_callback() const = 0;
+		ML_NODISCARD virtual window_close_callback get_close_callback() const = 0;
 		
-		virtual window_content_scale_callback get_content_scale_callback() const = 0;
+		ML_NODISCARD virtual window_content_scale_callback get_content_scale_callback() const = 0;
 		
-		virtual window_cursor_enter_callback get_cursor_enter_callback() const = 0;
+		ML_NODISCARD virtual window_cursor_enter_callback get_cursor_enter_callback() const = 0;
 		
-		virtual window_cursor_pos_callback get_cursor_pos_callback() const = 0;
+		ML_NODISCARD virtual window_cursor_pos_callback get_cursor_pos_callback() const = 0;
 		
-		virtual window_drop_callback get_drop_callback() const = 0;
+		ML_NODISCARD virtual window_drop_callback get_drop_callback() const = 0;
 		
-		virtual window_focus_callback get_focus_callback() const = 0;
+		ML_NODISCARD virtual window_focus_callback get_focus_callback() const = 0;
 		
-		virtual window_framebuffer_resize_callback get_framebuffer_resize_callback() const = 0;
+		ML_NODISCARD virtual window_framebuffer_resize_callback get_framebuffer_resize_callback() const = 0;
 		
-		virtual window_iconify_callback get_iconify_callback() const = 0;
+		ML_NODISCARD virtual window_iconify_callback get_iconify_callback() const = 0;
 		
-		virtual window_key_callback get_key_callback() const = 0;
+		ML_NODISCARD virtual window_key_callback get_key_callback() const = 0;
 		
-		virtual window_maximize_callback get_maximize_callback() const = 0;
+		ML_NODISCARD virtual window_maximize_callback get_maximize_callback() const = 0;
 		
-		virtual window_mouse_callback get_mouse_callback() const = 0;
+		ML_NODISCARD virtual window_mouse_callback get_mouse_callback() const = 0;
 		
-		virtual window_position_callback get_position_callback() const = 0;
+		ML_NODISCARD virtual window_position_callback get_position_callback() const = 0;
 		
-		virtual window_refresh_callback get_refresh_callback() const = 0;
+		ML_NODISCARD virtual window_refresh_callback get_refresh_callback() const = 0;
 		
-		virtual window_resize_callback get_resize_callback() const = 0;
+		ML_NODISCARD virtual window_resize_callback get_resize_callback() const = 0;
 		
-		virtual window_scroll_callback get_scroll_callback() const = 0;
+		ML_NODISCARD virtual window_scroll_callback get_scroll_callback() const = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

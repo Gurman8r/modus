@@ -84,25 +84,25 @@ namespace ml
 	template <class T = float32
 	> ML_NODISCARD constexpr auto operator+=(duration & lhs, T const & rhs) noexcept -> duration &
 	{
-		return lhs = duration{ (float32)lhs + (float32)rhs };
+		return lhs = { (float32)lhs + (float32)rhs };
 	}
 
 	template <class T = float32
 	> ML_NODISCARD constexpr auto operator-=(duration & lhs, T const & rhs) noexcept -> duration &
 	{
-		return lhs = duration{ (float32)lhs - (float32)rhs };
+		return lhs = { (float32)lhs - (float32)rhs };
 	}
 
 	template <class T = float32
 	> ML_NODISCARD constexpr auto operator*=(duration & lhs, T const & rhs) noexcept -> duration &
 	{
-		return lhs = duration{ (float32)lhs * (float32)rhs };
+		return lhs = { (float32)lhs * (float32)rhs };
 	}
 
 	template <class T = float32
 	> ML_NODISCARD constexpr auto operator/=(duration & lhs, T const & rhs) noexcept -> duration &
 	{
-		return lhs = duration{ (float32)lhs / (float32)rhs };
+		return lhs = { (float32)lhs / (float32)rhs };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

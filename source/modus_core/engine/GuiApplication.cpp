@@ -66,7 +66,7 @@ namespace ml
 			if (attr().contains("imgui")) {
 				json & gui_prefs{ attr("imgui") };
 				if (gui_prefs.contains("dockspace")) {
-					m_window.get_docker()->Configure(gui_prefs["dockspace"]);
+					m_window.get_dockspace()->Configure(gui_prefs["dockspace"]);
 				}
 				if (gui_prefs.contains("style")) {
 					json & style_prefs{ gui_prefs["style"] };
@@ -91,7 +91,7 @@ namespace ml
 			// imgui frame
 			m_window.do_imgui_frame([&
 				, context	= m_window.get_imgui().get()
-				, docker	= m_window.get_docker()
+				, docker	= m_window.get_dockspace()
 			](auto)
 			{
 				docker->SetWindowFlag(

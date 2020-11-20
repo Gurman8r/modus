@@ -62,7 +62,7 @@ namespace ml
 			return m_imgui;
 		}
 
-		ML_NODISCARD auto get_docker() const noexcept -> ImGuiExt::Dockspace *
+		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace *
 		{
 			return const_cast<ImGuiExt::Dockspace *>(&m_dockspace);
 		}

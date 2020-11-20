@@ -69,7 +69,7 @@ namespace ml::debug
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	static struct ML_NODISCARD // io
+	static struct ML_NODISCARD // I/O
 	{
 		std::reference_wrapper<std::ostream>	out		{	std::cout	};
 		std::reference_wrapper<std::ostream>	err		{	std::cerr	};
@@ -100,7 +100,7 @@ namespace ml::debug
 #ifdef ML_os_windows
 		std::system("pause");
 #else
-		(io.in.get()).get();
+		io.in.get().get();
 #endif
 		return exit_code;
 	}

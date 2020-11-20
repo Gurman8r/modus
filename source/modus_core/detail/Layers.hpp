@@ -1,7 +1,7 @@
 #ifndef _ML_LAYERS_HPP_
 #define _ML_LAYERS_HPP_
 
-#include <modus_core/detail/Events.hpp>
+#include <modus_core/detail/EventSystem.hpp>
 #include <modus_core/detail/Duration.hpp>
 
 // LAYER

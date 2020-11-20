@@ -15,6 +15,8 @@ namespace ml
 		size_t					index{}; // 
 		ds::array<float32, N>	times{}; // 
 
+		fps_tracker() noexcept = default;
+
 		void operator()(float32 dt) noexcept
 		{
 			accum += dt - times[index];
@@ -47,9 +49,9 @@ namespace ml
 			return const_cast<main_window *>(&m_window);
 		}
 
-		ML_NODISCARD auto get_fps() const noexcept -> float32
+		ML_NODISCARD auto get_fps() const noexcept -> fps_tracker<> const *
 		{
-			return m_fps_tracker.value;
+			return &m_fps_tracker;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

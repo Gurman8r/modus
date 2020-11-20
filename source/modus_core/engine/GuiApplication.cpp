@@ -16,17 +16,18 @@ namespace ml
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
-		ML_assert(m_window.get_window_context()->initialize());
+		ML_assert(main_window::initialize());
 
-		main_loop()->set_loop_condition(&main_window::is_open, &m_window);
-		main_loop()->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
-		main_loop()->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
-		main_loop()->set_idle_callback([&](auto) { get_bus()->fire<app_idle_event>(); });
+		auto mainloop{ new_main_loop(get_bus(), alloc) };
+		mainloop->set_loop_condition(&main_window::is_open, &m_window);
+		mainloop->set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
+		mainloop->set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
+		mainloop->set_idle_callback([&](auto) { get_bus()->fire<app_idle_event>(); });
 	}
 
 	gui_application::~gui_application() noexcept
 	{
-		m_window.get_window_context()->finalize();
+		main_window::finalize();
 
 		ML_assert(end_singleton<gui_application>(this));
 	}
@@ -86,7 +87,7 @@ namespace ml
 			auto && ev{ (app_idle_event &&)value };
 
 			// update fps
-			m_fps_tracker(main_loop()->delta_time());
+			m_fps_tracker(get_main_loop()->delta_time());
 
 			// imgui frame
 			m_window.do_imgui_frame([&
@@ -105,6 +106,11 @@ namespace ml
 
 				get_bus()->fire<imgui_render_event>(context);
 			});
+
+			if (m_window.has_hints(window_hints_doublebuffer))
+			{
+				main_window::swap_buffers(m_window.get_handle());
+			}
 
 		} break;
 		}

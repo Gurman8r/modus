@@ -1,7 +1,7 @@
 #ifndef _ML_BASE_WINDOW_HPP_
 #define _ML_BASE_WINDOW_HPP_
 
-#include <modus_core/window/WindowContext.hpp>
+#include <modus_core/window/WindowAPI.hpp>
 
 // BACKEND
 namespace ml
@@ -21,8 +21,7 @@ namespace ml
 			ds::string			const &	title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default,
-			void *						userptr	= nullptr
+			window_hints_				hints	= window_hints_default
 		) = 0;
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -81,8 +80,6 @@ namespace ml
 		ML_NODISCARD virtual ds::string const & get_title() const = 0;
 
 		ML_NODISCARD virtual void * get_user_pointer() const = 0;
-
-		ML_NODISCARD virtual window_context const * get_window_context() const = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -251,7 +248,8 @@ namespace ml
 namespace ml
 {
 	// frontend window
-	struct ML_CORE_API frontend_window : backend_window
+	template <class Derived
+	> struct ML_CORE_API frontend_window : backend_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -273,11 +271,10 @@ namespace ml
 			ds::string			const &	title,
 			video_mode			const &	vm		= {},
 			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default,
-			void *						userptr	= nullptr
+			window_hints_				hints	= window_hints_default
 		) override
 		{
-			return m_backend->open(title, vm, cs, hints, userptr);
+			return m_backend->open(title, vm, cs, hints);
 		}
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -331,8 +328,6 @@ namespace ml
 		ML_NODISCARD ds::string const & get_title() const noexcept final { return m_backend->get_title(); }
 
 		ML_NODISCARD void * get_user_pointer() const noexcept final { return m_backend->get_user_pointer(); }
-
-		ML_NODISCARD window_context const * get_window_context() const noexcept final { return m_backend->get_window_context(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

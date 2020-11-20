@@ -78,7 +78,7 @@ namespace ml
 			case app_idle_event::ID: {
 				auto && ev{ (app_idle_event &&)value };
 
-				auto const dt{ get_app()->main_loop()->delta_time() };
+				auto const dt{ get_app()->get_main_loop()->delta_time() };
 
 				m_clear_color = util::rotate_hue(m_clear_color, dt * 10);
 				
@@ -256,7 +256,7 @@ namespace ml
 					ImGui::Separator();
 					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 					ImGui::Separator();
-					auto const fps{ get_app()->get_fps() };
+					auto const fps{ get_app()->get_fps()->value };
 					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 					ImGui::Separator();
 					ImGui::EndMenuBar();

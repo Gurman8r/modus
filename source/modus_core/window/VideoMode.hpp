@@ -14,7 +14,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		vec2i	resolution		{ 640, 480 }	; // 
+		vec2i	resolution		{ 1280, 720 }	; // 
 		vec4b	bits_per_pixel	{ 8, 8, 8, 8 }	; // 
 		int32	refresh_rate	{ -1 }			; // 
 
@@ -26,22 +26,34 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD constexpr bool operator==(video_mode const & other) const noexcept
+		template <class U = video_mode
+		> ML_NODISCARD auto compare(U const & value) const noexcept
 		{
-			return this == std::addressof(other)
-				|| resolution == other.resolution;
+			if constexpr (std::is_same_v<U, video_mode>)
+			{
+				return (this != std::addressof(value))
+					? ML_compare(resolution, value.resolution)
+					: 0;
+			}
 		}
 
-		ML_NODISCARD constexpr bool operator<(video_mode const & other) const noexcept
-		{
-			return this != std::addressof(other)
-				&& resolution < other.resolution;
-		}
+		template <class U = video_mode
+		> ML_NODISCARD bool operator==(U const & value) const noexcept { return this->compare(value) == 0; }
 
-		ML_NODISCARD constexpr bool operator!=(video_mode const & other) const noexcept
-		{
-			return !(*this == other);
-		}
+		template <class U = video_mode
+		> ML_NODISCARD bool operator!=(U const & value) const noexcept { return this->compare(value) != 0; }
+
+		template <class U = video_mode
+		> ML_NODISCARD bool operator<(U const & value) const noexcept { return this->compare(value) < 0; }
+
+		template <class U = video_mode
+		> ML_NODISCARD bool operator>(U const & value) const noexcept { return this->compare(value) > 0; }
+
+		template <class U = video_mode
+		> ML_NODISCARD bool operator<=(U const & value) const noexcept { return this->compare(value) <= 0; }
+
+		template <class U = video_mode
+		> ML_NODISCARD bool operator>=(U const & value) const noexcept { return this->compare(value) >= 0; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

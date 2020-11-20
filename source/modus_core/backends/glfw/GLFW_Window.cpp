@@ -26,12 +26,22 @@ namespace ml
 		glfwTerminate();
 	}
 
+	void glfw_context::poll_events()
+	{
+		glfwPollEvents();
+	}
+
+	void glfw_context::swap_buffers(window_handle value)
+	{
+		glfwSwapBuffers((GLFWwindow *)value);
+	}
+
 	int32 glfw_context::extension_supported(cstring value)
 	{
 		return glfwExtensionSupported(value);
 	}
 
-	window_handle glfw_context::get_context_current()
+	window_handle glfw_context::get_active_window()
 	{
 		return (window_handle)glfwGetCurrentContext();
 	}
@@ -54,22 +64,22 @@ namespace ml
 		return temp;
 	}
 
-	void * glfw_context::get_proc_address(cstring value)
-	{
-		return glfwGetProcAddress(value);
-	}
-
 	monitor_handle glfw_context::get_primary_monitor()
 	{
 		return (monitor_handle)glfwGetPrimaryMonitor();
 	}
 
-	duration glfw_context::get_time()
+	void * glfw_context::get_proc_address(cstring value)
 	{
-		return duration{ glfwGetTime() };
+		return glfwGetProcAddress(value);
 	}
 
-	void glfw_context::make_context_current(window_handle value)
+	duration glfw_context::get_time()
+	{
+		return duration{ (float32)glfwGetTime() };
+	}
+
+	void glfw_context::set_active_window(window_handle value)
 	{
 		glfwMakeContextCurrent((GLFWwindow *)value);
 	}
@@ -81,19 +91,9 @@ namespace ml
 				reinterpret_cast<GLFWerrorfun>(value)));
 	}
 
-	void glfw_context::swap_interval(int32 value)
+	void glfw_context::set_swap_interval(int32 value)
 	{
 		glfwSwapInterval(value);
-	}
-
-	void glfw_context::poll_events()
-	{
-		glfwPollEvents();
-	}
-
-	void glfw_context::swap_buffers(window_handle value)
-	{
-		glfwSwapBuffers((GLFWwindow *)value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -169,8 +169,7 @@ namespace ml
 		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
-		window_hints_				hints,
-		void *						userptr
+		window_hints_				hints
 	)
 	{
 		// check already open
@@ -243,9 +242,6 @@ namespace ml
 		{
 			return debug::failure("failed opening glfw_window");
 		}
-
-		// user pointer
-		set_user_pointer(userptr);
 		
 		// info
 		return true;
@@ -389,27 +385,6 @@ namespace ml
 	void * glfw_window::get_user_pointer() const
 	{
 		return glfwGetWindowUserPointer((GLFWwindow *)m_window);
-	}
-
-	window_context const * glfw_window::get_window_context() const
-	{
-		static window_context temp
-		{
-			&glfw_context::initialize,
-			&glfw_context::finalize,
-			&glfw_context::get_time,
-			&glfw_context::poll_events,
-			&glfw_context::swap_buffers,
-			&glfw_context::swap_interval,
-			&glfw_context::extension_supported,
-			&glfw_context::get_proc_address,
-			&glfw_context::get_context_current,
-			&glfw_context::make_context_current,
-			&glfw_context::get_monitors,
-			&glfw_context::get_primary_monitor,
-			&glfw_context::set_error_callback
-		};
-		return &temp;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

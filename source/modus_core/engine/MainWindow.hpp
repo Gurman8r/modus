@@ -1,7 +1,7 @@
 #ifndef _ML_MAIN_WINDOW_HPP_
 #define _ML_MAIN_WINDOW_HPP_
 
-#include <modus_core/detail/Events.hpp>
+#include <modus_core/detail/EventSystem.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
 
@@ -22,7 +22,6 @@ namespace ml
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
-			void *						userptr = nullptr,
 			allocator_type				alloc	= {}) noexcept;
 
 		virtual ~main_window() noexcept override;
@@ -33,8 +32,7 @@ namespace ml
 			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default,
-			void *						userptr	= nullptr
+			window_hints_				hints	= window_hints_default
 		) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

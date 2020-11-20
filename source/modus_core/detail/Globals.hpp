@@ -11,10 +11,10 @@
 #define ML_GLOBALS_API ML_CORE_API
 #endif
 
-// globals declaration ( in .hpp )
+// globals declaration ( header.hpp )
 #define ML_decl_global(Type) template <> ML_NODISCARD ML_GLOBALS_API Type *
 
-// globals implementation ( in .cpp )
+// globals implementation ( source.cpp )
 #define ML_impl_global(Type) template <> Type *
 
 namespace ml

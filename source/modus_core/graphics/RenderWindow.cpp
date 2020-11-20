@@ -16,11 +16,10 @@ namespace ml
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints,
-		void *						userptr,
 		allocator_type				alloc
 	) noexcept : render_window{ alloc }
 	{
-		ML_assert(this->open(title, vm, cs, hints, userptr));
+		ML_assert(this->open(title, vm, cs, hints));
 	}
 
 	render_window::~render_window() noexcept
@@ -34,12 +33,11 @@ namespace ml
 		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
-		window_hints_				hints,
-		void *						userptr
+		window_hints_				hints
 	)
 	{
 		// open base
-		if (!native_window::open(title, vm, cs, hints, userptr)) { return false; }
+		if (!native_window::open(title, vm, cs, hints)) { return false; }
 
 		// setup device
 		if (m_device.reset(gfx::make_device(cs.api)); !m_device)

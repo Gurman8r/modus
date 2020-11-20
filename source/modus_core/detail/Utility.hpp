@@ -90,6 +90,15 @@ namespace ml::util
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	// constexpr swap
+	template <class T
+	> constexpr void swap(T & lhs, T & rhs) noexcept
+	{
+		auto temp{ std::move(lhs) };
+		lhs = std::move(rhs);
+		rhs = std::move(temp);
+	}
+
 	// requires T is any of
 	template <class T, class ... Ts
 	> constexpr bool is_any_of_v
@@ -126,21 +135,41 @@ namespace ml::util
 		ptr->~T();
 	}
 
-	// duplicate / force copy
-	template <class T
-	> ML_NODISCARD constexpr T dup(T const & copy) noexcept
-	{
-		return T{ copy };
-	}
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// constexpr swap
-	template <class T
-	> constexpr void swap(T & lhs, T & rhs) noexcept
+	// counter
+	template <class T = size_t> struct basic_counter final
 	{
-		T temp{ std::move(lhs) };
-		lhs = std::move(rhs);
-		rhs = std::move(temp);
-	}
+		using type = typename T;
+
+		static_assert(std::is_integral_v<type>);
+
+		basic_counter() noexcept : m_value{} {}
+
+		ML_NODISCARD type value() const noexcept
+		{
+			return m_value;
+		}
+
+		template <class U = type
+		> ML_NODISCARD type increment(U amt = U{ 1 }) noexcept
+		{
+			return m_value = m_value + static_cast<type>(amt);
+		}
+
+		template <class U = type
+		> ML_NODISCARD type operator()(U amt = U{ 1 }) noexcept
+		{
+			return this->increment(amt);
+		}
+
+	private:
+		type m_value;
+	};
+
+	ML_alias signed_counter = typename basic_counter<int64>;
+
+	ML_alias unsigned_counter = typename basic_counter<uint64>;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

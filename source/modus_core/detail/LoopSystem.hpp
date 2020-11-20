@@ -1,7 +1,7 @@
 #ifndef _ML_LOOP_SYSTEM_HPP_
 #define _ML_LOOP_SYSTEM_HPP_
 
-#include <modus_core/detail/Events.hpp>
+#include <modus_core/detail/EventSystem.hpp>
 #include <modus_core/detail/Timer.hpp>
 
 namespace ml
@@ -137,8 +137,12 @@ namespace ml
 			if (m_running) { return EXIT_FAILURE * 1; }
 			else { m_running = true; } ML_defer(&) { m_running = false; };
 
-			// uptime
-			m_main_timer.restart(); ML_defer(&) { m_main_timer.stop(); };
+			// timers
+			m_main_timer.restart(); ML_defer(&)
+			{
+				m_main_timer.stop();
+				m_loop_timer.stop();
+			};
 
 			// enter
 			this->run_enter_callback<Recurse>();

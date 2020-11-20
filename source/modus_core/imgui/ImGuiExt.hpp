@@ -256,7 +256,7 @@ namespace ml::ImGuiExt
 			, Padding		{ padding }
 			, Alpha			{ alpha }
 			, Size			{ docksize }
-			, DockNodeFlags		{ dockflags }
+			, DockNodeFlags	{ dockflags }
 		{}
 
 		constexpr Dockspace(Dockspace const & other) noexcept : Dockspace{

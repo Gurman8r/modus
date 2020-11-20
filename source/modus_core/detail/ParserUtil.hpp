@@ -7,13 +7,13 @@ namespace ml::impl
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class ... T> struct parse;
+	template <class ... T> struct parser;
 
-	template <> struct parse<> final { parse() = delete; };
+	template <> struct parser<> final { parser() = delete; };
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<ds::string> final
+	template <> struct parser<ds::string> final
 	{
 		ML_NODISCARD auto operator()(std::istream & in) const noexcept
 		{
@@ -32,7 +32,7 @@ namespace ml::impl
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<bool> final
+	template <> struct parser<bool> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, bool dv = {}) const noexcept
 		{
@@ -42,13 +42,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, bool dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<int8> final
+	template <> struct parser<int8> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, int8 dv = {}) const noexcept
 		{
@@ -58,13 +58,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, int8 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<int16> final
+	template <> struct parser<int16> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, int16 dv = {}) const noexcept
 		{
@@ -74,13 +74,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, int16 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<int32> final
+	template <> struct parser<int32> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, int32 dv = {}) const noexcept
 		{
@@ -90,13 +90,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, int32 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<int64> final
+	template <> struct parser<int64> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, int64 dv = {}) const noexcept
 		{
@@ -106,13 +106,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, int64 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<uint8> final
+	template <> struct parser<uint8> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, uint8 dv = {}) const noexcept
 		{
@@ -122,13 +122,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, uint8 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<uint16> final
+	template <> struct parser<uint16> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, uint16 dv = {}) const noexcept
 		{
@@ -138,13 +138,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, uint16 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<uint32> final
+	template <> struct parser<uint32> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, uint32 dv = {}) const noexcept
 		{
@@ -154,13 +154,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, uint32 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<uint64> final
+	template <> struct parser<uint64> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, uint64 dv = {}) const noexcept
 		{
@@ -170,13 +170,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, uint64 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<float32> final
+	template <> struct parser<float32> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, float32 dv = {}) const noexcept
 		{
@@ -186,13 +186,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, float32 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<float64> final
+	template <> struct parser<float64> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, float64 dv = {}) const noexcept
 		{
@@ -202,13 +202,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, float64 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <> struct parse<float80> final
+	template <> struct parser<float80> final
 	{
 		ML_NODISCARD auto operator()(ds::string && str, float80 dv = {}) const noexcept
 		{
@@ -218,13 +218,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(std::istream & in, float80 dv = {}) const noexcept
 		{
-			return (*this)(parse<ds::string>{}(in), dv);
+			return (*this)(parser<ds::string>{}(in), dv);
 		}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class T> struct parse<T> final
+	template <class T> struct parser<T> final
 	{
 		ML_NODISCARD auto operator()(std::istream & in) const noexcept
 		{
@@ -247,7 +247,7 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()() const noexcept
 		{
-			return (*this)(std::cin);
+			return (*this)(debug::io.in);
 		}
 	};
 
@@ -257,9 +257,9 @@ namespace ml::impl
 namespace ml::util
 {
 	template <class T, class ... Args
-	> ML_NODISCARD static T parse(Args && ... args) noexcept
+	> ML_NODISCARD auto parse(Args && ... args) noexcept
 	{
-		return std::invoke(_ML impl::parse<T>{}, ML_forward(args)...);
+		return std::invoke(_ML impl::parser<T>{}, ML_forward(args)...);
 	}
 }
 

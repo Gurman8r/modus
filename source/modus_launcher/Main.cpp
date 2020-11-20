@@ -96,21 +96,21 @@ int32 main(int32 argc, char * argv[])
 		return f ? json::parse(f) : default_settings;
 	};
 
-	auto app{ make_scope<application>(argc, argv) };
-	app->set_app_name(ML_lib_name);
-	app->set_app_version(ML_lib_ver);
-	app->set_attributes(load_settings());
-	app->set_library_paths(app->attr("paths"));
+	application app{ argc, argv };
+	app.set_app_name(ML_lib_name);
+	app.set_app_version(ML_lib_ver);
+	app.set_attributes(load_settings());
+	app.set_library_paths(app.attr("paths"));
 
-	auto plugins{ make_scope<plugin_manager>(app.get()) };
-	if (app->attr().contains("plugins")) {
-		for (json const & e : app->attr("plugins")) {
+	plugin_manager plugins{ &app };
+	if (app.attr().contains("plugins")) {
+		for (json const & e : app.attr("plugins")) {
 			ML_assert(e.contains("path"));
-			plugins->install(e["path"]);
+			plugins.install(e["path"]);
 		}
 	}
 
-	return app->exec();
+	return app.exec();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

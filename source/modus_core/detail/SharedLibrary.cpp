@@ -11,6 +11,8 @@
 #	error ""
 #endif
 
+#include <modus_core/detail/Array.hpp>
+
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

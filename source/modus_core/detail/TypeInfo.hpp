@@ -139,29 +139,44 @@ namespace ml
 
 	template <class T> struct nameof_t<T> final
 	{
-		static constexpr auto value{ nameof_t<>::filter_type(pretty_function::type<T>()) };
+		static constexpr static_string value
+		{
+			nameof_t<>::filter_type(pretty_function::type<T>())
+		};
 	};
 
 #ifdef ML_cc_msvc
 	template <> struct nameof_t<int64> final
 	{
-		static constexpr auto value{ "long long" }; // __int64
+		static constexpr static_string value
+		{
+			"long long"
+		};
 	};
 
 	template <> struct nameof_t<uint64> final
 	{
-		static constexpr auto value{ "unsigned long long" }; // unsigned __int64
+		static constexpr static_string value
+		{
+			"unsigned long long"
+		};
 	};
 #endif
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// name of type
+	// nameof
 
 	template <class T
 	> ML_NODISCARD constexpr static_string nameof() noexcept
 	{
 		return _ML nameof_t<T>::value;
+	}
+
+	template <class T
+	> ML_NODISCARD constexpr static_string nameof(T && v) noexcept
+	{
+		return _ML nameof<std::decay_t<decltype(v)>>();
 	}
 
 	template <class T
@@ -172,12 +187,12 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// hash of type
+	// hashof
 
 	template <class T
 	> ML_NODISCARD constexpr hash_t hashof() noexcept
 	{
-		return _ML hashof(static_string{ nameof_t<T>::value });
+		return _ML hashof(_ML nameof_v<T>);
 	}
 
 	template <class T
@@ -234,9 +249,9 @@ namespace ml
 	{
 		constexpr typeof_t() noexcept = default;
 
-		ML_NODISCARD constexpr operator hash_t const & () const noexcept { return m_hash; }
+		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return m_uuid; }
 
-		ML_NODISCARD static constexpr hash_t const & hash() noexcept { return hashof_v<T>; }
+		ML_NODISCARD static constexpr hash_t const & uuid() noexcept { return hashof_v<T>; }
 
 		ML_NODISCARD static constexpr static_string const & name() noexcept { return nameof_v<T>; }
 	};
@@ -246,37 +261,43 @@ namespace ml
 	template <> struct typeof_t<> final
 	{
 		constexpr typeof_t() noexcept
-			: m_name{}, m_hash{}
+			: m_name{}, m_uuid{}
 		{
 		}
 
 		template <class ... T
 		> constexpr typeof_t(typeof_t<T...> const & other) noexcept
-			: m_hash{ other.hash() }, m_name{ other.name() }
+			: m_uuid{ other.uuid() }, m_name{ other.name() }
 		{
 		}
 
-		ML_NODISCARD constexpr operator hash_t const & () const noexcept { return m_hash; }
+		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return m_uuid; }
 
-		ML_NODISCARD constexpr hash_t const & hash() const noexcept { return m_hash; }
+		ML_NODISCARD constexpr hash_t const & uuid() const noexcept { return m_uuid; }
 
 		ML_NODISCARD constexpr static_string const & name() const noexcept { return m_name; }
 
 	private:
-		hash_t			m_hash	; // hash code
+		hash_t			m_uuid	; // hash code
 		static_string	m_name	; // type name
 	};
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// typeof
+
 	template <class T
 	> ML_NODISCARD constexpr auto typeof() noexcept
 	{
 		return _ML typeof_t<T>{};
 	}
 
-	// variable typeof
+	template <class T
+	> ML_NODISCARD constexpr auto typeof(T && v) noexcept
+	{
+		return _ML typeof<std::decay_t<decltype(v)>>();
+	}
+
 	template <class T
 	> static constexpr auto typeof_v
 	{

@@ -1,7 +1,7 @@
 #ifndef _ML_WINDOW_EVENTS_HPP_
 #define _ML_WINDOW_EVENTS_HPP_
 
-#include <modus_core/detail/Events.hpp>
+#include <modus_core/detail/EventSystem.hpp>
 #include <modus_core/window/Input.hpp>
 
 namespace ml
@@ -10,7 +10,7 @@ namespace ml
 
 	ML_event(window_char_event)
 	{
-		uint32 const value;
+		uint32 value;
 
 		constexpr window_char_event(uint32 value) noexcept
 			: value{ value }
@@ -22,8 +22,8 @@ namespace ml
 
 	ML_event(window_char_mods_event)
 	{
-		uint32 const value;
-		int32 const mods;
+		uint32 value;
+		int32 mods;
 
 		constexpr window_char_mods_event(uint32 value, int32 mods) noexcept
 			: value{ value }, mods{ mods }
@@ -44,7 +44,7 @@ namespace ml
 
 	ML_event(window_content_scale_event)
 	{
-		float32 const x, y;
+		float32 x, y;
 
 		constexpr window_content_scale_event(float32 x, float32 y) noexcept
 			: x{ x }, y{ y }
@@ -56,8 +56,8 @@ namespace ml
 
 	ML_event(window_drop_event)
 	{
-		int32 const count;
-		cstring const * const paths;
+		int32 count;
+		cstring const * paths;
 
 		constexpr window_drop_event(int32 count, cstring const * paths) noexcept
 			: count{ count }, paths{ paths }
@@ -69,7 +69,7 @@ namespace ml
 
 	ML_event(window_cursor_enter_event)
 	{
-		int32 const entered;
+		int32 entered;
 
 		constexpr window_cursor_enter_event(int32 entered) noexcept
 			: entered{ entered }
@@ -81,7 +81,7 @@ namespace ml
 
 	ML_event(window_cursor_pos_event)
 	{
-		float64 const x, y;
+		float64 x, y;
 
 		constexpr window_cursor_pos_event(float64 x, float64 y) noexcept
 			: x{ x }, y{ y }
@@ -93,8 +93,8 @@ namespace ml
 
 	ML_event(window_error_event)
 	{
-		int32 const code;
-		cstring const desc;
+		int32 code;
+		cstring desc;
 
 		constexpr window_error_event(int32 code, cstring desc) noexcept
 			: code{ code }, desc{ desc }
@@ -106,7 +106,7 @@ namespace ml
 
 	ML_event(window_focus_event)
 	{
-		int32 const focused;
+		int32 focused;
 
 		constexpr window_focus_event(int32 focused) noexcept
 			: focused{ focused }
@@ -118,7 +118,7 @@ namespace ml
 
 	ML_event(window_framebuffer_resize_event)
 	{
-		int32 const width, height;
+		int32 width, height;
 
 		constexpr window_framebuffer_resize_event(int32 width, int32 height) noexcept
 			: width{ width }, height{ height }
@@ -130,7 +130,7 @@ namespace ml
 
 	ML_event(window_iconify_event)
 	{
-		int32 const iconified;
+		int32 iconified;
 
 		constexpr window_iconify_event(int32 iconified) noexcept
 			: iconified{ iconified }
@@ -142,7 +142,7 @@ namespace ml
 
 	ML_event(window_key_event)
 	{
-		int32 const key, scan, action, mods;
+		int32 key, scan, action, mods;
 
 		constexpr window_key_event(int32 key, int32 scan, int32 action, int32 mods) noexcept
 			: key{ key }, scan{ scan }, action{ action }, mods{ mods }
@@ -190,7 +190,7 @@ namespace ml
 
 	ML_event(window_maximize_event)
 	{
-		int32 const maximized;
+		int32 maximized;
 
 		constexpr window_maximize_event(int32 maximized) noexcept
 			: maximized{ maximized }
@@ -202,7 +202,7 @@ namespace ml
 
 	ML_event(window_mouse_event)
 	{
-		int32 const button, action, mods;
+		int32 button, action, mods;
 
 		constexpr window_mouse_event(int32 button, int32 action, int32 mods) noexcept
 			: button{ button }, action{ action }, mods{ mods }
@@ -227,7 +227,7 @@ namespace ml
 
 	ML_event(window_position_event)
 	{
-		int32 const x, y;
+		int32 x, y;
 
 		constexpr window_position_event(int32 x, int32 y) noexcept
 			: x{ x }, y{ y }
@@ -248,7 +248,7 @@ namespace ml
 
 	ML_event(window_scroll_event)
 	{
-		float64 const x, y;
+		float64 x, y;
 
 		constexpr window_scroll_event(float64 x, float64 y) noexcept
 			: x{ x }, y{ y }
@@ -260,7 +260,7 @@ namespace ml
 
 	ML_event(window_resize_event)
 	{
-		int32 const width, height;
+		int32 width, height;
 
 		constexpr window_resize_event(int32 width, int32 height) noexcept
 			: width{ width }, height{ height }

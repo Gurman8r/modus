@@ -38,6 +38,28 @@ namespace ml
 			this->exit(EXIT_SUCCESS);
 		}
 
+		ML_NODISCARD auto get_main_loop() const noexcept -> ds::ref<loop_system> const &
+		{
+			return m_main_loop;
+		}
+
+		auto set_main_loop(ds::ref<loop_system> const & value) noexcept -> ds::ref<loop_system> &
+		{
+			ML_assert(!m_main_loop || !m_main_loop->running());
+			return m_main_loop = value;
+		}
+
+		template <class Loop = loop_system, class ... Args
+		> auto new_main_loop(Args && ... args) noexcept -> ds::ref<Loop>
+		{
+			static_assert(std::is_base_of_v<loop_system, Loop>);
+
+			return std::static_pointer_cast<Loop>
+			(
+				set_main_loop(_ML make_ref<Loop>(ML_forward(args)...))
+			);
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto app_file_name() const noexcept -> fs::path const &
@@ -100,11 +122,6 @@ namespace ml
 			return m_library_paths[i];
 		}
 
-		ML_NODISCARD auto main_loop() const noexcept -> ds::ref<loop_system> const &
-		{
-			return m_main_loop;
-		}
-
 		ML_NODISCARD auto path_to(fs::path const & value) const noexcept -> fs::path
 		{
 			return m_library_paths.empty()
@@ -132,12 +149,6 @@ namespace ml
 		auto set_library_paths(ds::list<fs::path> const & value) noexcept -> ds::list<fs::path> &
 		{
 			return m_library_paths = value;
-		}
-
-		auto set_main_loop(ds::ref<loop_system> const & value) noexcept -> ds::ref<loop_system> &
-		{
-			ML_assert(!m_main_loop || !m_main_loop->running());
-			return m_main_loop = value;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

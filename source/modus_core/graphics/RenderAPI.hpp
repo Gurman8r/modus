@@ -5,7 +5,7 @@
 #include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Map.hpp>
 #include <modus_core/graphics/Bitmap.hpp>
-#include <modus_core/window/WindowContext.hpp>
+#include <modus_core/window/WindowAPI.hpp>
 
 #define _ML_GFX _ML gfx:: // graphics
 

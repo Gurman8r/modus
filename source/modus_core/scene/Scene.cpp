@@ -37,7 +37,7 @@ namespace ml
 		}
 		else
 		{
-			return debug::failure("failed reading scene from file: \'{0}\'", path);
+			return debug::failure("failed reading scene file: \'{0}\'", path);
 		}
 	}
 

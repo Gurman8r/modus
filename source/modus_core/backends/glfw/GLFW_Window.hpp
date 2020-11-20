@@ -10,35 +10,36 @@ struct GLFWmonitor;
 // GLFW CONTEXT
 namespace ml
 {
-	struct glfw_context final : non_copyable
+	class glfw_context final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		static int32 initialize();
 
 		static void finalize();
 
-		static int32 extension_supported(cstring value);
-
-		static window_handle get_context_current();
-
-		static ds::list<monitor_handle> const & get_monitors();
-
-		static void * get_proc_address(cstring value);
-
-		static monitor_handle get_primary_monitor();
-
-		static duration get_time();
-
-		static void make_context_current(window_handle value);
-
-		static window_error_callback set_error_callback(window_error_callback value);
-
-		static void swap_interval(int32 value);
-
 		static void poll_events();
 
 		static void swap_buffers(window_handle value);
+
+		ML_NODISCARD static int32 extension_supported(cstring value);
+
+		ML_NODISCARD static window_handle get_active_window();
+
+		ML_NODISCARD static ds::list<monitor_handle> const & get_monitors();
+
+		ML_NODISCARD static monitor_handle get_primary_monitor();
+
+		ML_NODISCARD static void * get_proc_address(cstring value);
+
+		ML_NODISCARD static duration get_time();
+
+		static void set_active_window(window_handle value);
+
+		static window_error_callback set_error_callback(window_error_callback value);
+
+		static void set_swap_interval(int32 value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -81,8 +82,7 @@ namespace ml
 			ds::string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default,
-			void *						userptr	= nullptr
+			window_hints_				hints	= window_hints_default
 		) final;
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -136,8 +136,6 @@ namespace ml
 		ds::string const & get_title() const final;
 
 		void * get_user_pointer() const final;
-
-		window_context const * get_window_context() const final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

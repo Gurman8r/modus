@@ -22,7 +22,6 @@ namespace ml
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default,
-			void *						userptr	= nullptr,
 			allocator_type				alloc	= {}) noexcept;
 
 		virtual ~render_window() noexcept override;
@@ -33,8 +32,7 @@ namespace ml
 			ds::string			const &	title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default,
-			void *						userptr	= nullptr
+			window_hints_				hints	= window_hints_default
 		) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

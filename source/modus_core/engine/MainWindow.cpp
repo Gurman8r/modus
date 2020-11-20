@@ -31,11 +31,10 @@ namespace ml
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints,
-		void *						userptr,
 		allocator_type				alloc
 	) noexcept : main_window{ bus, alloc }
 	{
-		ML_assert(this->open(title, vm, cs, hints, userptr));
+		ML_assert(this->open(title, vm, cs, hints));
 	}
 
 	main_window::~main_window() noexcept
@@ -51,12 +50,11 @@ namespace ml
 		ds::string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
-		window_hints_				hints,
-		void *						userptr
+		window_hints_				hints
 	)
 	{
 		// open base
-		if (!render_window::open(title, vm, cs, hints, userptr)) { return false; }
+		if (!render_window::open(title, vm, cs, hints)) { return false; }
 
 		// install callbacks
 		if (static event_bus * helper; helper = get_bus())
@@ -98,7 +96,7 @@ namespace ml
 
 	void main_window::begin_imgui_frame()
 	{
-		get_window_context()->poll_events();
+		main_window::poll_events();
 
 		_ML ImGui_NewFrame();
 
@@ -124,15 +122,10 @@ namespace ml
 
 		if (m_dockspace.IsDockingEnabled(m_imgui->IO))
 		{
-			auto const backup{ get_window_context()->get_active_window() };
+			auto const backup{ main_window::get_active_window() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			get_window_context()->set_active_window(backup);
-		}
-
-		if (has_hints(window_hints_doublebuffer))
-		{
-			get_window_context()->swap_buffers(get_handle());
+			main_window::set_active_window(backup);
 		}
 	}
 

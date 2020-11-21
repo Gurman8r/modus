@@ -19,10 +19,6 @@ namespace ml
 	// EVENT BASE
 	struct ML_NODISCARD event
 	{
-		bool consume() noexcept { return !m_used && (m_used = true); }
-
-		ML_NODISCARD bool used() const noexcept { return m_used; }
-
 		ML_NODISCARD constexpr hash_t get_id() const noexcept { return m_id; }
 
 		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_id; }
@@ -32,7 +28,7 @@ namespace ml
 		ML_NODISCARD constexpr bool operator!=(hash_t value) const noexcept { return m_id != value; }
 
 	protected:
-		constexpr explicit event(hash_t id) noexcept : m_id{ id }, m_used{} {}
+		constexpr explicit event(hash_t id) noexcept : m_id{ id } {}
 
 		constexpr event(event const &) = default;
 		constexpr event(event &&) noexcept = default;
@@ -41,7 +37,6 @@ namespace ml
 
 	private:
 		hash_t m_id; // ID
-		bool m_used; // used
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -279,8 +274,6 @@ namespace ml
 			{
 				for (auto const listener : (*cat->second))
 				{
-					if (value.used()) { return; }
-					
 					ML_check(listener)->on_event(ML_forward(value));
 				}
 			}

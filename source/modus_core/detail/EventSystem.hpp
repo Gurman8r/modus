@@ -313,7 +313,7 @@ namespace ml
 		{
 			for (auto const & ev : m_queue)
 			{
-				this->fire(*ML_check(ev.get()));
+				this->fire(*ev.get());
 			}
 			m_queue.clear();
 		}

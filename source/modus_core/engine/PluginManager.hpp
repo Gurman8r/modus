@@ -110,7 +110,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Derived, class ... Args
-		> auto allocate_plugin(Args && ... args) noexcept -> Derived *
+		> auto allocate_plugin(Args && ... args) -> Derived *
 		{
 			static_assert(std::is_base_of_v<plugin, Derived>);
 			

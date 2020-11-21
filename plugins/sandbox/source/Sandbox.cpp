@@ -161,11 +161,9 @@ namespace ml
 					ImGui::EndMenuBar();
 				}
 
-				m_resolution = (vec2)ImGui::GetContentRegionAvail();
-
 				ImGui::Image(
 					m_fb[0]->get_color_attachments()[0]->get_handle(),
-					(vec2)m_resolution,
+					(vec2)(m_resolution = (vec2)ImGui::GetContentRegionAvail()),
 					{ 0, 1 }, { 1, 0 },
 					colors::white,
 					colors::clear);
@@ -178,7 +176,7 @@ namespace ml
 		void draw_terminal()
 		{
 			if (m_panels[terminal_panel].IsOpen) {
-				auto const winsize{ (vec2)get_app()->get_main_window()->get_size() };
+				static auto const winsize{ (vec2)get_app()->get_main_window()->get_size() };
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}

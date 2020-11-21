@@ -83,11 +83,11 @@ namespace ml
 						: window_hints_default))
 				);
 
-				// theme
-				if (win_prefs.contains("theme")) {
-					json & theme_prefs{ win_prefs["theme"] };
-					if (theme_prefs.contains("path")) {
-						m_main_window.load_theme(path_to(theme_prefs["path"]));
+				// style
+				if (win_prefs.contains("style")) {
+					json & style_prefs{ win_prefs["style"] };
+					if (style_prefs.contains("path")) {
+						m_main_window.load_style(path_to(style_prefs["path"]));
 					}
 				}
 

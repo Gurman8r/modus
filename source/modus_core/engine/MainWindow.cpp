@@ -132,12 +132,12 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool main_window::load_theme(fs::path const & path)
+	bool main_window::load_style(fs::path const & path)
 	{
 		return _ML ImGui_LoadStyle(path, m_imgui->Style);
 	}
 
-	bool main_window::load_theme(json const & j)
+	bool main_window::load_style(json const & j)
 	{
 		return false;
 	}

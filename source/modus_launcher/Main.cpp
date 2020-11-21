@@ -64,7 +64,7 @@ static auto const default_settings{ R"(
 			"resizable"		: true,
 			"visible"		: false
 		},
-		"theme": {
+		"style": {
 			"path": "resource/modus_launcher.style"
 		},
 		"dockspace": {

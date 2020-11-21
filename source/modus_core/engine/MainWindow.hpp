@@ -75,9 +75,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool load_theme(fs::path const & path);
+		bool load_style(fs::path const & path);
 
-		bool load_theme(json const & j); // WIP
+		bool load_style(json const & j); // WIP
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

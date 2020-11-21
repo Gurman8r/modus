@@ -52,7 +52,7 @@ static auto const default_settings{ R"(
 			"multisample"	: true,
 			"srgb_capable"	: false
 		},
-		"window_hints": {
+		"hints": {
 			"auto_iconify"	: true,
 			"decorated"		: true,
 			"doublebuffer"	: false,

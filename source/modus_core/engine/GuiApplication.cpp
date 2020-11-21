@@ -78,8 +78,8 @@ namespace ml
 					(win_prefs.contains("context_settings")
 						? win_prefs["context_settings"]
 						: context_settings{}),
-					(win_prefs.contains("window_hints")
-						? win_prefs["window_hints"]
+					(win_prefs.contains("hints")
+						? win_prefs["hints"]
 						: window_hints_default))
 				);
 

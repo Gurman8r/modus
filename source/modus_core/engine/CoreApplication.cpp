@@ -18,15 +18,13 @@ namespace ml
 		, m_dispatcher		{ alloc }
 	{
 		ML_assert(begin_singleton<core_application>(this));
-
-		subscribe<app_enter_event, app_exit_event, app_idle_event>();
 	}
 
 	core_application::~core_application() noexcept
 	{
-		unsubscribe(); // need to unsubscribe manually
-
 		finalize_interpreter();
+
+		unsubscribe(); // need to unsubscribe manually
 
 		ML_assert(end_singleton<core_application>(this));
 	}

@@ -17,6 +17,8 @@ namespace ml
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
+		subscribe<app_enter_event, app_exit_event, app_idle_event>();
+
 		ML_assert(main_window::initialize());
 
 		main_window::set_error_callback([](int32 code, cstring desc) { /* TODO */ });
@@ -38,19 +40,25 @@ namespace ml
 
 	std::optional<fs::path> gui_application::open_file_name(ds::string const & filter) const
 	{
-		if (!m_main_window.is_open()) { return std::nullopt; }
-		else
+		if (m_main_window.is_open())
 		{
 			return platform_api::open_file_name(m_main_window.get_native_handle(), filter.c_str());
+		}
+		else
+		{
+			return std::nullopt;
 		}
 	}
 
 	std::optional<fs::path> gui_application::save_file_name(ds::string const & filter) const
 	{
-		if (!m_main_window.is_open()) { return std::nullopt; }
-		else
+		if (m_main_window.is_open())
 		{
 			return platform_api::save_file_name(m_main_window.get_native_handle(), filter.c_str());
+		}
+		else
+		{
+			return std::nullopt;
 		}
 	}
 
@@ -71,7 +79,9 @@ namespace ml
 				// open
 				ML_assert(m_main_window.open
 				(
-					app_name(),
+					(win_prefs.contains("title")
+						? win_prefs["title"]
+						: app_name()),
 					(win_prefs.contains("video_mode")
 						? win_prefs["video_mode"]
 						: video_mode{}),

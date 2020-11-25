@@ -1,9 +1,5 @@
+#include "./Win32.hpp"
 #include "./Win32_PlatformAPI.hpp"
-
-static_assert(ML_os_windows);
-
-#include <Windows.h>
-#include <commdlg.h>
 
 namespace ml
 {

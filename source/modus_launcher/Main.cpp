@@ -33,7 +33,6 @@ static auto const default_settings{ R"(
 {
 	"app_name"		: "modus launcher",
 	"app_version"	: "alpha",
-	"arguments"		: [],
 	"library_paths" : [ "../../../" ],
 
 	"main_window": {
@@ -101,9 +100,8 @@ int32 main(int32 argc, char * argv[])
 	app.set_attributes(load_settings());
 	app.set_app_name(app.attr("app_name"));
 	app.set_app_version(app.attr("app_version"));
-	app.set_arguments(app.attr("arguments"));
 	app.set_library_paths(app.attr("library_paths"));
-	return app.get_main_loop()->process();
+	return app.exec();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

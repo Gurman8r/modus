@@ -242,7 +242,8 @@ namespace ml
 			static_assert(is_valid_event<Ev>, "invalid event type");
 
 			if (!value || (this != value->get_bus())) { return; }
-			else if (auto const cat{ m_cats.find(Ev::ID) })
+			
+			if (auto const cat{ m_cats.find(Ev::ID) })
 			{
 				if (auto const listener{ cat->second->find(value) }
 				; listener != cat->second->end())
@@ -295,7 +296,7 @@ namespace ml
 		}
 
 		template <class Ev, class ... Args
-		> void post(Args && ... args) noexcept
+		> void post_event(Args && ... args) noexcept
 		{
 			static_assert(is_valid_event<Ev>, "invalid event type");
 

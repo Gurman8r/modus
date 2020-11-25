@@ -34,7 +34,7 @@ namespace ml
 #endif
 		};
 
-		static fs::path format_path(fs::path const & path) noexcept
+		ML_NODISCARD static fs::path format_path(fs::path const & path) noexcept
 		{
 			return (path.empty()
 				? path

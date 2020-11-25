@@ -1,7 +1,6 @@
 {
 	"app_name"		: "modus launcher",
 	"app_version"	: "alpha",
-	"arguments"		: [],
 	"library_paths" : [ "../../../" ],
 
 	"main_window": {

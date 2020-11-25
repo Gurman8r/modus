@@ -7,11 +7,6 @@
 
 namespace ml
 {
-	namespace ImGuiExt
-	{
-		
-	}
-
 	// main window
 	struct ML_CORE_API main_window : event_listener, render_window
 	{

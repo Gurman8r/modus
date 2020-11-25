@@ -206,14 +206,14 @@ namespace ml
 	// context settings
 	struct ML_NODISCARD context_settings final
 	{
-		int32		api				{ context_api_unknown };
-		int32		major			{};
-		int32		minor			{};
-		int32		profile			{ context_profile_any };
-		int32		depth_bits		{};
-		int32		stencil_bits	{};
-		bool		multisample		{};
-		bool		srgb_capable	{};
+		int32		api				{ context_api_opengl };
+		int32		major			{ 4 };
+		int32		minor			{ 6 };
+		int32		profile			{ context_profile_compat };
+		int32		depth_bits		{ 24 };
+		int32		stencil_bits	{ 8 };
+		bool		multisample		{ true };
+		bool		srgb_capable	{ false };
 	};
 
 	inline void from_json(json const & j, context_settings & v)

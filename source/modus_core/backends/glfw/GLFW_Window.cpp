@@ -1,15 +1,7 @@
 #if defined(ML_IMPL_WINDOW_GLFW)
 
+#include "./GLFW.hpp"
 #include "./GLFW_Window.hpp"
-
-#include <glfw/glfw3.h>
-
-#if defined(ML_os_windows)
-#	undef APIENTRY
-#	include <Windows.h>
-#	define GLFW_EXPOSE_NATIVE_WIN32
-#	include <glfw/glfw3native.h>
-#endif
 
 // GLFW CONTEXT
 namespace ml

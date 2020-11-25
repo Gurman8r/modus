@@ -226,10 +226,12 @@ namespace ml::ImGuiExt
 		template <class Fn, class ... Args
 		> bool operator()(Fn && fn, Args && ... args) noexcept
 		{
-			return ImGuiExt::BeginEnd(
+			return ImGuiExt::BeginEnd
+			(
 				&ImGui::BeginMainMenuBar,
 				&ImGui::EndMainMenuBar,
-				ML_forward(fn), ML_forward(args)...);
+				ML_forward(fn), ML_forward(args)...
+			);
 		}
 	};
 }
@@ -485,12 +487,14 @@ namespace ml::ImGuiExt
 		using Line = typename TextLog::Line;
 		
 		using Printer = typename TextLog::Printer;
+
+		using CommandName = typename ds::string;
 		
 		using CommandProc = typename ds::method< void(Line &&) >;
 		
 		using CommandInfo = typename ds::list<ds::string>;
 
-		using CommandData = typename ds::batch_vector<ds::string, CommandInfo, CommandProc>;
+		using CommandData = typename ds::batch_vector<CommandName, CommandInfo, CommandProc>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -530,27 +534,27 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Name = ds::string
+		template <class Name = CommandName
 		> bool AddCommand(Name && name, CommandInfo const & info, CommandProc const & clbk) noexcept
 		{
 			if (this->HasCommand(ML_forward(name))) { return false; }
 			else { Commands.push_back(ML_forward(name), info, clbk); return true; }
 		}
 
-		template <class Name = ds::string
+		template <class Name = CommandName
 		> bool DelCommand(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return false; }
 			else { Commands.erase(*i); return true; }
 		}
 
-		template <class Name = ds::string
+		template <class Name = CommandName
 		> ML_NODISCARD bool HasCommand(Name && name) const noexcept
 		{
 			return Commands.contains<ds::string>(ML_forward(name));
 		}
 
-		template <class Name = ds::string
+		template <class Name = CommandName
 		> ML_NODISCARD std::optional<size_t> GetIndex(Name && name) const noexcept
 		{
 			if (auto const i{ Commands.lookup<ds::string>(ML_forward(name)) }
@@ -558,14 +562,14 @@ namespace ml::ImGuiExt
 			else { return i; }
 		}
 
-		template <class Name = ds::string
+		template <class Name = CommandName
 		> ML_NODISCARD CommandInfo * GetInfo(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
 			else { return std::addressof(Commands.at<CommandInfo>(*i)); }
 		}
 
-		template <class Name = ds::string
+		template <class Name = CommandName
 		> ML_NODISCARD CommandProc * GetProc(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }

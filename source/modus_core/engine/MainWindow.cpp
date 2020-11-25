@@ -59,7 +59,7 @@ namespace ml
 
 		// install callbacks
 		{
-			static event_bus * helper; helper = get_bus();
+			static event_bus * helper; ML_assert(helper = get_bus());
 			set_char_callback([](auto w, auto ... x) { helper->fire<window_char_event>(x...); });
 			set_char_mods_callback([](auto w, auto ... x) { helper->fire<window_char_mods_event>(x...); });
 			set_close_callback([](auto w, auto ... x) { helper->fire<window_close_event>(x...); });

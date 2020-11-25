@@ -375,7 +375,7 @@ namespace ml::ds
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class Tx, class Ty, size_t W, size_t H
-	> ML_NODISCARD constexpr auto & operator+=(matrix<Tx, W, H> & lhs, Ty const rhs) noexcept
+	> constexpr auto operator+=(matrix<Tx, W, H> & lhs, Ty const rhs) noexcept -> auto &
 	{
 		for (auto & e : lhs)
 		{
@@ -385,7 +385,7 @@ namespace ml::ds
 	}
 
 	template <class Tx, class Ty, size_t W, size_t H
-	> ML_NODISCARD constexpr auto & operator-=(matrix<Tx, W, H> & lhs, Ty const rhs) noexcept
+	> constexpr auto operator-=(matrix<Tx, W, H> & lhs, Ty const rhs) noexcept -> auto &
 	{
 		for (auto & e : lhs)
 		{
@@ -395,7 +395,7 @@ namespace ml::ds
 	}
 
 	template <class Tx, class Ty, size_t W, size_t H
-	> ML_NODISCARD constexpr auto & operator*=(matrix<Tx, W, H> & lhs, Ty const rhs) noexcept
+	> constexpr auto operator*=(matrix<Tx, W, H> & lhs, Ty const rhs) noexcept -> auto &
 	{
 		for (auto & e : lhs)
 		{
@@ -405,7 +405,7 @@ namespace ml::ds
 	}
 
 	template <class Tx, class Ty, size_t W, size_t H
-	> ML_NODISCARD constexpr auto & operator/=(matrix<Tx, W, H> & lhs, Ty const rhs) noexcept
+	> constexpr auto operator/=(matrix<Tx, W, H> & lhs, Ty const rhs) noexcept -> auto &
 	{
 		for (auto & e : lhs)
 		{

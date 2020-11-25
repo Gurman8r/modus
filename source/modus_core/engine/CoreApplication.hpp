@@ -117,11 +117,6 @@ namespace ml
 			return m_app_version = value;
 		}
 
-		auto set_arguments(ds::list<ds::string> const & value) -> ds::list<ds::string> &
-		{
-			return m_arguments = value;
-		}
-
 		auto set_attributes(json const & value) noexcept -> json &
 		{
 			return m_attributes = value;

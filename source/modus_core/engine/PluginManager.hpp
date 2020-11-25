@@ -151,20 +151,33 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Ev
+		> void send_event(size_t i, Ev && value) noexcept
+		{
+			m_data.at<plugin_instance>(i)->on_event(ML_forward(value));
+		}
+
+		template <class Ev, class ... Args
+		> void send_event(size_t i, Args && ... args) noexcept
+		{
+			m_data.at<plugin_instance>(i)->on_event(Ev{ ML_forward(args)... });
+		}
+
+		template <class Ev
 		> void send_event(plugin_id id, Ev && value) noexcept
 		{
-			if (auto i{ m_data.lookup<plugin_id>(id) }; i != m_data.npos)
+			if (size_t const i{ m_data.lookup<plugin_id>(id) }; i != m_data.npos)
 			{
-				auto & p{ m_data.at<plugin_instance>(i) };
-
-				p->on_event(ML_forward(value));
+				this->send_event(i, ML_forward(value));
 			}
 		}
 
 		template <class Ev, class ... Args
 		> void send_event(plugin_id id, Args && ... args) noexcept
 		{
-			this->send_event(id, Ev{ ML_forward(args)... });
+			if (size_t const i{ m_data.lookup<plugin_id>(id) }; i != m_data.npos)
+			{
+				this->send_event<Ev>(i, ML_forward(args)...);
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

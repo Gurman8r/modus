@@ -41,7 +41,7 @@
 #include <imgui/imgui_internal.h>
 #include <imgui_club/imgui_memory_editor/imgui_memory_editor.h>
 
-#ifdef ML_IMPL_IMGUI_EXTRAS
+#if 0
 #include <ImGuizmo/ImGuizmo.h>
 #include <ImGuizmo/ImSequencer.h>
 #include <ImGuizmo/ImCurveEdit.h>

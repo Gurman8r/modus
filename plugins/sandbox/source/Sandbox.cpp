@@ -78,7 +78,7 @@ namespace ml
 			case app_idle_event::ID: {
 				auto && ev{ (app_idle_event &&)value };
 
-				auto const dt{ get_app()->get_main_loop()->delta_time() };
+				auto dt{ get_app()->get_main_loop()->delta_time() };
 
 				m_clear_color = util::rotate_hue(m_clear_color, dt * 10);
 				
@@ -104,44 +104,45 @@ namespace ml
 	
 			case imgui_render_event::ID: {
 				auto && ev{ (imgui_render_event &&)value };
-
-				// MENUBAR
-				(*get_app()->get_main_window()->get_menubar())([&]()
-				{
-					if (ImGui::BeginMenu("file")) {
-						if (ImGui::MenuItem("new")) {
-						}
-						if (ImGui::MenuItem("open")) {
-						}
-						ImGui::Separator();
-						if (ImGui::MenuItem("close")) {
-						}
-						ImGui::Separator();
-						if (ImGui::MenuItem("save")) {
-						}
-						if (ImGui::MenuItem("save as")) {
-						}
-						ImGui::Separator();
-						if (ImGui::MenuItem("quit", "alt+f4")) {
-							get_app()->quit();
-						}
-						ImGui::EndMenu();
-					}
-					if (ImGui::BeginMenu("tools")) {
-						ImGuiExt::MenuItem(m_panels + terminal_panel);
-						ImGuiExt::MenuItem(m_panels + viewport_panel);
-						ImGui::EndMenu();
-					}
-				});
-				
+				draw_menubar(); // MENUBAR
 				draw_viewport(); // VIEWPORT
 				draw_terminal(); // TERMINAL
-
 			} break;
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void draw_menubar()
+		{
+			(*get_app()->get_main_window()->get_menubar())([&]()
+			{
+				if (ImGui::BeginMenu("file")) {
+					if (ImGui::MenuItem("new")) {
+					}
+					if (ImGui::MenuItem("open")) {
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("close")) {
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("save")) {
+					}
+					if (ImGui::MenuItem("save as")) {
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("quit", "alt+f4")) {
+						get_app()->get_main_loop()->halt();
+					}
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("tools")) {
+					ImGuiExt::MenuItem(m_panels + terminal_panel);
+					ImGuiExt::MenuItem(m_panels + viewport_panel);
+					ImGui::EndMenu();
+				}
+			});
+		}
 
 		void draw_viewport()
 		{
@@ -242,7 +243,8 @@ namespace ml
 
 				// help
 				m_term.AddCommand("help", {}, [&](auto line) {
-					for (auto const & name : m_term.Commands.get<0>()) {
+					using Name = ImGuiExt::Terminal::CommandName;
+					for (auto const & name : m_term.Commands.get<Name>()) {
 						debug::puts("- {0}", name);
 					}
 				});

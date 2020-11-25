@@ -22,14 +22,6 @@
 #	include <variant>
 #endif
 
-#if (ML_has_cxx20)
-#	include <compare>
-#	include <concepts>
-#	include <format>
-#	include <numbers>
-#	include <ranges>
-#endif
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // root namespace

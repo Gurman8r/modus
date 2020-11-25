@@ -125,8 +125,8 @@ namespace ml::gfx
 	private:
 		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_render_context> };
 
-		spec_type	m_desc		{}; // context settings
 		uint32		m_handle	{}; // pipeline handle (WIP)
+		spec_type	m_desc		{}; // context settings
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		

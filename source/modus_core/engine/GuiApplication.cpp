@@ -11,8 +11,10 @@ namespace ml
 
 	gui_application::gui_application(int32 argc, char * argv[], allocator_type alloc)
 		: core_application	{ argc, argv, alloc }
-		, m_main_window		{ get_bus(), alloc }
-		, m_main_loop		{ get_bus(), alloc }
+		, event_listener	{ &m_dispatcher }
+		, m_dispatcher		{ alloc }
+		, m_main_window		{ &m_dispatcher, alloc }
+		, m_main_loop		{ &m_dispatcher, alloc }
 		, m_fps_tracker		{}
 	{
 		ML_assert(begin_singleton<gui_application>(this));
@@ -24,14 +26,16 @@ namespace ml
 		main_window::set_error_callback([](int32 code, cstring desc) { /* TODO */ });
 
 		m_main_loop.set_loop_condition(&main_window::is_open, &m_main_window);
-		m_main_loop.set_enter_callback([&]() { get_bus()->fire<app_enter_event>(); });
-		m_main_loop.set_exit_callback([&]() { get_bus()->fire<app_exit_event>(); });
-		m_main_loop.set_idle_callback([&](auto) { get_bus()->fire<app_idle_event>(); });
+		m_main_loop.set_enter_callback([&]() { m_dispatcher.fire<app_enter_event>(); });
+		m_main_loop.set_exit_callback([&]() { m_dispatcher.fire<app_exit_event>(); });
+		m_main_loop.set_idle_callback([&](auto) { m_dispatcher.fire<app_idle_event>(); });
 	}
 
 	gui_application::~gui_application() noexcept
 	{
 		main_window::finalize();
+
+		unsubscribe(); // manual unsubscribe required
 
 		ML_assert(end_singleton<gui_application>(this));
 	}
@@ -66,7 +70,6 @@ namespace ml
 
 	void gui_application::on_event(event const & value)
 	{
-		core_application::on_event(value);
 		switch (value)
 		{
 		case app_enter_event::ID: {
@@ -133,10 +136,10 @@ namespace ml
 
 				(*dockspace)(context->Viewports[0], [&](auto) noexcept
 				{
-					get_bus()->fire<imgui_dockspace_event>(dockspace);
+					m_dispatcher.fire<imgui_dockspace_event>(dockspace);
 				});
 
-				get_bus()->fire<imgui_render_event>(context);
+				m_dispatcher.fire<imgui_render_event>(context);
 			});
 
 		} break;

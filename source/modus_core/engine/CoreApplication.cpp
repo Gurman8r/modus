@@ -7,15 +7,13 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	core_application::core_application(int32 argc, char * argv[], allocator_type alloc)
-		: event_listener	{ &m_dispatcher }
+		: m_exit_code		{ EXIT_SUCCESS }
 		, m_app_file_name	{ argv[0] }
 		, m_app_file_path	{ fs::current_path() }
 		, m_app_name		{ fs::path{ argv[0] }.stem().string(), alloc }
 		, m_app_version		{ alloc }
 		, m_arguments		{ argv, argv + argc, alloc }
 		, m_library_paths	{ alloc }
-		, m_exit_code		{ EXIT_SUCCESS }
-		, m_dispatcher		{ alloc }
 	{
 		ML_assert(begin_singleton<core_application>(this));
 	}
@@ -23,8 +21,6 @@ namespace ml
 	core_application::~core_application() noexcept
 	{
 		finalize_interpreter();
-
-		unsubscribe(); // need to unsubscribe manually
 
 		ML_assert(end_singleton<core_application>(this));
 	}
@@ -61,26 +57,6 @@ namespace ml
 		if (Py_IsInitialized())
 		{
 			Py_FinalizeEx();
-		}
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void core_application::on_event(event const & value)
-	{
-		switch (value)
-		{
-		case app_enter_event::ID: {
-			auto && ev{ (app_enter_event &&)value };
-		} break;
-
-		case app_exit_event::ID: {
-			auto && ev{ (app_exit_event &&)value };
-		} break;
-
-		case app_idle_event::ID: {
-			auto && ev{ (app_idle_event &&)value };
-		} break;
 		}
 	}
 

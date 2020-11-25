@@ -6,7 +6,7 @@
 namespace ml
 {
 	// core application
-	struct ML_CORE_API core_application : non_copyable, trackable, event_listener
+	struct ML_CORE_API core_application : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -136,12 +136,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
-		virtual void on_event(event const & value) override;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	private:
+		int32					m_exit_code		; // 
 		fs::path				m_app_file_name	; // 
 		fs::path				m_app_file_path	; // 
 		ds::string				m_app_name		; // 
@@ -149,8 +145,6 @@ namespace ml
 		ds::list<ds::string>	m_arguments		; // 
 		json					m_attributes	; // 
 		ds::list<fs::path>		m_library_paths	; // 
-		int32					m_exit_code		; // 
-		event_bus				m_dispatcher	; // 
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

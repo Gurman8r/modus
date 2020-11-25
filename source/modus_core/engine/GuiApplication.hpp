@@ -9,7 +9,7 @@
 namespace ml
 {
 	// gui application
-	struct ML_CORE_API gui_application : core_application
+	struct ML_CORE_API gui_application : core_application, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -70,6 +70,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
+		event_bus		m_dispatcher	; // event bus
 		loop_system		m_main_loop		; // main loop
 		main_window		m_main_window	; // main window
 		fps_tracker<>	m_fps_tracker	; // fps tracker

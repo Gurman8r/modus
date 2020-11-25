@@ -78,7 +78,7 @@ namespace ml
 			case app_idle_event::ID: {
 				auto && ev{ (app_idle_event &&)value };
 
-				auto dt{ get_app()->get_main_loop()->delta_time() };
+				auto const dt{ get_app()->get_main_loop()->delta_time() };
 
 				m_clear_color = util::rotate_hue(m_clear_color, dt * 10);
 				

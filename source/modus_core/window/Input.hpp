@@ -1,7 +1,7 @@
 #ifndef _ML_INPUT_HPP_
 #define _ML_INPUT_HPP_
 
-#include <modus_core/detail/Array.hpp>
+#include <modus_core/detail/Matrix.hpp>
 
 namespace ml
 {
@@ -172,6 +172,13 @@ namespace ml
 	ML_alias keyboard_state = typename ds::array<int32, keycode_MAX>;
 
 	ML_alias mouse_state = typename ds::array<int32, mouse_button_MAX>;
+
+	struct ML_NODISCARD input_state final
+	{
+		vec2d			cursor_pos	; // cursor position
+		keyboard_state	keyboard	; // keyboard state
+		mouse_state		mouse		; // mouse state
+	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

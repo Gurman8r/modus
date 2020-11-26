@@ -79,7 +79,7 @@ namespace ml
 			set_scroll_callback([](auto w, auto ... x) { b->fire<window_scroll_event>(x...); });
 		}
 
-		// imgui
+		// setup imgui
 		if (!_ML ImGui_Init(get_handle(), true))
 		{
 			return debug::failure("failed starting imgui");

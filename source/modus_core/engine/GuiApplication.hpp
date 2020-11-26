@@ -17,13 +17,6 @@ namespace ml
 	public:
 		using core_application::allocator_type;
 
-		struct ML_NODISCARD input_state final
-		{
-			vec2d			cursor_pos	; // 
-			keyboard_state	keyboard	; // 
-			mouse_state		mouse		; // 
-		};
-
 		explicit gui_application(int32 argc, char * argv[], allocator_type alloc = {});
 
 		virtual ~gui_application() noexcept override;
@@ -70,15 +63,15 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	protected:
+		virtual void on_event(event const & value) override;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	public:
 		ML_NODISCARD std::optional<fs::path> open_file_name(ds::string const & filter = "") const;
 
 		ML_NODISCARD std::optional<fs::path> save_file_name(ds::string const & filter = "") const;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -87,7 +80,7 @@ namespace ml
 		loop_system		m_main_loop		; // main loop
 		main_window		m_main_window	; // main window
 		fps_tracker<>	m_fps_tracker	; // fps tracker
-		input_state		m_input_state			; // input state
+		input_state		m_input_state	; // input state
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

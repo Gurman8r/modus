@@ -40,14 +40,22 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <imgui_club/imgui_memory_editor/imgui_memory_editor.h>
+#include <ImGuizmo/ImGuizmo.h>
 
 #if 0
-#include <ImGuizmo/ImGuizmo.h>
 #include <ImGuizmo/ImSequencer.h>
 #include <ImGuizmo/ImCurveEdit.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <imgui-node-editor/imgui_node_editor.h>
 #endif
+
+namespace
+{
+	static inline ImVec2 operator-(const ImVec2 & lhs, const ImVec2 & rhs) noexcept
+	{
+		return ImVec2{ lhs.x - rhs.x, lhs.y - rhs.y };
+	}
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

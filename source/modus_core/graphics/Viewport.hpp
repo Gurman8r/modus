@@ -159,18 +159,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void update() noexcept
-		{
-			if (m_resolution == vec2i::zero()) { return; }
-
-			for (framebuffer_ref const & fb : m_fb)
-			{
-				fb->resize(m_resolution);
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	private:
 		color				m_clear_color	; // 
 		int32				m_clear_flags	; // 

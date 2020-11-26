@@ -305,10 +305,11 @@ namespace ml
 
 		void process_events() noexcept
 		{
-			for (auto const & ev : m_queue)
+			std::for_each(m_queue.begin(), m_queue.end(), [&
+			](ds::scope<event> const & ev) noexcept
 			{
 				this->fire(*ev.get());
-			}
+			});
 			m_queue.clear();
 		}
 

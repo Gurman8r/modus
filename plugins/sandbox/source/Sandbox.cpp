@@ -24,12 +24,14 @@ namespace ml
 		{
 			viewport_panel,
 			terminal_panel,
+			imguizmo_panel,
 			MAX_PANEL
 		};
 		ImGuiExt::Panel m_panels[MAX_PANEL]
 		{
 			{ "viewport", true, ImGuiWindowFlags_MenuBar },
 			{ "terminal", true, ImGuiWindowFlags_MenuBar },
+			{ "imguizmo", false, ImGuiWindowFlags_None },
 		};
 
 		// terminal
@@ -37,7 +39,39 @@ namespace ml
 		ImGuiExt::Terminal m_term{};
 
 		// rendering
+		camera m_camera{};
 		viewport m_viewport{};
+
+		// ImGuizmo
+		int32 gizmoCount{ 1 };
+		int32 lastUsing{ 0 };
+		mat4 objectMatrix[4] =
+		{
+			{
+				1.f, 0.f, 0.f, 0.f,
+				0.f, 1.f, 0.f, 0.f,
+				0.f, 0.f, 1.f, 0.f,
+				0.f, 0.f, 0.f, 1.f
+			},
+			{
+				1.f, 0.f, 0.f, 0.f,
+				0.f, 1.f, 0.f, 0.f,
+				0.f, 0.f, 1.f, 0.f,
+				2.f, 0.f, 0.f, 1.f
+			},
+			{
+				1.f, 0.f, 0.f, 0.f,
+				0.f, 1.f, 0.f, 0.f,
+				0.f, 0.f, 1.f, 0.f,
+				2.f, 0.f, 2.f, 1.f
+			},
+			{
+				1.f, 0.f, 0.f, 0.f,
+				0.f, 1.f, 0.f, 0.f,
+				0.f, 0.f, 1.f, 0.f,
+				0.f, 0.f, 2.f, 1.f
+			}
+		};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -50,7 +84,10 @@ namespace ml
 				app_exit_event,
 				app_idle_event,
 				imgui_dockspace_event,
-				imgui_render_event
+				imgui_render_event,
+				window_cursor_pos_event,
+				window_key_event,
+				window_mouse_event
 			>();
 		}
 
@@ -58,69 +95,96 @@ namespace ml
 		{
 			switch (value)
 			{
-			case app_enter_event::ID: {
-				auto && ev{ (app_enter_event &&)value };
-
-				if (bitmap const icon{ get_app()->path_to("resource/modus_launcher.png"), false })
-				{
-					get_app()->get_main_window()->set_icon(icon);
-				}
-
-				m_viewport.set_clear_color({ 0.223f, 0.f, 0.46f, 1.f });
-				m_viewport.set_clear_flags(gfx::clear_color | gfx::clear_depth);
-				m_viewport.set_resolution({ 1280, 720 });
-				m_viewport.new_framebuffer();
-
-			} break;
-	
-			case app_exit_event::ID: {
-				auto && ev{ (app_exit_event &&)value };
-			} break;
-	
-			case app_idle_event::ID: {
-				auto && ev{ (app_idle_event &&)value };
-
-				ML_defer(&) { m_term.Output.Dump(m_cout.sstr()); };
-
-				auto const dt{ get_app()->get_main_loop()->delta_time() };
-
-				auto const cc{ util::rotate_hue(m_viewport.get_clear_color(), dt * 10) };
-				
-				m_viewport.set_clear_color(cc);
-				
-				m_viewport.update();
-
-				get_app()->get_main_window()->get_render_context()->execute
-				(
-					gfx::command::bind_framebuffer(m_viewport.get_framebuffer(0)),
-					gfx::command::set_clear_color(m_viewport.get_clear_color()),
-					gfx::command::clear(m_viewport.get_clear_flags()),
-					[&](gfx::render_context * ctx)
-					{
-						/* custom rendering */
-					},
-					gfx::command::bind_framebuffer(nullptr)
-				);
-				
-			} break;
-	
-			case imgui_dockspace_event::ID: {
-				auto && ev{ (imgui_dockspace_event &&)value };
-				ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, ev->GetID());
-			} break;
-	
-			case imgui_render_event::ID: {
-				auto && ev{ (imgui_render_event &&)value };
-				draw_menubar(); // MENUBAR
-				draw_viewport(); // VIEWPORT
-				draw_terminal(); // TERMINAL
-			} break;
+			case app_enter_event		::ID: return on_app_enter((app_enter_event &&)value);
+			case app_exit_event			::ID: return on_app_exit((app_exit_event &&)value);
+			case app_idle_event			::ID: return on_app_idle((app_idle_event &&)value);
+			case imgui_dockspace_event	::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
+			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event &&)value);
+			case window_cursor_pos_event::ID: return on_window_cursor_pos((window_cursor_pos_event &&)value);
+			case window_key_event		::ID: return on_window_key((window_key_event &&)value);
+			case window_mouse_event		::ID: return on_window_mouse((window_mouse_event &&)value);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void draw_menubar()
+		void on_app_enter(app_enter_event const & ev)
+		{
+			if (bitmap const icon{ get_app()->path_to("resource/modus_launcher.png"), false })
+			{
+				get_app()->get_main_window()->set_icon(icon);
+			}
+
+			m_viewport.set_clear_color({ 0.223f, 0.f, 0.46f, 1.f });
+			m_viewport.set_clear_flags(gfx::clear_color | gfx::clear_depth);
+			m_viewport.set_resolution({ 1280, 720 });
+			m_viewport.new_framebuffer();
+		}
+
+		void on_app_exit(app_exit_event const & ev)
+		{
+		}
+
+		void on_app_idle(app_idle_event const & ev)
+		{
+			ML_defer(&) { m_term.Output.Dump(m_cout.sstr()); };
+
+			auto const dt{ get_app()->get_main_loop()->delta_time() };
+
+			auto const cc{ util::rotate_hue(m_viewport.get_clear_color(), dt * 10) };
+
+			m_viewport.set_clear_color(cc);
+
+			for (auto const & fb : m_viewport.get_framebuffers())
+			{
+				fb->resize(m_viewport.get_resolution());
+			}
+
+			gfx::draw_list draw_list
+			{
+				gfx::command::bind_framebuffer(m_viewport.get_framebuffer(0)),
+				gfx::command::set_clear_color(m_viewport.get_clear_color()),
+				gfx::command::clear(m_viewport.get_clear_flags()),
+				[&](gfx::render_context * ctx) noexcept { /* custom rendering */ },
+				gfx::command::bind_framebuffer(nullptr)
+			};
+
+			get_app()->get_main_window()->get_render_context()->execute(draw_list);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void on_imgui_dockspace(imgui_dockspace_event const & ev)
+		{
+			ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, ev->GetID());
+			ImGui::DockBuilderDockWindow(m_panels[imguizmo_panel].Title, ev->GetID());
+		}
+
+		void on_imgui_render(imgui_render_event const & ev)
+		{
+			draw_menubar(ev); // MENUBAR
+			draw_viewport(ev); // VIEWPORT
+			draw_terminal(ev); // TERMINAL
+			draw_imguizmo(ev); // EDITOR
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void on_window_cursor_pos(window_cursor_pos_event const & ev)
+		{
+		}
+
+		void on_window_key(window_key_event const & ev)
+		{
+		}
+
+		void on_window_mouse(window_mouse_event const & ev)
+		{
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void draw_menubar(imgui_render_event const & ev)
 		{
 			(*get_app()->get_main_window()->get_menubar())([&](auto)
 			{
@@ -144,6 +208,7 @@ namespace ml
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("view")) {
+					ImGuiExt::MenuItem(m_panels + imguizmo_panel);
 					ImGuiExt::MenuItem(m_panels + terminal_panel);
 					ImGuiExt::MenuItem(m_panels + viewport_panel);
 					ImGui::EndMenu();
@@ -151,8 +216,56 @@ namespace ml
 			});
 		}
 
-		void draw_terminal()
+		void draw_terminal(imgui_render_event const & ev)
 		{
+			// setup
+			static ML_block(&)
+			{
+				// session
+				m_term.User = "root";
+				m_term.Host = "localhost";
+				m_term.Path = "~";
+				m_term.Mode = "";
+
+				// clear
+				m_term.AddCommand("clear", {}, [&](auto line) {
+					m_term.Output.Lines.clear();
+				});
+
+				// exit
+				m_term.AddCommand("exit", {}, [&](auto line) {
+					get_app()->quit();
+				});
+
+				// help
+				m_term.AddCommand("help", {}, [&](auto line) {
+					for (auto const & name : m_term.Commands.get<0>()) {
+						debug::puts("- {0}", name);
+					}
+				});
+
+				// history
+				m_term.AddCommand("history", {}, [&](auto line) {
+					for (auto const & str : m_term.History) {
+						debug::puts(str);
+					}
+				});
+
+				// python
+				m_term.AddCommand("python", {}, [&](auto line) {
+					// lock
+					if (m_term.Mode.empty() && line.empty()) {
+						m_term.Mode = "python"; return;
+					}
+					// unlock
+					else if (m_term.Mode == line && line == "python") {
+						m_term.Mode.clear(); return;
+					}
+					// evaluate
+					PyRun_SimpleString(line.c_str());
+				});
+			};
+
 			if (m_panels[terminal_panel].IsOpen) {
 				static auto const winsize{ (vec2)get_app()->get_main_window()->get_size() };
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
@@ -198,59 +311,14 @@ namespace ml
 					m_term.DrawPrefix(); ImGui::SameLine();
 					m_term.DrawInput();
 				});
-	
-				// setup
-				if (!m_term.Commands.empty()) { return; }
-				m_term.User = "root";
-				m_term.Host = "localhost";
-				m_term.Path = "~";
-				m_term.Mode = "";
-
-				// clear
-				m_term.AddCommand("clear", {}, [&](auto line) {
-					m_term.Output.Lines.clear();
-				});
-
-				// exit
-				m_term.AddCommand("exit", {}, [&](auto line) {
-					get_app()->quit();
-				});
-
-				// help
-				m_term.AddCommand("help", {}, [&](auto line) {
-					using Name = ImGuiExt::Terminal::CommandName;
-					for (auto const & name : m_term.Commands.get<Name>()) {
-						debug::puts("- {0}", name);
-					}
-				});
-
-				// history
-				m_term.AddCommand("history", {}, [&](auto line) {
-					for (auto const & str : m_term.History) {
-						debug::puts(str);
-					}
-				});
-
-				// python
-				m_term.AddCommand("python", {}, [&](auto line) {
-					// lock
-					if (m_term.Mode.empty() && line.empty()) {
-						m_term.Mode = "python"; return;
-					}
-					// unlock
-					else if (m_term.Mode == line && line == "python") {
-						m_term.Mode.clear(); return;
-					}
-					// evaluate
-					PyRun_SimpleString(line.c_str());
-				});
 			}))
 			{
 				ImGui::PopStyleVar(1);
 			}
+			
 		}
 
-		void draw_viewport()
+		void draw_viewport(imgui_render_event const & ev)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
 			if (!m_panels[viewport_panel]([&]() noexcept
@@ -287,6 +355,71 @@ namespace ml
 			}))
 			{
 				ImGui::PopStyleVar(1);
+			}
+		}
+
+		void draw_imguizmo(imgui_render_event const & ev)
+		{
+			if (m_panels[imguizmo_panel].IsOpen) {
+
+				if (m_camera.is_perspective) {
+					perspective(m_camera.fov, ev->IO.DisplaySize.x / ev->IO.DisplaySize.y, 0.1f, 100.f, m_camera.proj);
+				}
+				else {
+					float32 view_height{ m_camera.view_width * ev->IO.DisplaySize.y / ev->IO.DisplaySize.x };
+					orthographic(-m_camera.view_width, m_camera.view_width, -view_height, view_height, 1000.f, -1000.f, m_camera.proj);
+				}
+				ImGuizmo::SetOrthographic(!m_camera.is_perspective);
+				ImGuizmo::BeginFrame();
+
+				ImGui::SetNextWindowPos({ 10, 10 }, ImGuiCond_Once);
+				ImGui::SetNextWindowSize({ 320, 340 }, ImGuiCond_Once);
+			}
+			if (!m_panels[imguizmo_panel]([&]() noexcept
+			{
+				ImGui::Text("Camera");
+				bool viewDirty = false;
+				if (ImGui::RadioButton("Perspective", m_camera.is_perspective)) m_camera.is_perspective = true;
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Orthographic", !m_camera.is_perspective)) m_camera.is_perspective = false;
+				if (m_camera.is_perspective)
+				{
+					ImGui::SliderFloat("Fov", &m_camera.fov, 20.f, 110.f);
+				}
+				else
+				{
+					ImGui::SliderFloat("Ortho width", &m_camera.view_width, 1, 20);
+				}
+				viewDirty |= ImGui::SliderFloat("Distance", &m_camera.distance, 1.f, 10.f);
+				ImGui::SliderInt("Gizmo count", &gizmoCount, 1, 4);
+
+				if (static bool first_frame{ true }
+				; viewDirty || (first_frame && !(first_frame = false)))
+				{
+					vec3 eye{
+						std::cosf(m_camera.x_angle) * std::cosf(m_camera.y_angle) * m_camera.distance,
+						std::sinf(m_camera.y_angle) * m_camera.distance,
+						std::sinf(m_camera.x_angle) * std::cosf(m_camera.y_angle) * m_camera.distance
+					};
+					vec3 at{ 0.f, 0.f, 0.f };
+					vec3 up{ 0.f, 1.f, 0.f };
+					look_at(eye, at, up, m_camera.view);
+				}
+
+				ImGui::Text("X: %f Y: %f", ev->IO.MousePos.x, ev->IO.MousePos.y);
+				ImGuizmo::DrawGrid(m_camera.view, m_camera.proj, mat4::identity(), 100.f);
+				ImGuizmo::DrawCubes(m_camera.view, m_camera.proj, &objectMatrix[0][0], gizmoCount);
+				ImGui::Separator();
+				for (int32 matId = 0; matId < gizmoCount; matId++)
+				{
+					ImGuizmo::SetID(matId);
+
+					ImGuiExt::EditTransform(m_camera.view, m_camera.proj, objectMatrix[matId], lastUsing == matId);
+					
+					if (ImGuizmo::IsUsing()) { lastUsing = matId; }
+				}
+			}))
+			{
 			}
 		}
 

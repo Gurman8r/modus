@@ -41,7 +41,7 @@ namespace ml
 	ds::list<monitor_handle> const & glfw_context::get_monitors()
 	{
 		static ds::list<monitor_handle> temp{};
-		static ML_scope(&) // once
+		static ML_block(&) // once
 		{
 			if (int32 count{}; GLFWmonitor * *monitors{ glfwGetMonitors(&count) })
 			{

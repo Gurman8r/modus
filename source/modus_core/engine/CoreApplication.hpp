@@ -107,24 +107,32 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto set_app_name(ds::string const & value) noexcept -> ds::string &
+		void set_app_name(ds::string const & value) noexcept
 		{
-			return m_app_name = value;
+			if (m_app_name != value) {
+				m_app_name = value;
+			}
 		}
 
-		auto set_app_version(ds::string const & value) noexcept -> ds::string &
+		void set_app_version(ds::string const & value) noexcept
 		{
-			return m_app_version = value;
+			if (m_app_version != value) {
+				m_app_version = value;
+			}
 		}
 
-		auto set_attributes(json const & value) noexcept -> json &
+		void set_attributes(json const & value) noexcept
 		{
-			return m_attributes = value;
+			if (m_attributes != value) {
+				m_attributes = value;
+			}
 		}
 
-		auto set_library_paths(ds::list<fs::path> const & value) noexcept -> ds::list<fs::path> &
+		void set_library_paths(ds::list<fs::path> const & value) noexcept
 		{
-			return m_library_paths = value;
+			if (m_library_paths != value) {
+				m_library_paths = value;
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

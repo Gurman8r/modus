@@ -34,7 +34,10 @@ namespace ml
 		main_window::set_error_callback([](int32 code, cstring desc) { /* TODO */ });
 
 		m_main_loop.set_loop_condition(&main_window::is_open, &m_main_window);
-		m_main_loop.set_enter_callback([&]() { m_dispatcher.fire<app_enter_event>(); });
+		m_main_loop.set_enter_callback([&]()
+		{
+			m_dispatcher.fire<app_enter_event>();
+		});
 		m_main_loop.set_exit_callback([&]() { m_dispatcher.fire<app_exit_event>(); });
 		m_main_loop.set_idle_callback([&](auto) { m_dispatcher.fire<app_idle_event>(); });
 	}
@@ -46,32 +49,6 @@ namespace ml
 		unsubscribe(); // manual unsubscribe required
 
 		ML_assert(end_singleton<gui_application>(this));
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	std::optional<fs::path> gui_application::open_file_name(ds::string const & filter) const
-	{
-		if (m_main_window.is_open())
-		{
-			return platform_api::open_file_name(m_main_window.get_native_handle(), filter.c_str());
-		}
-		else
-		{
-			return std::nullopt;
-		}
-	}
-
-	std::optional<fs::path> gui_application::save_file_name(ds::string const & filter) const
-	{
-		if (m_main_window.is_open())
-		{
-			return platform_api::save_file_name(m_main_window.get_native_handle(), filter.c_str());
-		}
-		else
-		{
-			return std::nullopt;
-		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -166,6 +143,32 @@ namespace ml
 			auto && ev{ (window_mouse_event &&)value };
 			m_input_state.keyboard[ev.button] = ev.action;
 		} break;
+		}
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	std::optional<fs::path> gui_application::open_file_name(ds::string const & filter) const
+	{
+		if (m_main_window.is_open())
+		{
+			return platform_api::open_file_name(m_main_window.get_native_handle(), filter.c_str());
+		}
+		else
+		{
+			return std::nullopt;
+		}
+	}
+
+	std::optional<fs::path> gui_application::save_file_name(ds::string const & filter) const
+	{
+		if (m_main_window.is_open())
+		{
+			return platform_api::save_file_name(m_main_window.get_native_handle(), filter.c_str());
+		}
+		else
+		{
+			return std::nullopt;
 		}
 	}
 

@@ -8,27 +8,27 @@
 namespace ml::impl
 {
     // invoke function in constructor
-    template <class Fn> struct ML_NODISCARD scope_impl final
+    template <class Fn> struct ML_NODISCARD block_impl final
     {
-        scope_impl(Fn && fn) noexcept { ML_forward(fn)(); }
+        block_impl(Fn && fn) noexcept { ML_forward(fn)(); }
     };
 
-    enum class ML_NODISCARD scope_tag {};
+    enum class ML_NODISCARD block_tag {};
 
     template <class Fn
-    > ML_NODISCARD auto operator+(scope_tag, Fn && fn) noexcept
+    > ML_NODISCARD auto operator+(block_tag, Fn && fn) noexcept
     {
-        return scope_impl<Fn>{ ML_forward(fn) };
+        return block_impl<Fn>{ ML_forward(fn) };
     }
 }
 
-// scope ex
-#define ML_scope_ex(...) \
-    _ML impl::scope_tag{} + [##__VA_ARGS__]() noexcept
+// block ex
+#define ML_block_ex(...) \
+    _ML impl::block_tag{} + [##__VA_ARGS__]() noexcept
 
-// scope
-#define ML_scope(...) \
-    auto ML_anon = ML_scope_ex(##__VA_ARGS__)
+// block
+#define ML_block(...) \
+    auto ML_anon = ML_block_ex(##__VA_ARGS__)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -7,8 +7,8 @@
 namespace ml::gfx
 {
 	// execute commands
-	template <class Ctx, class Arg0, class ... Args
-	> static void execute(Ctx && ctx, Arg0 && arg0, Args && ... args) noexcept
+	template <class Context, class Arg0, class ... Args
+	> static void execute(Context && ctx, Arg0 && arg0, Args && ... args) noexcept
 	{
 		ML_assert(ctx);
 
@@ -20,10 +20,11 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// render command
-	class command : public ds::method< void(render_context *) >
+	struct command : ds::method< void(render_context *) >
 	{
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		command() noexcept : method{} {}
 
 		template <class Fn, class ... Args
 		> command(Fn && fn, Args && ... args) noexcept
@@ -208,20 +209,82 @@ namespace ml::gfx
 	};
 }
 
-// TECHNIQUE
+// DRAW LIST
 namespace ml::gfx
 {
-	// technique
-	class technique : public command
+	// draw list
+	struct draw_list : command
 	{
-	public:
-		template <class Arg0, class ... Args
-		> technique(Arg0 && arg0, Args && ... args) noexcept : command{ std::bind
-		(
-			&gfx::execute, std::placeholders::_1, ML_forward(arg0), ML_forward(args)...
-		)}
+		template <class ... Args
+		> draw_list(std::allocator_arg_t, pmr::polymorphic_allocator<byte> alloc, Args && ... args) noexcept
+			: command{ [&](auto ctx) noexcept
+			{
+				for (ds::scope<command> const & cmd : m_commands)
+				{
+					ctx->execute(*cmd);
+				}
+			} }
+			, m_commands{ alloc }
+		{
+			m_commands.reserve(sizeof...(args));
+
+			meta::for_args([&](auto && cmd) noexcept
+			{
+				this->add_command(ML_forward(cmd));
+			}
+			, ML_forward(args)...);
+		}
+
+		template <class ... Args
+		> draw_list(Args && ... args) noexcept
+			: draw_list{ std::allocator_arg, {}, ML_forward(args)... }
 		{
 		}
+
+		void add_command(command const & value)
+		{
+			if (value && this != std::addressof(value))
+			{
+				this->new_command(value);
+			}
+		}
+
+		void add_command(command && value) noexcept
+		{
+			if (value && this != std::addressof(value))
+			{
+				this->new_command(std::move(value));
+			}
+		}
+
+		template <class Cmd = command, class ... Args
+		> void new_command(Args && ... args) noexcept
+		{
+			m_commands.emplace_back(new Cmd{ ML_forward(args)... });
+		}
+
+		ML_NODISCARD auto operator*() & noexcept -> ds::list<ds::scope<command>> &
+		{
+			return m_commands;
+		}
+
+		ML_NODISCARD auto operator*() const & noexcept -> ds::list<ds::scope<command>> const &
+		{
+			return m_commands;
+		}
+
+		ML_NODISCARD auto operator->() noexcept -> ds::list<ds::scope<command>> *
+		{
+			return &m_commands;
+		}
+
+		ML_NODISCARD auto operator->() const noexcept -> ds::list<ds::scope<command>> const *
+		{
+			return &m_commands;
+		}
+
+	private:
+		ds::list<ds::scope<command>> m_commands;
 	};
 }
 

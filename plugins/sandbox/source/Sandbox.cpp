@@ -143,7 +143,7 @@ namespace ml
 					}
 					ImGui::EndMenu();
 				}
-				if (ImGui::BeginMenu("tools")) {
+				if (ImGui::BeginMenu("view")) {
 					ImGuiExt::MenuItem(m_panels + terminal_panel);
 					ImGuiExt::MenuItem(m_panels + viewport_panel);
 					ImGui::EndMenu();

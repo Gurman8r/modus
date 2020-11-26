@@ -189,22 +189,28 @@ namespace ml
 			(*get_app()->get_main_window()->get_menubar())([&](auto)
 			{
 				if (ImGui::BeginMenu("file")) {
-					if (ImGui::MenuItem("new")) {
-					}
-					if (ImGui::MenuItem("open")) {
-					}
+					if (ImGui::MenuItem("new", "ctrl+n")) {}
+					if (ImGui::MenuItem("open", "ctrl+o")) {}
 					ImGui::Separator();
-					if (ImGui::MenuItem("close")) {
-					}
+					if (ImGui::MenuItem("close")) {}
 					ImGui::Separator();
-					if (ImGui::MenuItem("save")) {
-					}
-					if (ImGui::MenuItem("save as")) {
-					}
+					if (ImGui::MenuItem("save", "ctrl+s")) {}
+					if (ImGui::MenuItem("save as", "ctrl+shift+s")) {}
 					ImGui::Separator();
-					if (ImGui::MenuItem("quit", "alt+f4")) {
-						get_app()->quit();
-					}
+					if (ImGui::MenuItem("quit", "alt+f4")) { get_app()->quit(); }
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("edit")) {
+					if (ImGui::MenuItem("undo", "ctrl+z")) {}
+					if (ImGui::MenuItem("redo", "ctrl+y")) {}
+					ImGui::Separator();
+					if (ImGui::MenuItem("cut", "ctrl+x")) {}
+					if (ImGui::MenuItem("copy", "ctrl+c")) {}
+					if (ImGui::MenuItem("paste", "ctrl+v")) {}
+					if (ImGui::MenuItem("duplicate", "ctrl+d")) {}
+					if (ImGui::MenuItem("delete", "del")) {}
+					ImGui::Separator();
+					if (ImGui::MenuItem("select all", "ctrl+a")) {}
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("view")) {

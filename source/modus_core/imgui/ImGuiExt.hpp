@@ -219,6 +219,7 @@ namespace ml::ImGuiExt
 // MAIN MENU BAR
 namespace ml::ImGuiExt
 {
+	// main menu bar (placeholder)
 	struct ML_NODISCARD MainMenuBar final
 	{
 		static constexpr cstring Title{ "##MainMenuBar" };

@@ -6,6 +6,13 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	scene::scene(event_bus * bus, allocator_type alloc) noexcept
+		: event_listener{ bus }
+		, m_entities	{ alloc }
+		, m_registry	{}
+	{
+	}
+
 	scene::~scene() noexcept
 	{
 	}
@@ -14,36 +21,20 @@ namespace ml
 
 	ds::ref<entity> scene::new_entity(ds::string const & name, allocator_type alloc) noexcept
 	{
-		auto & temp
-		{
-			m_entities.emplace_back(alloc_ref<entity>(alloc, this, m_registry.create()))
-		};
-		
-		temp->add_component<tag_component>(!name.empty() ? name : "New Entity");
-		
-		temp->add_component<transform_component>();
-		
-		return temp;
+		auto & e{ m_entities.emplace_back(alloc_ref<entity>(alloc, this, m_registry.create())) };
+		e->add_component<tag_component>(!name.empty() ? name : "New Entity");
+		e->add_component<transform_component>();
+		return e;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool scene::load_from_file(fs::path const & path)
+	void scene::from_json(json const & j)
 	{
-		std::ifstream f{ path }; ML_defer(&f) { f.close(); };
-		if (f)
-		{
-			return load_from_memory(json::parse(f));
-		}
-		else
-		{
-			return debug::failure("failed reading scene file: \'{0}\'", path);
-		}
 	}
 
-	bool scene::load_from_memory(json const & j)
+	void scene::to_json(json & j) const
 	{
-		return false;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

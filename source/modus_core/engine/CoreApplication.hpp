@@ -1,7 +1,7 @@
 #ifndef _ML_CORE_APPLICATION_HPP_
 #define _ML_CORE_APPLICATION_HPP_
 
-#include <modus_core/detail/EventSystem.hpp>
+#include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {

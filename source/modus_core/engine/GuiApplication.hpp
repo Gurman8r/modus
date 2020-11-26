@@ -1,10 +1,11 @@
 #ifndef _ML_GUI_APPLICATION_HPP_
 #define _ML_GUI_APPLICATION_HPP_
 
-#include <modus_core/engine/Performance.hpp>
+#include <modus_core/detail/EventSystem.hpp>
+#include <modus_core/detail/LoopSystem.hpp>
 #include <modus_core/engine/CoreApplication.hpp>
 #include <modus_core/engine/MainWindow.hpp>
-#include <modus_core/detail/LoopSystem.hpp>
+#include <modus_core/engine/Performance.hpp>
 
 namespace ml
 {

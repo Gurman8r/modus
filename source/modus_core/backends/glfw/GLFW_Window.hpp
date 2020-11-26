@@ -10,11 +10,12 @@ struct GLFWmonitor;
 // GLFW CONTEXT
 namespace ml
 {
-	class glfw_context final
+	struct glfw_context final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
+		glfw_context() noexcept = default;
+
 		static int32 initialize();
 
 		static void finalize();
@@ -51,6 +52,8 @@ namespace ml
 	struct glfw_cursor final : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		glfw_cursor() noexcept = default;
 
 		static cursor_handle create_custom_cursor(size_t w, size_t h, byte const * p, int32 x, int32 y);
 

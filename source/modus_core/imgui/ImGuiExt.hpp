@@ -9,7 +9,7 @@
 // SCOPE ID
 namespace ml::ImGuiExt::impl
 {
-	// IMPL SCOPE ID
+	// scoped imgui ID
 	struct ML_NODISCARD ImplScopeID final
 	{
 		template <class ... Args
@@ -230,7 +230,7 @@ namespace ml::ImGuiExt
 			(
 				&ImGui::BeginMainMenuBar,
 				&ImGui::EndMainMenuBar,
-				ML_forward(fn), ML_forward(args)...
+				ML_forward(fn), this, ML_forward(args)...
 			);
 		}
 	};
@@ -263,11 +263,6 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoBackground
 		};
 
-		ML_NODISCARD static bool DockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept
-		{
-			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
-		}
-
 		constexpr Dockspace(
 			cstring			title		= "##MainDockspace",
 			bool			open		= true,
@@ -299,6 +294,11 @@ namespace ml::ImGuiExt
 			other.DockNodeFlags
 		}
 		{}
+
+		ML_NODISCARD static bool DockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept
+		{
+			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
+		}
 
 		void Configure(json const & j)
 		{
@@ -335,8 +335,11 @@ namespace ml::ImGuiExt
 				if (ImGuiID const id{ GetID() }; !ImGui::DockBuilderGetNode(id))
 				{
 					ImGui::DockBuilderRemoveNode(id);
+					
 					ImGui::DockBuilderAddNode(id, DockNodeFlags);
+
 					std::invoke(ML_forward(fn), this, ML_forward(args)...);
+					
 					ImGui::DockBuilderFinish(id);
 				}
 

@@ -39,13 +39,13 @@ namespace ml
 		// open base
 		if (!native_window::open(title, vm, cs, hints)) { return false; }
 
-		// setup device
+		// create device
 		if (m_device.reset(gfx::make_device(cs.api)); !m_device)
 		{
 			return debug::failure("failed creating render device");
 		}
 
-		// setup context
+		// create context
 		set_render_context(m_device->new_context(
 		{
 			cs.api,
@@ -57,7 +57,7 @@ namespace ml
 			cs.multisample,
 			cs.srgb_capable
 		}
-		))->execute
+		))->execute // setup states
 		(
 			// alpha state
 			gfx::command::set_alpha_state

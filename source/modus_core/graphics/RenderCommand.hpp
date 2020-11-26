@@ -10,26 +10,9 @@ namespace ml::gfx
 	template <class Ctx, class Arg0, class ... Args
 	> static void execute(Ctx && ctx, Arg0 && arg0, Args && ... args) noexcept
 	{
-		// do execute
-		auto do_execute = [](auto && cmd, auto && ctx) noexcept
-		{
-			if constexpr (std::is_scalar_v<std::decay_t<decltype(ctx)>>)
-			{
-				std::invoke(ML_forward(cmd), ctx);
-			}
-			else
-			{
-				std::invoke(ML_forward(cmd), ctx.get());
-			}
-		};
+		ML_assert(ctx);
 
-		do_execute(ML_forward(arg0), ML_forward(ctx)); // first
-
-		meta::for_args([&](auto && cmd) noexcept
-		{
-			do_execute(ML_forward(cmd), ML_forward(ctx));
-		}
-		, ML_forward(args)...);
+		ctx->execute(ML_forward(arg0), ML_forward(args)...);
 	}
 }
 
@@ -222,6 +205,23 @@ namespace ml::gfx
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+}
+
+// TECHNIQUE
+namespace ml::gfx
+{
+	// technique
+	class technique : public command
+	{
+	public:
+		template <class Arg0, class ... Args
+		> technique(Arg0 && arg0, Args && ... args) noexcept : command{ std::bind
+		(
+			&gfx::execute, std::placeholders::_1, ML_forward(arg0), ML_forward(args)...
+		)}
+		{
+		}
 	};
 }
 

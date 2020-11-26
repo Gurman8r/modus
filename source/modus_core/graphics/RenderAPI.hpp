@@ -592,25 +592,25 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Arg0, class ... Args
-		> void execute(Arg0 && arg0, Args && ... args) noexcept
-		{
-			std::invoke(ML_forward(arg0), this);
-
-			meta::for_args([&](auto && e) noexcept
-			{
-				std::invoke(ML_forward(e), this);
-			}
-			, ML_forward(args)...);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD virtual object_id get_handle() const noexcept override = 0;
 
 		ML_NODISCARD virtual typeof_t<> const & get_self_type() const noexcept override = 0;
 
 		ML_NODISCARD virtual spec_type const & get_spec() const noexcept = 0;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class First, class ... Rest
+		> void execute(First && first, Rest && ... rest) noexcept
+		{
+			std::invoke(ML_forward(first), this);
+
+			meta::for_args([&](auto && e) noexcept
+			{
+				std::invoke(ML_forward(e), this);
+			}
+			, ML_forward(rest)...);
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -1349,7 +1349,7 @@ namespace ml::gfx
 	// framebuffer specification
 	template <> struct ML_NODISCARD ML_CORE_API spec<framebuffer> final
 	{
-		vec2i			size			{};
+		vec2i			size			{ 1280, 720 };
 		texture_format	format			{ format_rgba };
 		texture_flags_	flags			{ texture_flags_default };
 		vec4i			bits_per_pixel	{ 8, 8, 8, 8 };
@@ -1415,6 +1415,11 @@ namespace ml::gfx
 		virtual void resize(vec2i const & value) = 0;
 
 		ML_NODISCARD virtual ds::list<ds::ref<texture2d>> const & get_color_attachments() const noexcept = 0;
+		
+		ML_NODISCARD inline ds::ref<texture2d> const & get_color_attachment(size_t i) const noexcept
+		{
+			return get_color_attachments()[i];
+		}
 
 		ML_NODISCARD virtual ds::ref<texture2d> const & get_depth_attachment() const noexcept = 0;
 
@@ -1430,7 +1435,7 @@ namespace ml::gfx
 		
 		ML_NODISCARD virtual int32 get_depth_bits() const noexcept = 0;
 		
-		ML_NODISCARD virtual int32 get_samples() const noexcept = 0;
+		ML_NODISCARD virtual int32 get_sample_count() const noexcept = 0;
 		
 		ML_NODISCARD virtual bool is_stereo() const noexcept = 0;
 
@@ -1450,7 +1455,7 @@ namespace ml::gfx
 		{
 			ML_check(get_context().get())->bind_texture
 			(
-				get_color_attachments()[(size_t)slot].get(), slot
+				get_color_attachment((size_t)slot).get(), slot
 			);
 		}
 	};

@@ -107,12 +107,12 @@ namespace ml
 
 		ImGui::Render();
 
-		get_render_context()->execute([&](gfx::render_context * ctx)
-		{
-			ctx->set_viewport(get_framebuffer_size());
-			ctx->set_clear_color(colors::black);
-			ctx->clear(gfx::clear_color);
-		});
+		get_render_context()->execute
+		(
+			gfx::command::set_viewport(get_framebuffer_size()),
+			gfx::command::set_clear_color(colors::black),
+			gfx::command::clear(gfx::clear_color)
+		);
 
 		_ML ImGui_RenderDrawData(&m_imgui->Viewports[0]->DrawDataP);
 

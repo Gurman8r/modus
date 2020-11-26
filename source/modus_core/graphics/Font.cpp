@@ -61,16 +61,23 @@ namespace ml
 
 	glyph font::load_glyph(uint32 c, uint32 size)
 	{
+		// output
 		glyph g{};
 
 		// face not loaded
-		if (!m_face) { return g; }
+		auto const f{ (FT_Face)m_face };
+		if (!f)
+		{
+			debug::warning("font face is not loaded");
+
+			return g;
+		}
 
 		// set size loading glyphs as
-		FT_Set_Pixel_Sizes(((FT_Face)m_face), 0, size);
+		FT_Set_Pixel_Sizes((f), 0, size);
 
 		// load character glyph
-		if (FT_Load_Char(((FT_Face)m_face), c, FT_LOAD_RENDER))
+		if (FT_Load_Char((f), c, FT_LOAD_RENDER))
 		{
 			debug::warning("font failed loading character: \'{0}\'", c);
 			
@@ -78,15 +85,15 @@ namespace ml
 		}
 
 		// set advance
-		g.advance = (uint32)((FT_Face)m_face)->glyph->advance.x;
+		g.advance = (uint32)(f)->glyph->advance.x;
 
 		// set bounds
 		g.bounds = float_rect
 		{
-			((FT_Face)m_face)->glyph->bitmap_left,
-			((FT_Face)m_face)->glyph->bitmap_top,
-			((FT_Face)m_face)->glyph->bitmap.width,
-			((FT_Face)m_face)->glyph->bitmap.rows
+			(f)->glyph->bitmap_left,
+			(f)->glyph->bitmap_top,
+			(f)->glyph->bitmap.width,
+			(f)->glyph->bitmap.rows
 		};
 
 		// create texture
@@ -97,7 +104,7 @@ namespace ml
 			gfx::texture_flags_default,
 			(std::isspace(c, {}) || !std::isgraph(c, {})
 				? nullptr
-				: ((FT_Face)m_face)->glyph->bitmap.buffer)
+				: (f)->glyph->bitmap.buffer)
 		);
 
 		return g;

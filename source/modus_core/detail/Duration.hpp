@@ -23,7 +23,11 @@ namespace ml
 
 		using chrono::duration<float32>::duration;
 
-		ML_NODISCARD constexpr operator float32() const noexcept { return count(); }
+		template <class T = float32
+		> ML_NODISCARD constexpr operator T () const noexcept
+		{
+			return static_cast<T>(count());
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -82,57 +86,53 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class T = float32
-	> constexpr auto operator+=(duration & lhs, T const & rhs) noexcept -> duration &
+	> ML_NODISCARD constexpr auto operator+(duration const & lhs, T const & rhs) noexcept
 	{
-		return lhs = { (float32)lhs + (float32)rhs };
+		return duration{ (float32)lhs + (float32)rhs };
 	}
 
 	template <class T = float32
-	> constexpr auto operator-=(duration & lhs, T const & rhs) noexcept -> duration &
+	> ML_NODISCARD constexpr auto operator-(duration const & lhs, T const & rhs) noexcept
 	{
-		return lhs = { (float32)lhs - (float32)rhs };
+		return duration{ (float32)lhs - (float32)rhs };
 	}
 
 	template <class T = float32
-	> constexpr auto operator*=(duration & lhs, T const & rhs) noexcept -> duration &
+	> ML_NODISCARD constexpr auto operator*(duration const & lhs, T const & rhs) noexcept
 	{
-		return lhs = { (float32)lhs * (float32)rhs };
+		return duration{ (float32)lhs * (float32)rhs };
 	}
 
 	template <class T = float32
-	> constexpr auto operator/=(duration & lhs, T const & rhs) noexcept -> duration &
+	> ML_NODISCARD constexpr auto operator/(duration const & lhs, T const & rhs) noexcept
 	{
-		return lhs = { (float32)lhs / (float32)rhs };
+		return duration{ (float32)lhs / (float32)rhs };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class T = float32
-	> ML_NODISCARD constexpr auto operator+(duration const & lhs, T const & rhs) noexcept -> duration
+	> constexpr auto operator+=(duration & lhs, T const & rhs) noexcept -> duration &
 	{
-		auto temp{ lhs };
-		return temp += rhs;
+		return lhs = lhs + rhs;
 	}
 
 	template <class T = float32
-	> ML_NODISCARD constexpr auto operator-(duration const & lhs, T const & rhs) noexcept -> duration
+	> constexpr auto operator-=(duration & lhs, T const & rhs) noexcept -> duration &
 	{
-		auto temp{ lhs };
-		return temp -= rhs;
+		return lhs = lhs - rhs;
 	}
 
 	template <class T = float32
-	> ML_NODISCARD constexpr auto operator*(duration const & lhs, T const & rhs) noexcept -> duration
+	> constexpr auto operator*=(duration & lhs, T const & rhs) noexcept -> duration &
 	{
-		auto temp{ lhs };
-		return temp *= rhs;
+		return lhs = lhs * rhs;
 	}
 
 	template <class T = float32
-	> ML_NODISCARD constexpr auto operator/(duration const & lhs, T const & rhs) noexcept -> duration
+	> constexpr auto operator/=(duration & lhs, T const & rhs) noexcept -> duration &
 	{
-		auto temp{ lhs };
-		return temp /= rhs;
+		return lhs = lhs / rhs;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

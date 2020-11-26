@@ -11,7 +11,7 @@ namespace ml
 
 		virtual ~entity() noexcept override = default;
 
-		entity(scene * scene, entt::entity handle) noexcept
+		explicit entity(scene * scene, entt::entity handle) noexcept
 			: event_listener{ ML_check(scene)->get_bus() }
 			, m_scene		{ scene }
 			, m_handle		{ handle }
@@ -107,14 +107,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		using event_listener::get_bus;
-
 	protected:
-		using event_listener::subscribe;
-
-		using event_listener::unsubscribe;
-
 		virtual void on_event(event const &) override {}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -5,6 +5,7 @@
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/scene/Components.hpp>
+#include <modus_core/graphics/Viewport.hpp>
 
 #include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -36,9 +37,7 @@ namespace ml
 		ImGuiExt::Terminal m_term{};
 
 		// rendering
-		vec2i m_resolution{ 1280, 720 };
-		color m_clear_color{ 0.223f, 0.f, 0.46f, 1.f };
-		ds::list<ds::ref<gfx::framebuffer>> m_fb{};
+		viewport m_viewport{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -67,7 +66,10 @@ namespace ml
 					get_app()->get_main_window()->set_icon(icon);
 				}
 
-				m_fb.push_back(gfx::make_framebuffer((vec2i)m_resolution));
+				m_viewport.set_clear_color({ 0.223f, 0.f, 0.46f, 1.f });
+				m_viewport.set_clear_flags(gfx::clear_color | gfx::clear_depth);
+				m_viewport.set_resolution({ 1280, 720 });
+				m_viewport.new_framebuffer();
 
 			} break;
 	
@@ -78,23 +80,28 @@ namespace ml
 			case app_idle_event::ID: {
 				auto && ev{ (app_idle_event &&)value };
 
+				ML_defer(&) { m_term.Output.Dump(m_cout.sstr()); };
+
 				auto const dt{ get_app()->get_main_loop()->delta_time() };
 
-				m_clear_color = util::rotate_hue(m_clear_color, dt * 10);
+				auto const cc{ util::rotate_hue(m_viewport.get_clear_color(), dt * 10) };
 				
-				m_term.Output.Dump(m_cout.sstr());
+				m_viewport.set_clear_color(cc);
 				
-				for (auto & fb : m_fb) { fb->resize(m_resolution); }
-				
+				m_viewport.update();
+
 				get_app()->get_main_window()->get_render_context()->execute
 				(
-					gfx::command::bind_framebuffer(m_fb[0]),
-					gfx::command::set_clear_color(m_clear_color),
-					gfx::command::clear(gfx::clear_color | gfx::clear_depth),
-					gfx::command([&](gfx::render_context * ctx) noexcept { /* custom rendering */ }),
+					gfx::command::bind_framebuffer(m_viewport.get_framebuffer(0)),
+					gfx::command::set_clear_color(m_viewport.get_clear_color()),
+					gfx::command::clear(m_viewport.get_clear_flags()),
+					[&](gfx::render_context * ctx) noexcept
+					{
+						/* custom rendering */
+					},
 					gfx::command::bind_framebuffer(nullptr)
 				);
-
+				
 			} break;
 	
 			case imgui_dockspace_event::ID: {
@@ -115,7 +122,7 @@ namespace ml
 
 		void draw_menubar()
 		{
-			(*get_app()->get_main_window()->get_menubar())([&]()
+			(*get_app()->get_main_window()->get_menubar())([&](auto)
 			{
 				if (ImGui::BeginMenu("file")) {
 					if (ImGui::MenuItem("new")) {
@@ -132,7 +139,7 @@ namespace ml
 					}
 					ImGui::Separator();
 					if (ImGui::MenuItem("quit", "alt+f4")) {
-						get_app()->get_main_loop()->halt();
+						get_app()->quit();
 					}
 					ImGui::EndMenu();
 				}
@@ -142,36 +149,6 @@ namespace ml
 					ImGui::EndMenu();
 				}
 			});
-		}
-
-		void draw_viewport()
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
-			if (!m_panels[viewport_panel]([&]() noexcept
-			{
-				ImGui::PopStyleVar(1);
-
-				if (ImGui::BeginMenuBar()) {
-					ImGuiExt::HelpMarker("viewport");
-					ImGui::Separator();
-					ImGui::ColorEdit4("clear color", m_clear_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-					ImGui::Separator();
-					auto const fps{ get_app()->get_fps()->value };
-					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
-					ImGui::Separator();
-					ImGui::EndMenuBar();
-				}
-
-				ImGui::Image(
-					m_fb[0]->get_color_attachments()[0]->get_handle(),
-					(vec2)(m_resolution = (vec2)ImGui::GetContentRegionAvail()),
-					{ 0, 1 }, { 1, 0 },
-					colors::white,
-					colors::clear);
-			}))
-			{
-				ImGui::PopStyleVar(1);
-			}
 		}
 
 		void draw_terminal()
@@ -188,8 +165,6 @@ namespace ml
 	
 				// menubar
 				if (ImGui::BeginMenuBar()) {
-					ImGuiExt::HelpMarker("terminal");
-					ImGui::Separator();
 	
 					// filter
 					ImGui::TextDisabled("filter"); ImGui::SameLine();
@@ -213,7 +188,7 @@ namespace ml
 					ImGui::EndMenuBar();
 				}
 				
-				// draw terminal
+				// draw
 				ImGuiExt::ChildWindow("##output", { 0, -ImGui::GetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_HorizontalScrollbar, [&]()
 				{
 					m_term.Output.Draw();
@@ -269,6 +244,46 @@ namespace ml
 					// evaluate
 					PyRun_SimpleString(line.c_str());
 				});
+			}))
+			{
+				ImGui::PopStyleVar(1);
+			}
+		}
+
+		void draw_viewport()
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+			if (!m_panels[viewport_panel]([&]() noexcept
+			{
+				ImGui::PopStyleVar(1);
+
+				if (ImGui::BeginMenuBar()) {
+
+					auto const fps{ get_app()->get_fps()->value };
+					ImGui::SetNextItemWidth(250.f);
+					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+					ImGui::Separator();
+
+					auto cc{ m_viewport.get_clear_color() };
+					if (ImGui::ColorEdit4("clear color", cc, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
+					{
+						m_viewport.set_clear_color(cc);
+					}
+					ImGui::Separator();
+
+					ImGui::EndMenuBar();
+				}
+
+				m_viewport.set_position((vec2)ImGui::GetCursorPos());
+
+				m_viewport.set_resolution((vec2)ImGui::GetContentRegionAvail());
+
+				ImGui::Image(
+					m_viewport.get_framebuffer(0)->get_color_attachment(0)->get_handle(),
+					(vec2)m_viewport.get_resolution(),
+					{ 0, 1 }, { 1, 0 },
+					colors::white,
+					colors::clear);
 			}))
 			{
 				ImGui::PopStyleVar(1);

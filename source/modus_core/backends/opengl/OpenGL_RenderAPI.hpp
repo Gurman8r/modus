@@ -543,7 +543,7 @@ namespace ml::gfx
 
 		int32 get_depth_bits() const noexcept final { return m_depth_bits; }
 
-		int32 get_samples() const noexcept final { return m_samples; }
+		int32 get_sample_count() const noexcept final { return m_samples; }
 
 		bool is_stereo() const noexcept final { return m_stereo; }
 	};

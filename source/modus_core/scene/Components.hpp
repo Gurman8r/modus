@@ -8,12 +8,14 @@ namespace ml
 {
 	struct ML_NODISCARD tag_component final
 	{
-		ds::string tag;
+		ds::string tag	; // 
 	};
 
 	struct ML_NODISCARD transform_component final
 	{
-		mat4 transform;
+		vec3 position	; // 
+		vec4 rotation	; // 
+		vec3 scale		; // 
 	};
 
 	struct ML_NODISCARD camera_component final

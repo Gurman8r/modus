@@ -12,10 +12,18 @@ using impl_cursor	= _ML glfw_cursor;
 
 namespace ml
 {
+	ML_NODISCARD auto make_window_backend(pmr::polymorphic_allocator<byte> alloc) noexcept
+	{
+		return ::new (alloc.allocate(sizeof(impl_window))) impl_window{ alloc };
+	}
+}
+
+namespace ml
+{
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	native_window::native_window(allocator_type alloc) noexcept
-		: frontend_window{ ::new (alloc.allocate(sizeof(impl_window))) impl_window{ alloc } }
+		: frontend_window{ make_window_backend(alloc) }
 	{
 	}
 

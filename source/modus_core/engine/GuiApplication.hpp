@@ -17,6 +17,13 @@ namespace ml
 	public:
 		using core_application::allocator_type;
 
+		struct ML_NODISCARD input_state final
+		{
+			vec2d			cursor_pos	; // 
+			keyboard_state	keyboard	; // 
+			mouse_state		mouse		; // 
+		};
+
 		explicit gui_application(int32 argc, char * argv[], allocator_type alloc = {});
 
 		virtual ~gui_application() noexcept override;
@@ -44,6 +51,11 @@ namespace ml
 		ML_NODISCARD auto get_fps() const noexcept -> fps_tracker<> const *
 		{
 			return &m_fps_tracker;
+		}
+
+		ML_NODISCARD auto get_input() const noexcept -> input_state const *
+		{
+			return &m_input_state;
 		}
 
 		ML_NODISCARD auto get_main_loop() const noexcept -> loop_system *
@@ -75,6 +87,7 @@ namespace ml
 		loop_system		m_main_loop		; // main loop
 		main_window		m_main_window	; // main window
 		fps_tracker<>	m_fps_tracker	; // fps tracker
+		input_state		m_input_state			; // input state
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

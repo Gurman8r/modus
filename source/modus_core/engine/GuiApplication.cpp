@@ -16,10 +16,18 @@ namespace ml
 		, m_main_window		{ &m_dispatcher, alloc }
 		, m_main_loop		{ &m_dispatcher, alloc }
 		, m_fps_tracker		{}
+		, m_input_state		{}
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
-		subscribe<app_enter_event, app_exit_event, app_idle_event>();
+		subscribe<
+			app_enter_event,
+			app_exit_event,
+			app_idle_event,
+			window_cursor_pos_event,
+			window_key_event,
+			window_mouse_event
+		>();
 
 		ML_assert(main_window::initialize());
 
@@ -142,6 +150,21 @@ namespace ml
 				m_dispatcher.fire<imgui_render_event>(context);
 			});
 
+		} break;
+
+		case window_cursor_pos_event::ID: {
+			auto && ev{ (window_cursor_pos_event &&)value };
+			m_input_state.cursor_pos = { ev.x, ev.y };
+		} break;
+
+		case window_key_event::ID: {
+			auto && ev{ (window_key_event &&)value };
+			m_input_state.keyboard[ev.key] = ev.action;
+		} break;
+
+		case window_mouse_event::ID: {
+			auto && ev{ (window_mouse_event &&)value };
+			m_input_state.keyboard[ev.button] = ev.action;
 		} break;
 		}
 	}

@@ -15,13 +15,7 @@ namespace ml
 	{
 		ML_assert(begin_singleton<application>(this));
 
-		subscribe<
-			imgui_dockspace_event,
-			imgui_render_event,
-			window_cursor_pos_event,
-			window_key_event,
-			window_mouse_event
-		>();
+		subscribe<imgui_dockspace_event, imgui_render_event>();
 	}
 
 	application::~application() noexcept

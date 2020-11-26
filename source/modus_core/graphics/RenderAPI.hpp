@@ -600,16 +600,16 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class First, class ... Rest
-		> void execute(First && first, Rest && ... rest) noexcept
+		template <class Arg0, class ... Args
+		> void execute(Arg0 && arg0, Args && ... args) noexcept
 		{
-			std::invoke(ML_forward(first), this);
+			std::invoke(ML_forward(arg0), this);
 
 			meta::for_args([&](auto && e) noexcept
 			{
 				std::invoke(ML_forward(e), this);
 			}
-			, ML_forward(rest)...);
+			, ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

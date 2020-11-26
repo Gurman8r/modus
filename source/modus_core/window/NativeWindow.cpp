@@ -122,6 +122,11 @@ namespace ml
 		return impl_context::get_time();
 	}
 
+	void * native_window::get_user_pointer(window_handle value) noexcept
+	{
+		return impl_context::get_user_pointer(value);
+	}
+
 	void native_window::set_active_window(window_handle value) noexcept
 	{
 		impl_context::set_active_window(value);

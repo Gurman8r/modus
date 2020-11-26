@@ -71,6 +71,11 @@ namespace ml
 		return duration{ (float32)glfwGetTime() };
 	}
 
+	void * glfw_context::get_user_pointer(window_handle value)
+	{
+		return glfwGetWindowUserPointer((GLFWwindow *)value);
+	}
+
 	void glfw_context::set_active_window(window_handle value)
 	{
 		glfwMakeContextCurrent((GLFWwindow *)value);

@@ -36,6 +36,8 @@ namespace ml
 
 		ML_NODISCARD static duration get_time();
 
+		ML_NODISCARD static void * get_user_pointer(window_handle value);
+
 		static void set_active_window(window_handle value);
 
 		static window_error_callback set_error_callback(window_error_callback value);

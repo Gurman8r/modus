@@ -95,7 +95,7 @@ namespace ml
 					gfx::command::bind_framebuffer(m_viewport.get_framebuffer(0)),
 					gfx::command::set_clear_color(m_viewport.get_clear_color()),
 					gfx::command::clear(m_viewport.get_clear_flags()),
-					[&](gfx::render_context * ctx) noexcept
+					[&](gfx::render_context * ctx)
 					{
 						/* custom rendering */
 					},

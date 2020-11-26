@@ -51,8 +51,10 @@ namespace ml
 		ML_NODISCARD static monitor_handle get_primary_monitor() noexcept;
 
 		ML_NODISCARD static void * get_proc_address(ds::string const & value) noexcept;
-
+		
 		ML_NODISCARD static duration get_time() noexcept;
+
+		ML_NODISCARD static void * get_user_pointer(window_handle value) noexcept;
 
 		static void set_active_window(window_handle value) noexcept;
 

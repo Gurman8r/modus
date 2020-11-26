@@ -60,7 +60,8 @@ namespace ml
 			{
 				m_clear_color.swap(other.m_clear_color);
 				std::swap(m_clear_flags, other.m_clear_flags);
-				std::swap(m_resolution, other.m_resolution);
+				m_position.swap(other.m_position);
+				m_resolution.swap(other.m_resolution);
 				m_fb.swap(other.m_fb);
 			}
 		}
@@ -160,7 +161,7 @@ namespace ml
 
 		void update() noexcept
 		{
-			ML_assert(m_resolution != vec2i::zero());
+			if (m_resolution == vec2i::zero()) { return; }
 
 			for (framebuffer_ref const & fb : m_fb)
 			{

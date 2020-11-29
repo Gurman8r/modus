@@ -96,6 +96,7 @@ static auto const default_settings{ R"(
 
 int32 main(int32 argc, char * argv[])
 {
+	// settings
 	auto load_settings = [](fs::path const & path = SETTINGS_PATH)
 	{
 		std::ifstream f{ path };
@@ -103,11 +104,26 @@ int32 main(int32 argc, char * argv[])
 		return f ? json::parse(f) : default_settings;
 	};
 
+	// application
 	application app{ argc, argv };
 	app.set_attributes(load_settings());
 	app.set_app_name(app.attr("app_name"));
 	app.set_app_version(app.attr("app_version"));
 	app.set_library_paths(app.attr("library_paths"));
+
+	// scripts
+	ML_assert(app.initialize_interpreter());
+
+	// plugins
+	if (app.attr().contains("plugins")) {
+		for (json const & e : app.attr("plugins")) {
+			if (e.contains("path")) {
+				app.get_plugin_manager()->install(e["path"]);
+			}
+		}
+	}
+
+	// run
 	return app.exec();
 }
 

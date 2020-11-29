@@ -21,6 +21,7 @@ namespace ml
 
 	native_window::~native_window() noexcept
 	{
+		clear_callbacks();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -14,15 +14,6 @@ namespace ml
 		, m_active_scene	{}
 	{
 		ML_assert(begin_singleton<application>(this));
-
-		subscribe<
-			app_enter_event,
-			app_exit_event,
-			app_idle_event,
-			imgui_dockspace_event,
-			imgui_menubar_event,
-			imgui_render_event
-		>();
 	}
 
 	application::~application() noexcept
@@ -40,21 +31,7 @@ namespace ml
 		case app_enter_event::ID: {
 			auto && ev{ (app_enter_event &&)value };
 
-			// install plugins
-			if (attr().contains("plugins")) {
-				for (json const & e : attr("plugins")) {
-					if (e.contains("path")) {
-						auto const path{ e["path"].get<fs::path>() };
-						if (!m_plugin_manager.install(path)) {
-							debug::warning("failed installing plugin: \'{0}\'", path);
-						}
-					}
-				}
-				m_plugin_manager.fire_event(ev);
-			}
-
 			// execute scripts
-			ML_assert(initialize_interpreter());
 			if (attr().contains("scripts")) {
 				for (json const & e : attr("scripts")) {
 					if (e.contains("path")) {

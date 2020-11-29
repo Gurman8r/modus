@@ -263,6 +263,15 @@ namespace ml::gfx
 			m_commands.emplace_back(new Cmd{ ML_forward(args)... });
 		}
 
+		draw_list & operator+=(std::initializer_list<command> init)
+		{
+			for (command const & cmd : init)
+			{
+				this->add_command(cmd);
+			}
+			return (*this);
+		}
+
 		ML_NODISCARD auto operator *() & noexcept -> ds::list<ds::scope<command>> &
 		{
 			return m_commands;

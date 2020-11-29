@@ -27,6 +27,11 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	bool core_application::has_interpreter() const
+	{
+		return Py_IsInitialized();
+	}
+
 	bool core_application::initialize_interpreter()
 	{
 		if (Py_IsInitialized()) { return false; }

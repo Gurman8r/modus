@@ -41,7 +41,7 @@ namespace ml
 		float32 ymax, xmax;
 		ymax = znear * std::tanf(fovyInDegrees * 3.141592f / 180.0f);
 		xmax = ymax * aspectRatio;
-		frustum(-xmax, xmax, -ymax, ymax, znear, zfar, m16);
+		_ML frustum(-xmax, xmax, -ymax, ymax, znear, zfar, m16);
 	}
 
 	inline void cross(float32 const * a, float32 const * b, float32 * r)
@@ -58,7 +58,7 @@ namespace ml
 
 	inline void normalize(float32 const * a, float32 * r)
 	{
-		float32 il = 1.f / (sqrtf(dot(a, a)) + FLT_EPSILON);
+		float32 il = 1.f / (std::sqrtf(_ML dot(a, a)) + FLT_EPSILON);
 		r[0] = a[0] * il;
 		r[1] = a[1] * il;
 		r[2] = a[2] * il;
@@ -72,14 +72,14 @@ namespace ml
 		tmp[1] = eye[1] - at[1];
 		tmp[2] = eye[2] - at[2];
 
-		normalize(tmp, Z);
-		normalize(up, Y);
+		_ML normalize(tmp, Z);
+		_ML normalize(up, Y);
 
-		cross(Y, Z, tmp);
-		normalize(tmp, X);
+		_ML cross(Y, Z, tmp);
+		_ML normalize(tmp, X);
 
-		cross(Z, X, tmp);
-		normalize(tmp, Y);
+		_ML cross(Z, X, tmp);
+		_ML normalize(tmp, Y);
 
 		m16[0] = X[0];
 		m16[1] = Y[0];
@@ -131,10 +131,35 @@ namespace ml
 		mat4	proj			{},
 				view			{ mat4::identity() };
 		float32 fov				{ 27.f },
-				view_width		{ 10.f },
+				ortho_width		{ 10.f },
 				y_angle			{ 165.f / 180.f * 3.14159f },
 				x_angle			{ 32.f / 180.f * 3.14159f },
 				distance		{ 8.f };
+
+		void update(vec2 const & resolution)
+		{
+			if (is_perspective)
+			{
+				perspective(
+					fov,
+					resolution[0] / resolution[1],
+					0.01f,
+					100.f,
+					proj);
+			}
+			else
+			{
+				auto const view_height{ ortho_width * resolution[1] / resolution[0] };
+				orthographic(
+					-ortho_width,
+					ortho_width,
+					-view_height,
+					view_height,
+					1000.f,
+					-1000.f,
+					proj);
+			}
+		}
 	};
 }
 

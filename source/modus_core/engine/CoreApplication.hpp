@@ -129,7 +129,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
+	public:
+		ML_NODISCARD bool has_interpreter() const;
+
 		ML_NODISCARD bool initialize_interpreter();
 
 		void finalize_interpreter();

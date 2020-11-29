@@ -21,6 +21,12 @@ namespace ml
 		ML_assert(begin_singleton<gui_application>(this));
 
 		subscribe<
+			app_enter_event,
+			app_exit_event,
+			app_idle_event,
+			imgui_dockspace_event,
+			imgui_menubar_event,
+			imgui_render_event,
 			window_cursor_pos_event,
 			window_key_event,
 			window_mouse_event
@@ -45,9 +51,7 @@ namespace ml
 			{
 				// window settings
 				json & j_window{ attr("window") };
-				if (!j_window.contains("title")) {
-					j_window["title"] = app_name();
-				}
+				if (!j_window.contains("title")) { j_window["title"] = app_name(); }
 				window_settings ws;
 				j_window.get_to(ws);
 

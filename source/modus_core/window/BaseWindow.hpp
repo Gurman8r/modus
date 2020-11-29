@@ -262,7 +262,6 @@ namespace ml
 
 		virtual ~frontend_window() noexcept override
 		{
-			m_backend->clear_callbacks();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

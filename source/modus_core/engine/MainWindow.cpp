@@ -57,6 +57,7 @@ namespace ml
 		static ds::map<main_window *, event_bus *> m{};
 		static event_bus * b{};
 		ML_assert(b = m.find_or_add(this, get_bus()));
+
 		set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
 		set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
 		set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });

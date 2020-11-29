@@ -51,12 +51,12 @@ namespace ml
 			return &m_input_state;
 		}
 
-		ML_NODISCARD auto get_main_loop() const noexcept -> loop_system *
+		ML_NODISCARD auto get_loop() const noexcept -> loop_system *
 		{
 			return const_cast<loop_system *>(&m_loop);
 		}
 
-		ML_NODISCARD auto get_main_window() const noexcept -> main_window *
+		ML_NODISCARD auto get_window() const noexcept -> main_window *
 		{
 			return const_cast<main_window *>(&m_window);
 		}

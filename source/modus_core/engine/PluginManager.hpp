@@ -136,7 +136,7 @@ namespace ml
 		template <class Ev
 		> void fire_event(Ev && value) noexcept
 		{
-			for (auto & p : get_data<plugin_instance>())
+			for (auto & p : m_data.get<plugin_instance>())
 			{
 				p->on_event(ML_forward(value));
 			}

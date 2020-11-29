@@ -74,17 +74,7 @@ namespace ml
 			return {};
 		}
 
-		ML_NODISCARD auto get_aspect() const noexcept -> float32
-		{
-			return (float32)m_resolution[0] / (float32)m_resolution[1];
-		}
-
-		ML_NODISCARD auto get_aspect_inverse() const noexcept -> float32
-		{
-			return (float32)m_resolution[1] / (float32)m_resolution[0];
-		}
-
-		ML_NODISCARD auto get_bounds() const noexcept -> int_rect
+		ML_NODISCARD auto get_bounds() const noexcept -> float_rect
 		{
 			return { m_position, m_resolution };
 		}
@@ -99,12 +89,12 @@ namespace ml
 			return m_clear_flags;
 		}
 
-		ML_NODISCARD auto get_position() const noexcept -> vec2i const &
+		ML_NODISCARD auto get_position() const noexcept -> vec2 const &
 		{
 			return m_position;
 		}
 
-		ML_NODISCARD auto get_resolution() const noexcept -> vec2i const &
+		ML_NODISCARD auto get_resolution() const noexcept -> vec2 const &
 		{
 			return m_resolution;
 		}
@@ -125,7 +115,7 @@ namespace ml
 			}
 		}
 
-		void set_position(vec2i const & value) noexcept
+		void set_position(vec2 const & value) noexcept
 		{
 			if (m_position != value)
 			{
@@ -133,7 +123,7 @@ namespace ml
 			}
 		}
 
-		void set_resolution(vec2i const & value) noexcept
+		void set_resolution(vec2 const & value) noexcept
 		{
 			if (m_resolution != value)
 			{
@@ -181,8 +171,8 @@ namespace ml
 	private:
 		color				m_clear_color	; // 
 		int32				m_clear_flags	; // 
-		vec2i				m_position		; // 
-		vec2i				m_resolution	; // 
+		vec2				m_position		; // 
+		vec2				m_resolution	; // 
 		framebuffer_list	m_fb			; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

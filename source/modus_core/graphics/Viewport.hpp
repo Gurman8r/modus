@@ -3,6 +3,7 @@
 
 // WIP
 
+#include <modus_core/detail/Rect.hpp>
 #include <modus_core/graphics/RenderCommand.hpp>
 
 namespace ml
@@ -68,7 +69,25 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return {}; }
+		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type
+		{
+			return {};
+		}
+
+		ML_NODISCARD auto get_aspect() const noexcept -> float32
+		{
+			return (float32)m_resolution[0] / (float32)m_resolution[1];
+		}
+
+		ML_NODISCARD auto get_aspect_inverse() const noexcept -> float32
+		{
+			return (float32)m_resolution[1] / (float32)m_resolution[0];
+		}
+
+		ML_NODISCARD auto get_bounds() const noexcept -> int_rect
+		{
+			return { m_position, m_resolution };
+		}
 
 		ML_NODISCARD auto get_clear_color() const noexcept -> color const &
 		{

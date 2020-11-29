@@ -26,7 +26,7 @@
 
 // assert implementation
 #ifndef ML_IMPL_ASSERT
-#define ML_IMPL_ASSERT ::_wassert
+#define ML_IMPL_ASSERT _wassert
 #endif
 
 // assert extended

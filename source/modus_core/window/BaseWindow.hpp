@@ -1,7 +1,7 @@
 #ifndef _ML_BASE_WINDOW_HPP_
 #define _ML_BASE_WINDOW_HPP_
 
-#include <modus_core/window/WindowAPI.hpp>
+#include <modus_core/window/WindowContext.hpp>
 
 // BACKEND
 namespace ml
@@ -16,11 +16,11 @@ namespace ml
 		virtual ~backend_window() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
+
 		ML_NODISCARD virtual bool open(
-			ds::string			const &	title,
-			video_mode			const & vm		= {},
-			context_settings	const & cs		= {},
+			ds::string const &			title,
+			video_mode const &			vm		= {},
+			context_settings const &	cs		= {},
 			window_hints_				hints	= window_hints_default
 		) = 0;
 		
@@ -125,13 +125,7 @@ namespace ml
 
 		virtual void set_focus_on_show(bool) = 0;
 
-		virtual void set_icons(size_t, size_t, byte const *, size_t) = 0;
-
-		template <class Bitmap = struct bitmap
-		> inline void set_icon(Bitmap && value, size_t count = 1) noexcept
-		{
-			this->set_icons(value.width(), value.height(), value.data(), count);
-		}
+		virtual void set_icons(size_t, size_t, byte const *, int32) = 0;
 
 		virtual void set_input_mode(int32, int32) = 0;
 
@@ -274,9 +268,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD virtual bool open(
-			ds::string			const &	title,
-			video_mode			const &	vm		= {},
-			context_settings	const & cs		= {},
+			ds::string const &			title,
+			video_mode const &			vm		= {},
+			context_settings const &	cs		= {},
 			window_hints_				hints	= window_hints_default
 		) override
 		{
@@ -379,7 +373,7 @@ namespace ml
 
 		void set_focus_on_show(bool value) noexcept final { m_backend->set_focus_on_show(value); }
 		
-		void set_icons(size_t w, size_t h, byte const * p, size_t n = 1) noexcept final { m_backend->set_icons(w, h, p, n); }
+		void set_icons(size_t w, size_t h, byte const * p, int32 n = 1) noexcept final { m_backend->set_icons(w, h, p, n); }
 
 		void set_input_mode(int32 mode, int32 value) noexcept final { m_backend->set_input_mode(mode, value); }
 		

@@ -241,4 +241,37 @@ namespace ml
 	}
 }
 
+// WINDOW SETTINGS
+namespace ml
+{
+	struct ML_NODISCARD window_settings final
+	{
+		ds::string			title	{ "modus" };
+		video_mode			video	{};
+		context_settings	context	{};
+		window_hints_		hints	{ window_hints_default };
+
+		template <class T> auto operator&(T const & v) const noexcept { return hints & v; }
+		template <class T> auto operator|(T const & v) const noexcept { return hints | v; }
+		template <class T> auto & operator&=(T const & v) noexcept { return hints &= v; }
+		template <class T> auto & operator|=(T const & v) noexcept { return hints |= v; }
+	};
+
+	inline void from_json(json const & j, window_settings & v)
+	{
+		util::get_from(j, "title"	, v.title);
+		util::get_from(j, "video"	, v.video);
+		util::get_from(j, "context"	, v.context);
+		util::get_from(j, "hints"	, v.hints, window_hints_default);
+	}
+
+	inline void to_json(json & j, window_settings const & v)
+	{
+		j["title"	] = v.title;
+		j["video"	] = v.video;
+		j["context"	] = v.context;
+		j["hints"	] = v.hints;
+	}
+}
+
 #endif // !_ML_WINDOW_API_HPP_

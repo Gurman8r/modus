@@ -31,49 +31,9 @@ static class memcfg final : public singleton<memcfg>
 
 static auto const default_settings{ R"(
 {
-	"app_name"		: "modus launcher",
-	"app_version"	: "alpha",
-	"library_paths" : [ "../../../" ],
-
-	"main_window": {
-		"video_mode": {
-			"resolution"	: [ 1280, 720 ],
-			"bits_per_pixel": [ 8, 8, 8, 8 ],
-			"refresh_rate"	: -1
-		},
-		"context_settings": {
-			"api"			: "opengl",
-			"major"			: 4,
-			"minor"			: 6,
-			"profile"		: "compat",
-			"depth_bits"	: 24,
-			"stencil_bits"	: 8,
-			"multisample"	: true,
-			"srgb_capable"	: false
-		},
-		"hints": {
-			"auto_iconify"	: true,
-			"decorated"		: true,
-			"doublebuffer"	: false,
-			"center_cursor"	: false,
-			"floating"		: false,
-			"focus_on_show"	: true,
-			"focused"		: true,
-			"maximized"		: true,
-			"resizable"		: true,
-			"visible"		: false
-		},
-		"style": {
-			"path": "resource/modus_launcher.style"
-		},
-		"dockspace": {
-			"alpha"		: 0,
-			"border"	: 0,
-			"padding"	: [ 0, 0 ],
-			"rounding"	: 0,
-			"size"		: [ 0, 0 ]
-		}
-	},
+	"app_name": "modus launcher",
+	"app_version": "alpha",
+	"library_paths": [ "../../../" ],
 
 	"plugins": [
 		{ "path": "plugins/sandbox" }
@@ -81,7 +41,54 @@ static auto const default_settings{ R"(
 
 	"scripts": [
 		{ "path": "resource/modus_launcher.py" }
-	]
+	],
+
+	"window": {
+		"callbacks": true,
+		"video": {
+			"resolution": [ 1280, 720 ],
+			"bits_per_pixel": [ 8, 8, 8, 8 ],
+			"refresh_rate": -1
+		},
+		"context": {
+			"api": "opengl",
+			"major": 4,
+			"minor": 6,
+			"profile": "compat",
+			"depth_bits": 24,
+			"stencil_bits": 8,
+			"multisample": true,
+			"srgb_capable": false
+		},
+		"hints": {
+			"auto_iconify": true,
+			"decorated": true,
+			"doublebuffer": false,
+			"center_cursor": false,
+			"floating": false,
+			"focus_on_show": true,
+			"focused": true,
+			"maximized": true,
+			"resizable": true,
+			"visible": false
+		}
+	},
+
+	"imgui": {
+		"callbacks": true,
+		"guistyle": {
+			"path": "resource/modus_launcher.style"
+		},
+		"dockspace": {
+			"alpha": 0,
+			"border": 0,
+			"rounding": 0,
+			"padding": [ 0, 0 ],
+			"size": [ 0, 0 ]
+		},
+		"menubar": {
+		}
+	}
 }
 )"_json };
 

@@ -7,6 +7,21 @@
 struct GLFWwindow;
 struct GLFWmonitor;
 
+// GLFW MONITOR
+namespace ml
+{
+	struct glfw_monitor final
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD static monitor_handle get_primary();
+
+		ML_NODISCARD static ds::list<monitor_handle> const & get_monitors();
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+}
+
 // GLFW CONTEXT
 namespace ml
 {
@@ -14,33 +29,31 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		glfw_context() noexcept = default;
-
 		static int32 initialize();
 
 		static void finalize();
 
-		static void poll_events();
-
-		static void swap_buffers(window_handle value);
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD static int32 extension_supported(cstring value);
-
-		ML_NODISCARD static window_handle get_active_window();
-
-		ML_NODISCARD static ds::list<monitor_handle> const & get_monitors();
-
-		ML_NODISCARD static monitor_handle get_primary_monitor();
 
 		ML_NODISCARD static void * get_proc_address(cstring value);
 
 		ML_NODISCARD static duration get_time();
 
-		ML_NODISCARD static void * get_user_pointer(window_handle value);
+		static window_error_callback set_error_callback(window_error_callback value);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD static window_handle get_active_window();
 
 		static void set_active_window(window_handle value);
 
-		static window_error_callback set_error_callback(window_error_callback value);
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static void poll_events();
+
+		static void swap_buffers(window_handle value);
 
 		static void set_swap_interval(int32 value);
 
@@ -51,17 +64,15 @@ namespace ml
 // GLFW CURSOR
 namespace ml
 {
-	struct glfw_cursor final : non_copyable
+	struct glfw_cursor final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		glfw_cursor() noexcept = default;
+		static cursor_handle create_custom(size_t w, size_t h, byte const * p, int32 x, int32 y);
 
-		static cursor_handle create_custom_cursor(size_t w, size_t h, byte const * p, int32 x, int32 y);
+		static cursor_handle create_standard(int32 shape);
 
-		static cursor_handle create_standard_cursor(int32 value);
-
-		static void destroy_cursor(cursor_handle value);
+		static void destroy(cursor_handle value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -186,7 +197,7 @@ namespace ml
 
 		void set_focus_on_show(bool value) final;
 		
-		void set_icons(size_t w, size_t h, byte const * p, size_t n = 1) final;
+		void set_icons(size_t w, size_t h, byte const * p, int32 n = 1) final;
 
 		void set_input_mode(int32 mode, int32 value) final;
 

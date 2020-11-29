@@ -11,17 +11,6 @@ namespace ml
 	{
 	}
 
-	render_window::render_window(
-		ds::string			const & title,
-		video_mode			const & vm,
-		context_settings	const & cs,
-		window_hints_				hints,
-		allocator_type				alloc
-	) noexcept : render_window{ alloc }
-	{
-		ML_assert(this->open(title, vm, cs, hints));
-	}
-
 	render_window::~render_window() noexcept
 	{
 		gfx::destroy_device(m_device.release());
@@ -37,11 +26,12 @@ namespace ml
 	)
 	{
 		// open base
-		if (!native_window::open(title, vm, cs, hints)) { return false; }
+		if (!native_window::open(title, vm, cs, hints)) {
+			return debug::failure("failed opening native_window");
+		}
 
 		// create device
-		if (m_device.reset(gfx::make_device(cs.api)); !m_device)
-		{
+		if (m_device.reset(gfx::make_device(cs.api)); !m_device) {
 			return debug::failure("failed creating render device");
 		}
 

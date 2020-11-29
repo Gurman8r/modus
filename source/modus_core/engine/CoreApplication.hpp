@@ -109,30 +109,22 @@ namespace ml
 
 		void set_app_name(ds::string const & value) noexcept
 		{
-			if (m_app_name != value) {
-				m_app_name = value;
-			}
+			if (m_app_name != value) { m_app_name = value; }
 		}
 
 		void set_app_version(ds::string const & value) noexcept
 		{
-			if (m_app_version != value) {
-				m_app_version = value;
-			}
+			if (m_app_version != value) { m_app_version = value; }
 		}
 
 		void set_attributes(json const & value) noexcept
 		{
-			if (m_attributes != value) {
-				m_attributes = value;
-			}
+			if (m_attributes != value) { m_attributes = value; }
 		}
 
 		void set_library_paths(ds::list<fs::path> const & value) noexcept
 		{
-			if (m_library_paths != value) {
-				m_library_paths = value;
-			}
+			if (m_library_paths != value) { m_library_paths = value; }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

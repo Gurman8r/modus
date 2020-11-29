@@ -263,12 +263,12 @@ namespace ml::gfx
 			m_commands.emplace_back(new Cmd{ ML_forward(args)... });
 		}
 
-		ML_NODISCARD auto operator*() & noexcept -> ds::list<ds::scope<command>> &
+		ML_NODISCARD auto operator *() & noexcept -> ds::list<ds::scope<command>> &
 		{
 			return m_commands;
 		}
 
-		ML_NODISCARD auto operator*() const & noexcept -> ds::list<ds::scope<command>> const &
+		ML_NODISCARD auto operator *() const & noexcept -> ds::list<ds::scope<command>> const &
 		{
 			return m_commands;
 		}

@@ -59,12 +59,14 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// WINDOWS
+// HELPERS
 namespace ml::ImGuiExt
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// BEGIN/END
 	template <class BeginFn, class EndFn, class Fn, class ... Args
-	> bool BeginEnd(BeginFn && begin_fn, EndFn && end_fn, Fn && fn, Args && ... args)
+	> bool BeginEnd(BeginFn && begin_fn, EndFn && end_fn, Fn && fn, Args && ... args) noexcept
 	{
 		bool const is_open{ std::invoke(ML_forward(begin_fn)) };
 		
@@ -74,6 +76,8 @@ namespace ml::ImGuiExt
 		
 		return is_open;
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// WINDOW
 	template <class Fn, class ... Args
@@ -114,18 +118,55 @@ namespace ml::ImGuiExt
 			nullptr, id, size, border, flags, ML_forward(fn), ML_forward(args)...
 		);
 	}
-}
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// OBJECT HELPERS
-namespace ml::ImGuiExt
-{
 	template <class T
-	> ML_NODISCARD ImGuiID GetID(T const * p)
+	> ML_NODISCARD cstring GetName(ds::basic_string<T> const & value) noexcept
 	{
-		return ImGui::GetID(p->Title);
+		return value.c_str();
 	}
+
+	template <class T
+	> ML_NODISCARD constexpr cstring GetName(T const * value) noexcept
+	{
+		if constexpr (util::is_char_v<T>)
+		{
+			return value;
+		}
+		else
+		{
+			return value->Title;
+		}
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	ML_NODISCARD constexpr ImGuiID GetID(ImGuiID value) noexcept
+	{
+		return value;
+	}
+
+	template <class T
+	> ML_NODISCARD ImGuiID GetID(ds::basic_string<T> const & value) noexcept
+	{
+		return ImGui::GetID(value.c_str());
+	}
+
+	template <class T
+	> ML_NODISCARD ImGuiID GetID(T const * value) noexcept
+	{
+		if constexpr (util::is_char_v<T>)
+		{
+			return ImGui::GetID(value);
+		}
+		else
+		{
+			return ImGui::GetID(value->Title);
+		}
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class T
 	> ML_NODISCARD ImGuiWindow * FindWindowByName(T const * p)
@@ -144,6 +185,8 @@ namespace ml::ImGuiExt
 	{
 		return ImGui::Selectable(p->Title, &p->IsOpen, flags, size);
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -159,27 +202,40 @@ namespace ml::ImGuiExt
 		bool		IsOpen		; // is open
 		int32		WindowFlags	; // window flags
 
-		constexpr BasicPanel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
+		BasicPanel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
 			: Title			{ title }
 			, IsOpen		{ open }
 			, WindowFlags	{ winflags }
 		{
 		}
 
-		constexpr BasicPanel(BasicPanel const & other) noexcept
+		BasicPanel(BasicPanel const & other) noexcept
 			: BasicPanel{ other.Title, other.IsOpen, other.WindowFlags }
 		{
 		}
 
-		bool Begin() noexcept { return IsOpen && ImGui::Begin(Title, &IsOpen, WindowFlags); }
+		bool Begin() noexcept {
+			return IsOpen && ImGui::Begin(Title, &IsOpen, WindowFlags);
+		}
 
-		void End() noexcept { ImGui::End(); }
+		void End() noexcept {
+			ImGui::End();
+		}
 
-		ML_NODISCARD ImGuiID GetID() const noexcept { return ImGuiExt::GetID(this); }
+		ML_NODISCARD bool GetWindowFlag(ImGuiWindowFlags_ index) const noexcept {
+			return ML_flag_read(WindowFlags, (int32)index);
+		}
 
-		auto SetWindowFlag(ImGuiWindowFlags_ index, bool value) noexcept
-		{
-			return ML_flag_write(this->WindowFlags, (int32)index, value);
+		auto SetWindowFlag(ImGuiWindowFlags_ index, bool value) noexcept {
+			return ML_flag_write(WindowFlags, (int32)index, value);
+		}
+
+		ML_NODISCARD ImGuiID GetID() const noexcept {
+			return ImGui::GetID(Title);
+		}
+
+		ML_NODISCARD ImGuiWindow * FindByName() const noexcept {
+			return ImGui::FindWindowByName(Title);
 		}
 	};
 
@@ -188,14 +244,12 @@ namespace ml::ImGuiExt
 	// PANEL
 	struct ML_NODISCARD Panel : BasicPanel<Panel>
 	{
-		constexpr Panel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
+		Panel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
 			: BasicPanel{ title, open, winflags }
 		{
 		}
 
-		constexpr Panel(Panel const & other) noexcept : BasicPanel{ other }
-		{
-		}
+		Panel(Panel const & other) noexcept : BasicPanel{ other } {}
 
 		template <class Fn, class ... Args
 		> bool operator()(Fn && fn, Args && ... args) noexcept
@@ -206,7 +260,7 @@ namespace ml::ImGuiExt
 			(
 				std::bind(&Panel::Begin, this),
 				std::bind(&Panel::End, this),
-				ML_forward(fn), ML_forward(args)...
+				ML_forward(fn), this, ML_forward(args)...
 			);
 		}
 	};
@@ -219,15 +273,29 @@ namespace ml::ImGuiExt
 // MAIN MENU BAR
 namespace ml::ImGuiExt
 {
-	// main menu bar (placeholder)
+	// main menu bar (WIP)
 	struct ML_NODISCARD MainMenuBar final
 	{
 		static constexpr cstring Title{ "##MainMenuBar" };
 
+		bool IsOpen{ true };
+
+		void Configure(json const & j)
+		{
+		}
+
+		ML_NODISCARD ImGuiID GetID() const noexcept {
+			return ImGui::GetID(Title);
+		}
+
+		ML_NODISCARD ImGuiWindow * FindByName() const noexcept {
+			return ImGui::FindWindowByName(Title);
+		}
+
 		template <class Fn, class ... Args
 		> bool operator()(Fn && fn, Args && ... args) noexcept
 		{
-			return ImGuiExt::BeginEnd
+			return IsOpen && ImGuiExt::BeginEnd
 			(
 				&ImGui::BeginMainMenuBar,
 				&ImGui::EndMainMenuBar,
@@ -264,7 +332,7 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoBackground
 		};
 
-		constexpr Dockspace(
+		Dockspace(
 			cstring			title		= "##MainDockspace",
 			bool			open		= true,
 			float32			border		= {},
@@ -283,7 +351,7 @@ namespace ml::ImGuiExt
 			, DockNodeFlags	{ dockflags }
 		{}
 
-		constexpr Dockspace(Dockspace const & other) noexcept : Dockspace{
+		Dockspace(Dockspace const & other) noexcept : Dockspace{
 			other.Title,
 			other.IsOpen,
 			other.Border,
@@ -296,29 +364,93 @@ namespace ml::ImGuiExt
 		}
 		{}
 
-		ML_NODISCARD static bool DockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept
+		void Configure(json const & j)
 		{
+			util::get_from(j, "alpha"	, Alpha);
+			util::get_from(j, "border"	, Border);
+			util::get_from(j, "padding"	, Padding);
+			util::get_from(j, "rounding", Rounding);
+			util::get_from(j, "size"	, Size);
+		}
+
+		ML_NODISCARD static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept {
 			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
 		}
 
-		void Configure(json const & j)
-		{
-			if (j.contains("alpha"))	j["alpha"].get_to(this->Alpha);
-			if (j.contains("border"))	j["border"].get_to(this->Border);
-			if (j.contains("padding"))	j["padding"].get_to(this->Padding);
-			if (j.contains("rounding"))	j["rounding"].get_to(this->Rounding);
-			if (j.contains("size"))		j["size"].get_to(this->Size);
+		ML_NODISCARD bool GetDockNodeFlag(ImGuiDockNodeFlags_ index) const noexcept {
+			return ML_flag_read(DockNodeFlags, (int32)index);
 		}
 
-		auto SetDockNodeFlag(ImGuiDockNodeFlags_ index, bool value) noexcept
+		auto SetDockNodeFlag(ImGuiDockNodeFlags_ index, bool value) noexcept {
+			return (ImGuiDockNodeFlags_)ML_flag_write(DockNodeFlags, (int32)index, value);
+		}
+
+		template <class T, class ID
+		> void DockWindow(T && name, ID && id) noexcept
 		{
-			return ML_flag_write(DockNodeFlags, (int32)index, value);
+			ImGui::DockBuilderDockWindow(
+				ImGuiExt::GetName(ML_forward(name)),
+				ImGuiExt::GetID(ML_forward(id)));
+		}
+
+		ML_NODISCARD ImGuiDockNode * GetNode() const noexcept {
+			return ImGui::DockBuilderGetNode(GetID());
+		}
+
+		template <class ID
+		> ML_NODISCARD ImGuiDockNode * GetNode(ID && id) const noexcept {
+			return ImGui::DockBuilderGetNode(ImGuiExt::GetID(ML_forward(id)));
+		}
+
+		ML_NODISCARD ImGuiDockNode * GetCentralNode() const noexcept {
+			return ImGui::DockBuilderGetCentralNode(GetID());
+		}
+
+		template <class ID
+		> ML_NODISCARD ImGuiDockNode * GetCentralNode(ID && id) const noexcept {
+			return ImGui::DockBuilderGetCentralNode(ImGuiExt::GetID(ML_forward(id)));
+		}
+
+		template <class ID
+		> ImGuiID AddNode(ID && id, ImGuiDockNodeFlags flags = 0) noexcept {
+			return ImGui::DockBuilderAddNode(ImGuiExt::GetID(ML_forward(id)), flags);
+		}
+
+		template <class ID
+		> void RemoveNode(ID && id) noexcept {
+			ImGui::DockBuilderRemoveNode(ImGuiExt::GetID(ML_forward(id)));
+		}
+
+		template <class ID
+		> void SetNodePos(ID && id, vec2 const & pos) const noexcept {
+			return ImGui::DockBuilderSetNodePos(ImGuiExt::GetID(ML_forward(id)), pos);
+		}
+
+		template <class ID
+		> void SetNodeSize(ID && id, vec2 const & size) const noexcept {
+			return ImGui::DockBuilderSetNodeSize(ImGuiExt::GetID(ML_forward(id)), size);
+		}
+
+		template <class ID
+		> ImGuiID SplitNode(ID && id, ImGuiDir split_dir, float32 size_ratio_for_node_at_dir, ImGuiID * out_id_at_dir, ImGuiID * out_id_at_opposite_dir) noexcept {
+			ImGui::DockBuilderSplitNode(ImGuiExt::GetID(ML_forward(id)), split_dir, out_id_at_dir, out_id_at_opposite_dir);
+		}
+
+		template <class ID
+		> void Finish(ID && id) noexcept
+		{
+			ImGui::DockBuilderFinish(ImGuiExt::GetID(ML_forward(id)));
+		}
+
+		void Finish() noexcept
+		{
+			ImGui::DockBuilderFinish(GetID());
 		}
 
 		template <class Fn, class ... Args
 		> bool operator()(ImGuiViewport const * vp, Fn && fn, Args && ... args) noexcept
 		{
-			if (!IsOpen || !vp || !DockingEnabled()) { return false; }
+			if (!IsOpen || !vp || !IsDockingEnabled()) { return false; }
 
 			ImGuiExt_ScopeID(this);
 			ImGui::SetNextWindowPos(vp->Pos);
@@ -333,24 +465,24 @@ namespace ml::ImGuiExt
 			ImGui::PopStyleVar(3);
 			if (is_open)
 			{
-				if (ImGuiID const id{ GetID() }; !ImGui::DockBuilderGetNode(id))
+				ImGuiID const id{ GetID() };
+
+				if (!GetNode(id))
 				{
-					ImGui::DockBuilderRemoveNode(id);
+					RemoveNode(id);
 					
-					ImGui::DockBuilderAddNode(id, DockNodeFlags);
+					AddNode(id, DockNodeFlags);
 
 					std::invoke(ML_forward(fn), this, ML_forward(args)...);
 					
-					ImGui::DockBuilderFinish(id);
+					Finish(id);
 				}
 
-				ImGui::DockSpace
-				(
-					GetID(),
+				ImGui::DockSpace(
+					id,
 					Size,
 					ImGuiDockNodeFlags_PassthruCentralNode | DockNodeFlags,
-					nullptr
-				);
+					nullptr);
 			}
 			return is_open;
 		}
@@ -597,87 +729,118 @@ namespace ml::ImGuiExt
 // EDIT TRANSFORM
 namespace ml::ImGuiExt
 {
-	inline void EditTransform(float32 const * cam_view, float32 * cam_proj, float32 * matrix, bool editTransformDecomposition)
+	inline void EditTransformDecomposition(
+		float32 * value,
+		ImGuizmo::OPERATION & mCurrentGizmoOperation,
+		ImGuizmo::MODE & mCurrentGizmoMode,
+		bool & useSnap,
+		float32 * snap,
+		float32 * bounds,
+		float32 * boundsSnap,
+		bool & boundSizing,
+		bool & boundSizingSnap
+	)
 	{
-		static ImGuizmo::OPERATION mCurrentGizmoOperation{ ImGuizmo::TRANSLATE };
-		static ImGuizmo::MODE mCurrentGizmoMode{ ImGuizmo::LOCAL };
+		if (ImGui::IsKeyPressed(keycode_z)) mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+		if (ImGui::IsKeyPressed(keycode_e)) mCurrentGizmoOperation = ImGuizmo::ROTATE;
+		if (ImGui::IsKeyPressed(keycode_r))  mCurrentGizmoOperation = ImGuizmo::SCALE;
 
-		static bool		useSnap			= false;
-		static float32	snap[3]			= { 1.f, 1.f, 1.f };
-		static float32	bounds[]		= { -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f };
-		static float32	boundsSnap[]	= { 0.1f, 0.1f, 0.1f };
-		static bool		boundSizing		= false;
-		static bool		boundSizingSnap	= false;
+		if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE)) {
+			mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+		}
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE)) {
+			mCurrentGizmoOperation = ImGuizmo::ROTATE;
+		}
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE)) {
+			mCurrentGizmoOperation = ImGuizmo::SCALE;
+		}
 
-		if (editTransformDecomposition)
-		{
-			if (ImGui::IsKeyPressed(keycode_z)) mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-			if (ImGui::IsKeyPressed(keycode_e)) mCurrentGizmoOperation = ImGuizmo::ROTATE;
-			if (ImGui::IsKeyPressed(keycode_r))  mCurrentGizmoOperation = ImGuizmo::SCALE;
+		vec3 matrixTranslation, matrixRotation, matrixScale;
+		ImGuizmo::DecomposeMatrixToComponents(value, matrixTranslation, matrixRotation, matrixScale);
+		ImGui::InputFloat3("Tr", matrixTranslation);
+		ImGui::InputFloat3("Rt", matrixRotation);
+		ImGui::InputFloat3("Sc", matrixScale);
+		ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, value);
 
-			if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE)) {
-				mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+		if (mCurrentGizmoOperation != ImGuizmo::SCALE) {
+			if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL)) {
+				mCurrentGizmoMode = ImGuizmo::LOCAL;
 			}
 			ImGui::SameLine();
-			if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE)) {
-				mCurrentGizmoOperation = ImGuizmo::ROTATE;
-			}
-			ImGui::SameLine();
-			if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE)) {
-				mCurrentGizmoOperation = ImGuizmo::SCALE;
-			}
-
-			float32 matrixTranslation[3], matrixRotation[3], matrixScale[3];
-			ImGuizmo::DecomposeMatrixToComponents(matrix, matrixTranslation, matrixRotation, matrixScale);
-			ImGui::InputFloat3("Tr", matrixTranslation);
-			ImGui::InputFloat3("Rt", matrixRotation);
-			ImGui::InputFloat3("Sc", matrixScale);
-			ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, matrix);
-
-			if (mCurrentGizmoOperation != ImGuizmo::SCALE)
-			{
-				if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL)) {
-					mCurrentGizmoMode = ImGuizmo::LOCAL;
-				}
-				ImGui::SameLine();
-				if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD)) {
-					mCurrentGizmoMode = ImGuizmo::WORLD;
-				}
-			}
-
-			if (ImGui::IsKeyPressed(keycode_s)) {
-				useSnap = !useSnap;
-			}
-
-			ImGui::Checkbox("", &useSnap);
-			ImGui::SameLine();
-
-			switch (mCurrentGizmoOperation)
-			{
-			case ImGuizmo::TRANSLATE:
-				ImGui::InputFloat3("Snap", &snap[0]);
-				break;
-			case ImGuizmo::ROTATE:
-				ImGui::InputFloat("Angle Snap", &snap[0]);
-				break;
-			case ImGuizmo::SCALE:
-				ImGui::InputFloat("Scale Snap", &snap[0]);
-				break;
-			}
-			ImGui::Checkbox("Bound Sizing", &boundSizing);
-			if (boundSizing)
-			{
-				ImGui::PushID(3);
-				ImGui::Checkbox("", &boundSizingSnap);
-				ImGui::SameLine();
-				ImGui::InputFloat3("Snap", boundsSnap);
-				ImGui::PopID();
+			if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD)) {
+				mCurrentGizmoMode = ImGuizmo::WORLD;
 			}
 		}
+
+		if (ImGui::IsKeyPressed(keycode_s)) {
+			useSnap = !useSnap;
+		}
+		ImGui::Checkbox("", &useSnap);
+		ImGui::SameLine();
+
+		switch (mCurrentGizmoOperation)
+		{
+		case ImGuizmo::TRANSLATE: ImGui::InputFloat3("Snap", &snap[0]); break;
+		case ImGuizmo::ROTATE: ImGui::InputFloat("Angle Snap", &snap[0]); break;
+		case ImGuizmo::SCALE: ImGui::InputFloat("Scale Snap", &snap[0]); break;
+		}
+		ImGui::Checkbox("Bound Sizing", &boundSizing);
+		if (boundSizing)
+		{
+			ImGui::PushID(3);
+			ImGui::Checkbox("", &boundSizingSnap);
+			ImGui::SameLine();
+			ImGui::InputFloat3("Snap", boundsSnap);
+			ImGui::PopID();
+		}
+	}
+
+	inline void EditTransform(
+		float32 const * cam_view,
+		float32 * cam_proj,
+		float32 * value,
+		float_rect const & view_size,
+		bool editTransformDecomposition
+	)
+	{
+		static ImGuizmo::OPERATION	mCurrentGizmoOperation{ ImGuizmo::TRANSLATE };
+		static ImGuizmo::MODE		mCurrentGizmoMode{ ImGuizmo::LOCAL };
+		static bool					useSnap			= false;
+		static vec3					snap			= { 1.f, 1.f, 1.f };
+		static float32				bounds[]		= { -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f };
+		static float32				boundsSnap[]	= { 0.1f, 0.1f, 0.1f };
+		static bool					boundSizing		= false;
+		static bool					boundSizingSnap	= false;
+
+		if (editTransformDecomposition) EditTransformDecomposition(
+			value,
+			mCurrentGizmoOperation,
+			mCurrentGizmoMode,
+			useSnap,
+			snap,
+			bounds,
+			boundsSnap,
+			boundSizing,
+			boundSizingSnap);
 		
-		auto const & io{ ImGui::GetIO() };
-		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-		ImGuizmo::Manipulate(cam_view, cam_proj, mCurrentGizmoOperation, mCurrentGizmoMode, matrix, NULL, useSnap ? &snap[0] : NULL, boundSizing ? bounds : NULL, boundSizingSnap ? boundsSnap : NULL);
+		ImGuizmo::SetRect(
+			view_size[0],
+			view_size[1],
+			view_size[2],
+			view_size[3]);
+
+		ImGuizmo::Manipulate(
+			cam_view,
+			cam_proj,
+			mCurrentGizmoOperation,
+			mCurrentGizmoMode,
+			value,
+			NULL,
+			useSnap ? &snap[0] : NULL,
+			boundSizing ? bounds : NULL,
+			boundSizingSnap ? boundsSnap : NULL);
 	}
 }
 

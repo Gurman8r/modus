@@ -15,7 +15,14 @@ namespace ml
 	{
 		ML_assert(begin_singleton<application>(this));
 
-		subscribe<imgui_dockspace_event, imgui_render_event>();
+		subscribe<
+			app_enter_event,
+			app_exit_event,
+			app_idle_event,
+			imgui_dockspace_event,
+			imgui_menubar_event,
+			imgui_render_event
+		>();
 	}
 
 	application::~application() noexcept
@@ -68,6 +75,10 @@ namespace ml
 
 		case imgui_dockspace_event::ID: {
 			auto && ev{ (imgui_dockspace_event &&)value };
+		} break;
+
+		case imgui_menubar_event::ID: {
+			auto && ev{ (imgui_menubar_event &&)value };
 		} break;
 
 		case imgui_render_event::ID: {

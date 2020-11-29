@@ -16,22 +16,31 @@ namespace ml
 
 		main_window(event_bus * bus, allocator_type alloc = {}) noexcept;
 
-		main_window(
-			event_bus *					bus,
-			ds::string			const & title,
-			video_mode			const & vm		= {},
-			context_settings	const & cs		= {},
-			window_hints_				hints	= window_hints_default,
-			allocator_type				alloc	= {}) noexcept;
-
 		virtual ~main_window() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		main_window(event_bus * bus, window_settings const & ws, allocator_type alloc = {}) noexcept
+			: main_window{ bus, ws.title, ws.video, ws.context, ws.hints, alloc }
+		{
+		}
+
+		main_window(
+			event_bus *					bus,
+			ds::string const &			title,
+			video_mode const &			vm		= {},
+			context_settings const &	cs		= {},
+			window_hints_				hints	= window_hints_default,
+			allocator_type				alloc	= {}
+		) noexcept : main_window{ bus, alloc }
+		{
+			ML_assert(this->open(title, vm, cs, hints));
+		}
+
 		ML_NODISCARD virtual bool open(
-			ds::string			const & title,
-			video_mode			const & vm		= {},
-			context_settings	const & cs		= {},
+			ds::string const &			title,
+			video_mode const &			vm		= {},
+			context_settings const &	cs		= {},
 			window_hints_				hints	= window_hints_default
 		) override;
 
@@ -42,17 +51,23 @@ namespace ml
 			return m_imgui;
 		}
 
-		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MainMenuBar *
-		{
-			return const_cast<ImGuiExt::MainMenuBar *>(&m_menubar);
-		}
-
 		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace *
 		{
 			return const_cast<ImGuiExt::Dockspace *>(&m_dockspace);
 		}
 
+		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MainMenuBar *
+		{
+			return const_cast<ImGuiExt::MainMenuBar *>(&m_menubar);
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void install_callbacks();
+
+		bool initialize_imgui(bool callbacks = true);
+		
+		void finalize_imgui();
 
 		void begin_frame();
 
@@ -83,8 +98,8 @@ namespace ml
 
 	private:
 		ds::scary<ImGuiContext>	m_imgui		; // imgui
-		ImGuiExt::MainMenuBar	m_menubar	; // menubar
 		ImGuiExt::Dockspace		m_dockspace	; // dockspace
+		ImGuiExt::MainMenuBar	m_menubar	; // menubar
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

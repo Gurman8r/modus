@@ -22,19 +22,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_plugin_manager() const -> plugin_manager *
+		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager *
 		{
 			return const_cast<plugin_manager *>(&m_plugin_manager);
 		}
 
-		ML_NODISCARD auto get_active_scene() const -> ds::ref<scene> const &
+		ML_NODISCARD auto get_active_scene() const noexcept -> ds::ref<scene> const &
 		{
 			return m_active_scene;
 		}
 
-		auto set_active_scene(ds::ref<scene> const & value) -> ds::ref<scene> &
+		void set_active_scene(ds::ref<scene> const & value) noexcept
 		{
-			return m_active_scene = value;
+			if (m_active_scene != value) { m_active_scene = value; }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

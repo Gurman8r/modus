@@ -18,6 +18,22 @@ namespace ml
 		nlohmann::adl_serializer,
 		std::vector<uint8>
 	>;
+
+	namespace util
+	{
+		template <class ID, class T, class Default = T
+		> void get_from(json const & j, ID const & id, T & vv, Default const & dv = {})
+		{
+			if (j.contains(id))
+			{
+				j[id].get_to(vv);
+			}
+			else
+			{
+				vv = ML_forward(dv);
+			}
+		}
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

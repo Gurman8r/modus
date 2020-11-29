@@ -99,7 +99,7 @@ namespace ml
 		m16[15] = 1.0f;
 	}
 
-	inline void orthographic(float32 const l, float32 r, float32 b, float32 const t, float32 zn, float32 const zf, float32 * m16)
+	inline void orthographic(float32 l, float32 r, float32 b, float32 t, float32 zn, float32 const zf, float32 * m16)
 	{
 		m16[0] = 2 / (r - l);
 		m16[1] = 0.0f;

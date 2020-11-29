@@ -168,38 +168,32 @@ namespace ml
 	// nameof
 
 	template <class T
-	> ML_NODISCARD constexpr static_string nameof() noexcept
-	{
-		return _ML nameof_t<T>::value;
-	}
-
-	template <class T
-	> ML_NODISCARD constexpr static_string nameof(T && v) noexcept
-	{
-		return _ML nameof<std::decay_t<decltype(v)>>();
-	}
-
-	template <class T
 	> constexpr static_string nameof_v
 	{
-		_ML nameof<T>()
+		_ML nameof_t<T>::value
 	};
+
+	template <class T
+	> ML_NODISCARD constexpr static_string nameof() noexcept
+	{
+		return _ML nameof_v<T>;
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// hashof
 
 	template <class T
-	> ML_NODISCARD constexpr hash_t hashof() noexcept
-	{
-		return _ML hashof(_ML nameof_v<T>);
-	}
-
-	template <class T
 	> constexpr hash_t hashof_v
 	{
-		_ML hashof<T>()
+		_ML hashof(_ML nameof_v<T>)
 	};
+
+	template <class T
+	> ML_NODISCARD constexpr hash_t hashof() noexcept
+	{
+		return hashof_v<T>;
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

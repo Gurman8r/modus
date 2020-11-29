@@ -173,8 +173,10 @@ namespace ml
 
 	ML_alias mouse_state = typename ds::array<int32, mouse_button_MAX>;
 
-	struct ML_NODISCARD input_state final
+	struct ML_NODISCARD input_state final : non_copyable, trackable
 	{
+		input_state() noexcept = default;
+
 		vec2d			cursor_pos	; // cursor position
 		keyboard_state	keyboard	; // keyboard state
 		mouse_state		mouse		; // mouse state

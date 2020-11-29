@@ -5,17 +5,28 @@
 
 struct ImGuiContext;
 
-namespace ml::ImGuiExt { struct Dockspace; }
+namespace ml::ImGuiExt { struct Dockspace; struct MainMenuBar; }
 
 namespace ml
 {
 	// IMGUI DOCKSPACE
 	ML_event(imgui_dockspace_event)
 	{
-		ImGuiExt::Dockspace * const ptr;
-		auto operator->() const noexcept { return ptr; }
-		auto & operator*() const noexcept { return *ptr; }
-		constexpr imgui_dockspace_event(ImGuiExt::Dockspace * const ptr) noexcept : ptr{ ptr }
+		ImGuiExt::Dockspace * const p;
+		auto operator->() const noexcept { return p; }
+		auto & operator*() const noexcept { return *p; }
+		constexpr imgui_dockspace_event(ImGuiExt::Dockspace * const p) noexcept : p{ p }
+		{
+		}
+	};
+
+	// IMGUI MENUBAR
+	ML_event(imgui_menubar_event)
+	{
+		ImGuiExt::MainMenuBar * const p;
+		auto operator->() const noexcept { return p; }
+		auto & operator*() const noexcept { return *p; }
+		constexpr imgui_menubar_event(ImGuiExt::MainMenuBar * const p) noexcept : p{ p }
 		{
 		}
 	};
@@ -23,10 +34,10 @@ namespace ml
 	// IMGUI RENDER
 	ML_event(imgui_render_event)
 	{
-		ImGuiContext * const ptr;
-		auto operator->() const noexcept { return ptr; }
-		auto & operator*() const noexcept { return *ptr; }
-		constexpr imgui_render_event(ImGuiContext * const ptr) noexcept : ptr{ ptr }
+		ImGuiContext * const p;
+		auto operator->() const noexcept { return p; }
+		auto & operator*() const noexcept { return *p; }
+		constexpr imgui_render_event(ImGuiContext * const p) noexcept : p{ p }
 		{
 		}
 	};

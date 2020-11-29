@@ -68,6 +68,14 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		template <class T
+		> ML_NODISCARD constexpr operator basic_rect<T>() const noexcept
+		{
+			return { (tvec4<T>)m_data };
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ML_NODISCARD constexpr operator storage_type & () & noexcept { return m_data; }
 
 		ML_NODISCARD constexpr operator storage_type const & () const & noexcept { return m_data; }

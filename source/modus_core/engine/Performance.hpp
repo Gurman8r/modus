@@ -1,21 +1,23 @@
 #ifndef _ML_PERFORMANCE_HPP_
 #define _ML_PERFORMANCE_HPP_
 
-#include <modus_core/detail/Array.hpp>
 #include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {
 	// fps tracker
-	template <size_t N = 120
-	> struct ML_NODISCARD fps_tracker final : non_copyable, trackable
+	struct ML_NODISCARD fps_tracker final : non_copyable, trackable
 	{
-		float32					value{}; // 
-		float32					accum{}; // 
-		size_t					index{}; // 
-		ds::array<float32, N>	times{}; // 
+		float32				value; // 
+		float32				accum; // 
+		size_t				index; // 
+		ds::list<float32>	times; // 
 
-		fps_tracker() noexcept = default;
+		fps_tracker(size_t count = 120, pmr::polymorphic_allocator<byte> alloc = {}) noexcept
+			: value{}, accum{}, index{}, times{ alloc }
+		{
+			times.resize(count);
+		}
 
 		void operator()(float32 dt) noexcept
 		{

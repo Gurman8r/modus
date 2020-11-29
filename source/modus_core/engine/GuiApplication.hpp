@@ -26,14 +26,14 @@ namespace ml
 	public:
 		virtual int32 exec() override
 		{
-			m_main_loop.process();
+			m_loop.process();
 
 			return core_application::exec();
 		}
 
 		virtual void exit(int32 exit_code) override
 		{
-			m_main_loop.halt();
+			m_loop.halt();
 
 			core_application::exit(exit_code);
 		}
@@ -41,7 +41,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_fps() const noexcept -> fps_tracker<> const *
+		ML_NODISCARD auto get_fps() const noexcept -> fps_tracker const *
 		{
 			return &m_fps_tracker;
 		}
@@ -53,18 +53,13 @@ namespace ml
 
 		ML_NODISCARD auto get_main_loop() const noexcept -> loop_system *
 		{
-			return const_cast<loop_system *>(&m_main_loop);
+			return const_cast<loop_system *>(&m_loop);
 		}
 
 		ML_NODISCARD auto get_main_window() const noexcept -> main_window *
 		{
-			return const_cast<main_window *>(&m_main_window);
+			return const_cast<main_window *>(&m_window);
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -75,12 +70,17 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	protected:
+		virtual void on_event(event const & value) override;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	private:
-		event_bus		m_dispatcher	; // event bus
-		loop_system		m_main_loop		; // main loop
-		main_window		m_main_window	; // main window
-		fps_tracker<>	m_fps_tracker	; // fps tracker
-		input_state		m_input_state	; // input state
+		event_bus	m_dispatcher	; // event bus
+		loop_system	m_loop			; // main loop
+		main_window	m_window		; // main window
+		fps_tracker	m_fps_tracker	; // fps tracker
+		input_state	m_input_state	; // input state
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

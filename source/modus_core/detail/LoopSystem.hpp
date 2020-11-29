@@ -170,31 +170,31 @@ namespace ml
 
 		ML_NODISCARD bool check_loop_condition() const noexcept
 		{
-			return m_running && m_condition && m_condition();
+			return m_running && m_condition && std::invoke(m_condition);
 		}
 
-		template <bool Recurse = false
+		template <bool Recurse = false, bool Reverse = false
 		> void run_enter_callback() noexcept
 		{
-			loop_system::run<Recurse>(&loop_system::m_on_enter, this);
+			loop_system::run<Recurse, Reverse>(&loop_system::m_on_enter, this);
 		}
 
-		template <bool Recurse = false
+		template <bool Recurse = false, bool Reverse = true
 		> void run_exit_callback() noexcept
 		{
-			loop_system::run<Recurse>(&loop_system::m_on_exit, this);
+			loop_system::run<Recurse, Reverse>(&loop_system::m_on_exit, this);
 		}
 
-		template <bool Recurse = false
+		template <bool Recurse = false, bool Reverse = false
 		> void run_idle_callback(duration const & dt) noexcept
 		{
-			loop_system::run<Recurse>(&loop_system::m_on_idle, this, dt);
+			loop_system::run<Recurse, Reverse>(&loop_system::m_on_idle, this, dt);
 		}
 
-		template <bool Recurse = false
+		template <bool Recurse = false, bool Reverse = false
 		> void run_event_callback(event const & ev) noexcept
 		{
-			loop_system::run<Recurse>(&loop_system::m_on_event, this, ev);
+			loop_system::run<Recurse, Reverse>(&loop_system::m_on_event, this, ev);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -270,7 +270,7 @@ namespace ml
 		template <class Derived = loop_system, class ... Args
 		> auto new_subsystem(Args && ... args) noexcept -> ds::ref<Derived>
 		{
-			static_assert(std::is_base_of_v<loop_system, Derived>, "?");
+			static_assert(std::is_base_of_v<loop_system, Derived>);
 
 			return std::static_pointer_cast<Derived>(m_subsystems.emplace_back
 			(
@@ -321,31 +321,57 @@ namespace ml
 		// handle event
 		virtual void on_event(event const & value) override
 		{
-			this->run_event_callback<false>(value);
+			this->run_event_callback<false, false>(value);
 		}
 
 		// execute member function pointer
-		template <bool Recurse = false, class D, class C, class ... Args
+		template <
+			bool Recurse = false,
+			bool Reverse = false,
+			class D, class C, class ... Args
 		> static void run(D C::*mp, C * self, Args && ... args) noexcept
 		{
-			static_assert(std::is_base_of_v<loop_system, C>, "?");
+			static_assert(std::is_base_of_v<loop_system, C>);
 
-			if (!self || !mp) { return; } else if (self->*mp)
+			if (!self || !mp) { return; } // nothing to do
+
+			auto run_self = [&]() noexcept
 			{
-				std::invoke(self->*mp, ML_forward(args)...);
+				if (self->*mp) { std::invoke(self->*mp, ML_forward(args)...); }
+			};
+
+			if constexpr (!Reverse) { run_self(); }
+
+			if constexpr (Recurse)
+			{
+				using Iter = std::conditional_t<!Reverse,
+					subsystem_list::const_iterator,
+					subsystem_list::const_reverse_iterator>;
+
+				auto first = [&]() noexcept -> Iter {
+					if constexpr (Reverse) { return self->m_subsystems.rbegin(); }
+					else { return self->m_subsystems.begin(); }
+				};
+
+				auto last = [&]() noexcept -> Iter {
+					if constexpr (Reverse) { return self->m_subsystems.rend(); }
+					else { return self->m_subsystems.end(); }
+				};
+
+				std::for_each(first(), last(), [&](subsystem const & e) noexcept
+				{
+					if constexpr (std::is_same_v<C, loop_system>)
+					{
+						loop_system::run<true, Reverse>(mp, self, ML_forward(args)...); // skip cast
+					}
+					else
+					{
+						loop_system::run<true, Reverse>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
+					}
+				});
 			}
 
-			if constexpr (Recurse) for (subsystem & e : self->m_subsystems)
-			{
-				if constexpr (std::is_same_v<C, loop_system>)
-				{
-					loop_system::run<true>(mp, self, ML_forward(args)...); // skip cast
-				}
-				else
-				{
-					loop_system::run<true>(mp, dynamic_cast<C *>(e.get()), ML_forward(args)...);
-				}
-			}
+			if constexpr (Reverse) { run_self(); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

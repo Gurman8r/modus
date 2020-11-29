@@ -10,8 +10,8 @@ namespace ml
 		: event_listener{ bus }
 		, render_window	{ alloc }
 		, m_imgui		{}
-		, m_menubar		{}
 		, m_dockspace	{}
+		, m_menubar		{}
 	{
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, auto u) { return ((memory_manager *)u)->allocate(s); },
@@ -26,21 +26,9 @@ namespace ml
 		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	}
 
-	main_window::main_window(
-		event_bus *					bus,
-		ds::string			const & title,
-		video_mode			const & vm,
-		context_settings	const & cs,
-		window_hints_				hints,
-		allocator_type				alloc
-	) noexcept : main_window{ bus, alloc }
-	{
-		ML_assert(this->open(title, vm, cs, hints));
-	}
-
 	main_window::~main_window() noexcept
 	{
-		_ML ImGui_Shutdown();
+		finalize_imgui();
 
 		ImGui::DestroyContext(m_imgui.release());
 	}
@@ -55,34 +43,8 @@ namespace ml
 	)
 	{
 		// open base
-		if (!render_window::open(title, vm, cs, hints)) { return false; }
-
-		// install callbacks
-		{
-			static event_bus * b; ML_assert(b = get_bus());
-			set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
-			set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
-			set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
-			set_cursor_enter_callback([](auto w, auto ... x) { b->fire<window_cursor_enter_event>(x...); });
-			set_cursor_pos_callback([](auto w, auto ... x) { b->fire<window_cursor_pos_event>(x...); });
-			set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
-			set_drop_callback([](auto w, auto ... x) { b->fire<window_drop_event>(x...); });
-			set_focus_callback([](auto w, auto ... x) { b->fire<window_focus_event>(x...); });
-			set_framebuffer_resize_callback([](auto w, auto ... x) { b->fire<window_framebuffer_resize_event>(x...); });
-			set_iconify_callback([](auto w, auto ... x) { b->fire<window_iconify_event>(x...); });
-			set_key_callback([](auto w, auto ... x) { b->fire<window_key_event>(x...); });
-			set_maximize_callback([](auto w, auto ... x) { b->fire<window_maximize_event>(x...); });
-			set_mouse_callback([](auto w, auto ... x) { b->fire<window_mouse_event>(x...); });
-			set_position_callback([](auto w, auto ... x) { b->fire<window_position_event>(x...); });
-			set_refresh_callback([](auto w, auto ... x) { b->fire<window_refresh_event>(x...); });
-			set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
-			set_scroll_callback([](auto w, auto ... x) { b->fire<window_scroll_event>(x...); });
-		}
-
-		// setup imgui
-		if (!_ML ImGui_Init(get_handle(), true))
-		{
-			return debug::failure("failed starting imgui");
+		if (!render_window::open(title, vm, cs, hints)) {
+			return debug::failure("failed opening render_window");
 		}
 
 		return true;
@@ -90,9 +52,43 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	void main_window::install_callbacks()
+	{
+		static ds::map<main_window *, event_bus *> m{};
+		static event_bus * b{};
+		ML_assert(b = m.find_or_add(this, get_bus()));
+		set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
+		set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
+		set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
+		set_cursor_enter_callback([](auto w, auto ... x) { b->fire<window_cursor_enter_event>(x...); });
+		set_cursor_pos_callback([](auto w, auto ... x) { b->fire<window_cursor_pos_event>(x...); });
+		set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
+		set_drop_callback([](auto w, auto ... x) { b->fire<window_drop_event>(x...); });
+		set_focus_callback([](auto w, auto ... x) { b->fire<window_focus_event>(x...); });
+		set_framebuffer_resize_callback([](auto w, auto ... x) { b->fire<window_framebuffer_resize_event>(x...); });
+		set_iconify_callback([](auto w, auto ... x) { b->fire<window_iconify_event>(x...); });
+		set_key_callback([](auto w, auto ... x) { b->fire<window_key_event>(x...); });
+		set_maximize_callback([](auto w, auto ... x) { b->fire<window_maximize_event>(x...); });
+		set_mouse_callback([](auto w, auto ... x) { b->fire<window_mouse_event>(x...); });
+		set_position_callback([](auto w, auto ... x) { b->fire<window_position_event>(x...); });
+		set_refresh_callback([](auto w, auto ... x) { b->fire<window_refresh_event>(x...); });
+		set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
+		set_scroll_callback([](auto w, auto ... x) { b->fire<window_scroll_event>(x...); });
+	}
+
+	bool main_window::initialize_imgui(bool callbacks)
+	{
+		return _ML ImGui_Init(get_handle(), callbacks);
+	}
+
+	void main_window::finalize_imgui()
+	{
+		_ML ImGui_Shutdown();
+	}
+
 	void main_window::begin_frame()
 	{
-		main_window::poll_events();
+		window_context::poll_events();
 
 		_ML ImGui_NewFrame();
 
@@ -118,15 +114,15 @@ namespace ml
 
 		if (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
-			auto const backup{ main_window::get_active_window() };
+			auto const backup{ window_context::get_active_window() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			main_window::set_active_window(backup);
+			window_context::set_active_window(backup);
 		}
 
 		if (has_hints(window_hints_doublebuffer))
 		{
-			main_window::swap_buffers(get_handle());
+			window_context::swap_buffers(get_handle());
 		}
 	}
 

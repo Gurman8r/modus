@@ -71,7 +71,7 @@ namespace ml
 
 		explicit event_listener(event_bus * bus) noexcept
 			: m_bus{ ML_check(bus) }
-			, m_order{ g_counter++ }
+			, m_order{ make_id(bus) }
 		{
 		}
 
@@ -93,6 +93,13 @@ namespace ml
 
 		// on event
 		virtual void on_event(event const &) = 0;
+
+		// id helper
+		template <class Bus = event_bus
+		> static uint64 make_id(Bus * bus) noexcept
+		{
+			return bus->make_id();
+		}
 
 		// subscribe
 		template <class ... Evs> void subscribe() noexcept
@@ -128,7 +135,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		static uint64		g_counter	; // global counter
 		event_bus *	const	m_bus		; // event bus
 		uint64 const		m_order		; // execution index
 
@@ -189,7 +195,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// EVENT BUS
-	struct event_bus : non_copyable
+	struct ML_CORE_API event_bus : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -218,13 +224,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		event_bus(allocator_type alloc = {}) noexcept
-			: m_cats	{ alloc }
+			: m_counter	{}
+			, m_cats	{ alloc }
 			, m_queue	{ alloc }
 			, m_dummies	{ alloc }
 		{
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD uint64 make_id() noexcept
+		{
+			return m_counter++;
+		}
 
 		template <class Ev
 		> bool add_listener(event_listener * value) noexcept
@@ -340,6 +352,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
+		uint64		m_counter	; // counter
 		categories	m_cats		; // listener storage
 		event_queue	m_queue		; // event queue
 		dummy_list	m_dummies	; // dummy listeners

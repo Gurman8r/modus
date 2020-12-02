@@ -53,7 +53,7 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// trig
+// pi
 namespace ml::util
 {
 #define ML_pi 3.14159f
@@ -83,44 +83,9 @@ namespace ml::util
 	}
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 // misc
 namespace ml::util
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// constexpr swap
-	template <class T
-	> constexpr void swap(T & lhs, T & rhs) noexcept
-	{
-		auto temp{ std::move(lhs) };
-		lhs = std::move(rhs);
-		rhs = std::move(temp);
-	}
-
-	// requires T is any of
-	template <class T, class ... Ts
-	> constexpr bool is_any_of_v
-	{
-		std::disjunction_v<std::is_same<T, Ts>...>
-	};
-
-	// bit cast
-	template <class To, class From
-	> ML_NODISCARD To bit_cast(From const & value) noexcept
-	{
-		static_assert(sizeof(To) == sizeof(From)
-			&& std::is_trivially_copyable_v<From>
-			&& std::is_trivial_v<To>
-			&& (std::is_copy_constructible_v<To> || std::is_move_constructible_v<To>)
-			, "requires To is trivially default constructible and is copy or move constructible"
-			);
-		To temp{};
-		std::memcpy(&temp, &value, sizeof(To));
-		return temp;
-	}
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// constructor
@@ -139,39 +104,45 @@ namespace ml::util
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// counter
-	template <class T = size_t> struct basic_counter final
+	// constexpr swap
+	template <class T
+	> constexpr void swap(T & lhs, T & rhs) noexcept
 	{
-		using type = typename T;
+		auto temp{ std::move(lhs) };
+		lhs = std::move(rhs);
+		rhs = std::move(temp);
+	}
 
-		static_assert(std::is_integral_v<type>);
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		basic_counter() noexcept : m_value{} {}
-
-		ML_NODISCARD type value() const noexcept
-		{
-			return m_value;
-		}
-
-		template <class U = type
-		> ML_NODISCARD type increment(U amt = U{ 1 }) noexcept
-		{
-			return m_value = m_value + static_cast<type>(amt);
-		}
-
-		template <class U = type
-		> ML_NODISCARD type operator()(U amt = U{ 1 }) noexcept
-		{
-			return this->increment(amt);
-		}
-
-	private:
-		type m_value;
+	// requires T is any of
+	template <class T, class ... Ts
+	> constexpr bool is_any_of_v
+	{
+		std::disjunction_v<std::is_same<T, Ts>...>
 	};
 
-	ML_alias signed_counter = typename basic_counter<int64>;
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_alias unsigned_counter = typename basic_counter<uint64>;
+	template <class To, class From
+	> constexpr bool is_trivially_convertible_v
+	{
+		"requires To is trivially default constructible and is copy or move constructible"
+		&& sizeof(To) == sizeof(From)
+		&& std::is_trivially_copyable_v<From>
+		&& std::is_trivial_v<To>
+		&& (std::is_copy_constructible_v<To> || std::is_move_constructible_v<To>)
+	};
+
+	// bit cast
+	template <class To, class From
+	> ML_NODISCARD To bit_cast(From const & value) noexcept
+	{
+		static_assert(is_trivially_convertible_v<To, From>);
+		To temp{};
+		std::memcpy(&temp, &value, sizeof(To));
+		return temp;
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

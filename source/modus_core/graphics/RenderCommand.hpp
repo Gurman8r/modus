@@ -215,8 +215,12 @@ namespace ml::gfx
 	// draw list
 	struct draw_list : command
 	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
+
 		template <class ... Args
-		> draw_list(std::allocator_arg_t, pmr::polymorphic_allocator<byte> alloc, Args && ... args) noexcept
+		> draw_list(std::allocator_arg_t, allocator_type alloc, Args && ... args) noexcept
 			: command{ [&](auto ctx) noexcept
 			{
 				for (ds::scope<command> const & cmd : m_commands)
@@ -241,6 +245,8 @@ namespace ml::gfx
 		{
 		}
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		void add_command(command const & value)
 		{
 			if (value && this != std::addressof(value))
@@ -253,7 +259,7 @@ namespace ml::gfx
 		{
 			if (value && this != std::addressof(value))
 			{
-				this->new_command(std::move(value));
+				this->new_command(value);
 			}
 		}
 
@@ -263,21 +269,40 @@ namespace ml::gfx
 			m_commands.emplace_back(new Cmd{ ML_forward(args)... });
 		}
 
-		draw_list & operator+=(std::initializer_list<command> init)
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		draw_list & operator+=(command const & value)
 		{
-			for (command const & cmd : init)
-			{
-				this->add_command(cmd);
-			}
+			this->add_command(value);
 			return (*this);
 		}
 
-		ML_NODISCARD auto operator *() & noexcept -> ds::list<ds::scope<command>> &
+		draw_list & operator+=(command && value) noexcept
+		{
+			this->add_command(std::move(value));
+			return (*this);
+		}
+
+		draw_list & operator+=(std::initializer_list<command> value)
+		{
+			for (command const & e : value) { this->add_command(e); }
+			return (*this);
+		}
+
+		draw_list & operator+=(ds::list<command> const & value)
+		{
+			for (command const & e : value) { this->add_command(e); }
+			return (*this);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto operator*() & noexcept -> ds::list<ds::scope<command>> &
 		{
 			return m_commands;
 		}
 
-		ML_NODISCARD auto operator *() const & noexcept -> ds::list<ds::scope<command>> const &
+		ML_NODISCARD auto operator*() const & noexcept -> ds::list<ds::scope<command>> const &
 		{
 			return m_commands;
 		}
@@ -292,8 +317,12 @@ namespace ml::gfx
 			return &m_commands;
 		}
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	private:
 		ds::list<ds::scope<command>> m_commands;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 

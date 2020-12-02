@@ -1,5 +1,7 @@
 #include <modus_core/detail/Memory.hpp>
 
+//#define ML_IMPL_MEMORY_CLEANUP
+
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -15,7 +17,7 @@ namespace ml
 
 	memory_manager::~memory_manager() noexcept
 	{
-#if 0
+#ifdef ML_IMPL_MEMORY_CLEANUP
 		while (!m_records.empty()) { this->deallocate(m_records.back<id_addr>()); }
 #else
 		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());

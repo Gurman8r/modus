@@ -5,39 +5,35 @@
 
 #include <modus_core/detail/Matrix.hpp>
 
-#include <glm/glm/glm.hpp>
-#include <glm/glm/gtc/matrix_transform.hpp>
-
-namespace ml::ds
+namespace ml
 {
 	struct transform final
 	{
 		using value_type				= typename float32;
-		using self_type					= typename _ML ds::transform;
-		using storage_type				= typename _ML mat4;
-		using size_type					= typename storage_type::size_type;
-		using difference_type			= typename storage_type::difference_type;
-		using pointer					= typename storage_type::pointer;
-		using reference					= typename storage_type::reference;
-		using const_pointer				= typename storage_type::const_pointer;
-		using const_reference			= typename storage_type::const_reference;
-		using rvalue					= typename storage_type::rvalue;
-		using iterator					= typename storage_type::iterator;
-		using const_iterator			= typename storage_type::const_iterator;
-		using reverse_iterator			= typename storage_type::reverse_iterator;
-		using const_reverse_iterator	= typename storage_type::const_reverse_iterator;
+		using self_type					= typename _ML transform;
+		using size_type					= typename mat4::size_type;
+		using difference_type			= typename mat4::difference_type;
+		using pointer					= typename mat4::pointer;
+		using reference					= typename mat4::reference;
+		using const_pointer				= typename mat4::const_pointer;
+		using const_reference			= typename mat4::const_reference;
+		using rvalue					= typename mat4::rvalue;
+		using iterator					= typename mat4::iterator;
+		using const_iterator			= typename mat4::const_iterator;
+		using reverse_iterator			= typename mat4::reverse_iterator;
+		using const_reverse_iterator	= typename mat4::const_reverse_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		constexpr transform() noexcept : m_data{}
+		constexpr transform() noexcept : m_data{ mat4::identity() }
 		{
 		}
 
-		explicit constexpr transform(storage_type const & value) : m_data{ value }
+		constexpr transform(mat4 const & value) : m_data{ value }
 		{
 		}
 
-		explicit constexpr transform(storage_type && value) noexcept : m_data{ std::move(value) }
+		constexpr transform(mat4 && value) noexcept : m_data{ std::move(value) }
 		{
 		}
 
@@ -46,6 +42,10 @@ namespace ml::ds
 		}
 
 		constexpr transform(self_type && other) noexcept : m_data{ std::move(other.m_data) }
+		{
+		}
+
+		transform(vec3 const & position, vec4 const & rotation, vec3 const & scale)
 		{
 		}
 
@@ -72,7 +72,7 @@ namespace ml::ds
 			}
 		}
 
-		constexpr void swap(storage_type & other) noexcept
+		constexpr void swap(mat4 & other) noexcept
 		{
 			if (std::addressof(m_data) != std::addressof(other))
 			{
@@ -82,11 +82,11 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		constexpr operator storage_type & () & noexcept { return m_data; }
+		constexpr operator mat4 & () & noexcept { return m_data; }
 
-		constexpr operator storage_type const & () const & noexcept { return m_data; }
+		constexpr operator mat4 const & () const & noexcept { return m_data; }
 
-		constexpr operator storage_type && () && noexcept { return std::move(m_data); }
+		constexpr operator mat4 && () && noexcept { return std::move(m_data); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -130,8 +130,42 @@ namespace ml::ds
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		template <class U = self_type
+		> ML_NODISCARD auto compare(U const & value) const noexcept
+		{
+			if constexpr (std::is_same_v<U, self_type>)
+			{
+				return this->compare(value.m_data);
+			}
+			else
+			{
+				static_assert(std::is_same_v<U, mat4>);
+				return ML_compare(m_data, value.m_data);
+			}
+		}
+
+		template <class U = self_type
+		> ML_NODISCARD bool operator==(U const & value) const noexcept { return this->compare(value) == 0; }
+
+		template <class U = self_type
+		> ML_NODISCARD bool operator!=(U const & value) const noexcept { return this->compare(value) != 0; }
+
+		template <class U = self_type
+		> ML_NODISCARD bool operator<(U const & value) const noexcept { return this->compare(value) < 0; }
+
+		template <class U = self_type
+		> ML_NODISCARD bool operator>(U const & value) const noexcept { return this->compare(value) > 0; }
+
+		template <class U = self_type
+		> ML_NODISCARD bool operator<=(U const & value) const noexcept { return this->compare(value) <= 0; }
+
+		template <class U = self_type
+		> ML_NODISCARD bool operator>=(U const & value) const noexcept { return this->compare(value) >= 0; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	private:
-		storage_type m_data;
+		mat4 m_data;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

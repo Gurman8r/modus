@@ -2,12 +2,17 @@
 #define _ML_SCENE_RENDERER_HPP_
 
 #include <modus_core/scene/Entity.hpp>
+#include <modus_core/graphics/Camera.hpp>
+#include <modus_core/graphics/Viewport.hpp>
 
 namespace ml
 {
-	struct scene_renderer
+	struct ML_CORE_API scene_renderer
 	{
+		scene_renderer();
 
+	private:
+		viewport m_view;
 	};
 }
 

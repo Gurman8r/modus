@@ -18,24 +18,21 @@ namespace ml
 		using framebuffer_list	= typename ds::list<framebuffer_ref>;
 
 		viewport(allocator_type alloc = {}) noexcept
-			: m_clear_color	{ colors::black }
-			, m_clear_flags	{ gfx::clear_color }
-			, m_position	{}
-			, m_resolution	{}
-			, m_fb			{ alloc }
+			: m_dirty	{}
+			, m_bounds	{}
+			, m_fb		{ alloc }
 		{
 		}
 
 		viewport(viewport const & other, allocator_type alloc = {})
-			: m_clear_color	{ other.m_clear_color }
-			, m_clear_flags	{ other.m_clear_flags }
-			, m_position	{ other.m_position }
-			, m_resolution	{ other.m_resolution }
-			, m_fb			{ other.m_fb, alloc }
+			: m_dirty	{ other.m_dirty }
+			, m_bounds	{ other.m_bounds }
+			, m_fb		{ other.m_fb, alloc }
 		{
 		}
 
-		viewport(viewport && other, allocator_type alloc = {}) noexcept : viewport{ alloc }
+		viewport(viewport && other, allocator_type alloc = {}) noexcept
+			: viewport{ alloc }
 		{
 			this->swap(std::move(other));
 		}
@@ -59,13 +56,17 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				m_clear_color.swap(other.m_clear_color);
-				std::swap(m_clear_flags, other.m_clear_flags);
-				m_position.swap(other.m_position);
-				m_resolution.swap(other.m_resolution);
-				m_fb.swap(other.m_fb);
+				std::swap(m_dirty		, other.m_dirty);
+				std::swap(m_bounds		, other.m_bounds);
+				std::swap(m_fb			, other.m_fb);
 			}
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD bool is_dirty() const noexcept { return m_dirty; }
+
+		bool mark_dirty(bool value) noexcept { return value && (m_dirty |= value); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -74,60 +75,41 @@ namespace ml
 			return {};
 		}
 
-		ML_NODISCARD auto get_bounds() const noexcept -> float_rect
+		ML_NODISCARD auto get_aspect() const noexcept -> float32
 		{
-			return { m_position, m_resolution };
+			return m_bounds.width() / m_bounds.height();
 		}
 
-		ML_NODISCARD auto get_clear_color() const noexcept -> color const &
+		ML_NODISCARD auto get_bounds() const noexcept -> float_rect const &
 		{
-			return m_clear_color;
+			return m_bounds;
 		}
 
-		ML_NODISCARD auto get_clear_flags() const noexcept -> int32
+		ML_NODISCARD auto get_position() const noexcept -> vec2
 		{
-			return m_clear_flags;
+			return m_bounds.position();
 		}
 
-		ML_NODISCARD auto get_position() const noexcept -> vec2 const &
+		ML_NODISCARD auto get_size() const noexcept -> vec2
 		{
-			return m_position;
+			return m_bounds.size();
 		}
 
-		ML_NODISCARD auto get_resolution() const noexcept -> vec2 const &
-		{
-			return m_resolution;
-		}
-
-		void set_clear_color(color const & value) noexcept
-		{
-			if (m_clear_color != value)
-			{
-				m_clear_color = value;
-			}
-		}
-
-		void set_clear_flags(int32 value) noexcept
-		{
-			if (m_clear_flags != value)
-			{
-				m_clear_flags = value;
-			}
-		}
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void set_position(vec2 const & value) noexcept
 		{
-			if (m_position != value)
+			if (mark_dirty(m_bounds.position() != value))
 			{
-				m_position = value;
+				m_bounds.position(value);
 			}
 		}
 
-		void set_resolution(vec2 const & value) noexcept
+		void set_size(vec2 const & value) noexcept
 		{
-			if (m_resolution != value)
+			if (mark_dirty(m_bounds.size() != value))
 			{
-				m_resolution = value;
+				m_bounds.size(value);
 			}
 		}
 
@@ -162,17 +144,15 @@ namespace ml
 		{
 			return m_fb.emplace_back(gfx::alloc_framebuffer
 			(
-				get_allocator(), m_resolution, ML_forward(args)...
+				get_allocator(), get_size(), ML_forward(args)...
 			));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		color				m_clear_color	; // 
-		int32				m_clear_flags	; // 
-		vec2				m_position		; // 
-		vec2				m_resolution	; // 
+		bool				m_dirty			; // 
+		float_rect			m_bounds		; // 
 		framebuffer_list	m_fb			; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

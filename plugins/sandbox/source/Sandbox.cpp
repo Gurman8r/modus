@@ -41,8 +41,8 @@ namespace ml
 		// rendering
 		bool m_cycle_color{ true };
 		bool m_view_dirty{};
-		camera m_camera{};
-		viewport m_viewport{};
+		camera m_cam{};
+		viewport m_view{};
 
 		// ImGuizmo
 		int32 m_gizmo_count{ 1 };
@@ -122,10 +122,13 @@ namespace ml
 					i.data());
 			}
 
-			m_viewport.set_clear_color({ 0.223f, 0.f, 0.46f, 1.f });
-			m_viewport.set_clear_flags(gfx::clear_color | gfx::clear_depth);
-			m_viewport.set_resolution({ 1280, 720 });
-			m_viewport.new_framebuffer();
+			m_cam.set_clear_color({ 0.223f, 0.f, 0.46f, 1.f });
+			m_cam.set_clear_flags(gfx::clear_color | gfx::clear_depth);
+			m_cam.set_position({ -5.f, 5.f, -5.f });
+			m_cam.set_forward({ 1.f, -1.f, 1.f });
+
+			m_view.set_size({ 1280, 720 });
+			m_view.new_framebuffer();
 		}
 
 		void on_app_exit(app_exit_event const & ev)
@@ -134,43 +137,26 @@ namespace ml
 
 		void on_app_idle(app_idle_event const & ev)
 		{
-			auto const dt{ ev.delta_time };
-			
 			ML_defer(&) { m_term.Output.Dump(m_cout.sstr()); };
 
-			for (auto const & fb : m_viewport.get_framebuffers())
+			m_cam.recalculate(m_view.get_size());
+
+			for (auto const & fb : m_view.get_framebuffers())
 			{
-				fb->resize(m_viewport.get_resolution());
+				fb->resize(m_view.get_size());
 			}
 
-			m_camera.update(m_viewport.get_resolution());
-
-			if (static bool once{}; m_view_dirty || (!once && (once = true)))
+			if (auto const & cc{ m_cam.get_clear_color() }; m_cycle_color)
 			{
-				vec3 eye{
-					cosf(m_camera.x_angle) * cosf(m_camera.y_angle) * m_camera.distance,
-					sinf(m_camera.y_angle) * m_camera.distance,
-					sinf(m_camera.x_angle) * cosf(m_camera.y_angle) * m_camera.distance
-				};
-				vec3 at{ 0.f, 0.f, 0.f };
-				vec3 up{ 0.f, 1.f, 0.f };
-				look_at(eye, at, up, m_camera.view);
-			}
-
-			if (m_cycle_color)
-			{
-				m_viewport.set_clear_color(util::rotate_hue
-				(
-					m_viewport.get_clear_color(), dt * 10
-				));
+				m_cam.set_clear_color(util::rotate_hue(cc, ev.delta_time * 10));
 			}
 
 			gfx::draw_list draw_list{};
 			draw_list +=
 			{
-				gfx::command::bind_framebuffer(m_viewport.get_framebuffer(0)),
-				gfx::command::set_clear_color(m_viewport.get_clear_color()),
-				gfx::command::clear(m_viewport.get_clear_flags()),
+				gfx::command::bind_framebuffer(m_view.get_framebuffer(0)),
+				gfx::command::set_clear_color(m_cam.get_clear_color()),
+				gfx::command::clear(m_cam.get_clear_flags()),
 				[&](gfx::render_context * ctx) noexcept { /* custom rendering */ },
 				gfx::command::bind_framebuffer(nullptr)
 			};
@@ -222,7 +208,7 @@ namespace ml
 
 		void on_imgui_render(imgui_render_event const & ev)
 		{
-			ImGuizmo::SetOrthographic(!m_camera.is_perspective);
+			ImGuizmo::SetOrthographic(false);
 
 			draw_viewport(ev); // VIEWPORT
 			draw_terminal(ev); // TERMINAL
@@ -342,6 +328,7 @@ namespace ml
 			{
 				ImGui::PopStyleVar(1);
 
+				// imguizmo
 				ImGuizmo::SetDrawlist();
 
 				// settings
@@ -352,55 +339,88 @@ namespace ml
 				// menubar
 				if (ImGui::BeginMenuBar())
 				{
-					ImGui::Separator();
-					if (ImGui::BeginMenu("debug"))
-					{
-						auto cc{ m_viewport.get_clear_color() };
-						if (ImGui::ColorEdit4("##clear color", cc, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
-							m_viewport.set_clear_color(cc);
-						}
-						ImGui::Separator();
-						
-						if (ImGui::RadioButton("grid", grid_enabled)) { grid_enabled = !grid_enabled; }
-						ImGui::SameLine();
-						if (ImGui::RadioButton("cubes", cubes_enabled)) { cubes_enabled = !cubes_enabled; }
-						
-						ImGui::EndMenu();
-					}
+					// debug
+					if (ImGui::RadioButton("grid", grid_enabled)) { grid_enabled = !grid_enabled; }
+					ImGui::SameLine();
+					if (ImGui::RadioButton("cubes", cubes_enabled)) { cubes_enabled = !cubes_enabled; }
 					ImGui::Separator();
 
+					// camera
 					if (ImGui::BeginMenu("camera"))
 					{
-						if (ImGui::RadioButton("perspective", m_camera.is_perspective)) { m_camera.is_perspective = true; }
-						ImGui::SameLine();
-						if (ImGui::RadioButton("orthographic", !m_camera.is_perspective)) { m_camera.is_perspective = false; }
+						if (auto cc{ m_cam.get_clear_color() }
+						; ImGui::ColorEdit4("##clear color", cc, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoInputs)) {
+							m_cam.set_clear_color(cc);
+						} ImGui::SameLine();
+
+						auto cf{ m_cam.get_clear_flags() };
+						if (ImGui::CheckboxFlags("color##bit", &cf, gfx::clear_color)) {
+							m_cam.set_clear_flags(cf);
+						} ImGui::SameLine();
+						if (ImGui::CheckboxFlags("depth##bit", &cf, gfx::clear_depth)) {
+							m_cam.set_clear_flags(cf);
+						} ImGui::SameLine();
+						if (ImGui::CheckboxFlags("stencil##bit", &cf, gfx::clear_stencil)) {
+							m_cam.set_clear_flags(cf);
+						}
+
 						ImGui::Separator();
 
-						if (m_camera.is_perspective) {
-							ImGui::SetNextItemWidth(200.f);
-							ImGui::SliderFloat("fov", &m_camera.fov, 20.f, 110.f);
-							ImGuiExt::Tooltip("field of view");
-						}
-						else {
-							ImGui::SetNextItemWidth(200.f);
-							ImGui::SliderFloat("view width", &m_camera.ortho_width, 1, 20);
-							ImGuiExt::Tooltip("orthographic view width");
+						if (auto pos{ m_cam.get_position() }
+						; ImGui::DragFloat3("position", pos, .1f)) {
+							m_cam.set_position(pos);
 						}
 
-						m_view_dirty |= ImGui::SliderFloat("distance", &m_camera.distance, 1.f, 10.f);
-
-						constexpr float32 max{ ML_pi * 2 };
-						constexpr float32 min{ 0 };
-
-						auto x{ m_camera.x_angle };
-						if (m_view_dirty |= ImGui::SliderFloat("x angle", &x, min, max)) {
-							m_camera.x_angle = x;
+						if (auto fwd{ m_cam.get_forward() }
+						; ImGui::DragFloat3("forward", fwd, .1f)) {
+							m_cam.set_forward(fwd);
 						}
 
-						auto y{ m_camera.y_angle };
-						if (m_view_dirty |= ImGui::SliderFloat("y angle", &y, min, max)) {
-							m_camera.y_angle = y;
+						if (auto up{ m_cam.get_up() }
+						; ImGui::DragFloat3("up", up, .1f)) {
+							m_cam.set_up(up);
 						}
+
+						if (auto world_up{ m_cam.get_world_up() }
+						; ImGui::DragFloat3("world up", world_up, .1f)) {
+							m_cam.set_world_up(world_up);
+						}
+
+						ImGui::Separator();
+
+						if (auto fov{ m_cam.get_fov() }
+						; ImGui::SliderFloat("fov", &fov, 0.f, 180.f)) {
+							m_cam.set_fov(fov);
+						}
+
+						if (auto clip{ m_cam.get_clip() }
+						; ImGui::DragFloat2("clip", clip)) {
+							m_cam.set_clip(clip);
+						}
+
+						ImGui::Separator();
+
+						if (auto yaw{ m_cam.get_yaw() }
+						; ImGui::SliderFloat("yaw", &yaw, 0.f, 360.f)) {
+							m_cam.set_yaw(yaw);
+						}
+
+						if (auto pitch{ m_cam.get_pitch() }
+						; ImGui::SliderFloat("pitch", &pitch, 0.f, 360.f)) {
+							m_cam.set_pitch(pitch);
+						}
+
+						if (auto roll{ m_cam.get_roll() }
+						; ImGui::SliderFloat("roll", &roll, 0.f, 360.f)) {
+							m_cam.set_roll(roll);
+						}
+
+						if (auto zoom{ m_cam.get_zoom() }
+						; ImGui::SliderFloat("zoom", &zoom, FLT_MIN, 100.f)) {
+							m_cam.set_zoom(zoom);
+						}
+						ImGui::Separator();
+
 						ImGui::EndMenu();
 					}
 					ImGui::Separator();
@@ -423,30 +443,30 @@ namespace ml
 					win_size{ (vec2)window->get_size() },
 					img_pos	{ (vec2)ImGui::GetCursorPos() },
 					img_size{ (vec2)ImGui::GetContentRegionAvail() };
-				m_viewport.set_position(img_pos);
-				m_viewport.set_resolution(img_size);
+				m_view.set_position(img_pos);
+				m_view.set_size(img_size);
 
 				// image
 				ImGui::Image(
-					m_viewport.get_framebuffer(0)->get_color_attachment(0)->get_handle(),
+					m_view.get_framebuffer(0)->get_color_attachment(0)->get_handle(),
 					img_size,
 					{ 0, 1 }, { 1, 0 },
 					colors::white,
 					colors::clear);
 
 				// gizmos
-				if (grid_enabled) {
-					ImGuizmo::DrawGrid(m_camera.view, m_camera.proj, mat4::identity(), 100.f);
-				}
-				if (cubes_enabled) {
-					ImGuizmo::DrawCubes(m_camera.view, m_camera.proj, &m_object_matrix[0][0], m_gizmo_count);
-				}
+				mat4 const view{ m_cam.get_view() }, proj{ m_cam.get_proj() };
+
+				if (grid_enabled) { ImGuizmo::DrawGrid(view, proj, mat4::identity(), 100.f); }
+				
+				if (cubes_enabled) { ImGuizmo::DrawCubes(view, proj, &m_object_matrix[0][0], m_gizmo_count); }
+				
 				for (int32 i = 0; i < m_gizmo_count; ++i)
 				{
 					ImGuizmo::SetID(i);
 					ImGuiExt::EditTransform(
-						m_camera.view,
-						m_camera.proj,
+						view,
+						proj,
 						m_object_matrix[i],
 						{ win_pos + img_pos, win_size },
 						false);
@@ -468,21 +488,7 @@ namespace ml
 			}
 			m_panels[settings_panel]([&](auto)
 			{
-				ImGui::Text("Camera");
-				if (ImGui::RadioButton("Perspective", m_camera.is_perspective)) {
-					m_camera.is_perspective = true;
-				}
-				ImGui::SameLine();
-				if (ImGui::RadioButton("Orthographic", !m_camera.is_perspective)) {
-					m_camera.is_perspective = false;
-				}
-				if (m_camera.is_perspective) {
-					ImGui::SliderFloat("Fov", &m_camera.fov, 20.f, 110.f);
-				}
-				else {
-					ImGui::SliderFloat("Ortho width", &m_camera.ortho_width, 1, 20);
-				}
-				ImGui::SliderInt("Gizmo count", &m_gizmo_count, 1, 4);
+				
 
 				ImGui::Separator();
 			});

@@ -3,30 +3,34 @@
 
 #include <modus_core/detail/Array.hpp>
 
+#include <glm/glm/glm.hpp>
+#include <glm/glm/gtc/matrix_transform.hpp>
+
 // MATRIX
 namespace ml::ds
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// fixed size matrix
-	template <class _T, size_t _W, size_t _H
+	template <class _T, size_t _Width, size_t _Height
 	> struct ML_NODISCARD matrix
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static_assert(0 < _W, "matrix width negative or zero");
+		static_assert(0 < _Width, "matrix width negative or zero");
 
-		static_assert(0 < _H, "matrix height negative or zero");
+		static_assert(0 < _Height, "matrix height negative or zero");
 
 		static_assert(std::is_scalar_v<_T>, "matrix only supports scalar types");
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using value_type				= typename _T;
-		using self_type					= typename _ML ds::matrix<value_type, _W, _H>;
-		using storage_type				= typename _ML ds::array<value_type, _W * _H>;
+		using self_type					= typename _ML ds::matrix<value_type, _Width, _Height>;
+		using storage_type				= typename _ML ds::array<value_type, _Width * _Height>;
 		using size_type					= typename storage_type::size_type;
 		using difference_type			= typename storage_type::difference_type;
+		using coord_type				= typename _ML ds::array<size_type, 2>;
 		using pointer					= typename storage_type::pointer;
 		using reference					= typename storage_type::reference;
 		using const_pointer				= typename storage_type::const_pointer;
@@ -42,22 +46,6 @@ namespace ml::ds
 		storage_type m_data; // aggregate initializer
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
-		constexpr auto data() noexcept -> pointer { return m_data.data(); }
-
-		constexpr auto data() const noexcept -> const_pointer { return m_data.data(); }
-
-		constexpr bool empty() const noexcept { return false; }
-
-		constexpr auto height() const noexcept -> size_t { return _H; }
-
-		constexpr auto max_size() const noexcept -> size_t { return m_data.max_size(); }
-
-		constexpr auto size() const noexcept -> size_t { return m_data.size(); }
-
-		constexpr auto width() const noexcept -> size_t { return _W; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		constexpr void swap(self_type & other) noexcept
 		{
@@ -65,6 +53,164 @@ namespace ml::ds
 			{
 				m_data.swap(other.m_data);
 			}
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		
+		ML_NODISCARD constexpr auto data() noexcept -> pointer { return m_data.data(); }
+
+		ML_NODISCARD constexpr auto data() const noexcept -> const_pointer { return m_data.data(); }
+
+		ML_NODISCARD constexpr bool empty() const noexcept { return false; }
+
+		ML_NODISCARD constexpr auto height() const noexcept -> size_t { return _Height; }
+
+		ML_NODISCARD constexpr auto max_size() const noexcept -> size_t { return m_data.max_size(); }
+
+		ML_NODISCARD constexpr auto size() const noexcept -> size_t { return m_data.size(); }
+
+		ML_NODISCARD constexpr auto width() const noexcept -> size_t { return _Width; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr operator storage_type & () & noexcept { return m_data; }
+
+		ML_NODISCARD constexpr operator storage_type const & () const & noexcept { return m_data; }
+
+		ML_NODISCARD constexpr operator storage_type && () && noexcept { return std::move(m_data); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr operator pointer() noexcept { return m_data; }
+
+		ML_NODISCARD constexpr operator const_pointer() const noexcept { return m_data; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr auto operator*() & noexcept -> reference { return (*m_data); }
+
+		ML_NODISCARD constexpr auto operator*() const & noexcept -> const_reference { return (*m_data); }
+
+		ML_NODISCARD constexpr auto operator*() && noexcept -> rvalue { return std::move(*m_data); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr auto at(size_t const i) & noexcept -> reference { return m_data.at(i); }
+		
+		ML_NODISCARD constexpr auto at(size_t const i) const & noexcept -> const_reference { return m_data.at(i); }
+
+		ML_NODISCARD constexpr auto at(size_t const i) && noexcept -> rvalue { return std::move(m_data.at(i)); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr auto at(size_t const x, size_t const y) & noexcept -> reference { return at(y * _Width + x); }
+
+		ML_NODISCARD constexpr auto at(size_t const x, size_t const y) const & noexcept -> const_reference { return at(y * _Width + x); }
+
+		ML_NODISCARD constexpr auto at(size_t const x, size_t const y) && noexcept -> rvalue { return std::move(at(y * _Width + x)); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr auto at(coord_type const & loc) & noexcept -> reference { return at(loc[0], loc[1]); }
+
+		ML_NODISCARD constexpr auto at(coord_type const & loc) const & noexcept -> const_reference { return at(loc[0], loc[1]); }
+
+		ML_NODISCARD constexpr auto at(coord_type const & loc) && noexcept -> rvalue { return std::move(at(loc[0], loc[1])); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr auto back() & noexcept -> reference { return m_data.back(); }
+
+		ML_NODISCARD constexpr auto back() const & noexcept -> const_reference { return m_data.back(); }
+
+		ML_NODISCARD constexpr auto back() && noexcept -> rvalue { return std::move(m_data.back()); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr auto front() & noexcept -> reference { return m_data.front(); }
+
+		ML_NODISCARD constexpr auto front() const & noexcept -> const_reference { return m_data.front(); }
+
+		ML_NODISCARD constexpr auto front() && noexcept -> rvalue { return std::move(m_data.front()); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		
+		ML_NODISCARD constexpr auto begin() noexcept -> iterator { return m_data.begin(); }
+
+		ML_NODISCARD constexpr auto begin() const noexcept -> const_iterator { return m_data.begin(); }
+
+		ML_NODISCARD constexpr auto cbegin() const noexcept -> const_iterator { return m_data.cbegin(); }
+
+		ML_NODISCARD constexpr auto cend() const noexcept -> const_iterator { return m_data.cend(); }
+
+		ML_NODISCARD constexpr auto crbegin() const noexcept -> const_reverse_iterator { return m_data.crbegin(); }
+
+		ML_NODISCARD constexpr auto crend() const noexcept -> const_reverse_iterator { return m_data.crend(); }
+		
+		ML_NODISCARD constexpr auto end() noexcept -> iterator { return m_data.end(); }
+
+		ML_NODISCARD constexpr auto end() const noexcept -> const_iterator { return m_data.end(); }
+
+		ML_NODISCARD constexpr auto rbegin() noexcept -> reverse_iterator { return m_data.rbegin(); }
+
+		ML_NODISCARD constexpr auto rbegin() const noexcept -> const_reverse_iterator { return m_data.rbegin(); }
+
+		ML_NODISCARD constexpr auto rend() noexcept -> reverse_iterator { return m_data.rend(); }
+
+		ML_NODISCARD constexpr auto rend() const noexcept -> const_reverse_iterator { return m_data.rend(); }
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr bool nonzero() const noexcept
+		{
+			for (auto const & e : m_data)
+				if (e != (value_type)0)
+					return true;
+			return false;
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static constexpr auto map_coord(size_t i) noexcept -> coord_type
+		{
+			return { i % _Width, i / _Height };
+		}
+
+		static constexpr auto map_coord(size_t x, size_t y) noexcept -> size_t
+		{
+			return y * _Width + x;
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static constexpr self_type zero() noexcept
+		{
+			return self_type{};
+		}
+
+		static constexpr self_type fill(value_type value) noexcept
+		{
+			self_type temp{};
+			for (auto & e : temp) { e = value; }
+			return temp;
+		}
+
+		static constexpr self_type one() noexcept
+		{
+			return fill((value_type)1);
+		}
+
+		static constexpr self_type identity() noexcept
+		{
+			self_type temp{};
+			for (size_t i = 0; i < (_Width * _Height); ++i)
+			{
+				if ((i / _Width) == (i % _Width))
+				{
+					temp[i] = (value_type)1;
+				}
+			}
+			return temp;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -79,7 +225,7 @@ namespace ml::ds
 			else
 			{
 				matrix<U, W, H> temp{};
-				if constexpr ((W == _W) && (H == _H))
+				if constexpr ((W == _Width) && (H == _Height))
 				{
 					// same dimensions
 					for (size_t i = 0; i < (W * H); ++i)
@@ -92,7 +238,7 @@ namespace ml::ds
 					// different dimensions
 					for (size_t i = 0; i < (W * H); ++i)
 					{
-						if (size_t const x{ i % W }, y{ i / W }; (x < _W && y < _H))
+						if (size_t const x{ i % W }, y{ i / W }; (x < _Width && y < _Height))
 						{
 							temp[i] = static_cast<U>(this->at(x, y));
 						}
@@ -104,124 +250,70 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		constexpr operator storage_type & () & noexcept { return m_data; }
-
-		constexpr operator storage_type const & () const & noexcept { return m_data; }
-
-		constexpr operator storage_type && () && noexcept { return std::move(m_data); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		constexpr operator pointer() noexcept { return m_data; }
-
-		constexpr operator const_pointer() const noexcept { return m_data; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		constexpr auto operator*() & noexcept -> reference { return (*m_data); }
-
-		constexpr auto operator*() const & noexcept -> const_reference { return (*m_data); }
-
-		constexpr auto operator*() && noexcept -> rvalue { return std::move(*m_data); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		constexpr auto at(size_t const i) & noexcept -> reference { return m_data.at(i); }
-		
-		constexpr auto at(size_t const i) const & noexcept -> const_reference { return m_data.at(i); }
-
-		constexpr auto at(size_t const i) && noexcept -> rvalue { return std::move(m_data.at(i)); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		constexpr auto at(size_t const x, size_t const y) & noexcept -> reference { return at(y * _W + x); }
-
-		constexpr auto at(size_t const x, size_t const y) const & noexcept -> const_reference { return at(y * _W + x); }
-
-		constexpr auto at(size_t const x, size_t const y) && noexcept -> rvalue { return std::move(at(y * _W + x)); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		constexpr auto back() & noexcept -> reference { return m_data.back(); }
-
-		constexpr auto back() const & noexcept -> const_reference { return m_data.back(); }
-
-		constexpr auto back() && noexcept -> rvalue { return std::move(m_data.back()); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		constexpr auto front() & noexcept -> reference { return m_data.front(); }
-
-		constexpr auto front() const & noexcept -> const_reference { return m_data.front(); }
-
-		constexpr auto front() && noexcept -> rvalue { return std::move(m_data.front()); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
-		constexpr auto begin() noexcept -> iterator { return m_data.begin(); }
-
-		constexpr auto begin() const noexcept -> const_iterator { return m_data.begin(); }
-
-		constexpr auto cbegin() const noexcept -> const_iterator { return m_data.cbegin(); }
-
-		constexpr auto cend() const noexcept -> const_iterator { return m_data.cend(); }
-
-		constexpr auto crbegin() const noexcept -> const_reverse_iterator { return m_data.crbegin(); }
-
-		constexpr auto crend() const noexcept -> const_reverse_iterator { return m_data.crend(); }
-		
-		constexpr auto end() noexcept -> iterator { return m_data.end(); }
-
-		constexpr auto end() const noexcept -> const_iterator { return m_data.end(); }
-
-		constexpr auto rbegin() noexcept -> reverse_iterator { return m_data.rbegin(); }
-
-		constexpr auto rbegin() const noexcept -> const_reverse_iterator { return m_data.rbegin(); }
-
-		constexpr auto rend() noexcept -> reverse_iterator { return m_data.rend(); }
-
-		constexpr auto rend() const noexcept -> const_reverse_iterator { return m_data.rend(); }
-		
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		constexpr bool nonzero() const noexcept
+		template <size_t L, class U, glm::qualifier Q = glm::defaultp
+		> ML_NODISCARD operator glm::vec<L, U, Q> & () & noexcept
 		{
-			for (auto const & e : (*this))
-				if (e != value_type{ 0 })
-					return true;
-			return false;
+			using V = glm::vec<L, U, Q>;
+			
+			static_assert(util::is_trivially_convertible_v<V, self_type>);
+			
+			return *static_cast<V *>((pointer)*this);
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static constexpr self_type zero() noexcept
+		template <size_t L, class U, glm::qualifier Q = glm::defaultp
+		> ML_NODISCARD operator glm::vec<L, U, Q>() const noexcept
 		{
-			return self_type{};
-		}
-
-		static constexpr self_type fill(value_type const value) noexcept
-		{
-			self_type temp{};
-			for (auto & e : temp) { e = value; }
-			return temp;
-		}
-
-		static constexpr self_type one() noexcept
-		{
-			return fill(value_type{ 1 });
-		}
-
-		static constexpr self_type identity() noexcept
-		{
-			self_type temp{};
-			for (size_t i = 0; i < (_W * _H); ++i)
+			using V = glm::vec<L, U, Q>;
+			if constexpr (util::is_trivially_convertible_v<V, self_type>)
 			{
-				if ((i / _W) == (i % _W))
-				{
-					temp[i] = value_type{ 1 };
-				}
+				return util::bit_cast<V>(*this);
 			}
-			return temp;
+			else
+			{
+				V temp{};
+				for (size_t i = 0; i < L; ++i)
+				{
+					if (i < (_Width * _Height))
+					{
+						temp[i] = (U)this->at(i);
+					}
+				}
+				return temp;
+			}
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <size_t W, size_t H, class U, glm::qualifier Q = glm::defaultp
+		> ML_NODISCARD operator glm::mat<W, H, U, Q> & () & noexcept
+		{
+			using M = glm::mat<W, H, U, Q>;
+			
+			static_assert(util::is_trivially_convertible_v<M, self_type>);
+			
+			return *static_cast<M *>((pointer)*this);
+		}
+
+		template <size_t W, size_t H, class U, glm::qualifier Q = glm::defaultp
+		> ML_NODISCARD operator glm::mat<W, H, U, Q>() const noexcept
+		{
+			using M = glm::mat<W, H, U, Q>;
+			if constexpr (util::is_trivially_convertible_v<M, self_type>)
+			{
+				return util::bit_cast<M>(*this);
+			}
+			else
+			{
+				M temp{};
+				for (size_t i = 0; i < (W * H); ++i)
+				{
+					if (size_t const x{ i % W }, y{ i / W }; (x < _Width) && (y < _Height))
+					{
+						temp[x][y] = (U)this->at(x, y);
+					}
+				}
+				return temp;
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

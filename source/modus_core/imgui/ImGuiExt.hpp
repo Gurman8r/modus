@@ -813,7 +813,7 @@ namespace ml::ImGuiExt
 
 	inline void EditTransform(
 		float32 const * view,
-		float32 * proj,
+		float32 const * proj,
 		mat4 & value,
 		float_rect const & bounds,
 		bool editTransformDecomposition

@@ -209,11 +209,6 @@ namespace ml
 				ImGuiExt::MenuItem(m_panels + viewport_panel);
 				ImGui::EndMenu();
 			}
-
-			ImGui::Separator();
-			auto const fps{ get_app()->get_fps()->value };
-			ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
-			ImGui::Separator();
 		}
 
 		void on_imgui_render(imgui_render_event const & ev)
@@ -504,6 +499,10 @@ namespace ml
 						ImGui::Separator();
 						ImGui::EndMenu();
 					}
+					ImGui::Separator();
+
+					// framerate
+					ImGui::TextDisabled("%.3f ms/frame ( %.1f fps )", 1000.f / ev->IO.Framerate, ev->IO.Framerate);
 					ImGui::Separator();
 
 					ImGui::EndMenuBar();

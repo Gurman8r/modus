@@ -447,19 +447,19 @@ namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// clear mask
-	enum clear_ : uint32
+	// clear flags
+	enum clear_flags_ : uint32
 	{
-		clear_none		= 0,		// no buffer
-		clear_color		= 1 << 0,	// color buffer bit
-		clear_depth		= 1 << 1,	// depth buffer bit
-		clear_stencil	= 1 << 2,	// stencil buffer bit
+		clear_flags_none		= 0,		// no buffer
+		clear_flags_color		= 1 << 0,	// color buffer bit
+		clear_flags_depth		= 1 << 1,	// depth buffer bit
+		clear_flags_stencil		= 1 << 2,	// stencil buffer bit
 
 		// color / depth / stencil
-		clear_all
-			= clear_color
-			| clear_depth
-			| clear_stencil,
+		clear_flags_all
+			= clear_flags_color
+			| clear_flags_depth
+			| clear_flags_stencil,
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

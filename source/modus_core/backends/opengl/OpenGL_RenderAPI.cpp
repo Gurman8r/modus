@@ -367,9 +367,9 @@ namespace ml::gfx
 	void opengl_render_context::clear(uint32 mask)
 	{
 		uint32 temp{};
-		ML_flag_map(temp, GL_COLOR_BUFFER_BIT	, mask, clear_color		);
-		ML_flag_map(temp, GL_DEPTH_BUFFER_BIT	, mask, clear_depth		);
-		ML_flag_map(temp, GL_STENCIL_BUFFER_BIT	, mask, clear_stencil	);
+		ML_flag_map(temp, GL_COLOR_BUFFER_BIT	, mask, clear_flags_color		);
+		ML_flag_map(temp, GL_DEPTH_BUFFER_BIT	, mask, clear_flags_depth		);
+		ML_flag_map(temp, GL_STENCIL_BUFFER_BIT	, mask, clear_flags_stencil	);
 		ML_glCheck(glClear(temp));
 	}
 

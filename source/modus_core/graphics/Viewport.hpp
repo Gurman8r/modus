@@ -18,15 +18,13 @@ namespace ml
 		using framebuffer_list	= typename ds::list<framebuffer_ref>;
 
 		viewport(allocator_type alloc = {}) noexcept
-			: m_dirty	{}
-			, m_bounds	{}
+			: m_bounds	{}
 			, m_fb		{ alloc }
 		{
 		}
 
 		viewport(viewport const & other, allocator_type alloc = {})
-			: m_dirty	{ other.m_dirty }
-			, m_bounds	{ other.m_bounds }
+			: m_bounds	{ other.m_bounds }
 			, m_fb		{ other.m_fb, alloc }
 		{
 		}
@@ -56,29 +54,24 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				std::swap(m_dirty		, other.m_dirty);
-				std::swap(m_bounds		, other.m_bounds);
-				std::swap(m_fb			, other.m_fb);
+				m_bounds.swap(other.m_bounds);
+				m_fb.swap(other.m_fb);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool is_dirty() const noexcept { return m_dirty; }
+		void recalculate()
+		{
+			ML_assert((0.f != get_width()) && (0.f != get_height()));
 
-		bool mark_dirty(bool value) noexcept { return value && (m_dirty |= value); }
+			for (framebuffer_ref const & e : m_fb)
+			{
+				e->resize(m_bounds.size());
+			}
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type
-		{
-			return {};
-		}
-
-		ML_NODISCARD auto get_aspect() const noexcept -> float32
-		{
-			return m_bounds.width() / m_bounds.height();
-		}
 
 		ML_NODISCARD auto get_bounds() const noexcept -> float_rect const &
 		{
@@ -90,26 +83,125 @@ namespace ml
 			return m_bounds.position();
 		}
 
-		ML_NODISCARD auto get_size() const noexcept -> vec2
+		ML_NODISCARD auto get_resolution() const noexcept -> vec2
 		{
 			return m_bounds.size();
 		}
 
+		ML_NODISCARD auto get_center() const noexcept -> vec2
+		{
+			return m_bounds.center();
+		}
+
+		ML_NODISCARD auto get_left() const noexcept -> float32
+		{
+			return m_bounds.left();
+		}
+
+		ML_NODISCARD auto get_right() const noexcept -> float32
+		{
+			return m_bounds.right();
+		}
+
+		ML_NODISCARD auto get_width() const noexcept -> float32
+		{
+			return m_bounds.width();
+		}
+
+		ML_NODISCARD auto get_height() const noexcept -> float32
+		{
+			return m_bounds.height();
+		}
+
+		ML_NODISCARD auto get_top() const noexcept -> float32
+		{
+			return m_bounds.top();
+		}
+
+		ML_NODISCARD auto get_bottom() const noexcept -> float32
+		{
+			return m_bounds.bottom();
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void set_bounds(float_rect const & value) noexcept
+		{
+			if (m_bounds != value)
+			{
+				m_bounds = value;
+			}
+		}
 
 		void set_position(vec2 const & value) noexcept
 		{
-			if (mark_dirty(m_bounds.position() != value))
+			if (m_bounds.position() != value)
 			{
 				m_bounds.position(value);
 			}
 		}
 
-		void set_size(vec2 const & value) noexcept
+		void set_resolution(vec2 const & value) noexcept
 		{
-			if (mark_dirty(m_bounds.size() != value))
+			if (m_bounds.size() != value)
 			{
 				m_bounds.size(value);
+			}
+		}
+
+		void set_center(vec2 const & value) noexcept
+		{
+			if (m_bounds.center() != value)
+			{
+				m_bounds.center(value);
+			}
+		}
+
+		void set_left(float32 value) noexcept
+		{
+			if (m_bounds.left() != value)
+			{
+				m_bounds.left(value);
+			}
+		}
+
+		void set_right(float32 value) noexcept
+		{
+			if (m_bounds.right() != value)
+			{
+				m_bounds.right(value);
+			}
+		}
+
+		void set_width(float32 value) noexcept
+		{
+			if (m_bounds.width() != value)
+			{
+				m_bounds.width(value);
+			}
+		}
+
+		void set_height(float32 value) noexcept
+		{
+			if (m_bounds.height() != value)
+			{
+				m_bounds.height(value);
+			}
+		}
+
+		void set_top(float32 value) noexcept
+		{
+			if (m_bounds.top() != value)
+			{
+				m_bounds.top(value);
+			}
+		}
+
+		void set_bottom(float32 value) noexcept
+		{
+			if (m_bounds.bottom() != value)
+			{
+				m_bounds.bottom(value);
 			}
 		}
 
@@ -142,16 +234,15 @@ namespace ml
 		template <class ... Args
 		> auto new_framebuffer(Args && ... args) noexcept -> framebuffer_ref
 		{
-			return m_fb.emplace_back(gfx::alloc_framebuffer
+			return m_fb.emplace_back(gfx::make_framebuffer
 			(
-				get_allocator(), get_size(), ML_forward(args)...
+				get_resolution(), ML_forward(args)...
 			));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		bool				m_dirty			; // 
 		float_rect			m_bounds		; // 
 		framebuffer_list	m_fb			; // 
 

@@ -740,7 +740,7 @@ namespace ml::ImGuiExt
 		bool				BoundSizing;
 		bool				BoundSizingSnap;
 
-		TransformDecompositionEditor() noexcept
+		explicit TransformDecompositionEditor() noexcept
 			: CurrentGizmoOperation	{ ImGuizmo::TRANSLATE }
 			, CurrentGizmoMode		{ ImGuizmo::LOCAL }
 			, UseSnap				{ false }
@@ -819,8 +819,8 @@ namespace ml::ImGuiExt
 		bool editTransformDecomposition
 	)
 	{
-		static TransformDecompositionEditor t{};
-		if (editTransformDecomposition) { t(value); }
+		static TransformDecompositionEditor tr{};
+		if (editTransformDecomposition) { tr(value); }
 		
 		ImGuizmo::SetRect(
 			bounds[0],
@@ -831,13 +831,13 @@ namespace ml::ImGuiExt
 		ImGuizmo::Manipulate(
 			view,
 			proj,
-			t.CurrentGizmoOperation,
-			t.CurrentGizmoMode,
+			tr.CurrentGizmoOperation,
+			tr.CurrentGizmoMode,
 			value,
 			NULL,
-			t.UseSnap ? &t.Snap[0] : NULL,
-			t.BoundSizing ? t.Bounds : NULL,
-			t.BoundSizingSnap ? t.BoundsSnap : NULL);
+			tr.UseSnap ? &tr.Snap[0] : NULL,
+			tr.BoundSizing ? tr.Bounds : NULL,
+			tr.BoundSizingSnap ? tr.BoundsSnap : NULL);
 	}
 }
 

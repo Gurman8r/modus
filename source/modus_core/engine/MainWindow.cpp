@@ -108,7 +108,7 @@ namespace ml
 		(
 			gfx::command::set_viewport(get_framebuffer_size()),
 			gfx::command::set_clear_color(colors::black),
-			gfx::command::clear(gfx::clear_color)
+			gfx::command::clear(gfx::clear_flags_color)
 		);
 
 		_ML ImGui_RenderDrawData(&m_imgui->Viewports[0]->DrawDataP);

@@ -68,6 +68,16 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		constexpr void swap(self_type & other) noexcept
+		{
+			if (this != std::addressof(other))
+			{
+				m_data.swap(other.m_data);
+			}
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		template <class T
 		> ML_NODISCARD constexpr operator basic_rect<T>() const noexcept
 		{
@@ -98,7 +108,7 @@ namespace ml
 		
 		ML_NODISCARD constexpr auto height() const noexcept -> value_type { return m_data.at(3); }
 		
-		ML_NODISCARD constexpr auto bot() const noexcept -> value_type { return (top() + height()); }
+		ML_NODISCARD constexpr auto bottom() const noexcept -> value_type { return (top() + height()); }
 		
 		ML_NODISCARD constexpr auto right() const noexcept -> value_type { return (left() + width()); }
 		
@@ -118,7 +128,7 @@ namespace ml
 		
 		constexpr auto height(value_type value) noexcept -> self_type & { m_data.at(3) = value; return (*this); }
 		
-		constexpr auto bot(value_type value) noexcept -> self_type & { return height(value - top()); }
+		constexpr auto bottom(value_type value) noexcept -> self_type & { return height(value - top()); }
 		
 		constexpr auto right(value_type value) noexcept -> self_type & { return width(value - left()); }
 		

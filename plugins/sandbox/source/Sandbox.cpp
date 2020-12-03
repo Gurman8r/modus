@@ -129,7 +129,7 @@ namespace ml
 			cam->set_orthographic(false);
 			cam->set_clear_flags(gfx::clear_flags_color | gfx::clear_flags_depth);
 			cam->set_background({ 0.223f, 0.f, 0.46f, 1.f });
-			cam->set_eye({ -5.f, 5.f, -5.f });
+			cam->set_eye({ -5.f, 2.5f, -5.f });
 			cam->set_target({ 0.f, 0.f, 0.f });
 			m_cc.set_camera(cam);
 		}

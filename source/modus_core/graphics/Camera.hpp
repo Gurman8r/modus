@@ -143,7 +143,7 @@ namespace ml
 			, m_view		{ mat4::identity() }
 			, m_clip		{ { 0.001f, 1000.f }, { 1000.f, -1000.f } }
 			, m_fov			{ 27.f, 10.f }
-			, m_eye			{ 0, 5, -5 }
+			, m_eye			{ 5, 5, 5 }
 			, m_target		{ 0, 0, 0 }
 			, m_up			{ 0, 1, 0 }
 			, m_world_up	{ 0, 1, 0 }

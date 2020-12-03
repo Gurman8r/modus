@@ -44,9 +44,8 @@ namespace ml
 		camera_controller m_cc{}; // camera controller
 
 		// gizmos
-		bool m_view_dirty{};
-		int32 m_gizmo_count{ 1 };
-		int32 m_gizmo_index{};
+		int32 m_object_count{ 1 };
+		int32 m_object_index{};
 		mat4 m_object_matrix[4] =
 		{
 			{
@@ -129,7 +128,7 @@ namespace ml
 			cam->set_orthographic(false);
 			cam->set_clear_flags(gfx::clear_flags_color | gfx::clear_flags_depth);
 			cam->set_background({ 0.223f, 0.f, 0.46f, 1.f });
-			cam->set_eye({ -5.f, 3.f, -5.f });
+			cam->set_eye({ 5.f, 3.f, 5.f });
 			cam->set_target({ 0.f, 0.f, 0.f });
 			m_cc.set_camera(cam);
 		}
@@ -365,7 +364,7 @@ namespace ml
 					{
 						ImGui::Separator();
 						if (ImGui::RadioButton("enable grid", enable_grid)) { enable_grid = !enable_grid; }
-						ImGui::SliderInt("cubes", &m_gizmo_count, 0, 4);
+						ImGui::SliderInt("cubes", &m_object_count, 0, 4);
 						ImGui::Separator();
 						ImGui::EndMenu();
 					}
@@ -488,14 +487,12 @@ namespace ml
 						if (xedit.CurrentGizmoOperation != ImGuizmo::SCALE) {
 							xedit.ShowModeControls();
 						}
-						ImGui::Separator();
-
-						ImGuiExt::EditTransformMatrix(
-							m_object_matrix[m_gizmo_index],
-							"position\0rotation\0scale");
-						ImGui::Separator();
 						xedit.ShowSnapControls();
 						xedit.ShowBoundsControls();
+						ImGui::Separator();
+						ImGuiExt::EditTransformMatrix(
+							m_object_matrix[m_object_index],
+							"position\0rotation\0scale");
 						ImGui::Separator();
 						ImGui::EndMenu();
 					}
@@ -534,18 +531,18 @@ namespace ml
 				
 				if (enable_grid) { ImGuizmo::DrawGrid(view, proj, mat4::identity(), 100.f); }
 				
-				if (0 < m_gizmo_count) { ImGuizmo::DrawCubes(view, proj, &m_object_matrix[0][0], m_gizmo_count); }
+				if (0 < m_object_count) { ImGuizmo::DrawCubes(view, proj, &m_object_matrix[0][0], m_object_count); }
 				
 				ImGuizmo::SetRect(bounds[0], bounds[1], bounds[2], bounds[3]);
 
-				for (int32 i = 0; i < m_gizmo_count; ++i)
+				for (int32 i = 0; i < m_object_count; ++i)
 				{
 					ImGuizmo::SetID(i);
 
-					if (xedit.Manipulate(view, proj, m_object_matrix[i]))
-					{
-						m_gizmo_index = i;
-					}
+					bool used{};
+					used |= xedit.Manipulate(view, proj, m_object_matrix[i]);
+					used |= ImGuizmo::IsUsing();
+					if (used) { m_object_index = i; }
 				}
 
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -729,6 +729,58 @@ namespace ml::ImGuiExt
 // TRANSFORM
 namespace ml::ImGuiExt
 {
+	inline bool DrawVec3Control(cstring label, vec3 & value, float32 reset_value = 0.f, float32 column_width = 100.f)
+	{
+		bool dirty{};
+		ImGuiIO & io{ ImGui::GetIO() };
+
+		ImGui::Columns(2);
+		ImGui::SetColumnWidth(0, column_width);
+		ImGui::Text(label);
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
+
+		auto line_height{ ImGui::GetFontSize() + ImGui::GetStyle().FramePadding[1] * 2.0f };
+		vec2 button_size{ line_height + 3.0f, line_height };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, { 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.9f, 0.2f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.8f, 0.1f, 0.15f, 1.0f });
+		if (ImGui::Button("X", button_size)) { value[0] = reset_value; }
+		ImGui::PopStyleColor(3);
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##X", &value[0], 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.3f, 0.8f, 0.3f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.2f, 0.7f, 0.2f, 1.0f });
+		if (ImGui::Button("Y", button_size)) { value[1] = reset_value; }
+		ImGui::PopStyleColor(3);
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##Y", &value[1], 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, { 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.2f, 0.35f, 0.9f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.1f, 0.25f, 0.8f, 1.0f });
+		if (ImGui::Button("Z", button_size)) { value[2] = reset_value; }
+		ImGui::PopStyleColor(3);
+		ImGui::SameLine();
+		dirty |= ImGui::DragFloat("##Z", &value[2], 0.01f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+
+		ImGui::Columns(1);
+
+		return dirty;
+	}
+
 	inline bool EditTransformMatrix(float32 * value, cstring labels = "tr\0rt\0sc\0")
 	{
 		if (!labels || !*labels) { labels = "tr\0rt\0sc\0"; } // default labels
@@ -736,9 +788,9 @@ namespace ml::ImGuiExt
 		bool dirty{};
 		vec3 t, r, s;
 		ImGuizmo::DecomposeMatrixToComponents(value, t, r, s);
-		dirty |= ImGui::DragFloat3(util::single_str(labels, 0), t, 0.05f);
-		dirty |= ImGui::DragFloat3(util::single_str(labels, 1), r, 0.05f);
-		dirty |= ImGui::DragFloat3(util::single_str(labels, 2), s, 0.05f);
+		dirty |= ImGui::DragFloat3(util::single_str(labels, 0), t, 0.001f, 0.f, 0.f, "%.3f");
+		dirty |= ImGui::DragFloat3(util::single_str(labels, 1), r, 0.001f, 0.f, 0.f, "%.3f");
+		dirty |= ImGui::DragFloat3(util::single_str(labels, 2), s, 0.001f, 0.f, 0.f, "%.3f");
 		ImGuizmo::RecomposeMatrixFromComponents(t, r, s, value);
 		return dirty;
 	}
@@ -760,6 +812,7 @@ namespace ml::ImGuiExt
 
 		void ShowOperationControls()
 		{
+			ImGuiExt_ScopeID(this);
 			ImGui::BeginGroup();
 			if (ImGui::RadioButton("translate", CurrentGizmoOperation == ImGuizmo::TRANSLATE)) { CurrentGizmoOperation = ImGuizmo::TRANSLATE; }
 			ImGui::SameLine();
@@ -771,6 +824,7 @@ namespace ml::ImGuiExt
 
 		void ShowModeControls()
 		{
+			ImGuiExt_ScopeID(this);
 			bool const is_scale{ CurrentGizmoOperation == ImGuizmo::SCALE };
 			ImGui::BeginGroup();
 			if (ImGui::RadioButton("local", !is_scale && CurrentGizmoMode == ImGuizmo::LOCAL)) { CurrentGizmoMode = ImGuizmo::LOCAL; }
@@ -781,45 +835,31 @@ namespace ml::ImGuiExt
 
 		void ShowSnapControls()
 		{
+			ImGuiExt_ScopeID(this);
 			ImGui::BeginGroup();
 			ImGui::Checkbox("##usesnap", &UseSnap); ImGui::SameLine();
 			switch (CurrentGizmoOperation)
 			{
-			case ImGuizmo::TRANSLATE: ImGui::DragFloat3("snap##translate", &Snap[0], .01f); break;
-			case ImGuizmo::ROTATE: ImGui::DragFloat("snap##rotate", &Snap[0], .01f); break;
-			case ImGuizmo::SCALE: ImGui::DragFloat("snap##scale", &Snap[0], .01f); break;
+			case ImGuizmo::TRANSLATE: ImGui::DragFloat3("snap##translate", &Snap[0], 0.001f); break;
+			case ImGuizmo::ROTATE: ImGui::DragFloat("snap##rotate", &Snap[0], 0.001f); break;
+			case ImGuizmo::SCALE: ImGui::DragFloat("snap##scale", &Snap[0], 0.001f); break;
 			}
 			ImGui::EndGroup();
 		}
 
 		void ShowBoundsControls()
 		{
+			ImGuiExt_ScopeID(this);
 			ImGui::BeginGroup();
 			if (ImGui::Checkbox("bound sizing", &BoundSizing); BoundSizing)
 			{
 				ImGui::Checkbox("##boundsizingsnap", &BoundSizingSnap); ImGui::SameLine();
-				ImGui::DragFloat3("snap##boundsizing", BoundsSnap, .01f);
+				ImGui::DragFloat3("snap##boundsizing", BoundsSnap, 0.01f, 0.f, 0.f, "%.2f");
 			}
 			ImGui::EndGroup();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		bool Edit(float32 * value, cstring labels = "tr\0rt\0sc\0")
-		{
-			ImGuiExt_ScopeID(this);
-			bool dirty{};
-			ShowOperationControls(); // operation
-			if (CurrentGizmoOperation != ImGuizmo::SCALE) { ShowModeControls(); } // mode
-			ImGui::Separator();
-			dirty |= ImGuiExt::EditTransformMatrix(value, labels); // edit
-			ImGui::Separator();
-			ShowSnapControls(); // snap
-			ImGui::Separator();
-			ShowBoundsControls(); // bounds
-			//ImGui::Separator();
-			return dirty;
-		}
 
 		bool Manipulate(float32 const * view, float32 const * proj, float32 * value, float32 * delta = {})
 		{
@@ -840,19 +880,6 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	inline bool EditTransform(float32 const * view, float32 const * proj, float32 * value, bool edit_decomposition = false)
-	{
-		static TransformEditor xedit{};
-
-		bool dirty{};
-
-		if (edit_decomposition) { dirty |= xedit.Edit(value); }
-
-		dirty |= xedit.Manipulate(view, proj, value);
-
-		return dirty;
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

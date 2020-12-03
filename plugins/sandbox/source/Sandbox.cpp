@@ -46,7 +46,7 @@ namespace ml
 		// gizmos
 		bool m_view_dirty{};
 		int32 m_gizmo_count{ 1 };
-		int32 m_last_using{ 0 };
+		int32 m_gizmo_index{};
 		mat4 m_object_matrix[4] =
 		{
 			{
@@ -129,7 +129,7 @@ namespace ml
 			cam->set_orthographic(false);
 			cam->set_clear_flags(gfx::clear_flags_color | gfx::clear_flags_depth);
 			cam->set_background({ 0.223f, 0.f, 0.46f, 1.f });
-			cam->set_eye({ -5.f, 2.5f, -5.f });
+			cam->set_eye({ -5.f, 3.f, -5.f });
 			cam->set_target({ 0.f, 0.f, 0.f });
 			m_cc.set_camera(cam);
 		}
@@ -496,7 +496,7 @@ namespace ml
 						ImGui::Separator();
 
 						ImGuiExt::EditTransformMatrix(
-							m_object_matrix[m_last_using],
+							m_object_matrix[m_gizmo_index],
 							"position\0rotation\0scale");
 						ImGui::Separator();
 						xedit.ShowSnapControls();
@@ -511,9 +511,7 @@ namespace ml
 
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-				mat4
-					view{ main_camera->get_view_matrix() },
-					proj{ main_camera->get_proj_matrix() };
+				// viewport
 				vec2 const
 					win_pos{ (vec2)main_window->get_position() },
 					win_size{ (vec2)main_window->get_size() },
@@ -521,8 +519,6 @@ namespace ml
 					draw_size{ (vec2)ImGui::GetContentRegionAvail() };
 				float_rect const
 					bounds{ win_pos + draw_pos, win_size };
-
-				// viewport
 				m_view.set_position(draw_pos);
 				m_view.set_resolution(draw_size);
 
@@ -535,17 +531,22 @@ namespace ml
 					colors::clear);
 
 				// gizmos
+				mat4 view{ main_camera->get_view_matrix() }, proj{ main_camera->get_proj_matrix() };
+				
 				if (enable_grid) { ImGuizmo::DrawGrid(view, proj, mat4::identity(), 100.f); }
+				
 				if (0 < m_gizmo_count) { ImGuizmo::DrawCubes(view, proj, &m_object_matrix[0][0], m_gizmo_count); }
 				
 				ImGuizmo::SetRect(bounds[0], bounds[1], bounds[2], bounds[3]);
+
 				for (int32 i = 0; i < m_gizmo_count; ++i)
 				{
 					ImGuizmo::SetID(i);
 
-					xedit.Manipulate(view, proj, m_object_matrix[i]);
-
-					if (ImGuizmo::IsUsing()) { m_last_using = i; }
+					if (xedit.Manipulate(view, proj, m_object_matrix[i]))
+					{
+						m_gizmo_index = i;
+					}
 				}
 
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

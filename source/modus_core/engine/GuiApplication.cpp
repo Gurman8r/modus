@@ -122,21 +122,23 @@ namespace ml
 				, dockspace = m_window.get_dockspace()
 			](auto) noexcept
 			{
+				m_dispatcher.fire<imgui_begin_event>(imgui);
+
 				ImGuizmo::BeginFrame();
 
 				dockspace->SetWindowFlag(ImGuiWindowFlags_MenuBar, menubar->FindByName());
 
-				(*dockspace)(imgui->Viewports[0], [&](auto) noexcept
-				{
+				(*dockspace)(imgui->Viewports[0], [&](auto) noexcept {
 					m_dispatcher.fire<imgui_dockspace_event>(dockspace);
 				});
 
-				(*menubar)([&](auto) noexcept
-				{
+				(*menubar)([&](auto) noexcept {
 					m_dispatcher.fire<imgui_menubar_event>(menubar);
 				});
 
 				m_dispatcher.fire<imgui_render_event>(imgui);
+
+				m_dispatcher.fire<imgui_end_event>(imgui);
 			});
 		});
 	}

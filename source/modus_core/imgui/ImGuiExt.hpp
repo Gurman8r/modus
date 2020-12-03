@@ -726,118 +726,132 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// EDIT TRANSFORM
+// TRANSFORM
 namespace ml::ImGuiExt
 {
-	struct ML_NODISCARD TransformDecompositionEditor final : non_copyable, trackable
+	inline bool EditTransformMatrix(float32 * value, cstring labels = "tr\0rt\0sc\0")
 	{
-		ImGuizmo::OPERATION	CurrentGizmoOperation;
-		ImGuizmo::MODE		CurrentGizmoMode;
-		bool				UseSnap;
-		vec3				Snap;
-		float32				Bounds[6];
-		float32				BoundsSnap[3];
-		bool				BoundSizing;
-		bool				BoundSizingSnap;
+		if (!labels || !*labels) { labels = "tr\0rt\0sc\0"; } // default labels
 
-		explicit TransformDecompositionEditor() noexcept
-			: CurrentGizmoOperation	{ ImGuizmo::TRANSLATE }
-			, CurrentGizmoMode		{ ImGuizmo::LOCAL }
-			, UseSnap				{ false }
-			, Snap					{ 1.f, 1.f, 1.f }
-			, Bounds				{ -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f }
-			, BoundsSnap			{ 0.1f, 0.1f, 0.1f }
-			, BoundSizing			{ false }
-			, BoundSizingSnap		{ false }
+		bool dirty{};
+		vec3 t, r, s;
+		ImGuizmo::DecomposeMatrixToComponents(value, t, r, s);
+		dirty |= ImGui::DragFloat3(util::single_str(labels, 0), t, 0.05f);
+		dirty |= ImGui::DragFloat3(util::single_str(labels, 1), r, 0.05f);
+		dirty |= ImGui::DragFloat3(util::single_str(labels, 2), s, 0.05f);
+		ImGuizmo::RecomposeMatrixFromComponents(t, r, s, value);
+		return dirty;
+	}
+
+	struct ML_NODISCARD TransformEditor final
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ImGuizmo::OPERATION	CurrentGizmoOperation	{ ImGuizmo::TRANSLATE };
+		ImGuizmo::MODE		CurrentGizmoMode		{ ImGuizmo::LOCAL };
+		bool				UseSnap					{ false };
+		vec3				Snap					{ 1.f, 1.f, 1.f };
+		vec3				Bounds[2]				{ { -0.5f, -0.5f, -0.5f }, { 0.5f, 0.5f, 0.5f } };
+		vec3				BoundsSnap				{ 0.1f, 0.1f, 0.1f };
+		bool				BoundSizing				{ false };
+		bool				BoundSizingSnap			{ false };
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void ShowOperationControls()
 		{
+			ImGui::BeginGroup();
+			if (ImGui::RadioButton("translate", CurrentGizmoOperation == ImGuizmo::TRANSLATE)) { CurrentGizmoOperation = ImGuizmo::TRANSLATE; }
+			ImGui::SameLine();
+			if (ImGui::RadioButton("rotate", CurrentGizmoOperation == ImGuizmo::ROTATE)) { CurrentGizmoOperation = ImGuizmo::ROTATE; }
+			ImGui::SameLine();
+			if (ImGui::RadioButton("scale", CurrentGizmoOperation == ImGuizmo::SCALE)) { CurrentGizmoOperation = ImGuizmo::SCALE; }
+			ImGui::EndGroup();
 		}
 
-		void operator()(mat4 & value)
+		void ShowModeControls()
 		{
-			if (ImGui::IsKeyPressed(keycode_z)) CurrentGizmoOperation = ImGuizmo::TRANSLATE;
-			if (ImGui::IsKeyPressed(keycode_e)) CurrentGizmoOperation = ImGuizmo::ROTATE;
-			if (ImGui::IsKeyPressed(keycode_r))  CurrentGizmoOperation = ImGuizmo::SCALE;
-
-			if (ImGui::RadioButton("Translate", CurrentGizmoOperation == ImGuizmo::TRANSLATE)) {
-				CurrentGizmoOperation = ImGuizmo::TRANSLATE;
-			}
+			bool const is_scale{ CurrentGizmoOperation == ImGuizmo::SCALE };
+			ImGui::BeginGroup();
+			if (ImGui::RadioButton("local", !is_scale && CurrentGizmoMode == ImGuizmo::LOCAL)) { CurrentGizmoMode = ImGuizmo::LOCAL; }
 			ImGui::SameLine();
-			if (ImGui::RadioButton("Rotate", CurrentGizmoOperation == ImGuizmo::ROTATE)) {
-				CurrentGizmoOperation = ImGuizmo::ROTATE;
-			}
-			ImGui::SameLine();
-			if (ImGui::RadioButton("Scale", CurrentGizmoOperation == ImGuizmo::SCALE)) {
-				CurrentGizmoOperation = ImGuizmo::SCALE;
-			}
+			if (ImGui::RadioButton("world", !is_scale && CurrentGizmoMode == ImGuizmo::WORLD)) { CurrentGizmoMode = ImGuizmo::WORLD; }
+			ImGui::EndGroup();
+		}
 
-			vec3 matrixTranslation, matrixRotation, matrixScale;
-			ImGuizmo::DecomposeMatrixToComponents(value, matrixTranslation, matrixRotation, matrixScale);
-			ImGui::InputFloat3("Tr", matrixTranslation);
-			ImGui::InputFloat3("Rt", matrixRotation);
-			ImGui::InputFloat3("Sc", matrixScale);
-			ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, value);
-
-			if (CurrentGizmoOperation != ImGuizmo::SCALE) {
-				if (ImGui::RadioButton("Local", CurrentGizmoMode == ImGuizmo::LOCAL)) {
-					CurrentGizmoMode = ImGuizmo::LOCAL;
-				}
-				ImGui::SameLine();
-				if (ImGui::RadioButton("World", CurrentGizmoMode == ImGuizmo::WORLD)) {
-					CurrentGizmoMode = ImGuizmo::WORLD;
-				}
-			}
-
-			if (ImGui::IsKeyPressed(keycode_s)) {
-				UseSnap = !UseSnap;
-			}
-			ImGui::Checkbox("", &UseSnap);
-			ImGui::SameLine();
-
+		void ShowSnapControls()
+		{
+			ImGui::BeginGroup();
+			ImGui::Checkbox("##usesnap", &UseSnap); ImGui::SameLine();
 			switch (CurrentGizmoOperation)
 			{
-			case ImGuizmo::TRANSLATE: ImGui::InputFloat3("Snap", &Snap[0]); break;
-			case ImGuizmo::ROTATE: ImGui::InputFloat("Angle Snap", &Snap[0]); break;
-			case ImGuizmo::SCALE: ImGui::InputFloat("Scale Snap", &Snap[0]); break;
+			case ImGuizmo::TRANSLATE: ImGui::DragFloat3("snap##translate", &Snap[0], .01f); break;
+			case ImGuizmo::ROTATE: ImGui::DragFloat("snap##rotate", &Snap[0], .01f); break;
+			case ImGuizmo::SCALE: ImGui::DragFloat("snap##scale", &Snap[0], .01f); break;
 			}
-			ImGui::Checkbox("Bound Sizing", &BoundSizing);
-			if (BoundSizing)
-			{
-				ImGui::PushID(3);
-				ImGui::Checkbox("", &BoundSizingSnap);
-				ImGui::SameLine();
-				ImGui::InputFloat3("Snap", BoundsSnap);
-				ImGui::PopID();
-			}
+			ImGui::EndGroup();
 		}
+
+		void ShowBoundsControls()
+		{
+			ImGui::BeginGroup();
+			if (ImGui::Checkbox("bound sizing", &BoundSizing); BoundSizing)
+			{
+				ImGui::Checkbox("##boundsizingsnap", &BoundSizingSnap); ImGui::SameLine();
+				ImGui::DragFloat3("snap##boundsizing", BoundsSnap, .01f);
+			}
+			ImGui::EndGroup();
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		bool Edit(float32 * value, cstring labels = "tr\0rt\0sc\0")
+		{
+			ImGuiExt_ScopeID(this);
+			bool dirty{};
+			ShowOperationControls(); // operation
+			if (CurrentGizmoOperation != ImGuizmo::SCALE) { ShowModeControls(); } // mode
+			ImGui::Separator();
+			dirty |= ImGuiExt::EditTransformMatrix(value, labels); // edit
+			ImGui::Separator();
+			ShowSnapControls(); // snap
+			ImGui::Separator();
+			ShowBoundsControls(); // bounds
+			//ImGui::Separator();
+			return dirty;
+		}
+
+		bool Manipulate(float32 const * view, float32 const * proj, float32 * value, float32 * delta = {})
+		{
+			ImGuiExt_ScopeID(this);
+			return ImGuizmo::Manipulate
+			(
+				view,
+				proj,
+				CurrentGizmoOperation,
+				CurrentGizmoMode,
+				value,
+				delta,
+				UseSnap ? (float32 *)Snap : nullptr,
+				BoundSizing ? (float32 *)Bounds : nullptr,
+				BoundSizingSnap ? (float32 *)BoundsSnap : nullptr
+			);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 
-	inline void EditTransform(
-		float32 const * view,
-		float32 const * proj,
-		mat4 & value,
-		float_rect const & bounds,
-		bool editTransformDecomposition
-	)
+	inline bool EditTransform(float32 const * view, float32 const * proj, float32 * value, bool edit_decomposition = false)
 	{
-		static TransformDecompositionEditor tr{};
-		if (editTransformDecomposition) { tr(value); }
-		
-		ImGuizmo::SetRect(
-			bounds[0],
-			bounds[1],
-			bounds[2],
-			bounds[3]);
+		static TransformEditor xedit{};
 
-		ImGuizmo::Manipulate(
-			view,
-			proj,
-			tr.CurrentGizmoOperation,
-			tr.CurrentGizmoMode,
-			value,
-			NULL,
-			tr.UseSnap ? &tr.Snap[0] : NULL,
-			tr.BoundSizing ? tr.Bounds : NULL,
-			tr.BoundSizingSnap ? tr.BoundsSnap : NULL);
+		bool dirty{};
+
+		if (edit_decomposition) { dirty |= xedit.Edit(value); }
+
+		dirty |= xedit.Manipulate(view, proj, value);
+
+		return dirty;
 	}
 }
 

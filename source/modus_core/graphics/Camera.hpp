@@ -141,8 +141,8 @@ namespace ml
 			, m_background	{ colors::magenta }
 			, m_proj		{ mat4::identity() }
 			, m_view		{ mat4::identity() }
-			, m_clip		{ 0.001f, 1000.f }
-			, m_fov			{ 27.f }
+			, m_clip		{ { 0.001f, 1000.f }, { 1000.f, -1000.f } }
+			, m_fov			{ 27.f, 10.f }
 			, m_eye			{ 0, 5, -5 }
 			, m_target		{ 0, 0, 0 }
 			, m_up			{ 0, 1, 0 }
@@ -156,17 +156,18 @@ namespace ml
 			, m_background	{ other.m_background }
 			, m_proj		{ other.m_proj }
 			, m_view		{ other.m_view }
-			, m_clip		{ other.m_clip }
-			, m_fov			{ other.m_fov }
+			, m_fov			{}
+			, m_clip		{}
 			, m_eye			{ other.m_eye }
 			, m_target		{ other.m_target }
 			, m_up			{ other.m_up }
 			, m_world_up	{ other.m_world_up }
 		{
+			std::memcpy(m_fov, other.m_fov, sizeof(m_fov));
+			std::memcpy(m_clip, other.m_clip, sizeof(m_clip));
 		}
 
-		camera(camera && other) noexcept
-			: camera{}
+		camera(camera && other) noexcept : camera{}
 		{
 			this->swap(std::move(other));
 		}
@@ -193,6 +194,7 @@ namespace ml
 				std::swap(m_is_ortho	, other.m_is_ortho);
 				std::swap(m_clear_flags	, other.m_clear_flags);
 				std::swap(m_fov			, other.m_fov);
+				std::swap(m_clip		, other.m_clip);
 
 				m_proj		.swap(other.m_proj);
 				m_view		.swap(other.m_view);
@@ -201,7 +203,6 @@ namespace ml
 				m_target	.swap(other.m_target);
 				m_up		.swap(other.m_up);
 				m_world_up	.swap(other.m_world_up);
-				m_clip		.swap(other.m_clip);
 			}
 		}
 
@@ -214,13 +215,25 @@ namespace ml
 			// projection
 			if (!m_is_ortho)
 			{
-				util::perspective(m_fov, resolution[0] / resolution[1], m_clip[0], m_clip[1], m_proj);
+				util::perspective(
+					m_fov[m_is_ortho],
+					resolution[0] / resolution[1],
+					m_clip[m_is_ortho][0],
+					m_clip[m_is_ortho][1],
+					m_proj);
 			}
 			else
 			{
-				auto const height{ m_fov * resolution[1] / resolution[0] };
+				auto const height{ m_fov[m_is_ortho] * resolution[1] / resolution[0] };
 				
-				util::orthographic(-m_fov, m_fov, -height, height, m_clip[0], m_clip[1], m_proj);
+				util::orthographic(
+					-m_fov[m_is_ortho],
+					m_fov[m_is_ortho],
+					-height,
+					height,
+					m_clip[m_is_ortho][0],
+					m_clip[m_is_ortho][1],
+					m_proj);
 			}
 
 			// view
@@ -300,12 +313,12 @@ namespace ml
 
 		ML_NODISCARD auto get_fov() const noexcept -> float32
 		{
-			return m_fov;
+			return m_fov[m_is_ortho];
 		}
 
 		ML_NODISCARD auto get_clip() const noexcept -> vec2 const &
 		{
-			return m_clip;
+			return m_clip[m_is_ortho];
 		}
 
 		ML_NODISCARD auto get_eye() const noexcept -> vec3 const &
@@ -330,17 +343,17 @@ namespace ml
 
 		void set_fov(float32 value) noexcept
 		{
-			if (m_fov != value)
+			if (m_fov[m_is_ortho] != value)
 			{
-				m_fov = value;
+				m_fov[m_is_ortho] = value;
 			}
 		}
 
 		void set_clip(vec2 const & value) noexcept
 		{
-			if (m_clip != value)
+			if (m_clip[m_is_ortho] != value)
 			{
-				m_clip = value;
+				m_clip[m_is_ortho] = value;
 			}
 		}
 
@@ -381,12 +394,12 @@ namespace ml
 	private:
 		color	m_background	; // 
 		uint32	m_clear_flags	; // 
-		
+
 		bool	m_is_ortho		; // 
 		mat4	m_proj			; // 
 		mat4	m_view			; // 
-		float32 m_fov			; // 
-		vec2	m_clip			; // 
+		float32 m_fov[2]		; // 
+		vec2	m_clip[2]		; // 
 
 		vec3	m_eye			; // 
 		vec3	m_target		; // 

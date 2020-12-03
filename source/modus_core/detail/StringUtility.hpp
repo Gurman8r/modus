@@ -77,6 +77,22 @@ namespace ml::util
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	ML_NODISCARD constexpr cstring single_str(cstring items_separated_by_zeroes, size_t index)
+	{
+		cstring	items{ (cstring)items_separated_by_zeroes };
+		size_t	count{};
+		cstring	ptr{ items };
+		while (*ptr)
+		{
+			if (index == count) { break; }
+			ptr += util::strlen(ptr) + 1;
+			count++;
+		}
+		return *ptr ? ptr : "";
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	template <class T, class Ch, class Fn, class ... Args
 	> ML_NODISCARD std::optional<T> parse_answer(Ch const * ptr, Fn && fn, Args && ... args) noexcept
 	{

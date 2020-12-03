@@ -2,9 +2,7 @@
 #define _ML_MATRIX_HPP_
 
 #include <modus_core/detail/Array.hpp>
-
-#include <glm/glm/glm.hpp>
-#include <glm/glm/gtc/matrix_transform.hpp>
+#include <modus_core/detail/GLM.hpp>
 
 // MATRIX
 namespace ml::ds
@@ -183,6 +181,14 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		template <class U
+		> self_type & copy_from(U const * value)
+		{
+			std::memcpy(m_data, value, sizeof(m_data));
+
+			return (*this);
+		}
+
 		static constexpr self_type zero() noexcept
 		{
 			return self_type{};
@@ -216,7 +222,7 @@ namespace ml::ds
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class U, size_t W, size_t H
-		> constexpr operator matrix<U, W, H>() const noexcept
+		> ML_NODISCARD constexpr operator matrix<U, W, H>() const noexcept
 		{
 			if constexpr (std::is_same_v<matrix<U, W, H>, self_type>)
 			{
@@ -251,16 +257,6 @@ namespace ml::ds
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <size_t L, class U, glm::qualifier Q = glm::defaultp
-		> ML_NODISCARD operator glm::vec<L, U, Q> & () & noexcept
-		{
-			using V = glm::vec<L, U, Q>;
-			
-			static_assert(util::is_trivially_convertible_v<V, self_type>);
-			
-			return *static_cast<V *>((pointer)*this);
-		}
-
-		template <size_t L, class U, glm::qualifier Q = glm::defaultp
 		> ML_NODISCARD operator glm::vec<L, U, Q>() const noexcept
 		{
 			using V = glm::vec<L, U, Q>;
@@ -283,16 +279,6 @@ namespace ml::ds
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		template <size_t W, size_t H, class U, glm::qualifier Q = glm::defaultp
-		> ML_NODISCARD operator glm::mat<W, H, U, Q> & () & noexcept
-		{
-			using M = glm::mat<W, H, U, Q>;
-			
-			static_assert(util::is_trivially_convertible_v<M, self_type>);
-			
-			return *static_cast<M *>((pointer)*this);
-		}
 
 		template <size_t W, size_t H, class U, glm::qualifier Q = glm::defaultp
 		> ML_NODISCARD operator glm::mat<W, H, U, Q>() const noexcept
@@ -325,6 +311,32 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// GLM
+namespace ml::util
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	template <size_t L, class T, glm::qualifier Q = glm::defaultp
+	> ML_NODISCARD ds::matrix<T, L, 1> from_glm(glm::vec<L, T, Q> const & value)
+	{
+		return ds::matrix<T, L, 1>{}.copy_from(glm::value_ptr(value));
+	}
+
+	template <size_t W, size_t H, class T, glm::qualifier Q = glm::defaultp
+	> ML_NODISCARD ds::matrix<T, W, H> from_glm(glm::mat<W, H, T, Q> const & value)
+	{
+		return ds::matrix<T, W, H>{}.copy_from(glm::value_ptr(value));
+	}
+
+	template <class T, glm::qualifier Q = glm::defaultp
+	> ML_NODISCARD ds::matrix<T, 4, 1> from_glm(glm::qua<T, Q> const & value)
+	{
+		return ds::matrix<T, 4, 1>{}.copy_from(glm::value_ptr(value));
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

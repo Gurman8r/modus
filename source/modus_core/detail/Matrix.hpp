@@ -181,14 +181,6 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class U
-		> self_type & copy_from(U const * value)
-		{
-			std::memcpy(m_data, value, sizeof(m_data));
-
-			return (*this);
-		}
-
 		static constexpr self_type zero() noexcept
 		{
 			return self_type{};
@@ -260,7 +252,11 @@ namespace ml::ds
 		> ML_NODISCARD operator glm::vec<L, U, Q>() const noexcept
 		{
 			using V = glm::vec<L, U, Q>;
-			if constexpr (util::is_trivially_convertible_v<V, self_type>)
+			if constexpr (std::is_same_v<value_type, U> && (_Width == L) && (_Height == 1))
+			{
+				return *((V *)this);
+			}
+			else if constexpr (util::is_trivially_convertible_v<V, self_type>)
 			{
 				return util::bit_cast<V>(*this);
 			}
@@ -284,7 +280,11 @@ namespace ml::ds
 		> ML_NODISCARD operator glm::mat<W, H, U, Q>() const noexcept
 		{
 			using M = glm::mat<W, H, U, Q>;
-			if constexpr (util::is_trivially_convertible_v<M, self_type>)
+			if constexpr (std::is_same_v<value_type, U> && (_Width == W) && (_Height == H))
+			{
+				return *((M *)this);
+			}
+			else if constexpr (util::is_trivially_convertible_v<M, self_type>)
 			{
 				return util::bit_cast<M>(*this);
 			}
@@ -323,19 +323,19 @@ namespace ml::util
 	template <size_t L, class T, glm::qualifier Q = glm::defaultp
 	> ML_NODISCARD ds::matrix<T, L, 1> from_glm(glm::vec<L, T, Q> const & value)
 	{
-		return ds::matrix<T, L, 1>{}.copy_from(glm::value_ptr(value));
+		return *((ds::matrix<T, L, 1> *)(glm::vec<L, T, Q> *)(&value));
 	}
 
 	template <size_t W, size_t H, class T, glm::qualifier Q = glm::defaultp
 	> ML_NODISCARD ds::matrix<T, W, H> from_glm(glm::mat<W, H, T, Q> const & value)
 	{
-		return ds::matrix<T, W, H>{}.copy_from(glm::value_ptr(value));
+		return *((ds::matrix<T, W, H> *)(glm::mat<W, H, T, Q> *)(&value));
 	}
 
 	template <class T, glm::qualifier Q = glm::defaultp
 	> ML_NODISCARD ds::matrix<T, 4, 1> from_glm(glm::qua<T, Q> const & value)
 	{
-		return ds::matrix<T, 4, 1>{}.copy_from(glm::value_ptr(value));
+		return *((ds::matrix<T, 4, 1> *)(glm::qua<T, Q> *)(&value));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

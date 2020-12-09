@@ -239,7 +239,7 @@ namespace ml::gfx
 		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_vertexarray> };
 
 		uint32							m_handle	{}; // handle
-		vertex_layout					m_layout	{}; // buffer layout
+		buffer_layout					m_layout	{}; // buffer layout
 		uint32 const					m_mode		{}; // prim type
 		ds::ref<indexbuffer>			m_indices	{}; // index buffer
 		ds::list<ds::ref<vertexbuffer>>	m_vertices	{}; // vertex buffers
@@ -258,11 +258,11 @@ namespace ml::gfx
 	public:
 		void add_vertices(ds::ref<vertexbuffer> const & value) final;
 
-		void set_layout(vertex_layout const & value) final { m_layout = value; }
+		void set_layout(buffer_layout const & value) final { m_layout = value; }
 
 		void set_indices(ds::ref<indexbuffer> const & value) final;
 
-		vertex_layout const & get_layout() const noexcept final { return m_layout; }
+		buffer_layout const & get_layout() const noexcept final { return m_layout; }
 
 		ds::ref<indexbuffer> const & get_indices() const noexcept final { return m_indices; }
 

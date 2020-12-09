@@ -504,8 +504,8 @@ namespace ml::gfx
 			switch (value)
 			{
 			default						: return value;
-			case shader_vertex		: return GL_VERTEX_SHADER;
-			case shader_fragment	: return GL_FRAGMENT_SHADER;
+			case shader_type_vertex		: return GL_VERTEX_SHADER;
+			case shader_type_fragment	: return GL_FRAGMENT_SHADER;
 			case shader_geometry	: return GL_GEOMETRY_SHADER;
 			}
 		}
@@ -514,8 +514,8 @@ namespace ml::gfx
 			switch (value)
 			{
 			default					: return value;
-			case GL_VERTEX_SHADER	: return shader_vertex;
-			case GL_FRAGMENT_SHADER	: return shader_fragment;
+			case GL_VERTEX_SHADER	: return shader_type_vertex;
+			case GL_FRAGMENT_SHADER	: return shader_type_fragment;
 			case GL_GEOMETRY_SHADER	: return shader_geometry;
 			}
 		}

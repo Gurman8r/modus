@@ -144,13 +144,13 @@ namespace ml::gfx
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// layout
+// buffer layout
 namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// layout element
-	struct ML_NODISCARD vertex_element final
+	struct ML_NODISCARD buffer_element final
 	{
 		template <class T
 		> static constexpr bool is_valid_type
@@ -168,14 +168,14 @@ namespace ml::gfx
 		bool	normalized	{};
 		uint32	offset		{};
 
-		constexpr vertex_element(cstring name, hash_t type, uint32 size, bool normalized) noexcept
+		constexpr buffer_element(cstring name, hash_t type, uint32 size, bool normalized) noexcept
 			: name{ name }, type{ type }, size{ size }, normalized{ normalized }, offset{}
 		{
 		}
 
 		template <class Elem
-		> constexpr vertex_element(Elem, cstring name, bool normalized = false) noexcept
-			: vertex_element{ name, hashof_v<Elem>, sizeof(Elem), normalized }
+		> constexpr buffer_element(Elem, cstring name, bool normalized = false) noexcept
+			: buffer_element{ name, hashof_v<Elem>, sizeof(Elem), normalized }
 		{
 			static_assert(is_valid_type<Elem>);
 		}
@@ -193,16 +193,16 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// vertex layout
-	struct ML_NODISCARD vertex_layout final
+	// buffer layout
+	struct ML_NODISCARD buffer_layout final
 	{
-		using storage_type				= typename ds::list<vertex_element>;
+		using storage_type				= typename ds::list<buffer_element>;
 		using iterator					= typename storage_type::iterator;
 		using const_iterator			= typename storage_type::const_iterator;
 		using reverse_iterator			= typename storage_type::reverse_iterator;
 		using const_reverse_iterator	= typename storage_type::const_reverse_iterator;
 
-		static constexpr vertex_element default_3d[] =
+		static constexpr buffer_element default_3d[] =
 		{
 			{ vec3{}, "a_position"	},
 			{ vec3{}, "a_normal"	},
@@ -210,7 +210,7 @@ namespace ml::gfx
 		};
 
 		template <class It
-		> vertex_layout(It first, It last) noexcept
+		> buffer_layout(It first, It last) noexcept
 			: m_elements{ first, last }
 		{
 			uint32 offset{};
@@ -222,18 +222,18 @@ namespace ml::gfx
 			}
 		}
 
-		vertex_layout(std::initializer_list<vertex_element> init) noexcept
-			: vertex_layout{ init.begin(), init.end() }
+		buffer_layout(std::initializer_list<buffer_element> init) noexcept
+			: buffer_layout{ init.begin(), init.end() }
 		{
 		}
 
 		template <size_t N
-		> vertex_layout(const vertex_element(&arr)[N]) noexcept
-			: vertex_layout{ &arr[0], &arr[N] }
+		> buffer_layout(const buffer_element(&arr)[N]) noexcept
+			: buffer_layout{ &arr[0], &arr[N] }
 		{
 		}
 
-		vertex_layout() noexcept : vertex_layout{ default_3d }
+		buffer_layout() noexcept : buffer_layout{ default_3d }
 		{
 		}
 
@@ -756,11 +756,11 @@ namespace ml::gfx
 	public:
 		virtual void add_vertices(ds::ref<vertexbuffer> const & value) = 0;
 
-		virtual void set_layout(vertex_layout const & value) = 0;
+		virtual void set_layout(buffer_layout const & value) = 0;
 
 		virtual void set_indices(ds::ref<indexbuffer> const & value) = 0;
 
-		ML_NODISCARD virtual vertex_layout const & get_layout() const noexcept = 0;
+		ML_NODISCARD virtual buffer_layout const & get_layout() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::ref<indexbuffer> const & get_indices() const noexcept = 0;
 
@@ -1619,7 +1619,7 @@ namespace ml::gfx
 	// shader specification
 	template <> struct ML_NODISCARD spec<shader> final
 	{
-		uint32					type	{ shader_vertex };
+		uint32					type	{ shader_type_vertex };
 		ds::list<ds::string>	code	{};
 	};
 

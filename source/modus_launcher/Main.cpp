@@ -98,16 +98,8 @@ static auto const default_settings{ R"(
 
 int32 main(int32 argc, char * argv[])
 {
-	// settings
-	auto load_settings = [](fs::path const & path = SETTINGS_PATH)
-	{
-		std::ifstream f{ path };
-		ML_defer(&f) { f.close(); };
-		return f ? json::parse(f) : default_settings;
-	};
-
 	// application
-	application app{ argc, argv, load_settings() };
+	application app{ argc, argv, util::load_json(SETTINGS_PATH, default_settings) };
 
 	// interpreter
 	ML_assert(app.initialize_interpreter());

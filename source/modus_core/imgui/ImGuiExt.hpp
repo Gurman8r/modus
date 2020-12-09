@@ -9,7 +9,7 @@
 // SCOPE ID
 namespace ml::ImGuiExt::impl
 {
-	// scoped imgui ID
+	// scoped imgui id
 	struct ML_NODISCARD ImplScopeID final
 	{
 		template <class ... Args
@@ -254,9 +254,8 @@ namespace ml::ImGuiExt
 		template <class Fn, class ... Args
 		> bool operator()(Fn && fn, Args && ... args) noexcept
 		{
-			if (!IsOpen) { return false; }
 			ImGuiExt_ScopeID(this);
-			return ImGuiExt::BeginEnd
+			return IsOpen && ImGuiExt::BeginEnd
 			(
 				std::bind(&Panel::Begin, this),
 				std::bind(&Panel::End, this),
@@ -366,11 +365,11 @@ namespace ml::ImGuiExt
 
 		void Configure(json const & j)
 		{
-			util::get_from(j, "alpha"	, Alpha);
-			util::get_from(j, "border"	, Border);
-			util::get_from(j, "padding"	, Padding);
-			util::get_from(j, "rounding", Rounding);
-			util::get_from(j, "size"	, Size);
+			util::get_json(j, "alpha"	, Alpha);
+			util::get_json(j, "border"	, Border);
+			util::get_json(j, "padding"	, Padding);
+			util::get_json(j, "rounding", Rounding);
+			util::get_json(j, "size"	, Size);
 		}
 
 		ML_NODISCARD static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept {
@@ -781,16 +780,16 @@ namespace ml::ImGuiExt
 		return dirty;
 	}
 
-	inline bool EditTransformMatrix(float32 * value, cstring labels = "tr\0rt\0sc\0")
+	inline bool EditTransformMatrix(float32 * value, cstring labels = "tr\0rt\0sc\0", float32 speed = 0.01f)
 	{
 		if (!labels || !*labels) { labels = "tr\0rt\0sc\0"; } // default labels
 
 		bool dirty{};
 		vec3 t, r, s;
 		ImGuizmo::DecomposeMatrixToComponents(value, t, r, s);
-		dirty |= ImGui::DragFloat3(util::single_str(labels, 0), t, 0.001f, 0.f, 0.f, "%.3f");
-		dirty |= ImGui::DragFloat3(util::single_str(labels, 1), r, 0.001f, 0.f, 0.f, "%.3f");
-		dirty |= ImGui::DragFloat3(util::single_str(labels, 2), s, 0.001f, 0.f, 0.f, "%.3f");
+		dirty |= ImGui::DragFloat3(util::single_str(labels, 0), t, speed, 0.f, 0.f, "%.3f");
+		dirty |= ImGui::DragFloat3(util::single_str(labels, 1), r, speed, 0.f, 0.f, "%.3f");
+		dirty |= ImGui::DragFloat3(util::single_str(labels, 2), s, speed, 0.f, 0.f, "%.3f");
 		ImGuizmo::RecomposeMatrixFromComponents(t, r, s, value);
 		return dirty;
 	}
@@ -807,6 +806,25 @@ namespace ml::ImGuiExt
 		vec3				BoundsSnap				{ 0.1f, 0.1f, 0.1f };
 		bool				BoundSizing				{ false };
 		bool				BoundSizingSnap			{ false };
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		bool Manipulate(float32 const * view, float32 const * proj, float32 * value, float32 * delta = {})
+		{
+			ImGuiExt_ScopeID(this);
+			return ImGuizmo::Manipulate
+			(
+				view,
+				proj,
+				CurrentGizmoOperation,
+				CurrentGizmoMode,
+				value,
+				delta,
+				UseSnap ? (float32 *)Snap : nullptr,
+				BoundSizing ? (float32 *)Bounds : nullptr,
+				BoundSizingSnap ? (float32 *)BoundsSnap : nullptr
+			);
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -833,49 +851,30 @@ namespace ml::ImGuiExt
 			ImGui::EndGroup();
 		}
 
-		void ShowSnapControls()
+		void ShowSnapControls(float32 speed = 0.01f)
 		{
 			ImGuiExt_ScopeID(this);
 			ImGui::BeginGroup();
 			ImGui::Checkbox("##usesnap", &UseSnap); ImGui::SameLine();
 			switch (CurrentGizmoOperation)
 			{
-			case ImGuizmo::TRANSLATE: ImGui::DragFloat3("snap##translate", &Snap[0], 0.001f); break;
-			case ImGuizmo::ROTATE: ImGui::DragFloat("snap##rotate", &Snap[0], 0.001f); break;
-			case ImGuizmo::SCALE: ImGui::DragFloat("snap##scale", &Snap[0], 0.001f); break;
+			case ImGuizmo::TRANSLATE: ImGui::DragFloat3("snap##translate", &Snap[0], speed); break;
+			case ImGuizmo::ROTATE: ImGui::DragFloat("snap##rotate", &Snap[0], speed); break;
+			case ImGuizmo::SCALE: ImGui::DragFloat("snap##scale", &Snap[0], speed); break;
 			}
 			ImGui::EndGroup();
 		}
 
-		void ShowBoundsControls()
+		void ShowBoundsControls(float32 speed = 0.01f)
 		{
 			ImGuiExt_ScopeID(this);
 			ImGui::BeginGroup();
 			if (ImGui::Checkbox("bound sizing", &BoundSizing); BoundSizing)
 			{
 				ImGui::Checkbox("##boundsizingsnap", &BoundSizingSnap); ImGui::SameLine();
-				ImGui::DragFloat3("snap##boundsizing", BoundsSnap, 0.01f, 0.f, 0.f, "%.2f");
+				ImGui::DragFloat3("snap##boundsizing", BoundsSnap, speed, 0.f, 0.f, "%.2f");
 			}
 			ImGui::EndGroup();
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		bool Manipulate(float32 const * view, float32 const * proj, float32 * value, float32 * delta = {})
-		{
-			ImGuiExt_ScopeID(this);
-			return ImGuizmo::Manipulate
-			(
-				view,
-				proj,
-				CurrentGizmoOperation,
-				CurrentGizmoMode,
-				value,
-				delta,
-				UseSnap ? (float32 *)Snap : nullptr,
-				BoundSizing ? (float32 *)Bounds : nullptr,
-				BoundSizingSnap ? (float32 *)BoundsSnap : nullptr
-			);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

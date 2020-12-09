@@ -97,15 +97,15 @@ namespace ml
 		};
 
 		// create texture
-		g.graphic = gfx::make_texture2d
-		(
+		g.graphic = gfx::texture2d::create
+		({
 			(vec2i)g.size(),
 			gfx::texture_format{ gfx::format_rgba, gfx::format_red },
 			gfx::texture_flags_default,
 			(std::isspace(c, {}) || !std::isgraph(c, {})
 				? nullptr
 				: (f)->glyph->bitmap.buffer)
-		);
+		});
 
 		return g;
 	}

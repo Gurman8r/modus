@@ -6,6 +6,7 @@
 #include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/scene/Components.hpp>
 #include <modus_core/graphics/Viewport.hpp>
+#include <modus_core/graphics/Renderer2D.hpp>
 
 #include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -30,8 +31,8 @@ namespace ml
 		};
 		ImGuiExt::Panel m_panels[MAX_PANEL]
 		{
-			{ "memory", true, ImGuiWindowFlags_MenuBar },
-			{ "settings", false, ImGuiWindowFlags_None },
+			{ "memory", false, ImGuiWindowFlags_MenuBar },
+			{ "settings", false, ImGuiWindowFlags_MenuBar },
 			{ "terminal", false, ImGuiWindowFlags_MenuBar },
 			{ "viewport", true, ImGuiWindowFlags_MenuBar },
 		};
@@ -39,9 +40,6 @@ namespace ml
 		// terminal
 		stream_sniper m_cout{ &std::cout }; // stdout wrapper
 		ImGuiExt::Terminal m_term{}; // terminal
-
-		// 
-		MemoryEditor m_mem_editor{};
 
 		// rendering
 		bool m_cycle_bg{ true }; // cycle background
@@ -52,7 +50,8 @@ namespace ml
 		ds::ref<scene> m_active_scene{}; // active scene
 
 		// gizmos
-		bool m_enable_grid{ true };
+		bool m_grid_enabled{ true };
+		float32 m_grid_size{ 100.f };
 		int32 m_object_count{ 1 };
 		int32 m_object_index{};
 		mat4 m_object_matrix[4] =
@@ -83,6 +82,23 @@ namespace ml
 			}
 		};
 
+		// memory
+		MemoryEditor m_mem_editor{};
+
+		void highlight_memory(byte * ptr, size_t size)
+		{
+			auto const mres{ get_global<memory_manager>()->get_resource() };
+			auto const addr{ std::distance(mres->begin(), ptr) };
+			m_panels[memory_panel].IsOpen = true;
+			ImGui::SetWindowFocus(m_panels[memory_panel].Title);
+			m_mem_editor.GotoAddrAndHighlight((size_t)addr, (size_t)addr + size);
+		}
+
+		template <class T> void highlight_memory(T * ptr) noexcept
+		{
+			highlight_memory((byte *)ptr, sizeof(T));
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		~sandbox() noexcept final {}
@@ -93,12 +109,12 @@ namespace ml
 				app_enter_event,
 				app_exit_event,
 				app_idle_event,
-				imgui_dockspace_event,
-				imgui_menubar_event,
-				imgui_render_event,
 				window_cursor_pos_event,
 				window_key_event,
-				window_mouse_event
+				window_mouse_event,
+				imgui_dockspace_event,
+				imgui_menubar_event,
+				imgui_render_event
 			>();
 		}
 
@@ -109,12 +125,12 @@ namespace ml
 			case app_enter_event		::ID: return on_app_enter((app_enter_event &&)value);
 			case app_exit_event			::ID: return on_app_exit((app_exit_event &&)value);
 			case app_idle_event			::ID: return on_app_idle((app_idle_event &&)value);
-			case imgui_dockspace_event	::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
-			case imgui_menubar_event	::ID: return on_imgui_menubar((imgui_menubar_event &&)value);
-			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event &&)value);
 			case window_cursor_pos_event::ID: return on_window_cursor_pos((window_cursor_pos_event &&)value);
 			case window_key_event		::ID: return on_window_key((window_key_event &&)value);
 			case window_mouse_event		::ID: return on_window_mouse((window_mouse_event &&)value);
+			case imgui_dockspace_event	::ID: return on_imgui_dockspace((imgui_dockspace_event &&)value);
+			case imgui_menubar_event	::ID: return on_imgui_menubar((imgui_menubar_event &&)value);
+			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event &&)value);
 			}
 		}
 
@@ -131,7 +147,7 @@ namespace ml
 			// viewport
 			vec2 const resolution{ 1280, 720 };
 			m_view.set_resolution(resolution);
-			m_view.set_framebuffer(gfx::make_framebuffer(resolution));
+			m_view.set_framebuffer(gfx::framebuffer::create({ resolution }));
 
 			// camera
 			m_camera.set_clear_flags(gfx::clear_flags_color | gfx::clear_flags_depth);
@@ -160,13 +176,10 @@ namespace ml
 
 			m_camera.recalculate(m_view.get_resolution());
 
-			if (m_cycle_bg)
-			{
-				m_camera.set_background(util::rotate_hue
-				(
-					m_camera.get_background(), ev.delta_time * 10
-				));
-			}
+			if (m_cycle_bg) m_camera.set_background
+			(
+				util::rotate_hue(m_camera.get_background(), ev.delta_time * 10)
+			);
 
 			gfx::draw_list draw_list{};
 			draw_list +=
@@ -182,10 +195,23 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		void on_window_cursor_pos(window_cursor_pos_event const & ev)
+		{
+		}
+
+		void on_window_key(window_key_event const & ev)
+		{
+		}
+
+		void on_window_mouse(window_mouse_event const & ev)
+		{
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		void on_imgui_dockspace(imgui_dockspace_event const & ev)
 		{
 			ImGui::DockBuilderDockWindow(m_panels[viewport_panel].Title, ev->GetID());
-			ImGui::DockBuilderDockWindow(m_panels[settings_panel].Title, ev->GetID());
 		}
 
 		void on_imgui_menubar(imgui_menubar_event const & ev)
@@ -239,6 +265,7 @@ namespace ml
 			memory_manager * const memory{ get_global<memory_manager>() };
 			passthrough_resource * const view{ memory->get_resource() };
 			memory_manager::record_storage const & records{ memory->get_storage() };
+			static size_t selected_index{};
 
 			static ML_block(&) // setup
 			{
@@ -258,11 +285,13 @@ namespace ml
 				m_mem_editor.WriteFn			= nullptr;
 				m_mem_editor.HighlightFn		= nullptr;
 			};
+
 			if (m_panels[memory_panel].IsOpen) {
 				static auto const winsize{ (vec2)get_app()->get_window()->get_size() };
-				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
-				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
+				ImGui::SetNextWindowSize(winsize * 0.6f, ImGuiCond_Once);
+				ImGui::SetNextWindowPos(winsize * 0.6f, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
+
 			m_panels[memory_panel]([&](auto)
 			{
 				// menubar
@@ -270,6 +299,57 @@ namespace ml
 				{
 					// read only
 					ImGui::Checkbox("read only", &m_mem_editor.ReadOnly);
+					ImGui::Separator();
+
+					// home/end
+					if (ImGui::Button("home")) highlight_memory(view->begin());
+					if (ImGui::Button("end")) highlight_memory(view->end() - sizeof(void *));
+					ImGui::Separator();
+
+					// records
+					ImGui::PushItemWidth(256);
+					char selected_label[32] = "";
+					std::sprintf(selected_label, "%p", memory->get_record_addr(selected_index));
+					if (ImGui::BeginCombo("##records", selected_label, ImGuiComboFlags_None))
+					{
+						static auto const initial_width{ ImGui::GetContentRegionAvailWidth() };
+						ImGui::Columns(4);
+
+						static ML_block(w = initial_width) { ImGui::SetColumnWidth(-1, w * 0.2f); };
+						ImGui::Text("index"); ImGui::NextColumn();
+
+						static ML_block(w = initial_width) { ImGui::SetColumnWidth(-1, w * 0.4f); };
+						ImGui::Text("address"); ImGui::NextColumn();
+
+						static ML_block(w = initial_width) { ImGui::SetColumnWidth(-1, w * 0.2f); };
+						ImGui::Text("size"); ImGui::NextColumn();
+
+						static ML_block(w = initial_width) { ImGui::SetColumnWidth(-1, w * 0.2f); };
+						ImGui::Text("count"); ImGui::NextColumn();
+
+						ImGui::Separator();
+						for (size_t i = 0; i < records.size<0>(); ++i)
+						{
+							records.expand_all(i, [&](auto addr, auto index, auto count, auto size)
+							{
+								ImGuiExt_ScopeID(addr);
+								ImGui::TextDisabled("%u", index); ImGui::NextColumn();
+								char buf[20] = ""; std::sprintf(buf, "%p", addr);
+								bool const pressed{ ImGui::Selectable(buf) }; ImGui::NextColumn();
+								ImGui::TextDisabled("%u", size); ImGui::NextColumn();
+								ImGui::TextDisabled("%u", count); ImGui::NextColumn();
+								if (pressed)
+								{
+									selected_index = i;
+									highlight_memory(addr, size);
+								}
+							});
+						}
+
+						ImGui::Columns(1);
+						ImGui::EndCombo();
+					}
+					ImGui::PopItemWidth();
 					ImGui::Separator();
 
 					// progress
@@ -299,12 +379,75 @@ namespace ml
 
 		void draw_settings(imgui_render_event const & ev)
 		{
+			auto const & dev{ get_app()->get_window()->get_render_device() };
+			auto const & inf{ dev->get_info() };
+			auto const & ctx{ dev->get_active_context() };
+
 			if (m_panels[settings_panel].IsOpen) {
 				ImGui::SetNextWindowPos({ 64, 64 }, ImGuiCond_Once);
 				ImGui::SetNextWindowSize({ 320, 340 }, ImGuiCond_Once);
 			}
+			
 			if (!m_panels[settings_panel]([&](auto)
 			{
+				if (ImGui::BeginMenuBar())
+				{
+					ImGui::Text(inf.vendor.c_str()); ImGuiExt::Tooltip("vendor"); ImGui::Separator();
+					ImGui::Text(inf.renderer.c_str()); ImGuiExt::Tooltip("renderer"); ImGui::Separator();
+					ImGui::Text(inf.version.c_str()); ImGuiExt::Tooltip("version"); ImGui::Separator();
+					ImGui::Text(inf.shading_language_version.c_str()); ImGuiExt::Tooltip("shading language version"); ImGui::Separator();
+					ImGui::EndMenuBar();
+				}
+				ImGui::Separator();
+
+				if (gfx::alpha_state astate; ImGui::CollapsingHeader("alpha") && ctx->get_alpha_state(&astate))
+				{
+					ImGui::Checkbox("enabled", &astate.enabled);
+					ImGui::Text("pred: %s (%u)", gfx::predicate_NAMES[astate.pred], astate.pred);
+					ImGui::Text("ref: %f", astate.ref);
+				}
+				ImGui::Separator();
+
+				if (gfx::blend_state bstate; ImGui::CollapsingHeader("blend") && ctx->get_blend_state(&bstate))
+				{
+					ImGui::Checkbox("enabled", &bstate.enabled);
+					ImGui::ColorEdit4("color", bstate.color);
+					ImGui::Text("color equation: %s (%u)", gfx::equation_NAMES[bstate.color_equation], bstate.color_equation);
+					ImGui::Text("color sfactor: %s (%u)", gfx::factor_NAMES[bstate.color_sfactor], bstate.color_sfactor);
+					ImGui::Text("color dfactor: %s (%u)", gfx::factor_NAMES[bstate.color_dfactor], bstate.color_dfactor);
+					ImGui::Text("alpha equation: %s (%u)", gfx::equation_NAMES[bstate.alpha_equation], bstate.alpha_equation);
+					ImGui::Text("alpha sfactor: %s (%u)", gfx::factor_NAMES[bstate.alpha_sfactor], bstate.alpha_sfactor);
+					ImGui::Text("alpha dfactor: %s (%u)", gfx::factor_NAMES[bstate.alpha_dfactor], bstate.alpha_dfactor);
+				}
+				ImGui::Separator();
+
+				if (gfx::cull_state cstate; ImGui::CollapsingHeader("cull") && ctx->get_cull_state(&cstate))
+				{
+					ImGui::Checkbox("enabled", &cstate.enabled);
+					ImGui::Text("facet: %s (%u)", gfx::facet_NAMES[cstate.facet], cstate.facet);
+					ImGui::Text("order: %s (%u)", gfx::order_NAMES[cstate.order], cstate.order);
+				}
+				ImGui::Separator();
+
+				if (gfx::depth_state dstate; ImGui::CollapsingHeader("depth") && ctx->get_depth_state(&dstate))
+				{
+					ImGui::Checkbox("enabled", &dstate.enabled);
+					ImGui::Text("pred: %s (%u) ", gfx::predicate_NAMES[dstate.pred], dstate.pred);
+					ImGui::Text("range: %f, %f", dstate.range[0], dstate.range[1]);
+				}
+				ImGui::Separator();
+
+				if (gfx::stencil_state sstate; ImGui::CollapsingHeader("stencil") && ctx->get_stencil_state(&sstate))
+				{
+					ImGui::Checkbox("enabled", &sstate.enabled);
+					ImGui::Text("front pred: %s (%u)", gfx::predicate_NAMES[sstate.front.pred], sstate.front.pred);
+					ImGui::Text("front ref: %i", sstate.front.ref);
+					ImGui::Text("front mask: %u", sstate.front.mask);
+					ImGui::Text("back pred: %s (%u)", gfx::predicate_NAMES[sstate.back.pred], sstate.back.pred);
+					ImGui::Text("back ref: %i", sstate.back.ref);
+					ImGui::Text("back mask: %u", sstate.back.mask);
+				}
+				ImGui::Separator();
 			}))
 			{
 			}
@@ -364,7 +507,9 @@ namespace ml
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
+			
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4, 4 });
+			
 			if (!m_panels[terminal_panel]([&](auto)
 			{
 				ImGui::PopStyleVar(1);
@@ -420,6 +565,7 @@ namespace ml
 			ImGuizmo::SetOrthographic(m_camera.is_orthographic());
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+			
 			if (!m_panels[viewport_panel]([&](auto)
 			{
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -437,9 +583,19 @@ namespace ml
 					if (ImGui::BeginMenu("debug"))
 					{
 						ImGui::Separator();
-						if (ImGui::RadioButton("enable grid", m_enable_grid)) { m_enable_grid = !m_enable_grid; }
-						ImGui::SliderInt("cubes", &m_object_count, 0, 4);
+
+						ImGui::TextDisabled("grid");
+						ImGui::SameLine();
+						if (ImGui::RadioButton("enabled##grid", m_grid_enabled)) { m_grid_enabled = !m_grid_enabled; }
+						ImGui::SameLine();
+						ImGui::DragFloat("##grid size", &m_grid_size, .1f, 1.f, 1000.f, "size: %.1f");
 						ImGui::Separator();
+
+						ImGui::TextDisabled("cubes");
+						ImGui::SameLine();
+						ImGui::SliderInt("##cube count", &m_object_count, 0, 4);
+						ImGui::Separator();
+
 						ImGui::EndMenu();
 					}
 					ImGui::Separator();
@@ -545,8 +701,8 @@ namespace ml
 							; ImGui::DragFloat("zoom", &zoom, .1f, FLT_MIN, 100.f)) {
 								value.set_zoom(zoom);
 							}
+							ImGui::Separator();
 						});
-						ImGui::Separator();
 
 						ImGui::EndMenu();
 					}
@@ -560,7 +716,9 @@ namespace ml
 						if (xedit.CurrentGizmoOperation != ImGuizmo::SCALE) {
 							xedit.ShowModeControls();
 						}
+						ImGui::Separator();
 						xedit.ShowSnapControls();
+						ImGui::Separator();
 						xedit.ShowBoundsControls();
 						ImGui::Separator();
 						ImGuiExt::EditTransformMatrix(
@@ -600,22 +758,28 @@ namespace ml
 					colors::clear);
 
 				// gizmos
-				mat4 view{ m_camera.get_view_matrix() }, proj{ m_camera.get_proj_matrix() };
-				
-				if (m_enable_grid) { ImGuizmo::DrawGrid(view, proj, mat4::identity(), 100.f); }
-				
-				if (0 < m_object_count) { ImGuizmo::DrawCubes(view, proj, &m_object_matrix[0][0], m_object_count); }
+				mat4 const
+					view_matrix{ m_camera.get_view_matrix() },
+					proj_matrix{ m_camera.get_proj_matrix() };
 				
 				ImGuizmo::SetRect(bounds[0], bounds[1], bounds[2], bounds[3]);
+				
+				if (m_grid_enabled) {
+					ImGuizmo::DrawGrid(view_matrix, proj_matrix, mat4::identity(), m_grid_size);
+				}
+
+				if (0 < m_object_count) {
+					ImGuizmo::DrawCubes(view_matrix, proj_matrix, &m_object_matrix[0][0], m_object_count);
+				}
 
 				for (int32 i = 0; i < m_object_count; ++i)
 				{
 					ImGuizmo::SetID(i);
 
-					bool used{};
-					used |= xedit.Manipulate(view, proj, m_object_matrix[i]);
-					used |= ImGuizmo::IsUsing();
-					if (used) { m_object_index = i; }
+					if (xedit.Manipulate(view_matrix, proj_matrix, m_object_matrix[i]))
+					{
+						m_object_index = i;
+					}
 				}
 
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -623,20 +787,6 @@ namespace ml
 			{
 				ImGui::PopStyleVar(1);
 			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void on_window_cursor_pos(window_cursor_pos_event const & ev)
-		{
-		}
-
-		void on_window_key(window_key_event const & ev)
-		{
-		}
-
-		void on_window_mouse(window_mouse_event const & ev)
-		{
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

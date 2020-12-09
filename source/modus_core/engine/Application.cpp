@@ -14,6 +14,18 @@ namespace ml
 		, m_active_scene	{}
 	{
 		ML_assert(begin_singleton<application>(this));
+
+		subscribe<
+			app_enter_event,
+			app_exit_event,
+			app_idle_event,
+			imgui_dockspace_event,
+			imgui_menubar_event,
+			imgui_render_event,
+			window_cursor_pos_event,
+			window_key_event,
+			window_mouse_event
+		>();
 	}
 
 	application::application(int32 argc, char * argv[], json const & j, allocator_type alloc)

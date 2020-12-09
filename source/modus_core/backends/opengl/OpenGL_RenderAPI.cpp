@@ -157,12 +157,12 @@ namespace ml::gfx
 	{
 		ML_assert("invalid render context api" && desc.api == context_api_opengl);
 
-		if (parent->get_info().major_version >= desc.major) {
-			debug::warning("opengl major version mismatch");
+		if (auto const major{ parent->get_info().major_version }; major != desc.major) {
+			debug::warning("opengl major version mismatch: {0}!={1}", major, desc.major);
 		}
 
-		if (parent->get_info().minor_version >= desc.minor) {
-			debug::warning("opengl minor version mismatch");
+		if (auto const minor{ parent->get_info().minor_version }; minor != desc.minor) {
+			debug::warning("opengl minor version mismatch: {0}!={1}", minor, desc.minor);
 		}
 
 		ML_glCheck(ML_glEnable(GL_MULTISAMPLE, desc.multisample));

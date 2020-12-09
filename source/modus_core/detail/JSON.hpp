@@ -10,6 +10,7 @@
 
 namespace ml
 {
+	// json
 	ML_alias json = typename nlohmann::basic_json
 	<
 		std::map,
@@ -19,18 +20,52 @@ namespace ml
 		std::vector<uint8>
 	>;
 
+	// helpers
 	namespace util
 	{
-		template <class ID, class T, class Default = T
-		> void get_from(json const & j, ID const & id, T & vv, Default const & dv = {})
+		ML_NODISCARD inline json load_json(fs::path const & path, json const & dv = {})
 		{
-			if (j.contains(id))
+			std::ifstream f{ path };
+			ML_defer(&f) { f.close(); };
+			return f ? json::parse(f) : dv;
+		}
+
+		inline bool read_json(fs::path const & path, json & j)
+		{
+			std::ifstream f{ path };
+			ML_defer(&f) { f.close(); };
+			if (!f) { return false; }
+			else
 			{
-				j[id].get_to(vv);
+				j = json::parse(f);
+				return true;
+			}
+		}
+
+		inline bool write_json(fs::path const & path, json const & j)
+		{
+			std::ofstream f{ path };
+			ML_defer(&f) { f.close(); };
+			if (!f) { return false; }
+			else
+			{
+				f << j;
+				return true;
+			}
+		}
+
+		template <class I, class T, class Default = T
+		> bool get_json(json const & j, I && i, T & vv, Default const & dv = {})
+		{
+			if (j.contains(i))
+			{
+				j[i].get_to(vv);
+				return true;
 			}
 			else
 			{
 				vv = ML_forward(dv);
+				return false;
 			}
 		}
 	}
@@ -40,12 +75,12 @@ namespace ml
 
 namespace std::filesystem
 {
-	inline void to_json(_ML json & j, path const & value)
+	inline void to_json(_ML json & j, path const & value) noexcept
 	{
 		j = value.native();
 	}
 
-	inline void from_json(_ML json const & j, path & value)
+	inline void from_json(_ML json const & j, path & value) noexcept
 	{
 		if (j.is_string()) { value = j.get<std::string>(); }
 	}

@@ -18,14 +18,6 @@ namespace ml
 
 		ds::string name, path, ext; // file info
 
-		plugin_details(plugin_details const &) = default;
-		plugin_details(plugin_details &&) noexcept = default;
-		plugin_details & operator=(plugin_details const &) = default;
-		plugin_details & operator=(plugin_details &&) noexcept = default;
-
-	private:
-		friend plugin_manager;
-
 		explicit plugin_details(shared_library & lib) noexcept
 			: hash	{ lib.hash() }
 			, name	{ lib.path().stem().string() }
@@ -33,6 +25,11 @@ namespace ml
 			, ext	{ lib.path().extension().string() }
 		{
 		}
+
+		plugin_details(plugin_details const &) = default;
+		plugin_details(plugin_details &&) noexcept = default;
+		plugin_details & operator=(plugin_details const &) = default;
+		plugin_details & operator=(plugin_details &&) noexcept = default;
 	};
 }
 
@@ -45,14 +42,6 @@ namespace ml
 		plugin * (*create)(plugin_manager *, void *); // create plugin
 		
 		void (*destroy)(plugin_manager *, plugin *); // destroy plugin
-
-		plugin_installer(plugin_installer const &) = default;
-		plugin_installer(plugin_installer &&) noexcept = default;
-		plugin_installer & operator=(plugin_installer const &) = default;
-		plugin_installer & operator=(plugin_installer &&) noexcept = default;
-
-	private:
-		friend plugin_manager;
 		
 		explicit plugin_installer(shared_library & lib) noexcept
 			: create{ lib.get_proc<plugin *, plugin_manager *, void *>("ml_plugin_create") }
@@ -60,6 +49,11 @@ namespace ml
 		{
 			ML_assert(create && destroy);
 		}
+
+		plugin_installer(plugin_installer const &) = default;
+		plugin_installer(plugin_installer &&) noexcept = default;
+		plugin_installer & operator=(plugin_installer const &) = default;
+		plugin_installer & operator=(plugin_installer &&) noexcept = default;
 	};
 }
 

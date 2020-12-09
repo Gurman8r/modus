@@ -63,7 +63,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
 		ML_NODISCARD std::optional<fs::path> open_file_name(ds::string const & filter = "") const;
 
 		ML_NODISCARD std::optional<fs::path> save_file_name(ds::string const & filter = "") const;
@@ -71,6 +70,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
+		virtual void on_enter();
+
+		virtual void on_exit();
+
+		virtual void on_idle(duration const & dt);
+
 		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -17,14 +17,14 @@ namespace ml
 		{
 		}
 
-		mesh(ds::list<float32> const & v, gfx::vertex_layout const & l = {})
+		mesh(ds::list<float32> const & v, gfx::buffer_layout const & l = {})
 			: mesh{}
 		{
 			set_layout(l);
 			add_vertices(v);
 		}
 
-		mesh(ds::list<float32> const & v, ds::list<uint32> const & i, gfx::vertex_layout const & l = {})
+		mesh(ds::list<float32> const & v, ds::list<uint32> const & i, gfx::buffer_layout const & l = {})
 			: mesh{}
 		{
 			set_layout(l);
@@ -32,17 +32,17 @@ namespace ml
 			set_indices(i);
 		}
 
-		mesh(ds::list<vertex> const & verts, gfx::vertex_layout const & l = {})
+		mesh(ds::list<vertex> const & verts, gfx::buffer_layout const & l = {})
 			: mesh{ util::contiguous(verts), l }
 		{
 		}
 
-		mesh(ds::list<vertex> const & v, ds::list<uint32> const & i, gfx::vertex_layout const & l = {})
+		mesh(ds::list<vertex> const & v, ds::list<uint32> const & i, gfx::buffer_layout const & l = {})
 			: mesh{ util::contiguous(v), i, l }
 		{
 		}
 
-		mesh(fs::path const & path, gfx::vertex_layout const & l = {}) noexcept
+		mesh(fs::path const & path, gfx::buffer_layout const & l = {}) noexcept
 			: mesh{ load_from_file(path), {}, l }
 		{
 		}
@@ -93,7 +93,7 @@ namespace ml
 			}
 		}
 
-		void set_layout(gfx::vertex_layout const & value) noexcept
+		void set_layout(gfx::buffer_layout const & value) noexcept
 		{
 			m_vao->set_layout(value);
 		}
@@ -125,7 +125,7 @@ namespace ml
 
 		auto get_vao() const & noexcept -> ds::ref<gfx::vertexarray> const & { return m_vao; }
 
-		auto get_layout() const & noexcept -> gfx::vertex_layout const & { return m_vao->get_layout(); }
+		auto get_layout() const & noexcept -> gfx::buffer_layout const & { return m_vao->get_layout(); }
 
 		auto get_indices() const & noexcept -> ds::ref<gfx::indexbuffer> const & { return m_vao->get_indices(); }
 

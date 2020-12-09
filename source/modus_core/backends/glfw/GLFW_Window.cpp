@@ -42,6 +42,8 @@ namespace ml
 
 	void glfw_context::finalize()
 	{
+		glfwSetErrorCallback(nullptr);
+
 		glfwTerminate();
 	}
 

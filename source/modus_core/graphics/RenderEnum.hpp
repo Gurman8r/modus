@@ -280,8 +280,8 @@ namespace ml::gfx
 
 	enum shader_type_ : uint32
 	{
-		shader_vertex,
-		shader_fragment,
+		shader_type_vertex,
+		shader_type_fragment,
 		shader_geometry,
 
 		shader_MAX,

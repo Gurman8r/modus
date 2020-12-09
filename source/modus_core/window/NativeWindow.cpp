@@ -5,6 +5,7 @@
 using impl_window	= _ML glfw_window;
 using impl_context	= _ML glfw_context;
 using impl_cursor	= _ML glfw_cursor;
+using impl_monitor	= _ML glfw_monitor;
 
 #else
 #error "native_window unavailable"
@@ -21,7 +22,6 @@ namespace ml
 
 	native_window::~native_window() noexcept
 	{
-		clear_callbacks();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

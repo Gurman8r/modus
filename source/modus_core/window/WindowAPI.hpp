@@ -259,10 +259,10 @@ namespace ml
 
 	inline void from_json(json const & j, window_settings & v)
 	{
-		util::get_from(j, "title"	, v.title);
-		util::get_from(j, "video"	, v.video);
-		util::get_from(j, "context"	, v.context);
-		util::get_from(j, "hints"	, v.hints, window_hints_default);
+		util::get_json(j, "title"	, v.title);
+		util::get_json(j, "video"	, v.video);
+		util::get_json(j, "context"	, v.context);
+		util::get_json(j, "hints"	, v.hints, window_hints_default);
 	}
 
 	inline void to_json(json & j, window_settings const & v)

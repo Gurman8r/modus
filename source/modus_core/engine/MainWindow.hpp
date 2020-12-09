@@ -48,6 +48,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		void install_callbacks(event_bus * bus);
+
 		bool initialize_imgui(bool callbacks = true);
 		
 		void finalize_imgui();
@@ -70,11 +72,7 @@ namespace ml
 
 		bool load_style(fs::path const & path);
 
-		bool load_style(json const & j); // WIP
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static void install_callbacks(main_window * win, event_bus * bus);
+		bool load_style(json const & j); // NYI
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

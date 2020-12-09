@@ -1,4 +1,5 @@
 #include <modus_core/engine/MainWindow.hpp>
+#include <modus_core/graphics/Renderer2D.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
 
@@ -30,6 +31,8 @@ namespace ml
 		finalize_imgui();
 
 		ImGui::DestroyContext(m_imgui.release());
+
+		renderer2d::finalize();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -46,10 +49,38 @@ namespace ml
 			return debug::failure("failed opening render_window");
 		}
 
+		// renderer
+		if (!renderer2d::initialize()) {
+			return debug::failure();
+		}
+
 		return true;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void main_window::install_callbacks(event_bus * bus)
+	{
+		static event_bus * b{};
+		if (!(b = bus)) { return; }
+		set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
+		set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
+		set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
+		set_cursor_enter_callback([](auto w, auto ... x) { b->fire<window_cursor_enter_event>(x...); });
+		set_cursor_pos_callback([](auto w, auto ... x) { b->fire<window_cursor_pos_event>(x...); });
+		set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
+		set_drop_callback([](auto w, auto ... x) { b->fire<window_drop_event>(x...); });
+		set_focus_callback([](auto w, auto ... x) { b->fire<window_focus_event>(x...); });
+		set_framebuffer_resize_callback([](auto w, auto ... x) { b->fire<window_framebuffer_resize_event>(x...); });
+		set_iconify_callback([](auto w, auto ... x) { b->fire<window_iconify_event>(x...); });
+		set_key_callback([](auto w, auto ... x) { b->fire<window_key_event>(x...); });
+		set_maximize_callback([](auto w, auto ... x) { b->fire<window_maximize_event>(x...); });
+		set_mouse_callback([](auto w, auto ... x) { b->fire<window_mouse_event>(x...); });
+		set_position_callback([](auto w, auto ... x) { b->fire<window_position_event>(x...); });
+		set_refresh_callback([](auto w, auto ... x) { b->fire<window_refresh_event>(x...); });
+		set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
+		set_scroll_callback([](auto w, auto ... x) { b->fire<window_scroll_event>(x...); });
+	}
 
 	bool main_window::initialize_imgui(bool callbacks)
 	{
@@ -111,31 +142,6 @@ namespace ml
 	bool main_window::load_style(json const & j)
 	{
 		return false;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void main_window::install_callbacks(main_window * win, event_bus * bus)
-	{
-		static main_window * w{}; ML_assert(w = win);
-		static event_bus * b{}; ML_assert(b = bus);
-		w->set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
-		w->set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
-		w->set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
-		w->set_cursor_enter_callback([](auto w, auto ... x) { b->fire<window_cursor_enter_event>(x...); });
-		w->set_cursor_pos_callback([](auto w, auto ... x) { b->fire<window_cursor_pos_event>(x...); });
-		w->set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
-		w->set_drop_callback([](auto w, auto ... x) { b->fire<window_drop_event>(x...); });
-		w->set_focus_callback([](auto w, auto ... x) { b->fire<window_focus_event>(x...); });
-		w->set_framebuffer_resize_callback([](auto w, auto ... x) { b->fire<window_framebuffer_resize_event>(x...); });
-		w->set_iconify_callback([](auto w, auto ... x) { b->fire<window_iconify_event>(x...); });
-		w->set_key_callback([](auto w, auto ... x) { b->fire<window_key_event>(x...); });
-		w->set_maximize_callback([](auto w, auto ... x) { b->fire<window_maximize_event>(x...); });
-		w->set_mouse_callback([](auto w, auto ... x) { b->fire<window_mouse_event>(x...); });
-		w->set_position_callback([](auto w, auto ... x) { b->fire<window_position_event>(x...); });
-		w->set_refresh_callback([](auto w, auto ... x) { b->fire<window_refresh_event>(x...); });
-		w->set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
-		w->set_scroll_callback([](auto w, auto ... x) { b->fire<window_scroll_event>(x...); });
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -119,18 +119,18 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <bool Recurse = true
+		template <bool Recursive = true
 		> void halt() noexcept
 		{
 			m_running = false;
 
-			if constexpr (Recurse) for (subsystem & e : m_subsystems)
+			if constexpr (Recursive) for (subsystem & e : m_subsystems)
 			{
 				e->halt();
 			}
 		}
 
-		template <bool Recurse = true
+		template <bool Recursive = true
 		> int32 process() noexcept
 		{
 			// lock
@@ -138,17 +138,17 @@ namespace ml
 			else { m_running = true; } ML_defer(&) { m_running = false; };
 
 			// timers
-			m_main_timer.restart(); ML_defer(&)
-			{
+			m_main_timer.restart();
+			ML_defer(&) {
 				m_main_timer.stop();
 				m_loop_timer.stop();
 			};
 
 			// enter
-			this->run_enter_callback<Recurse>();
+			this->run_enter_callback<Recursive>();
 			
 			// exit
-			ML_defer(&) { this->run_exit_callback<Recurse>(); };
+			ML_defer(&) { this->run_exit_callback<Recursive>(); };
 			
 			// idle
 			if (!this->check_loop_condition()) { return EXIT_FAILURE * 2; }
@@ -156,7 +156,7 @@ namespace ml
 			{
 				m_loop_timer.restart();
 
-				this->run_idle_callback<Recurse>(m_loop_delta);
+				this->run_idle_callback<Recursive>(m_loop_delta);
 
 				++m_loop_index;
 
@@ -173,28 +173,28 @@ namespace ml
 			return m_running && m_condition && std::invoke(m_condition);
 		}
 
-		template <bool Recurse = false, bool Reverse = false
+		template <bool Recursive = false, bool Reverse = false
 		> void run_enter_callback() noexcept
 		{
-			loop_system::run<Recurse, Reverse>(&loop_system::m_on_enter, this);
+			loop_system::run<Recursive, Reverse>(&loop_system::m_on_enter, this);
 		}
 
-		template <bool Recurse = false, bool Reverse = true
+		template <bool Recursive = false, bool Reverse = true
 		> void run_exit_callback() noexcept
 		{
-			loop_system::run<Recurse, Reverse>(&loop_system::m_on_exit, this);
+			loop_system::run<Recursive, Reverse>(&loop_system::m_on_exit, this);
 		}
 
-		template <bool Recurse = false, bool Reverse = false
+		template <bool Recursive = false, bool Reverse = false
 		> void run_idle_callback(duration const & dt) noexcept
 		{
-			loop_system::run<Recurse, Reverse>(&loop_system::m_on_idle, this, dt);
+			loop_system::run<Recursive, Reverse>(&loop_system::m_on_idle, this, dt);
 		}
 
-		template <bool Recurse = false, bool Reverse = false
+		template <bool Recursive = false, bool Reverse = false
 		> void run_event_callback(event const & ev) noexcept
 		{
-			loop_system::run<Recurse, Reverse>(&loop_system::m_on_event, this, ev);
+			loop_system::run<Recursive, Reverse>(&loop_system::m_on_event, this, ev);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -326,7 +326,7 @@ namespace ml
 
 		// execute member function pointer
 		template <
-			bool Recurse = false,
+			bool Recursive = false,
 			bool Reverse = false,
 			class D, class C, class ... Args
 		> static void run(D C::*mp, C * self, Args && ... args) noexcept
@@ -342,7 +342,7 @@ namespace ml
 
 			if constexpr (!Reverse) { run_self(); }
 
-			if constexpr (Recurse)
+			if constexpr (Recursive)
 			{
 				using Iter = std::conditional_t<!Reverse,
 					subsystem_list::const_iterator,

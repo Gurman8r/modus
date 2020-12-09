@@ -20,30 +20,30 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
 		explicit passthrough_resource(pmr::memory_resource * u, pointer const b, size_t c) noexcept
-			: m_upstream{ u }, m_buffer{ b }, m_capacity{ c }
+			: m_upstream{ u }, m_buffer{ b }, m_total_bytes{ c }
 		{
 			ML_assert("invalid passthrough_resource parameters" && u && b && c);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto base() const noexcept -> size_t { return (size_t)m_buffer; }
+		ML_NODISCARD auto upstream() const noexcept -> pmr::memory_resource * const { return m_upstream; }
 
-		ML_NODISCARD auto capacity() const noexcept -> size_t { return m_capacity; }
-
-		ML_NODISCARD auto count() const noexcept -> size_t { return m_count; }
-		
 		ML_NODISCARD auto data() const noexcept -> pointer const { return m_buffer; }
 
-		ML_NODISCARD auto free() const noexcept -> size_t { return m_capacity - m_used; }
+		ML_NODISCARD auto base() const noexcept -> size_t { return (size_t)m_buffer; }
 
-		ML_NODISCARD auto resource() const noexcept -> pmr::memory_resource * const { return m_upstream; }
-
-		ML_NODISCARD auto used() const noexcept -> size_t { return m_used; }
-		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto fraction() const noexcept -> float32 { return (float32)m_used / (float32)m_capacity; }
+		ML_NODISCARD auto count() const noexcept -> size_t { return m_num_allocations; }
+
+		ML_NODISCARD auto capacity() const noexcept -> size_t { return m_total_bytes; }
+
+		ML_NODISCARD auto used() const noexcept -> size_t { return m_used_bytes; }
+
+		ML_NODISCARD auto free() const noexcept -> size_t { return m_total_bytes - m_used_bytes; }
+
+		ML_NODISCARD auto fraction() const noexcept -> float32 { return (float32)m_used_bytes / (float32)m_total_bytes; }
 
 		ML_NODISCARD auto percentage() const noexcept -> float32 { return fraction() * 100.f; }
 
@@ -53,9 +53,9 @@ namespace ml
 
 		ML_NODISCARD auto front() const & noexcept -> const_reference { return m_buffer[0]; }
 
-		ML_NODISCARD auto back() & noexcept -> reference { return m_buffer[m_capacity - 1]; }
+		ML_NODISCARD auto back() & noexcept -> reference { return m_buffer[m_total_bytes - 1]; }
 
-		ML_NODISCARD auto back() const & noexcept -> const_reference { return m_buffer[m_capacity - 1]; }
+		ML_NODISCARD auto back() const & noexcept -> const_reference { return m_buffer[m_total_bytes - 1]; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -65,9 +65,9 @@ namespace ml
 
 		ML_NODISCARD auto cbegin() const noexcept -> const_pointer { return begin(); }
 
-		ML_NODISCARD auto end() noexcept -> pointer { return m_buffer + m_capacity; }
+		ML_NODISCARD auto end() noexcept -> pointer { return m_buffer + m_total_bytes; }
 
-		ML_NODISCARD auto end() const noexcept -> const_pointer { return m_buffer + m_capacity; }
+		ML_NODISCARD auto end() const noexcept -> const_pointer { return m_buffer + m_total_bytes; }
 
 		ML_NODISCARD auto cend() const noexcept -> const_pointer { return end(); }
 
@@ -76,15 +76,15 @@ namespace ml
 	private:
 		void * do_allocate(size_t bytes, size_t align) override
 		{
-			++m_count;
-			m_used += bytes;
+			++m_num_allocations;
+			m_used_bytes += bytes;
 			return m_upstream->allocate(bytes, align);
 		}
 
 		void do_deallocate(void * ptr, size_t bytes, size_t align) override
 		{
-			--m_count;
-			m_used -= bytes;
+			--m_num_allocations;
+			m_used_bytes -= bytes;
 			return m_upstream->deallocate(ptr, bytes, align);
 		}
 
@@ -98,10 +98,10 @@ namespace ml
 	private:
 		pmr::memory_resource * m_upstream;
 		pointer const m_buffer;
-		size_t const m_capacity;
+		size_t const m_total_bytes;
 
-		size_t m_count{};
-		size_t m_used{};
+		size_t m_num_allocations{};
+		size_t m_used_bytes{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

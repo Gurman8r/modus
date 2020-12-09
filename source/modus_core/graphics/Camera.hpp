@@ -3,10 +3,7 @@
 
 // WIP
 
-// Sources:
-/*
-	https://github.com/CedricGuillemet/ImGuizmo/blob/master/example/main.cpp
-*/
+// Source: https://github.com/CedricGuillemet/ImGuizmo/blob/master/example/main.cpp
 
 #include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Matrix.hpp>
@@ -14,6 +11,7 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// UTILITY
 namespace ml::util
 {
 	inline void frustum(float32 left, float32 right, float32 bottom, float32 top, float32 znear, float32 zfar, float32 * m16)
@@ -131,7 +129,7 @@ namespace ml::util
 namespace ml
 {
 	// camera
-	struct camera
+	struct camera : trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -270,27 +268,24 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool is_orthographic() const noexcept
-		{
-			return m_is_ortho;
-		}
-
 		ML_NODISCARD auto get_proj_matrix() const noexcept -> mat4 const &
 		{
 			return m_proj;
 		}
 
-		ML_NODISCARD auto get_view_matrix() const noexcept -> mat4 const &
+		ML_NODISCARD bool is_orthographic() const noexcept
 		{
-			return m_view;
+			return m_is_ortho;
 		}
 
-		void set_orthographic(bool value) noexcept
+		ML_NODISCARD auto get_fov() const noexcept -> float32
 		{
-			if (m_is_ortho != value)
-			{
-				m_is_ortho = value;
-			}
+			return m_fov[m_is_ortho];
+		}
+
+		ML_NODISCARD auto get_clip() const noexcept -> vec2 const &
+		{
+			return m_clip[m_is_ortho];
 		}
 
 		void set_proj_matrix(mat4 const & value) noexcept
@@ -301,24 +296,35 @@ namespace ml
 			}
 		}
 
-		void set_view_matrix(mat4 const & value) noexcept
+		void set_orthographic(bool value) noexcept
 		{
-			if (m_view != value)
+			if (m_is_ortho != value)
 			{
-				m_view = value;
+				m_is_ortho = value;
+			}
+		}
+
+		void set_fov(float32 value) noexcept
+		{
+			if (m_fov[m_is_ortho] != value)
+			{
+				m_fov[m_is_ortho] = value;
+			}
+		}
+
+		void set_clip(vec2 const & value) noexcept
+		{
+			if (m_clip[m_is_ortho] != value)
+			{
+				m_clip[m_is_ortho] = value;
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_fov() const noexcept -> float32
+		ML_NODISCARD auto get_view_matrix() const noexcept -> mat4 const &
 		{
-			return m_fov[m_is_ortho];
-		}
-
-		ML_NODISCARD auto get_clip() const noexcept -> vec2 const &
-		{
-			return m_clip[m_is_ortho];
+			return m_view;
 		}
 
 		ML_NODISCARD auto get_eye() const noexcept -> vec3 const &
@@ -341,19 +347,11 @@ namespace ml
 			return m_world_up;
 		}
 
-		void set_fov(float32 value) noexcept
+		void set_view_matrix(mat4 const & value) noexcept
 		{
-			if (m_fov[m_is_ortho] != value)
+			if (m_view != value)
 			{
-				m_fov[m_is_ortho] = value;
-			}
-		}
-
-		void set_clip(vec2 const & value) noexcept
-		{
-			if (m_clip[m_is_ortho] != value)
-			{
-				m_clip[m_is_ortho] = value;
+				m_view = value;
 			}
 		}
 
@@ -412,6 +410,8 @@ namespace ml
 	
 }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // CAMERA CONTROLLER
 namespace ml
 {
@@ -422,7 +422,7 @@ namespace ml
 
 		camera_controller()
 			: m_camera	{}
-			, m_position{}
+			, m_position{ 5, 5, 5 }
 			, m_yaw		{ 32.f / 180.f * 3.14159f }
 			, m_pitch	{ 165.f / 180.f * 3.14159f }
 			, m_roll	{ 0.f }
@@ -442,17 +442,21 @@ namespace ml
 
 		camera_controller(camera_controller && other) noexcept
 		{
+			this->swap(std::move(other));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		camera_controller & operator=(camera_controller const & other)
 		{
+			camera_controller temp{ other };
+			this->swap(temp);
 			return (*this);
 		}
 
 		camera_controller & operator=(camera_controller && other) noexcept
 		{
+			this->swap(std::move(other));
 			return (*this);
 		}
 
@@ -460,13 +464,12 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
+				std::swap(m_camera	, other.m_camera);
+				std::swap(m_position, other.m_position);
 				std::swap(m_yaw		, other.m_yaw);
 				std::swap(m_pitch	, other.m_pitch);
 				std::swap(m_roll	, other.m_roll);
 				std::swap(m_zoom	, other.m_zoom);
-
-				m_camera	.swap(other.m_camera);
-				m_position	.swap(other.m_position);
 			}
 		}
 
@@ -474,7 +477,7 @@ namespace ml
 
 		void recalculate(vec2 const & resolution)
 		{
-			ML_assert(m_camera.get());
+			ML_assert(m_camera);
 
 			vec3 const eye
 			{
@@ -488,12 +491,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_camera() const noexcept -> ds::ref<camera> const &
+		ML_NODISCARD auto get_camera() const noexcept -> camera *
 		{
 			return m_camera;
 		}
 
-		void set_camera(ds::ref<camera> const & value) noexcept
+		void set_camera(camera * value) noexcept
 		{
 			if (m_camera != value)
 			{
@@ -573,7 +576,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::ref<camera>	m_camera	; // 
+		camera *		m_camera	; // 
 		vec3			m_position	; // 
 		float32			m_yaw		; // 
 		float32			m_pitch		; // 

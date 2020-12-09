@@ -2,7 +2,7 @@
 
 namespace ml
 {
-	scene_renderer::scene_renderer()
+	scene_renderer::scene_renderer() noexcept
 	{
 	}
 }

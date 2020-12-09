@@ -6,9 +6,8 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	main_window::main_window(event_bus * bus, allocator_type alloc) noexcept
-		: event_listener{ bus }
-		, render_window	{ alloc }
+	main_window::main_window(allocator_type alloc) noexcept
+		: render_window	{ alloc }
 		, m_imgui		{}
 		, m_dockspace	{}
 		, m_menubar		{}
@@ -52,31 +51,6 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void main_window::install_callbacks()
-	{
-		static ds::map<main_window *, event_bus *> m{};
-		static event_bus * b{};
-		ML_assert(b = m.find_or_add(this, get_bus()));
-
-		set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
-		set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
-		set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
-		set_cursor_enter_callback([](auto w, auto ... x) { b->fire<window_cursor_enter_event>(x...); });
-		set_cursor_pos_callback([](auto w, auto ... x) { b->fire<window_cursor_pos_event>(x...); });
-		set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
-		set_drop_callback([](auto w, auto ... x) { b->fire<window_drop_event>(x...); });
-		set_focus_callback([](auto w, auto ... x) { b->fire<window_focus_event>(x...); });
-		set_framebuffer_resize_callback([](auto w, auto ... x) { b->fire<window_framebuffer_resize_event>(x...); });
-		set_iconify_callback([](auto w, auto ... x) { b->fire<window_iconify_event>(x...); });
-		set_key_callback([](auto w, auto ... x) { b->fire<window_key_event>(x...); });
-		set_maximize_callback([](auto w, auto ... x) { b->fire<window_maximize_event>(x...); });
-		set_mouse_callback([](auto w, auto ... x) { b->fire<window_mouse_event>(x...); });
-		set_position_callback([](auto w, auto ... x) { b->fire<window_position_event>(x...); });
-		set_refresh_callback([](auto w, auto ... x) { b->fire<window_refresh_event>(x...); });
-		set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
-		set_scroll_callback([](auto w, auto ... x) { b->fire<window_scroll_event>(x...); });
-	}
-
 	bool main_window::initialize_imgui(bool callbacks)
 	{
 		return _ML ImGui_Init(get_handle(), callbacks);
@@ -104,12 +78,12 @@ namespace ml
 
 		ImGui::Render();
 
-		get_render_context()->execute
-		(
-			gfx::command::set_viewport(get_framebuffer_size()),
-			gfx::command::set_clear_color(colors::black),
-			gfx::command::clear(gfx::clear_flags_color)
-		);
+		get_render_context()->execute([&](gfx::render_context * ctx) noexcept
+		{
+			ctx->set_viewport(get_framebuffer_size());
+			ctx->set_clear_color(colors::black);
+			ctx->clear(gfx::clear_flags_color);
+		});
 
 		_ML ImGui_RenderDrawData(&m_imgui->Viewports[0]->DrawDataP);
 
@@ -141,8 +115,27 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void main_window::on_event(event const & value)
+	void main_window::install_callbacks(main_window * win, event_bus * bus)
 	{
+		static main_window * w{}; ML_assert(w = win);
+		static event_bus * b{}; ML_assert(b = bus);
+		w->set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
+		w->set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
+		w->set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
+		w->set_cursor_enter_callback([](auto w, auto ... x) { b->fire<window_cursor_enter_event>(x...); });
+		w->set_cursor_pos_callback([](auto w, auto ... x) { b->fire<window_cursor_pos_event>(x...); });
+		w->set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
+		w->set_drop_callback([](auto w, auto ... x) { b->fire<window_drop_event>(x...); });
+		w->set_focus_callback([](auto w, auto ... x) { b->fire<window_focus_event>(x...); });
+		w->set_framebuffer_resize_callback([](auto w, auto ... x) { b->fire<window_framebuffer_resize_event>(x...); });
+		w->set_iconify_callback([](auto w, auto ... x) { b->fire<window_iconify_event>(x...); });
+		w->set_key_callback([](auto w, auto ... x) { b->fire<window_key_event>(x...); });
+		w->set_maximize_callback([](auto w, auto ... x) { b->fire<window_maximize_event>(x...); });
+		w->set_mouse_callback([](auto w, auto ... x) { b->fire<window_mouse_event>(x...); });
+		w->set_position_callback([](auto w, auto ... x) { b->fire<window_position_event>(x...); });
+		w->set_refresh_callback([](auto w, auto ... x) { b->fire<window_refresh_event>(x...); });
+		w->set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
+		w->set_scroll_callback([](auto w, auto ... x) { b->fire<window_scroll_event>(x...); });
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

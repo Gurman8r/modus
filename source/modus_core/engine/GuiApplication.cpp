@@ -13,7 +13,7 @@ namespace ml
 		: core_application	{ argc, argv, alloc }
 		, event_listener	{ &m_dispatcher }
 		, m_dispatcher		{ alloc }
-		, m_window			{ &m_dispatcher, alloc }
+		, m_window			{ alloc }
 		, m_loop			{ &m_dispatcher, alloc }
 		, m_fps_tracker		{}
 		, m_input_state		{}
@@ -52,7 +52,7 @@ namespace ml
 				// window settings
 				json & j_window{ attr("window") };
 				if (!j_window.contains("title")) { j_window["title"] = app_name(); }
-				window_settings ws;
+				window_settings ws{};
 				j_window.get_to(ws);
 
 				// open window
@@ -61,7 +61,7 @@ namespace ml
 				// window callbacks
 				if (j_window.contains("callbacks") && j_window["callbacks"].get<bool>())
 				{
-					m_window.install_callbacks();
+					main_window::install_callbacks(&m_window, &m_dispatcher);
 				}
 
 				// imgui

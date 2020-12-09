@@ -3,7 +3,7 @@
 
 // WIP
 
-#include <modus_core/graphics/RenderAPI.hpp>
+#include <modus_core/graphics/Shader.hpp>
 
 namespace ml
 {

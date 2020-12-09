@@ -17,7 +17,9 @@ static class memcfg final : public singleton<memcfg>
 	pmr::monotonic_buffer_resource		mono{ data.data(), data.size() };
 	pmr::unsynchronized_pool_resource	pool{ &mono };
 	passthrough_resource				view{ &pool, data.data(), data.size() };
-	memory_manager						mman{ pmr::set_default_resource(&view) };
+	memory_manager						mman{ &view };
+
+	memcfg() noexcept { pmr::set_default_resource(mman.get_resource()); }
 
 	~memcfg() noexcept { pmr::set_default_resource(nullptr); }
 
@@ -105,13 +107,9 @@ int32 main(int32 argc, char * argv[])
 	};
 
 	// application
-	application app{ argc, argv };
-	app.set_attributes(load_settings());
-	app.set_app_name(app.attr("app_name"));
-	app.set_app_version(app.attr("app_version"));
-	app.set_library_paths(app.attr("library_paths"));
+	application app{ argc, argv, load_settings() };
 
-	// scripts
+	// interpreter
 	ML_assert(app.initialize_interpreter());
 
 	// plugins

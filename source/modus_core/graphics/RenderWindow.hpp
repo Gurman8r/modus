@@ -13,29 +13,13 @@ namespace ml
 
 		using native_window::allocator_type;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		using native_window::native_window;
 
 		render_window(allocator_type alloc = {}) noexcept;
 
 		virtual ~render_window() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		render_window(window_settings const & ws, allocator_type alloc = {}) noexcept
-			: render_window{ ws.title, ws.video, ws.context, ws.hints, alloc }
-		{
-		}
-
-		render_window(
-			ds::string const &			title,
-			video_mode const &			vm		= {},
-			context_settings const &	cs		= {},
-			window_hints_				hints	= window_hints_default,
-			allocator_type				alloc	= {}
-		) noexcept : render_window{ alloc }
-		{
-			ML_assert(this->open(title, vm, cs, hints));
-		}
 		
 		ML_NODISCARD virtual bool open(
 			ds::string const &			title,

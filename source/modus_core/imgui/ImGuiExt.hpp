@@ -729,7 +729,7 @@ namespace ml::ImGuiExt
 // TRANSFORM
 namespace ml::ImGuiExt
 {
-	inline bool DrawVec3Control(cstring label, vec3 & value, float32 reset_value = 0.f, float32 column_width = 100.f)
+	inline bool DrawVec3Control(cstring label, float32 * value, float32 reset_value = 0.f, float32 column_width = 100.f)
 	{
 		bool dirty{};
 		ImGuiIO & io{ ImGui::GetIO() };

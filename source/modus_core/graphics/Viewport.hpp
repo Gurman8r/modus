@@ -19,13 +19,13 @@ namespace ml
 
 		viewport(allocator_type alloc = {}) noexcept
 			: m_bounds	{}
-			, m_fb		{ alloc }
+			, m_fb		{}
 		{
 		}
 
 		viewport(viewport const & other, allocator_type alloc = {})
 			: m_bounds	{ other.m_bounds }
-			, m_fb		{ other.m_fb, alloc }
+			, m_fb		{ other.m_fb }
 		{
 		}
 
@@ -63,11 +63,23 @@ namespace ml
 
 		void recalculate()
 		{
-			ML_assert((0.f != get_width()) && (0.f != get_height()));
+			ML_assert((0.f != m_bounds[2]) && (0.f != m_bounds[3]));
 
-			for (framebuffer_ref const & e : m_fb)
+			if (m_fb) { m_fb->resize(m_bounds.size()); }
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_framebuffer() const noexcept -> framebuffer_ref const &
+		{
+			return m_fb;
+		}
+
+		void set_framebuffer(framebuffer_ref const & value) noexcept
+		{
+			if (m_fb != value)
 			{
-				e->resize(m_bounds.size());
+				m_fb = value;
 			}
 		}
 
@@ -207,44 +219,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_framebuffers() const noexcept -> framebuffer_list const &
-		{
-			return m_fb;
-		}
-
-		ML_NODISCARD auto get_framebuffer(size_t i) const noexcept -> framebuffer_ref const &
-		{
-			return m_fb[i];
-		}
-
-		auto add_framebuffer(framebuffer_ref const & value) noexcept -> framebuffer_ref
-		{
-			if (auto const it{ std::find(m_fb.begin(), m_fb.end(), value) }
-			; it != m_fb.end()) { return *it; }
-			else { return m_fb.emplace_back(value); }
-		}
-
-		auto delete_framebuffer(framebuffer_ref const & value) -> framebuffer_list::iterator
-		{
-			if (auto const it{ std::find(m_fb.begin(), m_fb.end(), value) }
-			; it == m_fb.end()) { return it; }
-			else { return m_fb.erase(it); }
-		}
-
-		template <class ... Args
-		> auto new_framebuffer(Args && ... args) noexcept -> framebuffer_ref
-		{
-			return m_fb.emplace_back(gfx::make_framebuffer
-			(
-				get_resolution(), ML_forward(args)...
-			));
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	private:
-		float_rect			m_bounds		; // 
-		framebuffer_list	m_fb			; // 
+		framebuffer_ref	m_fb		; // 
+		float_rect		m_bounds	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

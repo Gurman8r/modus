@@ -9,10 +9,9 @@ namespace ml
 {
 	struct ML_CORE_API scene_renderer
 	{
-		scene_renderer();
+		scene_renderer() noexcept;
 
 	private:
-		viewport m_view;
 	};
 }
 

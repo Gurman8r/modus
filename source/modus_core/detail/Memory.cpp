@@ -6,8 +6,8 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	memory_manager::memory_manager(passthrough_resource & mres)
-		: m_resource{ std::addressof(mres) }
+	memory_manager::memory_manager(passthrough_resource * mres)
+		: m_resource{ ML_check(mres) }
 		, m_alloc	{ m_resource }
 		, m_records	{ m_alloc }
 		, m_counter	{}

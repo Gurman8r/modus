@@ -43,12 +43,7 @@ namespace ml
 
 		void to_json(json & j) const;
 
-		ML_NODISCARD json to_json() const noexcept
-		{
-			json j{};
-			this->to_json(j);
-			return j;
-		}
+		ML_NODISCARD json to_json() const noexcept { json j{}; this->to_json(j); return j; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -121,16 +116,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+}
 
-	inline void from_json(json const & j, scene & v)
-	{
-		v.from_json(j);
-	}
+namespace ml
+{
+	inline void from_json(json const & j, scene & v) noexcept { v.from_json(j); }
 
-	inline void to_json(json & j, scene const & v)
-	{
-		v.to_json(j);
-	}
+	inline void to_json(json & j, scene const & v) noexcept { v.to_json(j); }
 }
 
 #endif // !_ML_SCENE_HPP_

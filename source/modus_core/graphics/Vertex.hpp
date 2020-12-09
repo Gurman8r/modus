@@ -1,7 +1,7 @@
 #ifndef _ML_VERTEX_HPP_
 #define _ML_VERTEX_HPP_
 
-// FIXME: needs to be a template
+// FIXME: needs to be a templated
 
 #include <modus_core/detail/Matrix.hpp>
 

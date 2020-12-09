@@ -16,6 +16,15 @@ namespace ml
 		ML_assert(begin_singleton<application>(this));
 	}
 
+	application::application(int32 argc, char * argv[], json const & j, allocator_type alloc)
+		: application{ argc, argv, alloc }
+	{
+		set_attributes(j);
+		if (j.contains("app_name")) { set_app_name(j["app_name"]); }
+		if (j.contains("app_version")) { set_app_version(j["app_version"]); }
+		if (j.contains("library_paths")) { set_library_paths(j["library_paths"]); }
+	}
+
 	application::~application() noexcept
 	{
 		ML_assert(end_singleton<application>(this));

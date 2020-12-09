@@ -8,34 +8,19 @@
 namespace ml
 {
 	// main window
-	struct ML_CORE_API main_window : event_listener, render_window
+	struct ML_CORE_API main_window : render_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using render_window::allocator_type;
 
-		main_window(event_bus * bus, allocator_type alloc = {}) noexcept;
+		using render_window::render_window;
+
+		main_window(allocator_type alloc = {}) noexcept;
 
 		virtual ~main_window() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		main_window(event_bus * bus, window_settings const & ws, allocator_type alloc = {}) noexcept
-			: main_window{ bus, ws.title, ws.video, ws.context, ws.hints, alloc }
-		{
-		}
-
-		main_window(
-			event_bus *					bus,
-			ds::string const &			title,
-			video_mode const &			vm		= {},
-			context_settings const &	cs		= {},
-			window_hints_				hints	= window_hints_default,
-			allocator_type				alloc	= {}
-		) noexcept : main_window{ bus, alloc }
-		{
-			ML_assert(this->open(title, vm, cs, hints));
-		}
 
 		ML_NODISCARD virtual bool open(
 			ds::string const &			title,
@@ -63,8 +48,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void install_callbacks();
-
 		bool initialize_imgui(bool callbacks = true);
 		
 		void finalize_imgui();
@@ -91,8 +74,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	protected:
-		virtual void on_event(event const & value) override;
+		static void install_callbacks(main_window * win, event_bus * bus);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

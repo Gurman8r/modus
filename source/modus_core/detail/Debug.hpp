@@ -124,8 +124,10 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_NODISCARD constexpr int32 success() noexcept { return 1; } // true
+	// return 1
+	ML_NODISCARD constexpr int32 success() noexcept { return 1; }
 
+	// return 1
 	template <class Str
 	> int32 success(Str && str) noexcept
 	{
@@ -134,6 +136,7 @@ namespace ml::debug
 		return _ML_DEBUG success();
 	}
 
+	// return 1
 	template <class Fmt, class Arg0, class ... Args
 	> int32 success(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
@@ -145,8 +148,10 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_NODISCARD constexpr int32 failure() noexcept { return 0; } // false
+	// return 0
+	ML_NODISCARD constexpr int32 failure() noexcept { return 0; }
 
+	// return 0
 	template <class Str
 	> int32 failure(Str && str) noexcept
 	{
@@ -155,6 +160,7 @@ namespace ml::debug
 		return _ML_DEBUG failure();
 	}
 
+	// return 0
 	template <class Fmt, class Arg0, class ... Args
 	> int32 failure(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
@@ -166,8 +172,10 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_NODISCARD constexpr int32 warning() noexcept { return -1; } // true
+	// return -1
+	ML_NODISCARD constexpr int32 warning() noexcept { return -1; }
 
+	// return -1
 	template <class Str
 	> int32 warning(Str && str) noexcept
 	{
@@ -176,6 +184,7 @@ namespace ml::debug
 		return _ML_DEBUG warning();
 	}
 
+	// return -1
 	template <class Fmt, class Arg0, class ... Args
 	> int32 warning(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{

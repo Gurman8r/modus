@@ -47,7 +47,7 @@ namespace ml
 		};
 		ImGuiExt::Overlay m_overlays[MAX_OVERLAY]
 		{
-			{ "viewport_overlay", true, 0, { 32, 32 }, .35f },
+			{ "debug_overlay", true, -1, { 32, 32 }, .35f },
 		};
 
 		// memory editor

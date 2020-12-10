@@ -1,9 +1,8 @@
 #ifndef _ML_GUI_APPLICATION_HPP_
 #define _ML_GUI_APPLICATION_HPP_
 
-#include <modus_core/detail/EventSystem.hpp>
-#include <modus_core/detail/LoopSystem.hpp>
 #include <modus_core/engine/CoreApplication.hpp>
+#include <modus_core/detail/LoopSystem.hpp>
 #include <modus_core/engine/MainWindow.hpp>
 #include <modus_core/engine/Performance.hpp>
 
@@ -17,18 +16,18 @@ namespace ml
 	public:
 		using core_application::allocator_type;
 
-		explicit gui_application(int32 argc, char * argv[], allocator_type alloc = {});
-
+		gui_application(int32 argc, char * argv[], json const & attribs = {}, allocator_type alloc = {});
+		
 		virtual ~gui_application() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual int32 exec() override
+		virtual int32 run() override
 		{
 			m_loop.process();
 
-			return core_application::exec();
+			return core_application::run();
 		}
 
 		virtual void exit(int32 exit_code) override

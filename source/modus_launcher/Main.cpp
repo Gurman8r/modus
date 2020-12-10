@@ -1,4 +1,5 @@
 #include <modus_core/engine/Application.hpp>
+#include <modus_core/embed/Python.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -98,14 +99,13 @@ static auto const default_settings{ R"(
 
 int32 main(int32 argc, char * argv[])
 {
-	// application
 	application app{ argc, argv, util::load_json(SETTINGS_PATH, default_settings) };
 
-	// interpreter
-	ML_assert(app.initialize_interpreter());
+	if (!app.has_interpreter()) {
+		ML_assert(app.initialize_interpreter());
+	}
 
-	// plugins
-	if (app.attr().contains("plugins")) {
+	if (app.has_attr("plugins")) {
 		for (json const & e : app.attr("plugins")) {
 			if (e.contains("path")) {
 				app.get_plugin_manager()->install(e["path"]);
@@ -113,8 +113,15 @@ int32 main(int32 argc, char * argv[])
 		}
 	}
 
-	// run
-	return app.exec();
+	if (app.has_attr("scripts")) {
+		for (json const & e : app.attr("scripts")) {
+			if (e.contains("path")) {
+				app.get_interpreter()->eval_file(app.path_to(e["path"]));
+			}
+		}
+	}
+
+	return app.run();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

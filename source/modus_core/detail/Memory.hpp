@@ -231,7 +231,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		memory_manager(pmr::memory_resource * mres = pmr::get_default_resource())
-			: memory_manager{ reinterpret_cast<passthrough_resource *>(mres) }
+			: memory_manager{ ML_check(reinterpret_cast<passthrough_resource *>(mres)) }
 		{
 		}
 

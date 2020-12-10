@@ -1,5 +1,4 @@
 #include <modus_core/graphics/RenderWindow.hpp>
-#include <modus_core/graphics/RenderCommand.hpp>
 
 namespace ml
 {
@@ -27,7 +26,7 @@ namespace ml
 	{
 		// open base
 		if (!native_window::open(title, vm, cs, hints)) {
-			return debug::failure("failed opening native_window");
+			return debug::failure("failed opening native window");
 		}
 
 		// create device

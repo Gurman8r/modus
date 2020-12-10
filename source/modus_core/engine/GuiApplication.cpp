@@ -1,6 +1,5 @@
 #include <modus_core/engine/GuiApplication.hpp>
 #include <modus_core/engine/PlatformAPI.hpp>
-#include <modus_core/embed/Python.hpp>
 #include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
@@ -9,8 +8,8 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	gui_application::gui_application(int32 argc, char * argv[], allocator_type alloc)
-		: core_application	{ argc, argv, alloc }
+	gui_application::gui_application(int32 argc, char * argv[], json const & attributes, allocator_type alloc)
+		: core_application	{ argc, argv, attributes, alloc }
 		, event_listener	{ &m_dispatcher }
 		, m_dispatcher		{ alloc }
 		, m_window			{ alloc }
@@ -20,12 +19,15 @@ namespace ml
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
-		ML_assert(window_context::initialize());
-
-		window_context::set_error_callback([](int32 code, cstring desc)
+		static ML_block(&)
 		{
-			debug::failure("{0}: {1}", code, desc);
-		});
+			ML_assert(window_context::initialize());
+
+			window_context::set_error_callback([](int32 code, cstring desc) 
+			{
+				debug::failure("{0}: {1}", code, desc);
+			});
+		};
 
 		subscribe<
 			window_cursor_pos_event,
@@ -41,9 +43,9 @@ namespace ml
 
 	gui_application::~gui_application() noexcept
 	{
-		window_context::finalize();
+		static ML_defer(&) { window_context::finalize(); };
 
-		unsubscribe(); // manual unsubscribe required
+		unsubscribe(); // manual unsubscribe required because we own the bus
 
 		ML_assert(end_singleton<gui_application>(this));
 	}
@@ -69,25 +71,41 @@ namespace ml
 	void gui_application::on_enter()
 	{
 		// setup window
-		if (attr().contains("window"))
+		if (has_attr("window"))
 		{
 			// window settings
 			json & j_window{ attr("window") };
 			if (!j_window.contains("title")) { j_window["title"] = app_name(); }
-			window_settings ws{};
-			j_window.get_to(ws);
 
 			// open window
+			auto const ws{ (window_settings)j_window };
 			ML_assert(m_window.open(ws.title, ws.video, ws.context, ws.hints));
 
 			// install callbacks
 			if (j_window.contains("callbacks") && j_window["callbacks"].get<bool>())
 			{
-				m_window.install_callbacks(&m_dispatcher);
+				static event_bus * b{}; b = &m_dispatcher;
+				m_window.set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
+				m_window.set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
+				m_window.set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
+				m_window.set_cursor_enter_callback([](auto w, auto ... x) { b->fire<window_cursor_enter_event>(x...); });
+				m_window.set_cursor_pos_callback([](auto w, auto ... x) { b->fire<window_cursor_pos_event>(x...); });
+				m_window.set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
+				m_window.set_drop_callback([](auto w, auto ... x) { b->fire<window_drop_event>(x...); });
+				m_window.set_focus_callback([](auto w, auto ... x) { b->fire<window_focus_event>(x...); });
+				m_window.set_framebuffer_resize_callback([](auto w, auto ... x) { b->fire<window_framebuffer_resize_event>(x...); });
+				m_window.set_iconify_callback([](auto w, auto ... x) { b->fire<window_iconify_event>(x...); });
+				m_window.set_key_callback([](auto w, auto ... x) { b->fire<window_key_event>(x...); });
+				m_window.set_maximize_callback([](auto w, auto ... x) { b->fire<window_maximize_event>(x...); });
+				m_window.set_mouse_callback([](auto w, auto ... x) { b->fire<window_mouse_event>(x...); });
+				m_window.set_position_callback([](auto w, auto ... x) { b->fire<window_position_event>(x...); });
+				m_window.set_refresh_callback([](auto w, auto ... x) { b->fire<window_refresh_event>(x...); });
+				m_window.set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
+				m_window.set_scroll_callback([](auto w, auto ... x) { b->fire<window_scroll_event>(x...); });
 			}
 
-			// imgui
-			if (attr().contains("imgui"))
+			// setup imgui
+			if (has_attr("imgui"))
 			{
 				json & j_imgui{ attr("imgui") };
 
@@ -135,30 +153,32 @@ namespace ml
 		// idle
 		m_dispatcher.fire<app_idle_event>(dt);
 
-		// gui
+		// imgui
 		m_window.do_frame([&
-			, gui = m_window.get_imgui().get()
-			, menubar = m_window.get_menubar()
-			, dockspace = m_window.get_dockspace()
+			, context	= m_window.get_imgui().get()
+			, menubar	= m_window.get_menubar()
+			, dockspace	= m_window.get_dockspace()
 		](auto) noexcept
 		{
-			m_dispatcher.fire<imgui_begin_event>(gui);
+			m_dispatcher.fire<imgui_begin_event>(context);
 
 			ImGuizmo::BeginFrame();
 
-			dockspace->SetWindowFlag(ImGuiWindowFlags_MenuBar, menubar->FindByName());
+			dockspace->SetWindowFlag(ImGuiWindowFlags_MenuBar, menubar->Get());
 
-			(*dockspace)(gui->Viewports[0], [&](auto) noexcept {
+			dockspace->Draw(context->Viewports[0], [&](auto) noexcept
+			{
 				m_dispatcher.fire<imgui_dockspace_event>(dockspace);
 			});
 
-			(*menubar)([&](auto) noexcept {
+			menubar->Draw([&](auto) noexcept
+			{
 				m_dispatcher.fire<imgui_menubar_event>(menubar);
 			});
 
-			m_dispatcher.fire<imgui_render_event>(gui);
+			m_dispatcher.fire<imgui_render_event>(context);
 
-			m_dispatcher.fire<imgui_end_event>(gui);
+			m_dispatcher.fire<imgui_end_event>(context);
 		});
 	}
 

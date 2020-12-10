@@ -14,9 +14,8 @@ namespace ml
 		ds::list<float32>	times; // 
 
 		fps_tracker(size_t count = 120, pmr::polymorphic_allocator<byte> alloc = {}) noexcept
-			: value{}, accum{}, index{}, times{ alloc }
+			: value{}, accum{}, index{}, times{ count, 0.f, alloc }
 		{
-			times.resize(count);
 		}
 
 		void operator()(float32 dt) noexcept

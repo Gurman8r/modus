@@ -25,7 +25,7 @@
 #include <pybind11/functional.h>
 #include <pybind11/iostream.h>
 
-namespace ml { namespace py = pybind11; } // ml::py::
+namespace ml { namespace py = pybind11; } // ml::py
 
 namespace pybind11
 {
@@ -51,6 +51,133 @@ namespace pybind11
 	{
 		v = module::import("json").attr("loads")(j.dump());
 	}
+}
+
+namespace ml
+{
+	struct python_interpreter final : non_copyable, trackable
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		python_interpreter(fs::path const & name, fs::path const & home, pmr::memory_resource * mres = pmr::get_default_resource())
+		{
+			ML_assert(this->initialize(name, home, mres));
+		}
+
+		~python_interpreter() noexcept final
+		{
+			this->finalize();
+		}
+
+		python_interpreter() noexcept = default;
+		python_interpreter(python_interpreter &&) noexcept = default;
+		python_interpreter & operator=(python_interpreter &&) noexcept = default;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD bool is_initialized() const noexcept
+		{
+			return Py_IsInitialized();
+		}
+
+		bool initialize(fs::path const & name, fs::path const & home, pmr::memory_resource * mres = pmr::get_default_resource())
+		{
+			if (Py_IsInitialized()) { return false; }
+			PyObject_SetArenaAllocator(std::invoke([&, &al = PyObjectArenaAllocator{}]()
+			{
+				al.ctx = mres;
+				al.alloc = [](auto mres, size_t s) {
+					return ((pmr::memory_resource *)mres)->allocate(s);
+				};
+				al.free = [](auto mres, void * p, size_t s) {
+					return ((pmr::memory_resource *)mres)->deallocate(p, s);
+				};
+				return &al;
+			}));
+			Py_SetProgramName((m_program_name = name).c_str());
+			Py_SetPythonHome((m_library_home = home).c_str());
+			Py_InitializeEx(1);
+			return Py_IsInitialized();
+		}
+
+		bool finalize()
+		{
+			return !Py_IsInitialized() && (Py_FinalizeEx() == EXIT_SUCCESS);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <py::eval_mode Mode = py::eval_expr, size_t N
+		> py::object eval(const char (&expr)[N], py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			return py::eval<Mode>(expr, global, local);
+		}
+
+		template <py::eval_mode Mode = py::eval_expr
+		> py::object eval(py::str expr, py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			return py::eval<Mode>(expr, global, local);
+		}
+
+		template <py::eval_mode Mode = py::eval_expr, ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)
+		> py::object eval(Str const & expr, py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			return py::eval<Mode>(py::str{ expr.data(), expr.size() }, global, local);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <size_t N
+		> void exec(const char(&expr)[N], py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			py::exec(expr, global, local);
+		}
+
+		void exec(py::str expr, py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			py::exec(expr, global, local);
+		}
+
+		template <ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)
+		> void exec(Str const & expr, py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			py::exec(py::str{ expr.data(), expr.size() }, global, local);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <py::eval_mode Mode = py::eval_statements, size_t N
+		> py::object eval_file(const char (&path)[N], py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			return py::eval_file<Mode>(path, global, local);
+		}
+
+		template <py::eval_mode Mode = py::eval_statements
+		> py::object eval_file(py::str path, py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			return py::eval_file<Mode>(path, global, local);
+		}
+
+		template <py::eval_mode Mode = py::eval_statements, ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)
+		> py::object eval_file(Str const & path, py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			return py::eval_file<Mode>(py::str{ path.data(), path.size() }, global, local);
+		}
+
+		template <py::eval_mode Mode = py::eval_statements
+		> py::object eval_file(fs::path const & path, py::object global = py::globals(), py::object local = {}) noexcept
+		{
+			return py::eval_file<Mode>(path.string(), global, local);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	private:
+		fs::path m_program_name{};
+		fs::path m_library_home{};
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -1,15 +1,7 @@
 {
-	"app_name": "modus launcher",
+	"app_name": "modus",
 	"app_version": "alpha",
 	"library_paths": [ "../../../" ],
-
-	"plugins": [
-		{ "path": "plugins/sandbox" }
-	],
-
-	"scripts": [
-		{ "path": "resource/modus_launcher.py" }
-	],
 
 	"window": {
 		"callbacks": true,
@@ -56,5 +48,13 @@
 		},
 		"menubar": {
 		}
-	}
+	},
+
+	"plugins": [
+		{ "path": "plugins/sandbox" }
+	],
+
+	"scripts": [
+		{ "path": "resource/modus_launcher.py" }
+	]
 }

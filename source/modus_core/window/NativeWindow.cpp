@@ -35,7 +35,7 @@ namespace ml
 	{
 		// open base
 		if (!frontend_window::open(title, vm, cs, hints)) {
-			return debug::failure("failed opening frontend_window");
+			return debug::failure("failed opening backend window");
 		}
 
 		// make current context

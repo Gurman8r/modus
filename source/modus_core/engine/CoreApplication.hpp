@@ -1,7 +1,7 @@
 #ifndef _ML_CORE_APPLICATION_HPP_
 #define _ML_CORE_APPLICATION_HPP_
 
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/embed/Python.hpp>
 
 namespace ml
 {
@@ -13,27 +13,18 @@ namespace ml
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		explicit core_application(int32 argc, char * argv[], allocator_type alloc = {});
+		core_application(int32 argc, char * argv[], json const & attributes = {}, allocator_type alloc = {});
 
 		virtual ~core_application() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual int32 exec()
-		{
-			return m_exit_code;
-		}
+		virtual int32 run() { return m_exit_code; }
 
-		virtual void exit(int32 value)
-		{
-			m_exit_code = value;
-		}
+		virtual void exit(int32 value) { m_exit_code = value; }
 
-		void quit() noexcept
-		{
-			this->exit(EXIT_SUCCESS);
-		}
+		void quit() noexcept { this->exit(EXIT_SUCCESS); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -88,6 +79,11 @@ namespace ml
 			return m_attributes[ML_forward(i)];
 		}
 
+		template <class I> ML_NODISCARD bool has_attr(I && i) const
+		{
+			return m_attributes.contains(ML_forward(i));
+		}
+
 		ML_NODISCARD auto library_paths() const noexcept -> ds::list<fs::path> const &
 		{
 			return m_library_paths;
@@ -130,11 +126,25 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD bool has_interpreter() const;
+		ML_NODISCARD auto get_interpreter() const noexcept -> python_interpreter *
+		{
+			return const_cast<python_interpreter *>(&m_interpreter);
+		}
 
-		ML_NODISCARD bool initialize_interpreter();
+		ML_NODISCARD bool has_interpreter() const noexcept
+		{
+			return m_interpreter.is_initialized();
+		}
 
-		void finalize_interpreter();
+		bool initialize_interpreter() noexcept
+		{
+			return m_interpreter.initialize(m_app_file_name, m_library_paths[0]);
+		}
+
+		void finalize_interpreter() noexcept
+		{
+			m_interpreter.finalize();
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -147,6 +157,7 @@ namespace ml
 		ds::list<ds::string>	m_arguments		; // 
 		json					m_attributes	; // 
 		ds::list<fs::path>		m_library_paths	; // 
+		python_interpreter		m_interpreter; // 
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

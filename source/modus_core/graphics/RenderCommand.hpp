@@ -20,80 +20,80 @@ namespace ml::gfx
 namespace ml::gfx
 {
 	// render command
-	struct command : ds::method< void(render_context *) >
+	struct command : public std::function< void(render_context *) >
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		command() noexcept : method{} {}
+		using std::function< void(render_context *) >::function;
 
 		template <class Fn, class ... Args
-		> command(Fn && fn, Args && ... args) noexcept
-			: method{ std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...) }
+		> ML_NODISCARD static command bind(Fn && fn, Args && ... args) noexcept
 		{
+			return std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD static auto set_alpha_state(alpha_state const & value) noexcept
 		{
-			return command{ &render_context::set_alpha_state, value };
+			return command::bind(&render_context::set_alpha_state, value);
 		}
 
 		ML_NODISCARD static auto set_blend_state(blend_state const & value) noexcept
 		{
-			return command{ &render_context::set_blend_state, value };
+			return command::bind(&render_context::set_blend_state, value);
 		}
 
 		ML_NODISCARD static auto set_clear_color(color const & value) noexcept
 		{
-			return command{ &render_context::set_clear_color, value };
+			return command::bind(&render_context::set_clear_color, value);
 		}
 
 		ML_NODISCARD static auto set_cull_state(cull_state const & value) noexcept
 		{
-			return command{ &render_context::set_cull_state, value };
+			return command::bind(&render_context::set_cull_state, value);
 		}
 
 		ML_NODISCARD static auto set_depth_state(depth_state const & value) noexcept
 		{
-			return command{ &render_context::set_depth_state, value };
+			return command::bind(&render_context::set_depth_state, value);
 		}
 
 		ML_NODISCARD static auto set_stencil_state(stencil_state const & value) noexcept
 		{
-			return command{ &render_context::set_stencil_state, value };
+			return command::bind(&render_context::set_stencil_state, value);
 		}
 
 		ML_NODISCARD static auto set_viewport(int_rect const & value) noexcept
 		{
-			return command{ &render_context::set_viewport, value };
+			return command::bind(&render_context::set_viewport, value);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD static auto clear(uint32 mask) noexcept
 		{
-			return command{ &render_context::clear, mask };
+			return command::bind(&render_context::clear, mask);
 		}
 
 		ML_NODISCARD static auto draw(ds::ref<vertexarray> const & value) noexcept
 		{
-			return command{ &render_context::draw, value };
+			return command::bind(&render_context::draw, value);
 		}
 
 		ML_NODISCARD static auto draw_arrays(uint32 mode, uint32 first, size_t count) noexcept
 		{
-			return command{ &render_context::draw_arrays, mode, first, count };
+			return command::bind(&render_context::draw_arrays, mode, first, count);
 		}
 
 		ML_NODISCARD static auto draw_indexed(uint32 mode, size_t count) noexcept
 		{
-			return command{ &render_context::draw_indexed, mode, count };
+			return command::bind(&render_context::draw_indexed, mode, count);
 		}
 
 		ML_NODISCARD static auto flush() noexcept
 		{
-			return command{ &render_context::flush };
+			return command::bind(&render_context::flush);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -103,11 +103,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_vertexarray, (vertexarray *)value };
+				return command::bind(&render_context::bind_vertexarray, (vertexarray *)value);
 			}
 			else
 			{
-				return command{ &render_context::bind_vertexarray, (vertexarray *)value.get() };
+				return command::bind(&render_context::bind_vertexarray, (vertexarray *)value.get());
 			}
 		}
 
@@ -116,11 +116,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_vertexbuffer, (vertexbuffer *)value };
+				return command::bind(&render_context::bind_vertexbuffer, (vertexbuffer *)value);
 			}
 			else
 			{
-				return command{ &render_context::bind_vertexbuffer, (vertexbuffer *)value.get() };
+				return command::bind(&render_context::bind_vertexbuffer, (vertexbuffer *)value.get());
 			}
 		}
 
@@ -129,11 +129,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_indexbuffer, (indexbuffer *)value };
+				return command::bind(&render_context::bind_indexbuffer, (indexbuffer *)value);
 			}
 			else
 			{
-				return command{ &render_context::bind_indexbuffer, (indexbuffer *)value.get() };
+				return command::bind(&render_context::bind_indexbuffer, (indexbuffer *)value.get());
 			}
 		}
 
@@ -142,11 +142,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_texture, (texture *)value };
+				return command::bind(&render_context::bind_texture, (texture *)value);
 			}
 			else
 			{
-				return command{ &render_context::bind_texture, (texture *)value.get() };
+				return command::bind(&render_context::bind_texture, (texture *)value.get());
 			}
 		}
 
@@ -155,11 +155,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_framebuffer, (framebuffer *)value };
+				return command::bind(&render_context::bind_framebuffer, (framebuffer *)value);
 			}
 			else
 			{
-				return command{ &render_context::bind_framebuffer, (framebuffer *)value.get() };
+				return command::bind(&render_context::bind_framebuffer, (framebuffer *)value.get());
 			}
 		}
 
@@ -168,11 +168,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_program, (program *)value };
+				return command::bind(&render_context::bind_program, (program *)value);
 			}
 			else
 			{
-				return command{ &render_context::bind_program, (program *)value.get() };
+				return command::bind(&render_context::bind_program, (program *)value.get());
 			}
 		}
 
@@ -181,11 +181,11 @@ namespace ml::gfx
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
-				return command{ &render_context::bind_shader, (shader *)value };
+				return command::bind(&render_context::bind_shader, (shader *)value);
 			}
 			else
 			{
-				return command{ &render_context::bind_shader, (shader *)value.get() };
+				return command::bind(&render_context::bind_shader, (shader *)value.get());
 			}
 		}
 
@@ -194,15 +194,15 @@ namespace ml::gfx
 		template <class T
 		> ML_NODISCARD static auto upload(uniform_id loc, T value) noexcept
 		{
-			return command{ static_cast<void(render_context::*)(uniform_id, T)
-			>(&render_context::upload), loc, value };
+			return command::bind(static_cast<void(render_context:: *)(uniform_id, T)
+			>(&render_context::upload), loc, value);
 		}
 
 		template <class T
 		> ML_NODISCARD static auto upload(uniform_id loc, T const & value) noexcept
 		{
-			return command{ static_cast<void(render_context::*)(uniform_id, T const &)
-			>(&render_context::upload), loc, value };
+			return command::bind(static_cast<void(render_context:: *)(uniform_id, T const &)
+			>(&render_context::upload), loc, value);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

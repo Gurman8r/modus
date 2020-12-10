@@ -29,23 +29,6 @@ namespace ml
 		{
 		}
 
-		constexpr basic_rect(value_type value) noexcept
-			: m_data{ value }
-		{
-		}
-		
-		template <class W, class H
-		> constexpr basic_rect(W w, H h) noexcept
-			: m_data{ 0, 0, static_cast<T>(w), static_cast<T>(h) }
-		{
-		}
-		
-		template <class X, class Y, class W, class H
-		> constexpr basic_rect(X x, Y y, W w, H h) noexcept
-			: m_data{ static_cast<T>(x), static_cast<T>(y), static_cast<T>(w), static_cast<T>(h) }
-		{
-		}
-
 		constexpr basic_rect(self_type const & value) noexcept
 			: m_data{ value.m_data }
 		{
@@ -53,6 +36,16 @@ namespace ml
 
 		constexpr basic_rect(storage_type const & value) noexcept
 			: m_data{ value }
+		{
+		}
+
+		constexpr basic_rect(value_type value) noexcept
+			: m_data{ value }
+		{
+		}
+		
+		constexpr basic_rect(value_type w, value_type h) noexcept
+			: m_data{ 0, 0, w, h }
 		{
 		}
 		
@@ -63,6 +56,12 @@ namespace ml
 		
 		constexpr basic_rect(coord_type const & size) noexcept
 			: m_data{ 0, 0, size[0], size[1] }
+		{
+		}
+
+		template <class X, class Y, class W, class H
+		> constexpr basic_rect(X x, Y y, W w, H h) noexcept
+			: m_data{ static_cast<T>(x), static_cast<T>(y), static_cast<T>(w), static_cast<T>(h) }
 		{
 		}
 

@@ -9,15 +9,15 @@ namespace ml::ImGuiExt { struct Dockspace; struct MainMenuBar; }
 
 namespace ml
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// IMGUI DOCKSPACE
 	ML_event(imgui_dockspace_event)
 	{
 		ImGuiExt::Dockspace * const p;
 		auto operator->() const noexcept { return p; }
 		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_dockspace_event(ImGuiExt::Dockspace * const p) noexcept : p{ p }
-		{
-		}
+		constexpr imgui_dockspace_event(ImGuiExt::Dockspace * const p) noexcept : p{ p } {}
 	};
 
 	// IMGUI MENUBAR
@@ -26,10 +26,10 @@ namespace ml
 		ImGuiExt::MainMenuBar * const p;
 		auto operator->() const noexcept { return p; }
 		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_menubar_event(ImGuiExt::MainMenuBar * const p) noexcept : p{ p }
-		{
-		}
+		constexpr imgui_menubar_event(ImGuiExt::MainMenuBar * const p) noexcept : p{ p } {}
 	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// IMGUI BEGIN
 	ML_event(imgui_begin_event)
@@ -37,9 +37,7 @@ namespace ml
 		ImGuiContext * const p;
 		auto operator->() const noexcept { return p; }
 		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_begin_event(ImGuiContext * const p) noexcept : p{ p }
-		{
-		}
+		constexpr imgui_begin_event(ImGuiContext * const p) noexcept : p{ p } {}
 	};
 
 	// IMGUI RENDER
@@ -48,9 +46,7 @@ namespace ml
 		ImGuiContext * const p;
 		auto operator->() const noexcept { return p; }
 		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_render_event(ImGuiContext * const p) noexcept : p{ p }
-		{
-		}
+		constexpr imgui_render_event(ImGuiContext * const p) noexcept : p{ p } {}
 	};
 
 	// IMGUI END
@@ -59,10 +55,10 @@ namespace ml
 		ImGuiContext * const p;
 		auto operator->() const noexcept { return p; }
 		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_end_event(ImGuiContext * const p) noexcept : p{ p }
-		{
-		}
+		constexpr imgui_end_event(ImGuiContext * const p) noexcept : p{ p } {}
 	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_IMGUI_EVENTS_HPP_

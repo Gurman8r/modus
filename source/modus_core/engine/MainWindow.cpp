@@ -1,5 +1,4 @@
 #include <modus_core/engine/MainWindow.hpp>
-#include <modus_core/graphics/Renderer2D.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
 
@@ -31,8 +30,6 @@ namespace ml
 		finalize_imgui();
 
 		ImGui::DestroyContext(m_imgui.release());
-
-		renderer2d::finalize();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -49,42 +46,14 @@ namespace ml
 			return debug::failure("failed opening render_window");
 		}
 
-		// renderer
-		if (!renderer2d::initialize()) {
-			return debug::failure();
-		}
-
 		return true;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void main_window::install_callbacks(event_bus * bus)
+	bool main_window::initialize_imgui(bool install_callbacks)
 	{
-		static event_bus * b{};
-		if (!(b = bus)) { return; }
-		set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
-		set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
-		set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
-		set_cursor_enter_callback([](auto w, auto ... x) { b->fire<window_cursor_enter_event>(x...); });
-		set_cursor_pos_callback([](auto w, auto ... x) { b->fire<window_cursor_pos_event>(x...); });
-		set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
-		set_drop_callback([](auto w, auto ... x) { b->fire<window_drop_event>(x...); });
-		set_focus_callback([](auto w, auto ... x) { b->fire<window_focus_event>(x...); });
-		set_framebuffer_resize_callback([](auto w, auto ... x) { b->fire<window_framebuffer_resize_event>(x...); });
-		set_iconify_callback([](auto w, auto ... x) { b->fire<window_iconify_event>(x...); });
-		set_key_callback([](auto w, auto ... x) { b->fire<window_key_event>(x...); });
-		set_maximize_callback([](auto w, auto ... x) { b->fire<window_maximize_event>(x...); });
-		set_mouse_callback([](auto w, auto ... x) { b->fire<window_mouse_event>(x...); });
-		set_position_callback([](auto w, auto ... x) { b->fire<window_position_event>(x...); });
-		set_refresh_callback([](auto w, auto ... x) { b->fire<window_refresh_event>(x...); });
-		set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
-		set_scroll_callback([](auto w, auto ... x) { b->fire<window_scroll_event>(x...); });
-	}
-
-	bool main_window::initialize_imgui(bool callbacks)
-	{
-		return _ML ImGui_Init(get_handle(), callbacks);
+		return _ML ImGui_Init(get_handle(), install_callbacks);
 	}
 
 	void main_window::finalize_imgui()
@@ -92,7 +61,7 @@ namespace ml
 		_ML ImGui_Shutdown();
 	}
 
-	void main_window::begin_frame()
+	void main_window::new_frame()
 	{
 		window_context::poll_events();
 
@@ -103,14 +72,13 @@ namespace ml
 		ImGui::PushID(this);
 	}
 
-	void main_window::end_frame()
+	void main_window::render_frame()
 	{
 		ImGui::PopID();
 
 		ImGui::Render();
 
-		get_render_context()->execute([&](gfx::render_context * ctx) noexcept
-		{
+		get_render_context()->execute([&](gfx::render_context * ctx) noexcept {
 			ctx->set_viewport(get_framebuffer_size());
 			ctx->set_clear_color(colors::black);
 			ctx->clear(gfx::clear_flags_color);
@@ -118,16 +86,14 @@ namespace ml
 
 		_ML ImGui_RenderDrawData(&m_imgui->Viewports[0]->DrawDataP);
 
-		if (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-		{
+		if (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
 			auto const backup{ window_context::get_active_window() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 			window_context::set_active_window(backup);
 		}
 
-		if (has_hints(window_hints_doublebuffer))
-		{
+		if (has_hints(window_hints_doublebuffer)) {
 			window_context::swap_buffers(get_handle());
 		}
 	}

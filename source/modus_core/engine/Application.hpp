@@ -15,9 +15,7 @@ namespace ml
 	public:
 		using gui_application::allocator_type;
 
-		application(int32 argc, char * argv[], allocator_type alloc = {});
-
-		application(int32 argc, char * argv[], json const & j, allocator_type alloc = {});
+		application(int32 argc, char * argv[], json const & attributes = {}, allocator_type alloc = {});
 
 		virtual ~application() noexcept override;
 
@@ -36,12 +34,21 @@ namespace ml
 
 		void set_active_scene(ds::ref<scene> const & value) noexcept
 		{
-			if (m_active_scene != value) { m_active_scene = value; }
+			if (m_active_scene != value)
+			{
+				m_active_scene = value;
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
+		using gui_application::on_enter;
+		
+		using gui_application::on_exit;
+		
+		using gui_application::on_idle;
+
 		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

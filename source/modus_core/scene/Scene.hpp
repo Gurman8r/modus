@@ -65,8 +65,7 @@ namespace ml
 			if (!f) { return debug::failure("failed writing scene: \'{0}\'", path); }
 			else
 			{
-				json j{ to_json() };
-				f << j;
+				f << to_json();
 				return true;
 			}
 		}

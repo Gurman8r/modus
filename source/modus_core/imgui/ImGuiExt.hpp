@@ -194,8 +194,7 @@ namespace ml::ImGuiExt
 // PANELS
 namespace ml::ImGuiExt
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+	// BASIC PANEL
 	template <class Derived> struct ML_NODISCARD BasicPanel
 	{
 		cstring		Title		; // title
@@ -230,29 +229,27 @@ namespace ml::ImGuiExt
 			return ML_flag_write(WindowFlags, (int32)index, value);
 		}
 
+		ML_NODISCARD ImGuiWindow * Get() const noexcept {
+			return ImGui::FindWindowByName(Title);
+		}
+
 		ML_NODISCARD ImGuiID GetID() const noexcept {
 			return ImGui::GetID(Title);
 		}
-
-		ML_NODISCARD ImGuiWindow * FindByName() const noexcept {
-			return ImGui::FindWindowByName(Title);
-		}
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// PANEL
 	struct ML_NODISCARD Panel : BasicPanel<Panel>
 	{
+		using BasicPanel<Panel>::BasicPanel;
+
 		Panel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
 			: BasicPanel{ title, open, winflags }
 		{
 		}
 
-		Panel(Panel const & other) noexcept : BasicPanel{ other } {}
-
 		template <class Fn, class ... Args
-		> bool operator()(Fn && fn, Args && ... args) noexcept
+		> bool Draw(Fn && fn, Args && ... args) noexcept
 		{
 			ImGuiExt_ScopeID(this);
 			return IsOpen && ImGuiExt::BeginEnd
@@ -260,6 +257,83 @@ namespace ml::ImGuiExt
 				std::bind(&Panel::Begin, this),
 				std::bind(&Panel::End, this),
 				ML_forward(fn), this, ML_forward(args)...
+			);
+		}
+	};
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// OVERLAY
+namespace ml::ImGuiExt
+{
+	template <class Fn
+	> bool SimpleOverlay(cstring title, bool * open = 0, int32 corner = 0, vec2 const & offset = { 10.f, 10.f }, float32 alpha = 0.35f, Fn fn = ([]() noexcept {}))
+	{
+		ImGuiWindowFlags window_flags{ ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav };
+		if (corner != -1)
+		{
+			window_flags |= ImGuiWindowFlags_NoMove;
+			auto const vp{ ImGui::GetMainViewport() };
+			float_rect const bounds{ vp->GetWorkPos(), vp->GetWorkSize() };
+			vec2 const pos{
+				((corner & 1) ? (bounds[0] + bounds[2] - offset[0]) : (bounds[0] + offset[0])),
+				((corner & 2) ? (bounds[1] + bounds[3] - offset[1]) : (bounds[1] + offset[1]))
+			};
+			vec2 const piv{
+				((corner & 1) ? 1.f : 0.f),
+				((corner & 2) ? 1.f : 0.f)
+			};
+			ImGui::SetNextWindowPos(pos, ImGuiCond_Always, piv);
+			ImGui::SetNextWindowViewport(vp->ID);
+		}
+		ImGui::SetNextWindowBgAlpha(alpha);
+		return ImGuiExt::Window(title, open, window_flags, fn);
+	}
+
+	struct ML_NODISCARD Overlay : BasicPanel<Overlay>
+	{
+		int32	Corner	{ 0 };
+		vec2	Offset	{ 10.f, 10.f };
+		float32	Alpha	{ .35f };
+
+		static constexpr int32 DefaultWindowFlags
+		{
+			ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_NoDocking |
+			ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoNav
+		};
+
+		using BasicPanel<Overlay>::BasicPanel;
+
+		Overlay(
+			cstring			title,
+			bool			open = false,
+			int32			corner = 0,
+			vec2 const &	offset = { 10.f, 10.f },
+			float32			alpha = .35f) noexcept
+			: BasicPanel	{ title, open, DefaultWindowFlags }
+			, Corner		{ corner }
+			, Offset		{ offset }
+			, Alpha			{ alpha }
+		{
+		}
+
+		template <class Fn, class ... Args
+		> bool Draw(Fn && fn, Args && ... args) noexcept
+		{
+			ImGuiExt_ScopeID(this);
+			return IsOpen && ImGuiExt::SimpleOverlay
+			(
+				Title,
+				&IsOpen,
+				Corner,
+				Offset,
+				Alpha,
+				std::bind(ML_forward(fn), this, ML_forward(args)...)
 			);
 		}
 	};
@@ -283,16 +357,16 @@ namespace ml::ImGuiExt
 		{
 		}
 
+		ML_NODISCARD ImGuiWindow * Get() const noexcept {
+			return ImGui::FindWindowByName(Title);
+		}
+
 		ML_NODISCARD ImGuiID GetID() const noexcept {
 			return ImGui::GetID(Title);
 		}
 
-		ML_NODISCARD ImGuiWindow * FindByName() const noexcept {
-			return ImGui::FindWindowByName(Title);
-		}
-
 		template <class Fn, class ... Args
-		> bool operator()(Fn && fn, Args && ... args) noexcept
+		> bool Draw(Fn && fn, Args && ... args) noexcept
 		{
 			return IsOpen && ImGuiExt::BeginEnd
 			(
@@ -447,7 +521,7 @@ namespace ml::ImGuiExt
 		}
 
 		template <class Fn, class ... Args
-		> bool operator()(ImGuiViewport const * vp, Fn && fn, Args && ... args) noexcept
+		> bool Draw(ImGuiViewport const * vp, Fn && fn, Args && ... args) noexcept
 		{
 			if (!IsOpen || !vp || !IsDockingEnabled()) { return false; }
 
@@ -744,33 +818,33 @@ namespace ml::ImGuiExt
 		auto line_height{ ImGui::GetFontSize() + ImGui::GetStyle().FramePadding[1] * 2.0f };
 		vec2 button_size{ line_height + 3.0f, line_height };
 
-		ImGui::PushStyleColor(ImGuiCol_Button, { 0.8f, 0.1f, 0.15f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.9f, 0.2f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_Button, { 0.8f, .1f, 0.15f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.9f, 0.2f, 0.2f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.8f, .1f, 0.15f, 1.f });
 		if (ImGui::Button("X", button_size)) { value[0] = reset_value; }
 		ImGui::PopStyleColor(3);
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##X", &value[0], 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##X", &value[0], 0.01f, 0.f, 0.f, "%.2f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.7f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.3f, 0.8f, 0.3f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.7f, 0.2f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.3f, 0.8f, 0.3f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.2f, 0.7f, 0.2f, 1.f });
 		if (ImGui::Button("Y", button_size)) { value[1] = reset_value; }
 		ImGui::PopStyleColor(3);
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Y", &value[1], 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##Y", &value[1], 0.01f, 0.f, 0.f, "%.2f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		ImGui::PushStyleColor(ImGuiCol_Button, { 0.1f, 0.25f, 0.8f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.2f, 0.35f, 0.9f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_Button, { .1f, 0.25f, 0.8f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.2f, 0.35f, 0.9f, 1.f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, { .1f, 0.25f, 0.8f, 1.f });
 		if (ImGui::Button("Z", button_size)) { value[2] = reset_value; }
 		ImGui::PopStyleColor(3);
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Z", &value[2], 0.01f, 0.0f, 0.0f, "%.2f");
+		dirty |= ImGui::DragFloat("##Z", &value[2], 0.01f, 0.f, 0.f, "%.2f");
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
@@ -802,8 +876,8 @@ namespace ml::ImGuiExt
 		ImGuizmo::MODE		CurrentGizmoMode		{ ImGuizmo::LOCAL };
 		bool				UseSnap					{ false };
 		vec3				Snap					{ 1.f, 1.f, 1.f };
-		vec3				Bounds[2]				{ { -0.5f, -0.5f, -0.5f }, { 0.5f, 0.5f, 0.5f } };
-		vec3				BoundsSnap				{ 0.1f, 0.1f, 0.1f };
+		vec3				Bounds[2]				{ { -.5f, -.5f, -.5f }, { .5f, .5f, .5f } };
+		vec3				BoundsSnap				{ .1f, .1f, .1f };
 		bool				BoundSizing				{ false };
 		bool				BoundSizingSnap			{ false };
 

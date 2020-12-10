@@ -134,32 +134,30 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		camera() noexcept
-			: m_is_ortho	{}
-			, m_clear_flags	{ 1 }
+			: m_clear_flags	{ 1 }
 			, m_background	{ colors::magenta }
 			, m_proj		{ mat4::identity() }
-			, m_view		{ mat4::identity() }
+			, m_is_ortho	{}
 			, m_clip		{ { 0.001f, 1000.f }, { 1000.f, -1000.f } }
 			, m_fov			{ 27.f, 10.f }
+			, m_view		{ mat4::identity() }
 			, m_eye			{ 5, 5, 5 }
 			, m_target		{ 0, 0, 0 }
 			, m_up			{ 0, 1, 0 }
-			, m_world_up	{ 0, 1, 0 }
 		{
 		}
 
 		camera(camera const & other)
-			: m_is_ortho	{ other.m_is_ortho }
-			, m_clear_flags	{ other.m_clear_flags }
+			: m_clear_flags	{ other.m_clear_flags }
 			, m_background	{ other.m_background }
 			, m_proj		{ other.m_proj }
-			, m_view		{ other.m_view }
+			, m_is_ortho	{ other.m_is_ortho }
 			, m_fov			{}
 			, m_clip		{}
+			, m_view		{ other.m_view }
 			, m_eye			{ other.m_eye }
 			, m_target		{ other.m_target }
 			, m_up			{ other.m_up }
-			, m_world_up	{ other.m_world_up }
 		{
 			std::memcpy(m_fov, other.m_fov, sizeof(m_fov));
 			std::memcpy(m_clip, other.m_clip, sizeof(m_clip));
@@ -200,7 +198,6 @@ namespace ml
 				m_eye		.swap(other.m_eye);
 				m_target	.swap(other.m_target);
 				m_up		.swap(other.m_up);
-				m_world_up	.swap(other.m_world_up);
 			}
 		}
 
@@ -342,11 +339,6 @@ namespace ml
 			return m_up;
 		}
 
-		ML_NODISCARD auto get_world_up() const noexcept -> vec3 const &
-		{
-			return m_world_up;
-		}
-
 		void set_view_matrix(mat4 const & value) noexcept
 		{
 			if (m_view != value)
@@ -379,30 +371,21 @@ namespace ml
 			}
 		}
 
-		void set_world_up(vec3 const & value) noexcept
-		{
-			if (m_world_up != value)
-			{
-				m_world_up = value;
-			}
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		color	m_background	; // 
 		uint32	m_clear_flags	; // 
+		color	m_background	; // 
 
-		bool	m_is_ortho		; // 
 		mat4	m_proj			; // 
-		mat4	m_view			; // 
+		bool	m_is_ortho		; // 
 		float32 m_fov[2]		; // 
 		vec2	m_clip[2]		; // 
 
+		mat4	m_view			; // 
 		vec3	m_eye			; // 
 		vec3	m_target		; // 
 		vec3	m_up			; // 
-		vec3	m_world_up		; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

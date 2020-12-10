@@ -16,10 +16,7 @@ namespace ml
 	{
 		duration const delta_time;
 
-		constexpr app_idle_event(duration const & delta_time) noexcept
-			: delta_time{ delta_time }
-		{
-		}
+		constexpr app_idle_event(duration const & delta_time) noexcept : delta_time{ delta_time } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

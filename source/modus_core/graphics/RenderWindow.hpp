@@ -2,7 +2,7 @@
 #define _ML_RENDER_WINDOW_HPP_
 
 #include <modus_core/window/NativeWindow.hpp>
-#include <modus_core/graphics/RenderCommand.hpp>
+#include <modus_core/graphics/Canvas.hpp>
 
 namespace ml
 {

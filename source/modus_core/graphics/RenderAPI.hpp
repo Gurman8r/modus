@@ -605,9 +605,9 @@ namespace ml::gfx
 		{
 			std::invoke(ML_forward(arg0), this);
 
-			meta::for_args([&](auto && e) noexcept
+			meta::for_args([&](auto && cmd) noexcept
 			{
-				std::invoke(ML_forward(e), this);
+				std::invoke(ML_forward(cmd), this);
 			}
 			, ML_forward(args)...);
 		}

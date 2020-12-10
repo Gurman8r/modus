@@ -48,24 +48,22 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void install_callbacks(event_bus * bus);
-
-		bool initialize_imgui(bool callbacks = true);
+		bool initialize_imgui(bool install_callbacks = true);
 		
 		void finalize_imgui();
 
-		void begin_frame();
+		void new_frame();
 
-		void end_frame();
+		void render_frame();
 
 		template <class Fn, class ... Args
 		> void do_frame(Fn && fn, Args && ... args) noexcept
 		{
-			this->begin_frame();
+			this->new_frame();
 
 			std::invoke(ML_forward(fn), this, ML_forward(args)...);
 
-			this->end_frame();
+			this->render_frame();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

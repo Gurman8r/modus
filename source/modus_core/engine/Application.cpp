@@ -1,5 +1,4 @@
 #include <modus_core/engine/Application.hpp>
-#include <modus_core/embed/Python.hpp>
 #include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
@@ -8,8 +7,8 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	application::application(int32 argc, char * argv[], allocator_type alloc)
-		: gui_application	{ argc, argv, alloc }
+	application::application(int32 argc, char * argv[], json const & attributes, allocator_type alloc)
+		: gui_application	{ argc, argv, attributes, alloc }
 		, m_plugin_manager	{ this, alloc }
 		, m_active_scene	{}
 	{
@@ -21,20 +20,8 @@ namespace ml
 			app_idle_event,
 			imgui_dockspace_event,
 			imgui_menubar_event,
-			imgui_render_event,
-			window_cursor_pos_event,
-			window_key_event,
-			window_mouse_event
+			imgui_render_event
 		>();
-	}
-
-	application::application(int32 argc, char * argv[], json const & j, allocator_type alloc)
-		: application{ argc, argv, alloc }
-	{
-		set_attributes(j);
-		if (j.contains("app_name")) { set_app_name(j["app_name"]); }
-		if (j.contains("app_version")) { set_app_version(j["app_version"]); }
-		if (j.contains("library_paths")) { set_library_paths(j["library_paths"]); }
 	}
 
 	application::~application() noexcept
@@ -51,16 +38,6 @@ namespace ml
 		{
 		case app_enter_event::ID: {
 			auto && ev{ (app_enter_event &&)value };
-
-			// execute scripts
-			if (attr().contains("scripts")) {
-				for (json const & e : attr("scripts")) {
-					if (e.contains("path")) {
-						py::eval_file(path_to(e["path"]).string());
-					}
-				}
-			}
-
 		} break;
 
 		case app_exit_event::ID: {
@@ -69,18 +46,6 @@ namespace ml
 
 		case app_idle_event::ID: {
 			auto && ev{ (app_idle_event &&)value };
-		} break;
-
-		case imgui_dockspace_event::ID: {
-			auto && ev{ (imgui_dockspace_event &&)value };
-		} break;
-
-		case imgui_menubar_event::ID: {
-			auto && ev{ (imgui_menubar_event &&)value };
-		} break;
-
-		case imgui_render_event::ID: {
-			auto && ev{ (imgui_render_event &&)value };
 		} break;
 
 		case window_cursor_pos_event::ID: {
@@ -93,6 +58,18 @@ namespace ml
 
 		case window_mouse_event::ID: {
 			auto && ev{ (window_mouse_event &&)value };
+		} break;
+
+		case imgui_dockspace_event::ID: {
+			auto && ev{ (imgui_dockspace_event &&)value };
+		} break;
+
+		case imgui_menubar_event::ID: {
+			auto && ev{ (imgui_menubar_event &&)value };
+		} break;
+
+		case imgui_render_event::ID: {
+			auto && ev{ (imgui_render_event &&)value };
 		} break;
 		}
 	}

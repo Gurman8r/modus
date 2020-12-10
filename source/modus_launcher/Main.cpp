@@ -34,17 +34,9 @@ static class memcfg final : public singleton<memcfg>
 
 static auto const default_settings{ R"(
 {
-	"app_name": "modus launcher",
+	"app_name": "modus",
 	"app_version": "alpha",
 	"library_paths": [ "../../../" ],
-
-	"plugins": [
-		{ "path": "plugins/sandbox" }
-	],
-
-	"scripts": [
-		{ "path": "resource/modus_launcher.py" }
-	],
 
 	"window": {
 		"callbacks": true,
@@ -91,7 +83,15 @@ static auto const default_settings{ R"(
 		},
 		"menubar": {
 		}
-	}
+	},
+
+	"plugins": [
+		{ "path": "plugins/sandbox" }
+	],
+
+	"scripts": [
+		{ "path": "resource/modus_launcher.py" }
+	]
 }
 )"_json };
 

@@ -39,17 +39,6 @@ namespace ml
 			{ "viewport", true, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar },
 		};
 
-		// overlays
-		enum
-		{
-			viewport_overlay,
-			MAX_OVERLAY
-		};
-		ImGuiExt::Overlay m_overlays[MAX_OVERLAY]
-		{
-			{ "debug_overlay", true, -1, { 32, 32 }, .35f },
-		};
-
 		// memory editor
 		MemoryEditor m_mem_editor{};
 
@@ -601,6 +590,8 @@ namespace ml
 
 		void draw_viewport(imgui_render_event const & ev)
 		{
+			static ImGuiExt::Overlay debug_overlay{ "debug_overlay", true, -1, { 32, 32 }, .35f };
+
 			static ImGuiExt::TransformEditor xedit{};
 
 			ImGuizmo::SetOrthographic(m_camera.is_orthographic());
@@ -622,7 +613,7 @@ namespace ml
 
 						ImGui::TextDisabled("overlay");
 						ImGui::SameLine();
-						ImGui::Checkbox("enabled##overlay", &m_overlays[viewport_overlay].IsOpen);
+						ImGui::Checkbox("enabled##overlay", &debug_overlay.IsOpen);
 						ImGui::Separator();
 
 						ImGui::TextDisabled("grid");
@@ -781,7 +772,7 @@ namespace ml
 					colors::clear);
 
 				// overlay
-				m_overlays[viewport_overlay].Draw([&
+				debug_overlay.Draw([&
 					, fps	= get_app()->get_fps()
 					, input	= get_app()->get_input()
 				](ImGuiExt::Overlay * o)

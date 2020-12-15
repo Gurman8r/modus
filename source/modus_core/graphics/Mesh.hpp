@@ -123,7 +123,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto get_vao() const & noexcept -> ds::ref<gfx::vertexarray> const & { return m_vao; }
+		auto get_vertexarray() const & noexcept -> ds::ref<gfx::vertexarray> const & { return m_vao; }
 
 		auto get_layout() const & noexcept -> gfx::buffer_layout const & { return m_vao->get_layout(); }
 

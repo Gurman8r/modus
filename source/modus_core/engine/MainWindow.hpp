@@ -74,6 +74,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD std::optional<fs::path> get_open_file_name(cstring filter = "") const;
+
+		ML_NODISCARD std::optional<fs::path> get_save_file_name(cstring filter = "") const;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	private:
 		ds::scary<ImGuiContext>	m_imgui		; // imgui
 		ImGuiExt::Dockspace		m_dockspace	; // dockspace

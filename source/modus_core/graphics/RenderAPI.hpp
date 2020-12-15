@@ -1115,14 +1115,14 @@ namespace ml::gfx
 			return ML_check(get_global<render_device>())->new_texture2d(ML_forward(desc), alloc);
 		}
 
-		ML_NODISCARD static auto create(bitmap const & img, texture_flags_ flags = texture_flags_default) noexcept
+		ML_NODISCARD static auto create(bitmap const & img, texture_flags_ flags = texture_flags_default, allocator_type alloc = {}) noexcept
 		{
-			return create({ img.size(), { calc_channel_format(img.channels()) }, flags, img.data() });
+			return create({ img.size(), { calc_channel_format(img.channels()) }, flags, img.data() }, alloc);
 		}
 
-		ML_NODISCARD static auto create(fs::path const & path, texture_flags_ flags = texture_flags_default) noexcept
+		ML_NODISCARD static auto create(fs::path const & path, texture_flags_ flags = texture_flags_default, allocator_type alloc = {}) noexcept
 		{
-			return create(bitmap{ path }, flags);
+			return create(bitmap{ path, alloc }, flags, alloc);
 		}
 
 	public:

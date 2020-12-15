@@ -59,17 +59,24 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		python_interpreter(fs::path const & name, fs::path const & home, pmr::memory_resource * mres = pmr::get_default_resource())
+		template <class ... Args
+		> python_interpreter(Args && ... args) noexcept
 		{
-			ML_assert(this->initialize(name, home, mres));
+			ML_assert(begin_singleton<python_interpreter>(this));
+			
+			if constexpr (0 < sizeof...(args))
+			{
+				ML_assert(this->initialize(ML_forward(args)...));
+			}
 		}
 
 		~python_interpreter() noexcept final
 		{
+			ML_assert(end_singleton<python_interpreter>(this));
+
 			this->finalize();
 		}
 
-		python_interpreter() noexcept = default;
 		python_interpreter(python_interpreter &&) noexcept = default;
 		python_interpreter & operator=(python_interpreter &&) noexcept = default;
 
@@ -80,17 +87,21 @@ namespace ml
 			return Py_IsInitialized();
 		}
 
-		bool initialize(fs::path const & name, fs::path const & home, pmr::memory_resource * mres = pmr::get_default_resource())
+		bool initialize(fs::path const & name, fs::path const & home, pmr::memory_resource * resource = pmr::get_default_resource())
 		{
-			if (Py_IsInitialized()) { return false; }
+			if (name.empty())		{ return debug::failure(); }
+			if (home.empty())		{ return debug::failure(); }
+			if (!resource)			{ return debug::failure(); }
+			if (Py_IsInitialized())	{ return debug::failure(); }
+
 			PyObject_SetArenaAllocator(std::invoke([&, &al = PyObjectArenaAllocator{}]()
 			{
-				al.ctx = mres;
-				al.alloc = [](auto mres, size_t s) {
-					return ((pmr::memory_resource *)mres)->allocate(s);
+				al.ctx = resource;
+				al.alloc = [](auto resource, size_t s) {
+					return ((pmr::memory_resource *)resource)->allocate(s);
 				};
-				al.free = [](auto mres, void * p, size_t s) {
-					return ((pmr::memory_resource *)mres)->deallocate(p, s);
+				al.free = [](auto resource, void * p, size_t s) {
+					return ((pmr::memory_resource *)resource)->deallocate(p, s);
 				};
 				return &al;
 			}));
@@ -108,19 +119,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <py::eval_mode Mode = py::eval_expr, size_t N
-		> py::object eval(const char (&expr)[N], py::object global = py::globals(), py::object local = {}) noexcept
+		> ML_NODISCARD py::object eval(const char (&expr)[N], py::object global = py::globals(), py::object local = {}) noexcept
 		{
 			return py::eval<Mode>(expr, global, local);
 		}
 
 		template <py::eval_mode Mode = py::eval_expr
-		> py::object eval(py::str expr, py::object global = py::globals(), py::object local = {}) noexcept
+		> ML_NODISCARD py::object eval(py::str expr, py::object global = py::globals(), py::object local = {}) noexcept
 		{
 			return py::eval<Mode>(expr, global, local);
 		}
 
 		template <py::eval_mode Mode = py::eval_expr, ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)
-		> py::object eval(Str const & expr, py::object global = py::globals(), py::object local = {}) noexcept
+		> ML_NODISCARD py::object eval(Str const & expr, py::object global = py::globals(), py::object local = {}) noexcept
 		{
 			return py::eval<Mode>(py::str{ expr.data(), expr.size() }, global, local);
 		}
@@ -178,6 +189,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+}
+
+namespace ml::globals
+{
+	ML_decl_global(python_interpreter) get() noexcept;
+
+	ML_decl_global(python_interpreter) set(python_interpreter * value) noexcept;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

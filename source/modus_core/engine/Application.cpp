@@ -10,6 +10,7 @@ namespace ml
 	application::application(int32 argc, char * argv[], json const & attributes, allocator_type alloc)
 		: gui_application	{ argc, argv, attributes, alloc }
 		, m_plugin_manager	{ this, alloc }
+		, m_interpreter		{}
 		, m_active_scene	{}
 	{
 		ML_assert(begin_singleton<application>(this));
@@ -18,10 +19,17 @@ namespace ml
 			app_enter_event,
 			app_exit_event,
 			app_idle_event,
+			window_cursor_pos_event,
+			window_key_event,
+			window_mouse_event,
 			imgui_dockspace_event,
 			imgui_menubar_event,
 			imgui_render_event
 		>();
+
+		if (has_attr("app_name")) { set_app_name(attr("app_name")); }
+		if (has_attr("app_version")) { set_app_version(attr("app_version")); }
+		if (has_attr("library_paths")) { set_library_paths(attr("library_paths")); }
 	}
 
 	application::~application() noexcept

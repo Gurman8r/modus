@@ -2,6 +2,7 @@
 #define _ML_GUI_APPLICATION_HPP_
 
 #include <modus_core/engine/CoreApplication.hpp>
+#include <modus_core/detail/EventSystem.hpp>
 #include <modus_core/detail/LoopSystem.hpp>
 #include <modus_core/engine/MainWindow.hpp>
 #include <modus_core/engine/Performance.hpp>
@@ -23,31 +24,31 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual int32 run() override
+		virtual int32 exec() override
 		{
 			m_loop.process();
 
-			return core_application::run();
+			return core_application::exec();
 		}
 
 		virtual void exit(int32 exit_code) override
 		{
 			m_loop.halt();
 
-			core_application::exit(exit_code);
+			return core_application::exit(exit_code);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_fps() const noexcept -> fps_tracker const *
+		ML_NODISCARD auto get_fps() const noexcept -> fps_tracker *
 		{
-			return &m_fps_tracker;
+			return const_cast<fps_tracker *>(&m_fps_tracker);
 		}
 
-		ML_NODISCARD auto get_input() const noexcept -> input_state const *
+		ML_NODISCARD auto get_input() const noexcept -> input_state *
 		{
-			return &m_input_state;
+			return const_cast<input_state *>(&m_input_state);
 		}
 
 		ML_NODISCARD auto get_loop() const noexcept -> loop_system *
@@ -59,12 +60,6 @@ namespace ml
 		{
 			return const_cast<main_window *>(&m_window);
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD std::optional<fs::path> open_file_name(ds::string const & filter = "") const;
-
-		ML_NODISCARD std::optional<fs::path> save_file_name(ds::string const & filter = "") const;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

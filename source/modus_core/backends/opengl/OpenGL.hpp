@@ -103,9 +103,9 @@
 #define ML_glUniform2f(loc, x, y)					glUniform2fARB( loc, x, y )
 #define ML_glUniform3f(loc, x, y, z)				glUniform3fARB( loc, x, y, z )
 #define ML_glUniform4f(loc, x, y, z, w)				glUniform4fARB( loc, x, y, z, w )
-#define ML_glUniformMatrix2fv(loc, transpose, ptr)	glUniformMatrix2fvARB( loc, 2 * 2, transpose, ptr )
-#define ML_glUniformMatrix3fv(loc, transpose, ptr)	glUniformMatrix3fvARB( loc, 3 * 3, transpose, ptr )
-#define ML_glUniformMatrix4fv(loc, transpose, ptr)	glUniformMatrix4fvARB( loc, 4 * 4, transpose, ptr )
+#define ML_glUniformMatrix2fv(loc, transpose, ptr)	glUniformMatrix2fvARB( loc, 1, transpose, ptr )
+#define ML_glUniformMatrix3fv(loc, transpose, ptr)	glUniformMatrix3fvARB( loc, 1, transpose, ptr )
+#define ML_glUniformMatrix4fv(loc, transpose, ptr)	glUniformMatrix4fvARB( loc, 1, transpose, ptr )
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -505,8 +505,8 @@ namespace ml::gfx
 			{
 			default						: return value;
 			case shader_type_vertex		: return GL_VERTEX_SHADER;
-			case shader_type_fragment	: return GL_FRAGMENT_SHADER;
-			case shader_geometry	: return GL_GEOMETRY_SHADER;
+			case shader_type_pixel	: return GL_FRAGMENT_SHADER;
+			case shader_type_geometry	: return GL_GEOMETRY_SHADER;
 			}
 		}
 		else if constexpr (convt{} == to_user{})
@@ -515,8 +515,8 @@ namespace ml::gfx
 			{
 			default					: return value;
 			case GL_VERTEX_SHADER	: return shader_type_vertex;
-			case GL_FRAGMENT_SHADER	: return shader_type_fragment;
-			case GL_GEOMETRY_SHADER	: return shader_geometry;
+			case GL_FRAGMENT_SHADER	: return shader_type_pixel;
+			case GL_GEOMETRY_SHADER	: return shader_type_geometry;
 			}
 		}
 		else

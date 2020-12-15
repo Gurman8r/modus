@@ -283,13 +283,6 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	int_rect glfw_window::get_bounds() const
-	{
-		int_rect temp{};
-		glfwGetWindowFrameSize(m_window, &temp[0], &temp[1], &temp[2], &temp[3]);
-		return temp;
-	}
-
 	window_callbacks const & glfw_window::get_callbacks() const
 	{
 		return m_clbk;
@@ -387,6 +380,13 @@ namespace ml
 	void * glfw_window::get_user_pointer() const
 	{
 		return glfwGetWindowUserPointer((GLFWwindow *)m_window);
+	}
+
+	int_rect glfw_window::get_window_frame_size() const
+	{
+		int32 l, t, r, b;
+		glfwGetWindowFrameSize(m_window, &l, &r, &t, &b);
+		return { l, t, r - l, b - t };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

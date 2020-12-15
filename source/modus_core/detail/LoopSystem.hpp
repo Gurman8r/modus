@@ -1,13 +1,13 @@
 #ifndef _ML_LOOP_SYSTEM_HPP_
 #define _ML_LOOP_SYSTEM_HPP_
 
-#include <modus_core/detail/EventSystem.hpp>
+#include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Timer.hpp>
 
 namespace ml
 {
 	// loop system
-	struct ML_CORE_API loop_system : trackable, event_listener
+	struct ML_CORE_API loop_system : trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -16,7 +16,6 @@ namespace ml
 		using enter_callback			= typename ds::method<void()>;
 		using exit_callback				= typename ds::method<void()>;
 		using idle_callback				= typename ds::method<void(duration const &)>;
-		using event_callback			= typename ds::method<void(event const &)>;
 		using subsystem					= typename ds::ref<loop_system>;
 		using subsystem_list			= typename ds::list<subsystem>;
 		using iterator					= typename subsystem_list::iterator;
@@ -28,9 +27,8 @@ namespace ml
 
 		virtual ~loop_system() noexcept override = default;
 
-		loop_system(event_bus * bus, allocator_type alloc = {}) noexcept
-			: event_listener{ bus }
-			, m_running		{}
+		loop_system(allocator_type alloc = {}) noexcept
+			: m_running		{}
 			, m_main_timer	{}
 			, m_loop_timer	{}
 			, m_loop_delta	{}
@@ -40,13 +38,11 @@ namespace ml
 			, m_on_enter	{}
 			, m_on_exit		{}
 			, m_on_idle		{}
-			, m_on_event	{}
 		{
 		}
 
 		explicit loop_system(loop_system const & other, allocator_type alloc = {})
-			: event_listener{ other.get_bus() }
-			, m_running		{}
+			: m_running		{}
 			, m_main_timer	{}
 			, m_loop_timer	{}
 			, m_loop_delta	{}
@@ -56,12 +52,11 @@ namespace ml
 			, m_on_enter	{ other.m_on_enter }
 			, m_on_exit		{ other.m_on_exit }
 			, m_on_idle		{ other.m_on_idle }
-			, m_on_event	{ other.m_on_event }
 		{
 		}
 
 		explicit loop_system(loop_system && other, allocator_type alloc = {}) noexcept
-			: loop_system{ other.get_bus(), alloc }
+			: loop_system{ alloc }
 		{
 			this->swap(std::move(other));
 		}
@@ -95,17 +90,8 @@ namespace ml
 				m_on_enter.swap(m_on_enter);
 				m_on_exit.swap(m_on_exit);
 				m_on_idle.swap(m_on_idle);
-				m_on_event.swap(m_on_event);
 			}
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		using event_listener::get_bus;
-
-		using event_listener::subscribe;
-
-		using event_listener::unsubscribe;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -191,12 +177,6 @@ namespace ml
 			loop_system::run<Recursive, Reverse>(&loop_system::m_on_idle, this, dt);
 		}
 
-		template <bool Recursive = false, bool Reverse = false
-		> void run_event_callback(event const & ev) noexcept
-		{
-			loop_system::run<Recursive, Reverse>(&loop_system::m_on_event, this, ev);
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_loop_condition() const noexcept -> loop_condition const & { return m_condition; }
@@ -206,8 +186,6 @@ namespace ml
 		ML_NODISCARD auto get_exit_callback() const noexcept -> exit_callback const & { return m_on_exit; }
 
 		ML_NODISCARD auto get_idle_callback() const noexcept -> idle_callback const & { return m_on_idle; }
-
-		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const & { return m_on_event; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -233,12 +211,6 @@ namespace ml
 		> auto set_idle_callback(Fn && fn, Args && ... args) -> idle_callback
 		{
 			return util::chain(m_on_idle, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
-		}
-
-		template <class Fn, class ... Args
-		> auto set_event_callback(Fn && fn, Args && ... args) -> event_callback
-		{
-			return util::chain(m_on_enter, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -318,12 +290,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		// handle event
-		virtual void on_event(event const & value) override
-		{
-			this->run_event_callback<false, false>(value);
-		}
-
 		// execute member function pointer
 		template <
 			bool Recursive = false,
@@ -388,7 +354,6 @@ namespace ml
 		enter_callback			m_on_enter		; // enter callback
 		exit_callback			m_on_exit		; // exit callback
 		idle_callback			m_on_idle		; // idle callback
-		event_callback			m_on_event		; // event callback
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

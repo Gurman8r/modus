@@ -44,7 +44,7 @@ namespace ml::gfx
 			ML_glCheck(glGetIntegerv(GL_NUM_EXTENSIONS, &num));
 			m_info.extensions.reserve(num);
 
-			ds::stringstream ss{};
+			std::stringstream ss{};
 			ML_glCheck(ss.str((cstring)glGetString(GL_EXTENSIONS)));
 
 			ds::string line{};

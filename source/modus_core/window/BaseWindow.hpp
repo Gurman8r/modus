@@ -40,8 +40,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual int_rect get_bounds() const = 0;
-
 		ML_NODISCARD virtual window_callbacks const & get_callbacks() const = 0;
 
 		ML_NODISCARD virtual ds::string get_clipboard() const = 0;
@@ -80,6 +78,8 @@ namespace ml
 		ML_NODISCARD virtual ds::string const & get_title() const = 0;
 
 		ML_NODISCARD virtual void * get_user_pointer() const = 0;
+
+		ML_NODISCARD virtual int_rect get_window_frame_size() const = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -287,8 +287,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD int_rect get_bounds() const noexcept final { return m_ptr->get_bounds(); }
-
 		ML_NODISCARD window_callbacks const & get_callbacks() const noexcept final { return m_ptr->get_callbacks(); }
 
 		ML_NODISCARD ds::string get_clipboard() const noexcept final { return m_ptr->get_clipboard(); }
@@ -322,6 +320,8 @@ namespace ml
 		ML_NODISCARD ds::string const & get_title() const noexcept final { return m_ptr->get_title(); }
 
 		ML_NODISCARD void * get_user_pointer() const noexcept final { return m_ptr->get_user_pointer(); }
+
+		ML_NODISCARD int_rect get_window_frame_size() const noexcept final { return m_ptr->get_window_frame_size(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

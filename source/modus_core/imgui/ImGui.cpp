@@ -89,7 +89,7 @@ namespace ml
 			if ((line = util::trim(line)).empty() || line.front() == '#') { continue; }
 	
 			// scan line
-			ds::stringstream ss{}; ss << line;
+			std::stringstream ss{}; ss << line;
 			switch (hashof(util::parse<ds::string>(ss)))
 			{
 			/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

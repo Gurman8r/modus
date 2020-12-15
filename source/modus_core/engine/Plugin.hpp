@@ -12,7 +12,7 @@ namespace ml
 	struct application;
 	struct plugin_manager;
 
-	ML_decl_handle(plugin_id);
+	ML_decl_handle(plugin_id); // plugin id
 
 	// plugin
 	struct ML_CORE_API plugin : non_copyable, trackable, event_listener

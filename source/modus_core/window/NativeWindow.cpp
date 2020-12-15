@@ -1,5 +1,13 @@
 #include <modus_core/window/NativeWindow.hpp>
 
+#ifdef ML_os_windows
+#include <modus_core/backends/win32/Win32_PlatformAPI.hpp>
+using native_api = _ML win32_platform_api;
+
+#else
+#error "platform_api unavailable"
+#endif
+
 #if defined(ML_IMPL_WINDOW_GLFW)
 #include <modus_core/backends/glfw/GLFW_Window.hpp>
 using impl_window	= _ML glfw_window;

@@ -1,7 +1,7 @@
 #ifndef _ML_CORE_APPLICATION_HPP_
 #define _ML_CORE_APPLICATION_HPP_
 
-#include <modus_core/embed/Python.hpp>
+#include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {
@@ -20,7 +20,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual int32 run() { return m_exit_code; }
+		virtual int32 exec() { return m_exit_code; }
 
 		virtual void exit(int32 value) { m_exit_code = value; }
 
@@ -125,29 +125,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		ML_NODISCARD auto get_interpreter() const noexcept -> python_interpreter *
-		{
-			return const_cast<python_interpreter *>(&m_interpreter);
-		}
-
-		ML_NODISCARD bool has_interpreter() const noexcept
-		{
-			return m_interpreter.is_initialized();
-		}
-
-		bool initialize_interpreter() noexcept
-		{
-			return m_interpreter.initialize(m_app_file_name, m_library_paths[0]);
-		}
-
-		void finalize_interpreter() noexcept
-		{
-			m_interpreter.finalize();
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	private:
 		int32					m_exit_code		; // 
 		fs::path				m_app_file_name	; // 
@@ -157,7 +134,6 @@ namespace ml
 		ds::list<ds::string>	m_arguments		; // 
 		json					m_attributes	; // 
 		ds::list<fs::path>		m_library_paths	; // 
-		python_interpreter		m_interpreter; // 
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

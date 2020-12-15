@@ -1,10 +1,13 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include <modus_core/detail/FileUtility.hpp>
+#include <modus_core/detail/StreamSniper.hpp>
 #include <modus_core/engine/Application.hpp>
 #include <modus_core/engine/PluginManager.hpp>
-#include <modus_core/detail/StreamSniper.hpp>
-#include <modus_core/scene/Components.hpp>
+#include <modus_core/graphics/Material.hpp>
 #include <modus_core/graphics/Mesh.hpp>
+#include <modus_core/imgui/ImGuiExt.hpp>
+#include <modus_core/scene/Components.hpp>
 
 #include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
@@ -35,7 +38,7 @@ namespace ml
 			{ "browser", false, ImGuiWindowFlags_MenuBar },
 			{ "memory", false, ImGuiWindowFlags_MenuBar },
 			{ "settings", false, ImGuiWindowFlags_MenuBar },
-			{ "terminal", true, ImGuiWindowFlags_MenuBar },
+			{ "terminal", false, ImGuiWindowFlags_MenuBar },
 			{ "viewport", true, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar },
 		};
 
@@ -48,7 +51,9 @@ namespace ml
 
 		// content
 		ds::ref<scene> m_active_scene{}; // active scene
-		ds::hashmap<ds::string, ds::ref<mesh>> m_meshes{}; // 
+		ds::hashmap<ds::string, ds::ref<gfx::texture>> m_textures{}; // textures
+		ds::hashmap<ds::string, ds::ref<gfx::program>> m_programs{}; // programs
+		ds::hashmap<ds::string, ds::ref<mesh>> m_meshes{}; // meshes
 
 		// rendering
 		bool m_cycle_bg{ true }; // cycle background
@@ -61,8 +66,8 @@ namespace ml
 		float32 m_grid_size		{ 100.f }; // 
 
 		// cubes
-		int32 m_object_count{ 1 }; // 
-		int32 m_object_index{}; // 
+		int32 m_object_count{ 0 }; // 
+		int32 m_object_index{ 0 }; // 
 		mat4 m_object_matrix[4] = // 
 		{
 			{
@@ -136,6 +141,14 @@ namespace ml
 				get_app()->get_window()->set_icons(i.width(), i.height(), i.data());
 			}
 
+			// textures
+			m_textures["earth_dm_2k"] = gfx::texture2d::create(get_app()->path_to("assets/textures/earth/earth_dm_2k.png"), gfx::texture_flags_default);
+			m_textures["earth_sm_2k"] = gfx::texture2d::create(get_app()->path_to("assets/textures/earth/earth_sm_2k.png"), gfx::texture_flags_default);
+
+			// programs
+			m_programs["2D"] = shader_parser::parse_program(get_app()->path_to("plugins/sandbox/resource/shaders/basic_2D.shader"));
+			m_programs["3D"] = shader_parser::parse_program(get_app()->path_to("plugins/sandbox/resource/shaders/basic_3D.shader"));
+
 			// meshes
 			m_meshes["sphere8x6"] = make_ref<mesh>(get_app()->path_to("assets/models/sphere8x6.obj"));
 			m_meshes["sphere32x24"] = make_ref<mesh>(get_app()->path_to("assets/models/sphere32x24.obj"));
@@ -146,7 +159,7 @@ namespace ml
 
 			// viewport
 			m_viewport.set_resolution({ 1280, 720 });
-			m_viewport.set_framebuffer(gfx::make_framebuffer(m_viewport.get_resolution()));
+			m_viewport.set_framebuffer(gfx::framebuffer::create({ m_viewport.get_resolution() }));
 
 			// camera
 			m_camera.set_clear_flags(gfx::clear_flags_color | gfx::clear_flags_depth);
@@ -180,7 +193,21 @@ namespace ml
 				gfx::command::bind_framebuffer(m_viewport.get_framebuffer()),
 				gfx::command::set_clear_color(m_camera.get_background()),
 				gfx::command::clear(m_camera.get_clear_flags()),
-				[&](gfx::render_context * ctx) { /* custom rendering */ },
+				[&](gfx::render_context * ctx)
+				{
+					static auto & pgm{ m_programs["3D"] };
+					static auto & tex{ m_textures["earth_dm_2k"] };
+					static auto & msh{ m_meshes["sphere32x24"] };
+					pgm->bind();
+					pgm->set_uniform("u_model", m_object_matrix[0]);
+					pgm->set_uniform("u_view", m_camera.get_view_matrix());
+					pgm->set_uniform("u_proj", m_camera.get_proj_matrix());
+					pgm->set_uniform("u_color", (vec4)colors::white);
+					pgm->set_uniform("u_texture", tex);
+					pgm->bind_textures();
+					ctx->draw(msh->get_vertexarray());
+					pgm->unbind();
+				},
 				gfx::command::bind_framebuffer(0),
 			};
 			get_app()->get_window()->get_render_context()->execute(draw_data);
@@ -590,9 +617,17 @@ namespace ml
 
 		void draw_viewport(imgui_render_event const & ev)
 		{
-			static ImGuiExt::Overlay debug_overlay{ "debug_overlay", true, -1, { 32, 32 }, .35f };
-
+			static ImGuiExt::SimpleOverlay debug_overlay{ "debug_overlay", true, -1, { 32, 32 }, .35f };
 			static ImGuiExt::TransformEditor xedit{};
+
+			main_window * const
+				window			{ get_app()->get_window() };
+			vec2 const
+				cursor_pos		{ (vec2)window->get_cursor_pos() },
+				window_pos		{ (vec2)window->get_position() },
+				window_size		{ (vec2)window->get_size() };
+			float_rect const
+				window_bounds	{ window_pos, window_size };
 
 			ImGuizmo::SetOrthographic(m_camera.is_orthographic());
 
@@ -762,8 +797,12 @@ namespace ml
 
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+				// viewport
+				float_rect const view_bounds{ (vec2)ev->Viewports[0]->GetWorkPos(), (vec2)ev->Viewports[0]->GetWorkSize() };
+				//float_rect const view_bounds{ ImGui::GetCursorPos(), ImGui::GetContentRegionAvail() };
+				m_viewport.set_bounds(view_bounds);
+
 				// main image
-				m_viewport.set_bounds({ ev->Viewports[0]->GetWorkPos(), ev->Viewports[0]->GetWorkSize() });
 				ImGui::Image(
 					m_viewport.get_framebuffer()->get_color_attachment(0)->get_handle(),
 					m_viewport.get_resolution(),
@@ -775,13 +814,15 @@ namespace ml
 				debug_overlay.Draw([&
 					, fps	= get_app()->get_fps()
 					, input	= get_app()->get_input()
-				](ImGuiExt::Overlay * o)
+				](auto o)
 				{
 					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps->value, fps->value);
 					ImGui::Separator();
 					
 					if (!ImGui::IsMousePosValid()) { ImGui::Text("cursor pos: <invalid>"); }
-					else { ImGui::Text("cursor pos: (%.1f,%.1f)", input->cursor_pos[0], input->cursor_pos[1]); }
+					else { ImGui::Text("cursor: (%.1f,%.1f)", input->cursor_pos[0], input->cursor_pos[1]); }
+					ImGui::Text("window: (%.1f,%.1f,%.1f,%.1f)", window_bounds[0], window_bounds[1], window_bounds[2], window_bounds[3]);
+					ImGui::Text("viewport: (%.1f,%.1f,%.1f,%.1f)", view_bounds[0], view_bounds[1], view_bounds[2], view_bounds[3]);
 					
 					if (ImGui::BeginPopupContextWindow()) {
 						if (ImGui::MenuItem("custom", 0, o->Corner == -1)) { o->Corner = -1; }
@@ -799,17 +840,11 @@ namespace ml
 					view_matrix{ m_camera.get_view_matrix() },
 					proj_matrix{ m_camera.get_proj_matrix() };
 				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect
-				(
-					m_viewport.get_left(),
-					m_viewport.get_top(),
-					m_viewport.get_width(),
-					m_viewport.get_height()
-				);
+				ImGuizmo::SetRect(view_bounds[0], view_bounds[1], view_bounds[2], view_bounds[3]);
 				if (m_grid_enabled) {
 					ImGuizmo::DrawGrid(view_matrix, proj_matrix, m_grid_matrix, m_grid_size);
 				}
-				if (0 < m_object_count) {
+				if (0 && 0 < m_object_count) {
 					ImGuizmo::DrawCubes(view_matrix, proj_matrix, &m_object_matrix[0][0], m_object_count);
 				}
 				for (int32 i = 0; i < m_object_count; ++i) {

@@ -14,13 +14,8 @@ namespace ml
 		, m_arguments		{ argv, argv + argc, alloc }
 		, m_attributes		{ json{ attributes } }
 		, m_library_paths	{ alloc }
-		, m_interpreter		{}
 	{
 		ML_assert(begin_singleton<core_application>(this));
-
-		if (has_attr("app_name")) { set_app_name(attr("app_name")); }
-		if (has_attr("app_version")) { set_app_version(attr("app_version")); }
-		if (has_attr("library_paths")) { set_library_paths(attr("library_paths")); }
 	}
 
 	core_application::~core_application() noexcept

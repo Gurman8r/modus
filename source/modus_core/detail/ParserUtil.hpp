@@ -235,13 +235,13 @@ namespace ml::impl
 
 		ML_NODISCARD auto operator()(cstring str) const noexcept
 		{
-			ds::stringstream ss{ str };
+			std::stringstream ss{ str };
 			return (*this)(ss);
 		}
 
 		ML_NODISCARD auto operator()(ds::string const & str) const noexcept
 		{
-			ds::stringstream ss{ str };
+			std::stringstream ss{ str };
 			return (*this)(ss);
 		}
 

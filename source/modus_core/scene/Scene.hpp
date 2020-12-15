@@ -1,6 +1,7 @@
 #ifndef _ML_SCENE_HPP_
 #define _ML_SCENE_HPP_
 
+#include <modus_core/detail/EventSystem.hpp>
 #include <modus_core/detail/LoopSystem.hpp>
 #include <modus_core/detail/Matrix.hpp>
 #include <entt/entt.hpp>

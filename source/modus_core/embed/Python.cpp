@@ -1,6 +1,21 @@
 #include <modus_core/embed/Python.hpp>
 #include <modus_core/engine/Application.hpp>
 
+namespace ml::globals
+{
+	static python_interpreter * g_python_interpreter{};
+
+	ML_impl_global(python_interpreter) get() noexcept
+	{
+		return g_python_interpreter;
+	}
+	
+	ML_impl_global(python_interpreter) set(python_interpreter * value) noexcept
+	{
+		return g_python_interpreter = value;
+	}
+}
+
 PYBIND11_EMBEDDED_MODULE(modus, m)
 {
 	using namespace ml;

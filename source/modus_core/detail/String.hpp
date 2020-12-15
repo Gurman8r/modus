@@ -45,7 +45,7 @@ namespace ml::ds
 
 	ML_alias stringstream = typename basic_stringstream<char>; // stringstream
 
-	ML_alias wstringstream = typename basic_stringstream<char>; // wstringstream
+	ML_alias wstringstream = typename basic_stringstream<wchar_t>; // wstringstream
 }
 
 #endif // !_ML_STRING_HPP_

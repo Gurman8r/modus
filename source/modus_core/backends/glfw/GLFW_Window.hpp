@@ -117,8 +117,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		int_rect get_bounds() const final;
-
 		window_callbacks const & get_callbacks() const final;
 
 		ds::string get_clipboard() const final;
@@ -152,6 +150,8 @@ namespace ml
 		ds::string const & get_title() const final;
 
 		void * get_user_pointer() const final;
+
+		int_rect get_window_frame_size() const final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

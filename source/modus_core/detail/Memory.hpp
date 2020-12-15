@@ -7,7 +7,7 @@
 // passthrough resource
 namespace ml
 {
-	// proxy for testing an upstream resource
+	// proxy for testing an upstream memory resource
 	struct passthrough_resource final : public pmr::memory_resource, non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -16,6 +16,8 @@ namespace ml
 		using const_pointer		= typename byte const *;
 		using reference			= typename byte &;
 		using const_reference	= typename byte const &;
+		using iterator			= typename pointer;
+		using const_iterator	= typename const_pointer;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
@@ -59,17 +61,17 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto begin() noexcept -> pointer { return m_buffer; }
+		ML_NODISCARD auto begin() noexcept -> iterator { return m_buffer; }
 
-		ML_NODISCARD auto begin() const noexcept -> const_pointer { return m_buffer; }
+		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_buffer; }
 
-		ML_NODISCARD auto cbegin() const noexcept -> const_pointer { return begin(); }
+		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return begin(); }
 
-		ML_NODISCARD auto end() noexcept -> pointer { return m_buffer + m_total_bytes; }
+		ML_NODISCARD auto end() noexcept -> iterator { return m_buffer + m_total_bytes; }
 
-		ML_NODISCARD auto end() const noexcept -> const_pointer { return m_buffer + m_total_bytes; }
+		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_buffer + m_total_bytes; }
 
-		ML_NODISCARD auto cend() const noexcept -> const_pointer { return end(); }
+		ML_NODISCARD auto cend() const noexcept -> const_iterator { return end(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

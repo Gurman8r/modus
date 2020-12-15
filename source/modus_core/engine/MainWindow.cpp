@@ -1,6 +1,5 @@
 #include <modus_core/engine/MainWindow.hpp>
-#include <modus_core/window/WindowEvents.hpp>
-#include <modus_core/imgui/ImGuiEvents.hpp>
+#include <modus_core/engine/PlatformAPI.hpp>
 
 namespace ml
 {
@@ -108,6 +107,22 @@ namespace ml
 	bool main_window::load_style(json const & j)
 	{
 		return false;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	std::optional<fs::path> main_window::get_open_file_name(cstring filter) const
+	{
+		return is_open()
+			? platform_api::get_open_file_name(get_native_handle(), filter)
+			: std::nullopt;
+	}
+
+	std::optional<fs::path> main_window::get_save_file_name(cstring filter) const
+	{
+		return is_open()
+			? platform_api::get_save_file_name(get_native_handle(), filter)
+			: std::nullopt;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

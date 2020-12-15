@@ -202,7 +202,7 @@ namespace ml::ImGuiExt
 		int32		WindowFlags	; // window flags
 
 		BasicPanel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
-			: Title			{ title }
+			: Title			{ ML_check(title) }
 			, IsOpen		{ open }
 			, WindowFlags	{ winflags }
 		{
@@ -229,12 +229,12 @@ namespace ml::ImGuiExt
 			return ML_flag_write(WindowFlags, (int32)index, value);
 		}
 
-		ML_NODISCARD ImGuiWindow * Get() const noexcept {
-			return ImGui::FindWindowByName(Title);
+		ML_NODISCARD auto GetID() const noexcept -> ImGuiID {
+			return ImGui::GetID(Title);
 		}
 
-		ML_NODISCARD ImGuiID GetID() const noexcept {
-			return ImGui::GetID(Title);
+		ML_NODISCARD auto GetWindow() const noexcept -> ImGuiWindow * {
+			return ImGui::FindWindowByName(Title);
 		}
 	};
 
@@ -268,7 +268,7 @@ namespace ml::ImGuiExt
 namespace ml::ImGuiExt
 {
 	template <class Fn
-	> bool SimpleOverlay(cstring title, bool * open = 0, int32 corner = 0, vec2 const & offset = { 10.f, 10.f }, float32 alpha = 0.35f, Fn fn = ([]() noexcept {}))
+	> bool DrawSimpleOverlay(cstring title, bool * open = 0, int32 corner = 0, vec2 const & offset = { 10.f, 10.f }, float32 alpha = 0.35f, Fn fn = ([]() noexcept {}))
 	{
 		ImGuiWindowFlags window_flags{ ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav };
 		if (corner != -1)
@@ -291,13 +291,13 @@ namespace ml::ImGuiExt
 		return ImGuiExt::Window(title, open, window_flags, fn);
 	}
 
-	struct ML_NODISCARD Overlay : BasicPanel<Overlay>
+	struct ML_NODISCARD SimpleOverlay : BasicPanel<SimpleOverlay>
 	{
 		int32	Corner	{ 0 };
 		vec2	Offset	{ 10.f, 10.f };
 		float32	Alpha	{ .35f };
 
-		static constexpr int32 DefaultWindowFlags
+		static constexpr auto DefaultWindowFlags
 		{
 			ImGuiWindowFlags_NoDecoration |
 			ImGuiWindowFlags_NoDocking |
@@ -307,9 +307,9 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoNav
 		};
 
-		using BasicPanel<Overlay>::BasicPanel;
+		using BasicPanel<SimpleOverlay>::BasicPanel;
 
-		Overlay(
+		SimpleOverlay(
 			cstring			title,
 			bool			open = false,
 			int32			corner = 0,
@@ -326,7 +326,7 @@ namespace ml::ImGuiExt
 		> bool Draw(Fn && fn, Args && ... args) noexcept
 		{
 			ImGuiExt_ScopeID(this);
-			return IsOpen && ImGuiExt::SimpleOverlay
+			return IsOpen && ImGuiExt::DrawSimpleOverlay
 			(
 				Title,
 				&IsOpen,
@@ -357,12 +357,12 @@ namespace ml::ImGuiExt
 		{
 		}
 
-		ML_NODISCARD ImGuiWindow * Get() const noexcept {
-			return ImGui::FindWindowByName(Title);
+		ML_NODISCARD auto GetID() const noexcept -> ImGuiID {
+			return ImGui::GetID(Title);
 		}
 
-		ML_NODISCARD ImGuiID GetID() const noexcept {
-			return ImGui::GetID(Title);
+		ML_NODISCARD auto GetWindow() const noexcept -> ImGuiWindow * {
+			return ImGui::FindWindowByName(Title);
 		}
 
 		template <class Fn, class ... Args

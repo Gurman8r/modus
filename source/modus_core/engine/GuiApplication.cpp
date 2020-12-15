@@ -1,5 +1,4 @@
 #include <modus_core/engine/GuiApplication.hpp>
-#include <modus_core/engine/PlatformAPI.hpp>
 #include <modus_core/engine/EngineEvents.hpp>
 #include <modus_core/window/WindowEvents.hpp>
 #include <modus_core/imgui/ImGuiEvents.hpp>
@@ -13,7 +12,7 @@ namespace ml
 		, event_listener	{ &m_dispatcher }
 		, m_dispatcher		{ alloc }
 		, m_window			{ alloc }
-		, m_loop			{ &m_dispatcher, alloc }
+		, m_loop			{ alloc }
 		, m_fps_tracker		{}
 		, m_input_state		{}
 	{
@@ -23,7 +22,7 @@ namespace ml
 		{
 			ML_assert(window_context::initialize());
 
-			window_context::set_error_callback([](int32 code, cstring desc) 
+			window_context::set_error_callback([](int32 code, cstring desc)
 			{
 				debug::failure("{0}: {1}", code, desc);
 			});
@@ -43,27 +42,11 @@ namespace ml
 
 	gui_application::~gui_application() noexcept
 	{
+		ML_assert(end_singleton<gui_application>(this));
+
 		static ML_defer(&) { window_context::finalize(); };
 
 		unsubscribe(); // manual unsubscribe required because we own the bus
-
-		ML_assert(end_singleton<gui_application>(this));
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	std::optional<fs::path> gui_application::open_file_name(ds::string const & filter) const
-	{
-		return m_window.is_open()
-			? platform_api::open_file_name(m_window.get_native_handle(), filter.c_str())
-			: std::nullopt;
-	}
-
-	std::optional<fs::path> gui_application::save_file_name(ds::string const & filter) const
-	{
-		return m_window.is_open()
-			? platform_api::save_file_name(m_window.get_native_handle(), filter.c_str())
-			: std::nullopt;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -164,7 +147,7 @@ namespace ml
 
 			ImGuizmo::BeginFrame();
 
-			dockspace->SetWindowFlag(ImGuiWindowFlags_MenuBar, menubar->Get());
+			dockspace->SetWindowFlag(ImGuiWindowFlags_MenuBar, menubar->GetWindow());
 
 			dockspace->Draw(context->Viewports[0], [&](auto) noexcept
 			{

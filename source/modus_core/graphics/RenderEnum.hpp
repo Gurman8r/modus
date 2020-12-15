@@ -281,10 +281,10 @@ namespace ml::gfx
 	enum shader_type_ : uint32
 	{
 		shader_type_vertex,
-		shader_type_fragment,
-		shader_geometry,
+		shader_type_pixel,
+		shader_type_geometry,
 
-		shader_MAX,
+		shader_type_MAX,
 	};
 
 	constexpr cstring shader_type_NAMES[] =

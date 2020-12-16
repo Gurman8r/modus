@@ -139,23 +139,26 @@ namespace ml
 
 		void on_app_enter(app_enter_event const & ev)
 		{
+			// path to
+			auto path2 = std::bind(&core_application::path_to, get_app(), std::placeholders::_1);
+
 			// icon
-			if (bitmap const i{ get_app()->path_to("resource/modus_launcher.png"), false })
+			if (bitmap const i{ path2("resource/modus_launcher.png"), false })
 			{
 				get_app()->get_window()->set_icons(1, i.width(), i.height(), i.data());
 			}
 
 			// textures
-			m_textures["earth_dm_2k"] = gfx::texture2d::create(get_app()->path_to("assets/textures/earth/earth_dm_2k.png"), gfx::texture_flags_default);
-			m_textures["earth_sm_2k"] = gfx::texture2d::create(get_app()->path_to("assets/textures/earth/earth_sm_2k.png"), gfx::texture_flags_default);
+			m_textures["earth_dm_2k"] = gfx::texture2d::create(path2("assets/textures/earth/earth_dm_2k.png"), gfx::texture_flags_default);
+			m_textures["earth_sm_2k"] = gfx::texture2d::create(path2("assets/textures/earth/earth_sm_2k.png"), gfx::texture_flags_default);
 
 			// programs
-			m_programs["2D"] = shader_parser::parse_program(get_app()->path_to("plugins/sandbox/resource/shaders/basic_2D.shader"));
-			m_programs["3D"] = shader_parser::parse_program(get_app()->path_to("plugins/sandbox/resource/shaders/basic_3D.shader"));
+			m_programs["2D"] = shader_parser::parse_program(path2("plugins/sandbox/resource/shaders/basic_2D.shader"));
+			m_programs["3D"] = shader_parser::parse_program(path2("plugins/sandbox/resource/shaders/basic_3D.shader"));
 
 			// meshes
-			m_meshes["sphere8x6"] = make_ref<mesh>(get_app()->path_to("assets/models/sphere8x6.obj"));
-			m_meshes["sphere32x24"] = make_ref<mesh>(get_app()->path_to("assets/models/sphere32x24.obj"));
+			m_meshes["sphere8x6"] = make_ref<mesh>(path2("assets/models/sphere8x6.obj"));
+			m_meshes["sphere32x24"] = make_ref<mesh>(path2("assets/models/sphere32x24.obj"));
 
 			// scene
 			m_active_scene = make_ref<scene>(get_bus());
@@ -728,15 +731,15 @@ namespace ml
 							// view
 							ImGui::TextDisabled("view");
 							if (auto eye{ value.get_eye() }
-							; ImGui::DragFloat3("eye", eye, .1f)) {
+							; ImGuiExt::EditVec3("eye", eye, .1f, 0.f, 0.f, "%.1f", 0.f, 64.f)) {
 								value.set_eye(eye);
 							}
 							if (auto target{ value.get_target() }
-							; ImGui::DragFloat3("target", target, .1f)) {
+							; ImGuiExt::EditVec3("target", target, .1f, 0.f, 0.f, "%.1f", 0.f, 64.f)) {
 								value.set_target(target);
 							}
 							if (auto up{ value.get_up() }
-							; ImGui::DragFloat3("up", up, .1f)) {
+							; ImGuiExt::EditVec3("up", up, .1f, 0.f, 0.f, "%.1f", 0.f, 64.f)) {
 								value.set_up(up);
 							}
 							ImGui::Separator();
@@ -788,7 +791,7 @@ namespace ml
 						ImGui::Separator();
 						ImGuiExt::EditTransformMatrix(
 							m_object_matrix[m_object_index],
-							"position\0rotation\0scale");
+							"tr\0rt\0sc", 0.01f, 0.f, 0.f, "%.01f", 0.f, 32.f);
 						ImGui::Separator();
 						ImGui::EndMenu();
 					}
@@ -799,33 +802,18 @@ namespace ml
 
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-				vec2 const mouse_pos{
-					(vec2)ev->IO.MousePos
-				};
-
-				ImGuiViewport * const main_viewport{
-					ev->Viewports[0]
-				};
-				float_rect const work_rect{
-					(vec2)main_viewport->GetWorkPos(),
-					(vec2)main_viewport->GetWorkSize()
-				};
-
+				// resize viewport
 				ImGuiWindow * const current_window{
 					ev->CurrentWindow
 				};
-				float32 const titlebar_height{
-					current_window->TitleBarHeight()
-				};
-				float32 const menubar_height{
-					current_window->MenuBarHeight()
+				vec2 const size_offset{
+					0.f,
+					current_window->TitleBarHeight() + current_window->MenuBarHeight()
 				};
 				float_rect const view_rect{
-					work_rect.position() + vec2{ 0, titlebar_height + menubar_height },
-					work_rect.size() - vec2{ 0, titlebar_height + menubar_height }
+					(vec2)current_window->Pos + size_offset,
+					(vec2)current_window->Size - size_offset
 				};
-
-				// resize viewport
 				m_viewport.set_bounds(view_rect);
 
 				// main image
@@ -839,15 +827,18 @@ namespace ml
 				// debug overlay
 				debug_overlay.Draw([&](auto o)
 				{
-					auto const fps{ ev->IO.Framerate };
+					float32 const fps{ ev->IO.Framerate };
 					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+					ImGui::Separator();
 					
-					if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse: <invalid>"); }
-					else { ImGui::Text("mouse: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
-					
+					vec2 const mouse_pos{ (vec2)ev->IO.MousePos };
+					if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse pos: <invalid>"); }
+					else { ImGui::Text("mouse pos: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
+					ImGui::Separator();
+
 					ImGui::Text("viewport: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
 					if (ImGui::IsItemHovered()) {
-						ImGui::GetForegroundDrawList()->AddRect(view_rect.minimum(), view_rect.maximum(), IM_COL32(255, 255, 0, 255));
+						ImGui::GetForegroundDrawList()->AddRect(view_rect.min(), view_rect.max(), IM_COL32(255, 155, 0, 255));
 					}
 					
 					if (ImGui::BeginPopupContextWindow()) {

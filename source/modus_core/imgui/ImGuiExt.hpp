@@ -810,8 +810,9 @@ namespace ml::ImGuiExt
 // TRANSFORM
 namespace ml::ImGuiExt
 {
-	inline bool DrawVec3Control(cstring label, float32 * value, float32 reset_value = 0.f, float32 column_width = 100.f, cstring fmt = "%.3f")
+	inline bool EditVec3(cstring label, float32 * value, float32 spd = 0.001f, float32 min = 0.f, float32 max = 0.f, cstring fmt = "%.3f", float32 reset_value = 0.f, float32 column_width = 100.f)
 	{
+		ImGuiExt_ScopeID(value);
 		bool dirty{};
 		ImGuiIO & io{ ImGui::GetIO() };
 
@@ -832,7 +833,7 @@ namespace ml::ImGuiExt
 		if (ImGui::Button("X", button_size)) { value[0] = reset_value; }
 		ImGui::PopStyleColor(3);
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##X", &value[0], 0.01f, 0.f, 0.f, fmt);
+		dirty |= ImGui::DragFloat("##X", &value[0], spd, min, max, fmt);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -842,7 +843,7 @@ namespace ml::ImGuiExt
 		if (ImGui::Button("Y", button_size)) { value[1] = reset_value; }
 		ImGui::PopStyleColor(3);
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Y", &value[1], 0.01f, 0.f, 0.f, fmt);
+		dirty |= ImGui::DragFloat("##Y", &value[1], spd, min, max, fmt);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -852,7 +853,7 @@ namespace ml::ImGuiExt
 		if (ImGui::Button("Z", button_size)) { value[2] = reset_value; }
 		ImGui::PopStyleColor(3);
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Z", &value[2], 0.01f, 0.f, 0.f, fmt);
+		dirty |= ImGui::DragFloat("##Z", &value[2], spd, min, max, fmt);
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
@@ -862,16 +863,16 @@ namespace ml::ImGuiExt
 		return dirty;
 	}
 
-	inline bool EditTransformMatrix(float32 * value, cstring labels = "tr\0rt\0sc\0", float32 speed = 0.01f)
+	inline bool EditTransformMatrix(float32 * value, cstring labels = "tr\0rt\0sc", float32 spd = 0.001f, float32 min = 0.f, float32 max = 0.f, cstring fmt = "%.3f", float32 reset_value = 0.f, float32 column_width = 100.f)
 	{
-		if (!labels || !*labels) { labels = "tr\0rt\0sc\0"; } // default labels
+		if (!labels || !*labels) { labels = "tr\0rt\0sc"; } // default labels
 
 		bool dirty{};
 		vec3 t, r, s;
 		ImGuizmo::DecomposeMatrixToComponents(value, t, r, s);
-		dirty |= ImGui::DragFloat3(util::single_str(labels, 0), t, speed, 0.f, 0.f, "%.3f");
-		dirty |= ImGui::DragFloat3(util::single_str(labels, 1), r, speed, 0.f, 0.f, "%.3f");
-		dirty |= ImGui::DragFloat3(util::single_str(labels, 2), s, speed, 0.f, 0.f, "%.3f");
+		dirty |= ImGuiExt::EditVec3(util::single_str(labels, 0), t, spd, min, max, fmt, reset_value, column_width);
+		dirty |= ImGuiExt::EditVec3(util::single_str(labels, 1), r, spd, min, max, fmt, reset_value, column_width);
+		dirty |= ImGuiExt::EditVec3(util::single_str(labels, 2), s, spd, min, max, fmt, reset_value, column_width);
 		ImGuizmo::RecomposeMatrixFromComponents(t, r, s, value);
 		return dirty;
 	}

@@ -32,66 +32,72 @@ namespace ml::gfx
 			return std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
 		}
 
+		template <class Arg0, class ... Args
+		> ML_NODISCARD static command exec(Arg0 && arg0, Args && ... args) noexcept
+		{
+			return std::bind(&gfx::execute, ML_forward(arg0), ML_forward(args)...);
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static auto set_alpha_state(alpha_state const & value) noexcept
+		ML_NODISCARD static command set_alpha_state(alpha_state const & value) noexcept
 		{
 			return command::bind(&render_context::set_alpha_state, value);
 		}
 
-		ML_NODISCARD static auto set_blend_state(blend_state const & value) noexcept
+		ML_NODISCARD static command set_blend_state(blend_state const & value) noexcept
 		{
 			return command::bind(&render_context::set_blend_state, value);
 		}
 
-		ML_NODISCARD static auto set_clear_color(color const & value) noexcept
+		ML_NODISCARD static command set_clear_color(color const & value) noexcept
 		{
 			return command::bind(&render_context::set_clear_color, value);
 		}
 
-		ML_NODISCARD static auto set_cull_state(cull_state const & value) noexcept
+		ML_NODISCARD static command set_cull_state(cull_state const & value) noexcept
 		{
 			return command::bind(&render_context::set_cull_state, value);
 		}
 
-		ML_NODISCARD static auto set_depth_state(depth_state const & value) noexcept
+		ML_NODISCARD static command set_depth_state(depth_state const & value) noexcept
 		{
 			return command::bind(&render_context::set_depth_state, value);
 		}
 
-		ML_NODISCARD static auto set_stencil_state(stencil_state const & value) noexcept
+		ML_NODISCARD static command set_stencil_state(stencil_state const & value) noexcept
 		{
 			return command::bind(&render_context::set_stencil_state, value);
 		}
 
-		ML_NODISCARD static auto set_viewport(int_rect const & value) noexcept
+		ML_NODISCARD static command set_viewport(int_rect const & value) noexcept
 		{
 			return command::bind(&render_context::set_viewport, value);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static auto clear(uint32 mask) noexcept
+		ML_NODISCARD static command clear(uint32 mask) noexcept
 		{
 			return command::bind(&render_context::clear, mask);
 		}
 
-		ML_NODISCARD static auto draw(ds::ref<vertexarray> const & value) noexcept
+		ML_NODISCARD static command draw(ds::ref<vertexarray> const & value) noexcept
 		{
 			return command::bind(&render_context::draw, value);
 		}
 
-		ML_NODISCARD static auto draw_arrays(uint32 mode, uint32 first, size_t count) noexcept
+		ML_NODISCARD static command draw_arrays(uint32 mode, uint32 first, size_t count) noexcept
 		{
 			return command::bind(&render_context::draw_arrays, mode, first, count);
 		}
 
-		ML_NODISCARD static auto draw_indexed(uint32 mode, size_t count) noexcept
+		ML_NODISCARD static command draw_indexed(uint32 mode, size_t count) noexcept
 		{
 			return command::bind(&render_context::draw_indexed, mode, count);
 		}
 
-		ML_NODISCARD static auto flush() noexcept
+		ML_NODISCARD static command flush() noexcept
 		{
 			return command::bind(&render_context::flush);
 		}
@@ -99,7 +105,7 @@ namespace ml::gfx
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Value
-		> ML_NODISCARD static auto bind_vertexarray(Value && value) noexcept
+		> ML_NODISCARD static command bind_vertexarray(Value && value) noexcept
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
@@ -112,7 +118,7 @@ namespace ml::gfx
 		}
 
 		template <class Value
-		> ML_NODISCARD static auto bind_vertexbuffer(Value && value) noexcept
+		> ML_NODISCARD static command bind_vertexbuffer(Value && value) noexcept
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
@@ -125,7 +131,7 @@ namespace ml::gfx
 		}
 
 		template <class Value
-		> ML_NODISCARD static auto bind_indexbuffer(Value && value) noexcept
+		> ML_NODISCARD static command bind_indexbuffer(Value && value) noexcept
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
@@ -138,7 +144,7 @@ namespace ml::gfx
 		}
 
 		template <class Value
-		> ML_NODISCARD static auto bind_texture(Value && value, uint32 slot = 0) noexcept
+		> ML_NODISCARD static command bind_texture(Value && value, uint32 slot = 0) noexcept
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
@@ -151,7 +157,7 @@ namespace ml::gfx
 		}
 
 		template <class Value
-		> ML_NODISCARD static auto bind_framebuffer(Value && value) noexcept
+		> ML_NODISCARD static command bind_framebuffer(Value && value) noexcept
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
@@ -164,7 +170,7 @@ namespace ml::gfx
 		}
 
 		template <class Value
-		> ML_NODISCARD static auto bind_program(Value && value) noexcept
+		> ML_NODISCARD static command bind_program(Value && value) noexcept
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
@@ -177,7 +183,7 @@ namespace ml::gfx
 		}
 
 		template <class Value
-		> ML_NODISCARD static auto bind_shader(Value && value) noexcept
+		> ML_NODISCARD static command bind_shader(Value && value) noexcept
 		{
 			if constexpr (std::is_scalar_v<std::decay_t<decltype(value)>>)
 			{
@@ -192,14 +198,14 @@ namespace ml::gfx
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class T
-		> ML_NODISCARD static auto upload(uniform_id loc, T value) noexcept
+		> ML_NODISCARD static command upload(uniform_id loc, T value) noexcept
 		{
 			return command::bind(static_cast<void(render_context:: *)(uniform_id, T)
 			>(&render_context::upload), loc, value);
 		}
 
 		template <class T
-		> ML_NODISCARD static auto upload(uniform_id loc, T const & value) noexcept
+		> ML_NODISCARD static command upload(uniform_id loc, T const & value) noexcept
 		{
 			return command::bind(static_cast<void(render_context:: *)(uniform_id, T const &)
 			>(&render_context::upload), loc, value);

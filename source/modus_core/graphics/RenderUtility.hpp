@@ -1,8 +1,43 @@
 #ifndef _ML_RENDER_ENUM_HPP_
 #define _ML_RENDER_ENUM_HPP_
 
-#include <modus_core/Standard.hpp>
+#include <modus_core/detail/Map.hpp>
+#include <modus_core/detail/Method.hpp>
+#include <modus_core/graphics/Bitmap.hpp>
+#include <modus_core/window/WindowAPI.hpp>
 
+// types
+namespace ml::gfx
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	ML_decl_handle(object_id); // object handle
+	ML_decl_handle(uniform_id); // uniform location
+
+	ML_alias addr_t = typename void const *; // data address
+	ML_alias buffer_t = typename ds::list<byte>; // byte buffer
+
+	template <class ...> struct spec; // object specification
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	struct	render_device	; // 
+	struct	render_context	; // 
+	struct	vertexarray		; // 
+	struct	vertexbuffer	; // 
+	struct	indexbuffer		; // 
+	struct	texture			; // 
+	struct	texture2d		; // 
+	struct	texture3d		; // WIP
+	struct	texturecube		; // WIP
+	struct	framebuffer		; // 
+	struct	program			; // 
+	struct	shader			; // WIP
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// enums
 namespace ml::gfx
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -360,6 +395,214 @@ namespace ml::gfx
 		"dynamic",
 	};
 
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// util
+namespace ml::gfx
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// buffer copy
+	template <class Elem = byte
+	> buffer_t bufcpy(size_t count, addr_t data, pmr::polymorphic_allocator<byte> alloc = {}) noexcept
+	{
+		return data
+			? buffer_t{ (byte *)data, (byte *)data + count * sizeof(Elem), alloc }
+			: buffer_t{ count * sizeof(Elem), (byte)0, alloc };
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	ML_NODISCARD constexpr uint32 calc_channel_format(size_t value) noexcept
+	{
+		switch (value)
+		{
+		default	: return 0;
+		case 1	: return format_red;
+		case 3	: return format_rgb;
+		case 4	: return format_rgba;
+		}
+	}
+
+	ML_NODISCARD constexpr size_t calc_bits_per_pixel(uint32 value) noexcept
+	{
+		switch (value)
+		{
+		default			: return 0;
+		case format_red	: return 1;
+		case format_rgb	: return 3;
+		case format_rgba: return 4;
+		}
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// get element base type
+	ML_NODISCARD constexpr hash_t get_element_base_type(hash_t type) noexcept
+	{
+		switch (type)
+		{
+		default					: return 0;
+		case hashof_v<bool>		: return hashof_v<bool>;
+		case hashof_v<int32>	:
+		case hashof_v<vec2i>	:
+		case hashof_v<vec3i>	:
+		case hashof_v<vec4i>	:
+		case hashof_v<mat2i>	:
+		case hashof_v<mat3i>	:
+		case hashof_v<mat4i>	: return hashof_v<int32>;
+		case hashof_v<float32>	:
+		case hashof_v<vec2f>	:
+		case hashof_v<vec3f>	:
+		case hashof_v<vec4f>	:
+		case hashof_v<mat2f>	:
+		case hashof_v<mat3f>	:
+		case hashof_v<mat4f>	: return hashof_v<float32>;
+		}
+	}
+
+	template <class T> ML_NODISCARD constexpr hash_t get_element_base_type() noexcept
+	{
+		return _ML gfx::get_element_base_type(hashof_v<T>);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// get element component count
+	ML_NODISCARD constexpr uint32 get_element_component_count(hash_t type) noexcept
+	{
+		switch (type)
+		{
+		default					: return 0;
+		case hashof_v<bool>		:
+		case hashof_v<int32>	:
+		case hashof_v<float32>	: return 1;
+		case hashof_v<vec2i>	:
+		case hashof_v<vec2f>	: return 2;
+		case hashof_v<vec3i>	:
+		case hashof_v<vec3f>	: return 3;
+		case hashof_v<vec4i>	:
+		case hashof_v<vec4f>	: return 4;
+		case hashof_v<mat2i>	:
+		case hashof_v<mat2f>	: return 2 * 2;
+		case hashof_v<mat3i>	:
+		case hashof_v<mat3f>	: return 3 * 3;
+		case hashof_v<mat4i>	:
+		case hashof_v<mat4f>	: return 4 * 4;
+		}
+	}
+
+	template <class T> ML_NODISCARD constexpr uint32 get_element_component_count() noexcept
+	{
+		return _ML gfx::get_element_component_count(hashof_v<T>);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// layout
+namespace ml::gfx
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// buffer layout element
+	struct ML_NODISCARD buffer_element final
+	{
+		template <class T
+		> static constexpr bool is_valid_type
+		{
+			util::is_any_of_v<T,
+				bool,
+				int32, vec2i, vec3i, vec4i, mat2i, mat3i, mat4i,
+				float32, vec2f, vec3f, vec4f, mat2f, mat3f, mat4f
+			>
+		};
+
+		cstring	name		{};
+		hash_t	type		{};
+		uint32	size		{};
+		bool	normalized	{};
+		uint32	offset		{};
+
+		constexpr buffer_element(cstring name, hash_t type, uint32 size, bool normalized) noexcept
+			: name{ name }, type{ type }, size{ size }, normalized{ normalized }, offset{}
+		{
+		}
+
+		template <class Elem
+		> constexpr buffer_element(Elem, cstring name, bool normalized = false) noexcept
+			: buffer_element{ name, hashof_v<Elem>, sizeof(Elem), normalized }
+		{
+			static_assert(is_valid_type<Elem>);
+		}
+
+		constexpr hash_t get_base_type() const noexcept
+		{
+			return _ML gfx::get_element_base_type(type);
+		}
+
+		constexpr uint32 get_component_count() const noexcept
+		{
+			return _ML gfx::get_element_component_count(type);
+		}
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// buffer layout
+	struct ML_NODISCARD buffer_layout final
+	{
+		using storage_type				= typename ds::list<buffer_element>;
+		using iterator					= typename storage_type::iterator;
+		using const_iterator			= typename storage_type::const_iterator;
+		using reverse_iterator			= typename storage_type::reverse_iterator;
+		using const_reverse_iterator	= typename storage_type::const_reverse_iterator;
+
+		static constexpr buffer_element default_3d[] =
+		{
+			{ vec3{}, "a_position"	},
+			{ vec3{}, "a_normal"	},
+			{ vec2{}, "a_texcoord"	},
+		};
+
+		template <class It
+		> buffer_layout(It first, It last) noexcept
+			: m_elements{ first, last }
+		{
+			uint32 offset{};
+			for (auto & e : m_elements)
+			{
+				e.offset = offset;
+				offset += e.size;
+				m_stride += e.size;
+			}
+		}
+
+		buffer_layout(std::initializer_list<buffer_element> init) noexcept
+			: buffer_layout{ init.begin(), init.end() }
+		{
+		}
+
+		template <size_t N
+		> buffer_layout(const buffer_element(&arr)[N]) noexcept
+			: buffer_layout{ &arr[0], &arr[N] }
+		{
+		}
+
+		buffer_layout() noexcept : buffer_layout{ default_3d }
+		{
+		}
+
+		ML_NODISCARD auto elements() const noexcept -> storage_type const & { return m_elements; }
+
+		ML_NODISCARD auto stride() const noexcept -> uint32 { return m_stride; }
+
+	private:
+		uint32			m_stride	{}; // stride
+		storage_type	m_elements	{}; // elements
+	};
+	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 

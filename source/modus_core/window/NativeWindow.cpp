@@ -1,9 +1,8 @@
 #include <modus_core/window/NativeWindow.hpp>
 
-#ifdef ML_os_windows
+#if defined(ML_os_windows)
 #include <modus_core/backends/win32/Win32_PlatformAPI.hpp>
-using native_api = _ML win32_platform_api;
-
+using impl_platform = _ML win32_platform_api;
 #else
 #error "platform_api unavailable"
 #endif
@@ -14,7 +13,6 @@ using impl_window	= _ML glfw_window;
 using impl_context	= _ML glfw_context;
 using impl_cursor	= _ML glfw_cursor;
 using impl_monitor	= _ML glfw_monitor;
-
 #else
 #error "native_window unavailable"
 #endif
@@ -26,10 +24,18 @@ namespace ml
 	native_window::native_window(allocator_type alloc) noexcept
 		: frontend_window{ ::new (alloc.allocate(sizeof(impl_window))) impl_window{ alloc } }
 	{
+		static ML_block(&) // initialize context
+		{
+			
+		};
 	}
 
 	native_window::~native_window() noexcept
 	{
+		static ML_defer(&) // finalize context
+		{
+			window_context::finalize();
+		};
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -60,6 +66,22 @@ namespace ml
 
 		// success
 		return true;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	std::optional<fs::path> native_window::get_open_file_name(cstring filter) const
+	{
+		return is_open()
+			? impl_platform::get_open_file_name(get_native_handle(), filter)
+			: std::nullopt;
+	}
+
+	std::optional<fs::path> native_window::get_save_file_name(cstring filter) const
+	{
+		return is_open()
+			? impl_platform::get_save_file_name(get_native_handle(), filter)
+			: std::nullopt;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

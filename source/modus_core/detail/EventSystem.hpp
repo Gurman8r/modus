@@ -98,7 +98,7 @@ namespace ml
 		template <class Bus = event_bus
 		> static uint64 make_id(Bus * bus) noexcept
 		{
-			return bus->make_id();
+			return ML_check(bus)->make_id();
 		}
 
 		// subscribe

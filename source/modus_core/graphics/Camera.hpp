@@ -219,13 +219,13 @@ namespace ml
 			}
 			else
 			{
-				auto const height{ m_fov[m_is_ortho] * resolution[1] / resolution[0] };
+				auto const ortho_height{ m_fov[m_is_ortho] * resolution[1] / resolution[0] };
 				
 				util::orthographic(
 					-m_fov[m_is_ortho],
 					m_fov[m_is_ortho],
-					-height,
-					height,
+					-ortho_height,
+					ortho_height,
 					m_clip[m_is_ortho][0],
 					m_clip[m_is_ortho][1],
 					m_proj);

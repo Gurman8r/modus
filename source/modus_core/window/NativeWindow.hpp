@@ -34,12 +34,20 @@ namespace ml
 			ML_assert(this->open(title, vm, cs, hints));
 		}
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ML_NODISCARD virtual bool open(
 			ds::string const &			title,
 			video_mode const &			vm		= {},
 			context_settings const &	cs		= {},
 			window_hints_				hints	= window_hints_default
 		) override;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD std::optional<fs::path> get_open_file_name(cstring filter = "") const;
+
+		ML_NODISCARD std::optional<fs::path> get_save_file_name(cstring filter = "") const;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -213,19 +213,11 @@ namespace ml::ImGuiExt
 		{
 		}
 
-		bool Begin() noexcept {
-			return IsOpen && ImGui::Begin(Title, &IsOpen, WindowFlags);
-		}
-
-		void End() noexcept {
-			ImGui::End();
-		}
-
 		ML_NODISCARD bool GetWindowFlag(ImGuiWindowFlags_ index) const noexcept {
 			return ML_flag_read(WindowFlags, (int32)index);
 		}
 
-		auto SetWindowFlag(ImGuiWindowFlags_ index, bool value) noexcept {
+		bool SetWindowFlag(ImGuiWindowFlags_ index, bool value) noexcept {
 			return ML_flag_write(WindowFlags, (int32)index, value);
 		}
 
@@ -255,8 +247,8 @@ namespace ml::ImGuiExt
 			ImGuiExt_ScopeID(this);
 			return ImGuiExt::BeginEnd
 			(
-				std::bind(&Panel::Begin, this),
-				std::bind(&Panel::End, this),
+				std::bind(&ImGui::Begin, Title, &IsOpen, WindowFlags),
+				&ImGui::End,
 				ML_forward(fn), this, ML_forward(args)...
 			);
 		}
@@ -269,7 +261,7 @@ namespace ml::ImGuiExt
 namespace ml::ImGuiExt
 {
 	template <class Fn
-	> bool DrawSimpleOverlay(cstring title, bool * open = 0, int32 corner = 0, vec2 const & offset = { 10.f, 10.f }, float32 alpha = 0.35f, Fn fn = ([]() noexcept {}))
+	> bool DrawSimpleOverlay(ImGuiViewport * vp, cstring title, bool * open = 0, int32 corner = 0, vec2 const & offset = { 10.f, 10.f }, float32 alpha = 0.35f, Fn fn = ([]() noexcept {}))
 	{
 		ImGuiWindowFlags window_flags{
 			ImGuiWindowFlags_NoDecoration |
@@ -282,8 +274,10 @@ namespace ml::ImGuiExt
 		if (corner != -1)
 		{
 			window_flags |= ImGuiWindowFlags_NoMove;
-			auto const vp{ ImGui::GetMainViewport() };
-			float_rect const bounds{ vp->GetWorkPos(), vp->GetWorkSize() };
+			float_rect const bounds{
+				vp->GetWorkPos(),
+				vp->GetWorkSize()
+			};
 			vec2 const pos{
 				((corner & 1) ? (bounds[0] + bounds[2] - offset[0]) : (bounds[0] + offset[0])),
 				((corner & 2) ? (bounds[1] + bounds[3] - offset[1]) : (bounds[1] + offset[1]))
@@ -330,18 +324,28 @@ namespace ml::ImGuiExt
 		{
 		}
 
-		template <class Fn, class ... Args
-		> bool Draw(Fn && fn, Args && ... args) noexcept
+		template <class Fn> bool Draw(ImGuiViewport * vp, Fn && fn) noexcept
 		{
+			if (!IsOpen) { return false; }
 			ImGuiExt_ScopeID(this);
-			return IsOpen && ImGuiExt::DrawSimpleOverlay
+			return ImGuiExt::DrawSimpleOverlay
 			(
+				vp,
 				Title,
 				&IsOpen,
 				Corner,
 				Offset,
 				Alpha,
-				std::bind(ML_forward(fn), this, ML_forward(args)...)
+				std::bind(ML_forward(fn), this)
+			);
+		}
+
+		template <class Fn> bool Draw(Fn && fn) noexcept
+		{
+			return this->Draw
+			(
+				ImGui::GetMainViewport(),
+				ML_forward(fn)
 			);
 		}
 	};
@@ -529,9 +533,11 @@ namespace ml::ImGuiExt
 		}
 
 		template <class Fn, class ... Args
-		> bool Draw(ImGuiViewport const * vp, Fn && fn, Args && ... args) noexcept
+		> bool Draw(ImGuiViewport * vp, Fn && fn, Args && ... args) noexcept
 		{
-			if (!IsOpen || !vp || !IsDockingEnabled()) { return false; }
+			if (!IsOpen || !IsDockingEnabled()) { return false; }
+
+			if (!vp) { ML_assert(vp = ImGui::GetMainViewport()); }
 
 			ImGuiExt_ScopeID(this);
 			ImGui::SetNextWindowPos(vp->Pos);
@@ -542,7 +548,8 @@ namespace ml::ImGuiExt
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, Border);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, Padding);
 			
-			bool const is_open{ Begin() }; ML_defer(&) { End(); };
+			bool const is_open{ ImGui::Begin(Title, &IsOpen, WindowFlags) };
+			ML_defer(&) { ImGui::End(); };
 			ImGui::PopStyleVar(3);
 			if (is_open)
 			{
@@ -812,7 +819,7 @@ namespace ml::ImGuiExt
 {
 	inline bool EditVec3(cstring label, float32 * value, float32 spd = 0.001f, float32 min = 0.f, float32 max = 0.f, cstring fmt = "%.3f", float32 reset_value = 0.f, float32 column_width = 100.f)
 	{
-		ImGuiExt_ScopeID(value);
+		ImGuiExt_ScopeID(label);
 		bool dirty{};
 		ImGuiIO & io{ ImGui::GetIO() };
 
@@ -881,14 +888,14 @@ namespace ml::ImGuiExt
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ImGuizmo::OPERATION	CurrentGizmoOperation	{ ImGuizmo::TRANSLATE };
-		ImGuizmo::MODE		CurrentGizmoMode		{ ImGuizmo::LOCAL };
-		bool				UseSnap					{ false };
-		vec3				Snap					{ 1.f, 1.f, 1.f };
-		vec3				Bounds[2]				{ { -.5f, -.5f, -.5f }, { .5f, .5f, .5f } };
-		vec3				BoundsSnap				{ .1f, .1f, .1f };
-		bool				BoundSizing				{ false };
-		bool				BoundSizingSnap			{ false };
+		ImGuizmo::OPERATION	Operation		{ ImGuizmo::TRANSLATE };
+		ImGuizmo::MODE		Mode			{ ImGuizmo::LOCAL };
+		bool				UseSnap			{ false };
+		vec3				Snap			{ 1.f, 1.f, 1.f };
+		vec3				Bounds[2]		{ { -.5f, -.5f, -.5f }, { .5f, .5f, .5f } };
+		vec3				BoundsSnap		{ .1f, .1f, .1f };
+		bool				BoundSizing		{ false };
+		bool				BoundSizingSnap	{ false };
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -899,8 +906,8 @@ namespace ml::ImGuiExt
 			(
 				view,
 				proj,
-				CurrentGizmoOperation,
-				CurrentGizmoMode,
+				Operation,
+				Mode,
 				value,
 				delta,
 				UseSnap ? (float32 *)Snap : nullptr,
@@ -915,22 +922,22 @@ namespace ml::ImGuiExt
 		{
 			ImGuiExt_ScopeID(this);
 			ImGui::BeginGroup();
-			if (ImGui::RadioButton("translate", CurrentGizmoOperation == ImGuizmo::TRANSLATE)) { CurrentGizmoOperation = ImGuizmo::TRANSLATE; }
+			if (ImGui::RadioButton("translate", Operation == ImGuizmo::TRANSLATE)) { Operation = ImGuizmo::TRANSLATE; }
 			ImGui::SameLine();
-			if (ImGui::RadioButton("rotate", CurrentGizmoOperation == ImGuizmo::ROTATE)) { CurrentGizmoOperation = ImGuizmo::ROTATE; }
+			if (ImGui::RadioButton("rotate", Operation == ImGuizmo::ROTATE)) { Operation = ImGuizmo::ROTATE; }
 			ImGui::SameLine();
-			if (ImGui::RadioButton("scale", CurrentGizmoOperation == ImGuizmo::SCALE)) { CurrentGizmoOperation = ImGuizmo::SCALE; }
+			if (ImGui::RadioButton("scale", Operation == ImGuizmo::SCALE)) { Operation = ImGuizmo::SCALE; }
 			ImGui::EndGroup();
 		}
 
 		void ShowModeControls()
 		{
 			ImGuiExt_ScopeID(this);
-			bool const is_scale{ CurrentGizmoOperation == ImGuizmo::SCALE };
+			bool const is_scale{ Operation == ImGuizmo::SCALE };
 			ImGui::BeginGroup();
-			if (ImGui::RadioButton("local", !is_scale && CurrentGizmoMode == ImGuizmo::LOCAL)) { CurrentGizmoMode = ImGuizmo::LOCAL; }
+			if (ImGui::RadioButton("local", !is_scale && Mode == ImGuizmo::LOCAL)) { Mode = ImGuizmo::LOCAL; }
 			ImGui::SameLine();
-			if (ImGui::RadioButton("world", !is_scale && CurrentGizmoMode == ImGuizmo::WORLD)) { CurrentGizmoMode = ImGuizmo::WORLD; }
+			if (ImGui::RadioButton("world", !is_scale && Mode == ImGuizmo::WORLD)) { Mode = ImGuizmo::WORLD; }
 			ImGui::EndGroup();
 		}
 
@@ -939,7 +946,7 @@ namespace ml::ImGuiExt
 			ImGuiExt_ScopeID(this);
 			ImGui::BeginGroup();
 			ImGui::Checkbox("##usesnap", &UseSnap); ImGui::SameLine();
-			switch (CurrentGizmoOperation)
+			switch (Operation)
 			{
 			case ImGuizmo::TRANSLATE: ImGui::DragFloat3("snap##translate", &Snap[0], speed); break;
 			case ImGuizmo::ROTATE: ImGui::DragFloat("snap##rotate", &Snap[0], speed); break;

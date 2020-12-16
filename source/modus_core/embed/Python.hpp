@@ -62,7 +62,7 @@ namespace ml
 		template <class ... Args
 		> python_interpreter(Args && ... args) noexcept
 		{
-			ML_assert(begin_singleton<python_interpreter>(this));
+			ML_verify(begin_singleton<python_interpreter>(this));
 			
 			if constexpr (0 < sizeof...(args))
 			{
@@ -72,7 +72,7 @@ namespace ml
 
 		~python_interpreter() noexcept final
 		{
-			ML_assert(end_singleton<python_interpreter>(this));
+			ML_verify(end_singleton<python_interpreter>(this));
 
 			this->finalize();
 		}
@@ -97,10 +97,12 @@ namespace ml
 			PyObject_SetArenaAllocator(std::invoke([&, &al = PyObjectArenaAllocator{}]()
 			{
 				al.ctx = resource;
-				al.alloc = [](auto resource, size_t s) {
+				al.alloc = [](auto resource, size_t s)
+				{
 					return ((pmr::memory_resource *)resource)->allocate(s);
 				};
-				al.free = [](auto resource, void * p, size_t s) {
+				al.free = [](auto resource, void * p, size_t s)
+				{
 					return ((pmr::memory_resource *)resource)->deallocate(p, s);
 				};
 				return &al;

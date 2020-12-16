@@ -76,12 +76,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		using gui_application::on_enter;
-		
-		using gui_application::on_exit;
-		
-		using gui_application::on_idle;
-
 		virtual void on_event(event const & value) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

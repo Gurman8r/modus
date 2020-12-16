@@ -14,12 +14,12 @@ namespace ml
 		, m_records	{ m_alloc }
 		, m_counter	{}
 	{
-		ML_assert(begin_singleton<memory_manager>(this));
+		ML_verify(begin_singleton<memory_manager>(this));
 	}
 
 	memory_manager::~memory_manager() noexcept
 	{
-		ML_assert(end_singleton<memory_manager>(this));
+		ML_verify(end_singleton<memory_manager>(this));
 
 #if ML_IMPL_LEAK_CLEANUP
 		while (!m_records.empty()) { this->deallocate(m_records.back<id_addr>()); }

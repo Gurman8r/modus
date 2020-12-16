@@ -3,7 +3,6 @@
 
 // WIP
 
-#include <modus_core/detail/Rect.hpp>
 #include <modus_core/graphics/RenderCommand.hpp>
 
 namespace ml
@@ -18,14 +17,12 @@ namespace ml
 		using framebuffer_list	= typename ds::list<framebuffer_ref>;
 
 		viewport(allocator_type alloc = {}) noexcept
-			: m_bounds	{}
-			, m_fb		{}
+			: m_rect{}
 		{
 		}
 
 		viewport(viewport const & other, allocator_type alloc = {})
-			: m_bounds	{ other.m_bounds }
-			, m_fb		{ other.m_fb }
+			: m_rect{ other.m_rect }
 		{
 		}
 
@@ -54,174 +51,148 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				m_bounds.swap(other.m_bounds);
-				m_fb.swap(other.m_fb);
+				m_rect.swap(other.m_rect);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void recalculate()
+		ML_NODISCARD auto get_rect() const noexcept -> float_rect const &
 		{
-			ML_assert((0.f != m_bounds[2]) && (0.f != m_bounds[3]));
-
-			if (m_fb) { m_fb->resize(m_bounds.size()); }
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_framebuffer() const noexcept -> framebuffer_ref const &
-		{
-			return m_fb;
-		}
-
-		void set_framebuffer(framebuffer_ref const & value) noexcept
-		{
-			if (m_fb != value)
-			{
-				m_fb = value;
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_bounds() const noexcept -> float_rect const &
-		{
-			return m_bounds;
+			return m_rect;
 		}
 
 		ML_NODISCARD auto get_position() const noexcept -> vec2
 		{
-			return m_bounds.position();
+			return m_rect.position();
 		}
 
-		ML_NODISCARD auto get_resolution() const noexcept -> vec2
+		ML_NODISCARD auto get_size() const noexcept -> vec2
 		{
-			return m_bounds.size();
+			return m_rect.size();
 		}
 
 		ML_NODISCARD auto get_center() const noexcept -> vec2
 		{
-			return m_bounds.center();
+			return m_rect.center();
 		}
 
 		ML_NODISCARD auto get_left() const noexcept -> float32
 		{
-			return m_bounds.left();
+			return m_rect.left();
 		}
 
 		ML_NODISCARD auto get_right() const noexcept -> float32
 		{
-			return m_bounds.right();
+			return m_rect.right();
 		}
 
 		ML_NODISCARD auto get_width() const noexcept -> float32
 		{
-			return m_bounds.width();
+			return m_rect.width();
 		}
 
 		ML_NODISCARD auto get_height() const noexcept -> float32
 		{
-			return m_bounds.height();
+			return m_rect.height();
 		}
 
 		ML_NODISCARD auto get_top() const noexcept -> float32
 		{
-			return m_bounds.top();
+			return m_rect.top();
 		}
 
 		ML_NODISCARD auto get_bottom() const noexcept -> float32
 		{
-			return m_bounds.bottom();
+			return m_rect.bottom();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void set_bounds(float_rect const & value) noexcept
+		void set_rect(float_rect const & value) noexcept
 		{
-			if (m_bounds != value)
+			if (m_rect != value)
 			{
-				m_bounds = value;
+				m_rect = value;
 			}
 		}
 
 		void set_position(vec2 const & value) noexcept
 		{
-			if (m_bounds.position() != value)
+			if (m_rect.position() != value)
 			{
-				m_bounds.position(value);
+				m_rect.position(value);
 			}
 		}
 
-		void set_resolution(vec2 const & value) noexcept
+		void set_size(vec2 const & value) noexcept
 		{
-			if (m_bounds.size() != value)
+			if (m_rect.size() != value)
 			{
-				m_bounds.size(value);
+				m_rect.size(value);
 			}
 		}
 
 		void set_center(vec2 const & value) noexcept
 		{
-			if (m_bounds.center() != value)
+			if (m_rect.center() != value)
 			{
-				m_bounds.center(value);
+				m_rect.center(value);
 			}
 		}
 
 		void set_left(float32 value) noexcept
 		{
-			if (m_bounds.left() != value)
+			if (m_rect.left() != value)
 			{
-				m_bounds.left(value);
+				m_rect.left(value);
 			}
 		}
 
 		void set_right(float32 value) noexcept
 		{
-			if (m_bounds.right() != value)
+			if (m_rect.right() != value)
 			{
-				m_bounds.right(value);
+				m_rect.right(value);
 			}
 		}
 
 		void set_width(float32 value) noexcept
 		{
-			if (m_bounds.width() != value)
+			if (m_rect.width() != value)
 			{
-				m_bounds.width(value);
+				m_rect.width(value);
 			}
 		}
 
 		void set_height(float32 value) noexcept
 		{
-			if (m_bounds.height() != value)
+			if (m_rect.height() != value)
 			{
-				m_bounds.height(value);
+				m_rect.height(value);
 			}
 		}
 
 		void set_top(float32 value) noexcept
 		{
-			if (m_bounds.top() != value)
+			if (m_rect.top() != value)
 			{
-				m_bounds.top(value);
+				m_rect.top(value);
 			}
 		}
 
 		void set_bottom(float32 value) noexcept
 		{
-			if (m_bounds.bottom() != value)
+			if (m_rect.bottom() != value)
 			{
-				m_bounds.bottom(value);
+				m_rect.bottom(value);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		framebuffer_ref	m_fb		; // 
-		float_rect		m_bounds	; // 
+		float_rect m_rect; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

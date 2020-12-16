@@ -137,7 +137,7 @@ namespace ml
 			ML_defer(&) { this->run_exit_callback<Recursive>(); };
 			
 			// idle
-			if (!this->check_loop_condition()) { return EXIT_FAILURE * 2; }
+			if (!this->check_condition()) { return EXIT_FAILURE * 2; }
 			do
 			{
 				m_loop_timer.restart();
@@ -148,13 +148,13 @@ namespace ml
 
 				m_loop_delta = m_loop_timer.elapsed();
 			}
-			while (this->check_loop_condition());
+			while (this->check_condition());
 			return EXIT_SUCCESS;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool check_loop_condition() const noexcept
+		ML_NODISCARD bool check_condition() const noexcept
 		{
 			return m_running && m_condition && std::invoke(m_condition);
 		}
@@ -179,7 +179,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_loop_condition() const noexcept -> loop_condition const & { return m_condition; }
+		ML_NODISCARD auto get_condition() const noexcept -> loop_condition const & { return m_condition; }
 
 		ML_NODISCARD auto get_enter_callback() const noexcept -> enter_callback const & { return m_on_enter; }
 
@@ -190,7 +190,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Fn, class ... Args
-		> auto set_loop_condition(Fn && fn, Args && ... args) noexcept -> loop_condition
+		> auto set_condition(Fn && fn, Args && ... args) noexcept -> loop_condition
 		{
 			return util::chain(m_condition, ML_forward(fn), ML_forward(args)...);
 		}
@@ -301,10 +301,7 @@ namespace ml
 
 			if (!self || !mp) { return; } // nothing to do
 
-			auto run_self = [&]() noexcept
-			{
-				if (self->*mp) { std::invoke(self->*mp, ML_forward(args)...); }
-			};
+			auto run_self{ std::bind(self->*mp, ML_forward(args)...) };
 
 			if constexpr (!Reverse) { run_self(); }
 
@@ -348,7 +345,6 @@ namespace ml
 								m_loop_timer	; // idle timer
 		duration				m_loop_delta	; // idle delta
 		uint64					m_loop_index	; // idle index
-
 		subsystem_list			m_subsystems	; // subsystem list
 		loop_condition			m_condition		; // loop condition
 		enter_callback			m_on_enter		; // enter callback

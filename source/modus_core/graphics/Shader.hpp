@@ -45,7 +45,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class In> static auto parse_program(In && in) -> ds::ref<gfx::program>
+		template <class In> static auto make_program(In && in) -> ds::ref<gfx::program>
 		{
 			if (gfx::program_source src{}
 			; !shader_parser::parse(ML_forward(in), src)) { return nullptr; }

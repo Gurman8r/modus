@@ -59,9 +59,11 @@ namespace ml::gfx
 			return m_context;
 		}
 
-		ds::ref<render_context> & set_active_context(ds::ref<render_context> const & value) noexcept final
+		void set_active_context(ds::ref<render_context> const & value) noexcept final
 		{
-			return m_context = value;
+			if (m_context != value) {
+				m_context = value;
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

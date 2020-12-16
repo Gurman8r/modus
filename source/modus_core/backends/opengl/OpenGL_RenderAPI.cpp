@@ -259,20 +259,20 @@ namespace ml::gfx
 
 		ML_glCheck(glGetBooleanv(GL_STENCIL_TEST, (uint8 *)&value->enabled));
 		{
-			ML_glCheck(glGetIntegerv(GL_STENCIL_FUNC, (int32 *)&value->front.pred));
-			value->front.pred = _predicate<to_user>(value->front.pred);
+			ML_glCheck(glGetIntegerv(GL_STENCIL_FUNC, (int32 *)&value->front_pred));
+			value->front_pred = _predicate<to_user>(value->front_pred);
 
-			ML_glCheck(glGetIntegerv(GL_STENCIL_REF, &value->front.ref));
+			ML_glCheck(glGetIntegerv(GL_STENCIL_REF, &value->front_ref));
 
-			ML_glCheck(glGetIntegerv(GL_STENCIL_VALUE_MASK, (int32 *)&value->front.mask));
+			ML_glCheck(glGetIntegerv(GL_STENCIL_VALUE_MASK, (int32 *)&value->front_mask));
 		}
 		{
-			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_FUNC, (int32 *)&value->back.pred));
-			value->back.pred = _predicate<to_user>(value->back.pred);
+			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_FUNC, (int32 *)&value->back_pred));
+			value->back_pred = _predicate<to_user>(value->back_pred);
 
-			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_REF, &value->back.ref));
+			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_REF, &value->back_ref));
 
-			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_VALUE_MASK, (int32 *)&value->back.mask));
+			ML_glCheck(glGetIntegerv(GL_STENCIL_BACK_VALUE_MASK, (int32 *)&value->back_mask));
 		}
 
 		return value;
@@ -346,15 +346,15 @@ namespace ml::gfx
 
 		ML_glCheck(glStencilFuncSeparate(
 			GL_FRONT,
-			_predicate<to_impl>(value.front.pred),
-			value.front.ref,
-			value.front.mask));
+			_predicate<to_impl>(value.front_pred),
+			value.front_ref,
+			value.front_mask));
 		
 		ML_glCheck(glStencilFuncSeparate(
 			GL_BACK,
-			_predicate<to_impl>(value.back.pred),
-			value.back.ref,
-			value.back.mask));
+			_predicate<to_impl>(value.back_pred),
+			value.back_ref,
+			value.back_mask));
 	}
 
 	void opengl_render_context::set_viewport(int_rect const & value)

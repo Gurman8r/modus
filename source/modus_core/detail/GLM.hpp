@@ -21,10 +21,6 @@ template <size_t L, class U, glm::qualifier Q = glm::defaultp							\
 	{																					\
 		return *((Other *)this);														\
 	}																					\
-	else if constexpr (util::is_trivially_convertible_v<Other, self_type>)				\
-	{																					\
-		return util::bit_cast<Other>(*this);											\
-	}																					\
 	else																				\
 	{																					\
 		Other temp{};																	\
@@ -47,10 +43,6 @@ template <size_t W, size_t H, class U, glm::qualifier Q = glm::defaultp					\
 	{																					\
 		return *((Other *)this);														\
 	}																					\
-	else if constexpr (util::is_trivially_convertible_v<Other, self_type>)				\
-	{																					\
-		return util::bit_cast<Other>(*this);											\
-	}																					\
 	else																				\
 	{																					\
 		Other temp{};																	\
@@ -72,10 +64,6 @@ template <class U, glm::qualifier Q = glm::defaultp										\
 	if constexpr (std::is_same_v<value_type, U> && (_Width == 4) && (_Height == 1))		\
 	{																					\
 		return *((Other *)this);														\
-	}																					\
-	else if constexpr (util::is_trivially_convertible_v<Other, self_type>)				\
-	{																					\
-		return util::bit_cast<Other>(*this);											\
 	}																					\
 	else																				\
 	{																					\

@@ -13,7 +13,7 @@ namespace ml
 		, m_interpreter		{}
 		, m_active_scene	{}
 	{
-		ML_assert(begin_singleton<application>(this));
+		ML_verify(begin_singleton<application>(this));
 
 		subscribe<
 			app_enter_event,
@@ -21,13 +21,18 @@ namespace ml
 			app_idle_event,
 			imgui_dockspace_event,
 			imgui_menubar_event,
-			imgui_render_event
+			imgui_begin_event,
+			imgui_render_event,
+			imgui_end_event,
+			window_cursor_pos_event,
+			window_key_event,
+			window_mouse_event
 		>();
 	}
 
 	application::~application() noexcept
 	{
-		ML_assert(end_singleton<application>(this));
+		ML_verify(end_singleton<application>(this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -49,6 +54,26 @@ namespace ml
 			auto && ev{ (app_idle_event &&)value };
 		} break;
 
+		case imgui_dockspace_event::ID: {
+			auto && ev{ (imgui_dockspace_event &&)value };
+		} break;
+
+		case imgui_menubar_event::ID: {
+			auto && ev{ (imgui_menubar_event &&)value };
+		} break;
+
+		case imgui_begin_event::ID: {
+			auto && ev{ (imgui_begin_event &&)value };
+		} break;
+
+		case imgui_render_event::ID: {
+			auto && ev{ (imgui_render_event &&)value };
+		} break;
+
+		case imgui_end_event::ID: {
+			auto && ev{ (imgui_end_event &&)value };
+		} break;
+
 		case window_cursor_pos_event::ID: {
 			auto && ev{ (window_cursor_pos_event &&)value };
 		} break;
@@ -59,18 +84,6 @@ namespace ml
 
 		case window_mouse_event::ID: {
 			auto && ev{ (window_mouse_event &&)value };
-		} break;
-
-		case imgui_dockspace_event::ID: {
-			auto && ev{ (imgui_dockspace_event &&)value };
-		} break;
-
-		case imgui_menubar_event::ID: {
-			auto && ev{ (imgui_menubar_event &&)value };
-		} break;
-
-		case imgui_render_event::ID: {
-			auto && ev{ (imgui_render_event &&)value };
 		} break;
 		}
 	}

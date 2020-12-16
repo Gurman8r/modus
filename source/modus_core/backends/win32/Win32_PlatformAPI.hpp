@@ -1,14 +1,14 @@
 #ifndef _ML_WIN32_PLATFORM_API_HPP_
 #define _ML_WIN32_PLATFORM_API_HPP_
 
-#include <modus_core/engine/PlatformAPI.hpp>
+#include <modus_core/window/WindowAPI.hpp>
 
 static_assert(ML_os_windows);
 
 namespace ml
 {
 	// win32 platform api
-	class win32_platform_api final : public platform_api
+	class win32_platform_api final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

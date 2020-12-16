@@ -162,6 +162,84 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+// NEW RECTANGLE (WIP)
+namespace ml::ds
+{
+	struct rectangle
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		constexpr rectangle(float32 x1, float32 y1, float32 x2, float32 y2)
+			: m_data{ x1, y1, x2, y2 }
+		{
+		}
+
+		constexpr rectangle(vec2 const & min, vec2 const & max)
+			: m_data{ min[0], min[1], max[0], max[1] }
+		{
+		}
+
+		constexpr rectangle(vec4 const & value)
+			: m_data{ value }
+		{
+		}
+
+		constexpr rectangle(rectangle const & other)
+			: m_data{ other.m_data }
+		{
+		}
+
+		constexpr rectangle(rectangle && other) noexcept
+		{
+			this->swap(std::move(other));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		constexpr rectangle & operator=(rectangle const & other)
+		{
+			rectangle temp{ other };
+			this->swap(temp);
+			return (*this);
+		}
+
+		constexpr rectangle & operator=(rectangle && other) noexcept
+		{
+			this->swap(std::move(other));
+			return (*this);
+		}
+
+		constexpr void swap(rectangle & other) noexcept
+		{
+			if (this != std::addressof(other))
+			{
+				m_data.swap(other.m_data);
+			}
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr vec2 & min() noexcept { return *(vec2 *)&m_data[0]; }
+
+		ML_NODISCARD constexpr vec2 const & min() const noexcept { return *(vec2 const *)&m_data[0]; }
+
+		constexpr vec2 & min(vec2 const & value) noexcept { return min() = value; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr vec2 & max() noexcept { return *(vec2 *)&m_data[2]; }
+
+		ML_NODISCARD constexpr vec2 const & max() const noexcept { return *(vec2 const *)&m_data[2]; }
+
+		constexpr vec2 & max(vec2 const & value) noexcept { return max() = value; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	private:
+		vec4 m_data;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+}
 
 #endif // !_ML_RECT_HPP_

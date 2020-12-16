@@ -128,7 +128,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Ev
-		> void fire_event(Ev && value) noexcept
+		> void broadcast(Ev && value) noexcept
 		{
 			for (auto & p : m_data.get<plugin_instance>())
 			{
@@ -137,40 +137,38 @@ namespace ml
 		}
 
 		template <class Ev, class ... Args
-		> void fire_event(Args && ... args) noexcept
+		> void broadcast(Args && ... args) noexcept
 		{
-			this->fire_event(Ev{ ML_forward(args)... });
+			this->broadcast(Ev{ ML_forward(args)... });
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		template <class Ev
-		> void send_event(size_t i, Ev && value) noexcept
+		> void send(size_t i, Ev && value) noexcept
 		{
 			m_data.at<plugin_instance>(i)->on_event(ML_forward(value));
 		}
 
 		template <class Ev, class ... Args
-		> void send_event(size_t i, Args && ... args) noexcept
+		> void send(size_t i, Args && ... args) noexcept
 		{
 			m_data.at<plugin_instance>(i)->on_event(Ev{ ML_forward(args)... });
 		}
 
 		template <class Ev
-		> void send_event(plugin_id id, Ev && value) noexcept
+		> void send(plugin_id id, Ev && value) noexcept
 		{
 			if (size_t const i{ m_data.lookup<plugin_id>(id) }; i != m_data.npos)
 			{
-				this->send_event(i, ML_forward(value));
+				this->send(i, ML_forward(value));
 			}
 		}
 
 		template <class Ev, class ... Args
-		> void send_event(plugin_id id, Args && ... args) noexcept
+		> void send(plugin_id id, Args && ... args) noexcept
 		{
 			if (size_t const i{ m_data.lookup<plugin_id>(id) }; i != m_data.npos)
 			{
-				this->send_event<Ev>(i, ML_forward(args)...);
+				this->send<Ev>(i, ML_forward(args)...);
 			}
 		}
 

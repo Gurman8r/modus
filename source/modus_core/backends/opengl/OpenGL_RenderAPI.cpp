@@ -502,17 +502,17 @@ namespace ml::gfx
 
 	void opengl_render_context::upload(uniform_id loc, mat2f const & value)
 	{
-		ML_glCheck(ML_glUniformMatrix2fv(ML_handle(int32, loc), false, value));
+		ML_glCheck(ML_glUniformMatrix2fv(ML_handle(int32, loc), 1, false, value));
 	}
 
 	void opengl_render_context::upload(uniform_id loc, mat3f const & value)
 	{
-		ML_glCheck(ML_glUniformMatrix3fv(ML_handle(int32, loc), false, value));
+		ML_glCheck(ML_glUniformMatrix3fv(ML_handle(int32, loc), 1, false, value));
 	}
 
 	void opengl_render_context::upload(uniform_id loc, mat4f const & value)
 	{
-		ML_glCheck(ML_glUniformMatrix4fv(ML_handle(int32, loc), false, value));
+		ML_glCheck(ML_glUniformMatrix4fv(ML_handle(int32, loc), 1, false, value));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -44,11 +44,11 @@ namespace ml
 		{
 			return nullptr;
 		}
-		else if (plugin * const p{ get_data<plugin_installer>().back().create(this, userptr) })
+		else if (plugin * const p{ m_data.back<plugin_installer>().create(this, userptr) })
 		{
-			get_data<plugin_instance>().back().reset(p);
+			m_data.back<plugin_instance>().reset(p);
 
-			return get_data<plugin_id>().back();
+			return m_data.back<plugin_id>();
 		}
 		else
 		{

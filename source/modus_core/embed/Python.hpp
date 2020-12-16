@@ -119,19 +119,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <py::eval_mode Mode = py::eval_expr, size_t N
-		> ML_NODISCARD py::object eval(const char (&expr)[N], py::object global = py::globals(), py::object local = {}) noexcept
+		> py::object eval(const char (&expr)[N], py::object global = py::globals(), py::object local = {}) noexcept
 		{
 			return py::eval<Mode>(expr, global, local);
 		}
 
 		template <py::eval_mode Mode = py::eval_expr
-		> ML_NODISCARD py::object eval(py::str expr, py::object global = py::globals(), py::object local = {}) noexcept
+		> py::object eval(py::str expr, py::object global = py::globals(), py::object local = {}) noexcept
 		{
 			return py::eval<Mode>(expr, global, local);
 		}
 
 		template <py::eval_mode Mode = py::eval_expr, ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)
-		> ML_NODISCARD py::object eval(Str const & expr, py::object global = py::globals(), py::object local = {}) noexcept
+		> py::object eval(Str const & expr, py::object global = py::globals(), py::object local = {}) noexcept
 		{
 			return py::eval<Mode>(py::str{ expr.data(), expr.size() }, global, local);
 		}

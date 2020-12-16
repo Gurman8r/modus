@@ -91,6 +91,8 @@ namespace ml
 	ML_alias	uintmax_t	= typename uint64		; // 
 #endif
 	
+	ML_alias	double_t	= typename float64		; // 
+	ML_alias	float_t		= typename float32		; // 
 	ML_alias	hash_t		= typename uintmax_t	; // 
 	ML_alias	intptr_t	= typename intmax_t		; // 
 	ML_alias	ptrdiff_t	= typename intmax_t		; // 

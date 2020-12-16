@@ -1,7 +1,7 @@
 #include <modus_core/imgui/ImGui.hpp>
 #include <modus_core/graphics/RenderWindow.hpp>
 #include <modus_core/detail/FileUtility.hpp>
-#include <modus_core/detail/ParserUtil.hpp>
+#include <modus_core/detail/ParserUtility.hpp>
 
 // GLFW
 #ifdef ML_IMPL_WINDOW_GLFW

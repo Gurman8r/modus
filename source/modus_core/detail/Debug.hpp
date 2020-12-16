@@ -25,13 +25,17 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // assert implementation
-#ifndef ML_IMPL_ASSERT
-#define ML_IMPL_ASSERT _wassert
+#ifndef ML_IMPL_WASSERT
+#define ML_IMPL_WASSERT _wassert
 #endif
 
 // assert extended
 #define ML_assert_ext(expr, msg, file, line) \
-	(void)((!!(expr)) || (ML_IMPL_ASSERT(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
+	(void)((!!(expr)) || (ML_IMPL_WASSERT(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
+
+// verify
+#define ML_verify(expr) \
+	ML_assert_ext(expr, ML_to_string(expr), __FILE__, __LINE__)
 
 // assert
 #define ML_assert(expr) \

@@ -16,6 +16,11 @@ namespace ml
 		, m_library_paths	{ alloc }
 	{
 		ML_assert(begin_singleton<core_application>(this));
+
+		// configure
+		if (has_attr("app_name")) { set_app_name(attr("app_name")); }
+		if (has_attr("app_version")) { set_app_version(attr("app_version")); }
+		if (has_attr("library_paths")) { set_library_paths(attr("library_paths")); }
 	}
 
 	core_application::~core_application() noexcept

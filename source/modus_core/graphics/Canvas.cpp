@@ -77,7 +77,7 @@ namespace ml
 		m_shader = gfx::program::create({});
 		m_shader->attach(gfx::shader_type_vertex, g_vertex_shader);
 		m_shader->attach(gfx::shader_type_pixel, g_pixel_shader);
-		if (!m_shader->link()) { return debug::failure(m_shader->get_error_log()); }
+		if (!m_shader->link()) { return debug::failure(m_shader->get_info_log()); }
 
 		return true;
 	}

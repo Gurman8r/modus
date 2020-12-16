@@ -7,14 +7,21 @@
 
 namespace ml::gfx
 {
-	ML_alias program_source = ds::array<std::optional<ds::string>, shader_type_MAX>;
+	// program source
+	ML_alias program_source = ds::array
+	<
+		std::optional<ds::string>, shader_type_MAX
+	>;
 }
 
 namespace ml
 {
+	// shader parser (WIP)
 	class ML_CORE_API shader_parser final
 	{
 	public:
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		static bool parse(std::istream & in, gfx::program_source & out);
 
 		template <size_t N
@@ -36,32 +43,37 @@ namespace ml
 			return shader_parser::parse(f, out);
 		}
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		template <class In> static auto parse_program(In && in) -> ds::ref<gfx::program>
 		{
 			if (gfx::program_source src{}
 			; !shader_parser::parse(ML_forward(in), src)) { return nullptr; }
 			else
 			{
-				auto pgm{ gfx::make_program() };
+				auto temp{ gfx::program::create({}) };
 				for (size_t i = 0; i < src.size(); ++i)
 				{
 					if (src[i])
 					{
-						pgm->attach(i, *src[i]);
+						temp->attach(i, *src[i]);
 					}
 				}
-				if (!pgm->link())
+				if (!temp->link())
 				{
-					debug::warning(pgm->get_error_log());
+					debug::warning(temp->get_info_log());
 				}
-				return pgm;
+				return temp;
 			}
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
 namespace ml
 {
+	// shader library (WIP)
 	struct ML_CORE_API shader_library final
 	{
 		~shader_library() noexcept;

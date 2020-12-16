@@ -197,7 +197,7 @@ namespace ml
 
 		void set_focus_on_show(bool value) final;
 		
-		void set_icons(size_t w, size_t h, byte const * p, int32 n = 1) final;
+		void set_icons(int32 n, size_t w, size_t h, byte const * p) final;
 
 		void set_input_mode(int32 mode, int32 value) final;
 

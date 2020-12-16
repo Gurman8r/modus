@@ -216,13 +216,14 @@ namespace ml::ds
 		template <class U, size_t W, size_t H
 		> ML_NODISCARD constexpr operator matrix<U, W, H>() const noexcept
 		{
-			if constexpr (std::is_same_v<matrix<U, W, H>, self_type>)
+			using Other = matrix<U, W, H>;
+			if constexpr (std::is_same_v<Other, self_type>)
 			{
 				return (*this); // same type
 			}
 			else
 			{
-				matrix<U, W, H> temp{};
+				Other temp{};
 				if constexpr ((W == _Width) && (H == _Height))
 				{
 					// same dimensions
@@ -248,62 +249,6 @@ namespace ml::ds
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <size_t L, class U, glm::qualifier Q = glm::defaultp
-		> ML_NODISCARD operator glm::vec<L, U, Q>() const noexcept
-		{
-			using V = glm::vec<L, U, Q>;
-			if constexpr (std::is_same_v<value_type, U> && (_Width == L) && (_Height == 1))
-			{
-				return *((V *)this);
-			}
-			else if constexpr (util::is_trivially_convertible_v<V, self_type>)
-			{
-				return util::bit_cast<V>(*this);
-			}
-			else
-			{
-				V temp{};
-				for (size_t i = 0; i < L; ++i)
-				{
-					if (i < (_Width * _Height))
-					{
-						temp[i] = (U)this->at(i);
-					}
-				}
-				return temp;
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		template <size_t W, size_t H, class U, glm::qualifier Q = glm::defaultp
-		> ML_NODISCARD operator glm::mat<W, H, U, Q>() const noexcept
-		{
-			using M = glm::mat<W, H, U, Q>;
-			if constexpr (std::is_same_v<value_type, U> && (_Width == W) && (_Height == H))
-			{
-				return *((M *)this);
-			}
-			else if constexpr (util::is_trivially_convertible_v<M, self_type>)
-			{
-				return util::bit_cast<M>(*this);
-			}
-			else
-			{
-				M temp{};
-				for (size_t i = 0; i < (W * H); ++i)
-				{
-					if (size_t const x{ i % W }, y{ i / W }; (x < _Width) && (y < _Height))
-					{
-						temp[x][y] = (U)this->at(x, y);
-					}
-				}
-				return temp;
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		// define additional code
 #ifdef ML_MATRIX_CLASS_EXTRA
 		ML_MATRIX_CLASS_EXTRA
@@ -315,31 +260,31 @@ namespace ml::ds
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // GLM
 namespace ml::util
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	template <size_t L, class T, glm::qualifier Q = glm::defaultp
-	> ML_NODISCARD ds::matrix<T, L, 1> from_glm(glm::vec<L, T, Q> const & value)
+	> ML_NODISCARD ds::matrix<T, L, 1> glm_cast(glm::vec<L, T, Q> const & value)
 	{
 		return *((ds::matrix<T, L, 1> *)(glm::vec<L, T, Q> *)(&value));
 	}
 
 	template <size_t W, size_t H, class T, glm::qualifier Q = glm::defaultp
-	> ML_NODISCARD ds::matrix<T, W, H> from_glm(glm::mat<W, H, T, Q> const & value)
+	> ML_NODISCARD ds::matrix<T, W, H> glm_cast(glm::mat<W, H, T, Q> const & value)
 	{
 		return *((ds::matrix<T, W, H> *)(glm::mat<W, H, T, Q> *)(&value));
 	}
 
 	template <class T, glm::qualifier Q = glm::defaultp
-	> ML_NODISCARD ds::matrix<T, 4, 1> from_glm(glm::qua<T, Q> const & value)
+	> ML_NODISCARD ds::matrix<T, 4, 1> glm_cast(glm::qua<T, Q> const & value)
 	{
 		return *((ds::matrix<T, 4, 1> *)(glm::qua<T, Q> *)(&value));
 	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // ALIASES
 namespace ml

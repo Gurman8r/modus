@@ -96,9 +96,9 @@ namespace ml
 
 		ML_NODISCARD auto path_to(fs::path const & value) const noexcept -> fs::path
 		{
-			return m_library_paths.empty()
-				? value
-				: m_library_paths.front().native() + value.native();
+			return !m_library_paths.empty()
+				? m_library_paths.front().native() + value.native()
+				: value;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

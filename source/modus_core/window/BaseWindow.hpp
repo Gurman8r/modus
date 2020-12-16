@@ -40,6 +40,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD inline int_rect get_bounds() const noexcept
+		{
+			return { get_position(), get_size() };
+		}
+
 		ML_NODISCARD virtual window_callbacks const & get_callbacks() const = 0;
 
 		ML_NODISCARD virtual ds::string get_clipboard() const = 0;
@@ -125,7 +130,7 @@ namespace ml
 
 		virtual void set_focus_on_show(bool) = 0;
 
-		virtual void set_icons(size_t, size_t, byte const *, int32) = 0;
+		virtual void set_icons(int32, size_t, size_t, byte const *) = 0;
 
 		virtual void set_input_mode(int32, int32) = 0;
 
@@ -367,7 +372,7 @@ namespace ml
 
 		void set_focus_on_show(bool value) noexcept final { m_ptr->set_focus_on_show(value); }
 		
-		void set_icons(size_t w, size_t h, byte const * p, int32 n = 1) noexcept final { m_ptr->set_icons(w, h, p, n); }
+		void set_icons(int32 n, size_t w, size_t h, byte const * p) noexcept final { m_ptr->set_icons(n, w, h, p); }
 
 		void set_input_mode(int32 mode, int32 value) noexcept final { m_ptr->set_input_mode(mode, value); }
 		

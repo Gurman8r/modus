@@ -18,12 +18,10 @@ namespace ml
 	{
 		ML_assert(begin_singleton<gui_application>(this));
 
-		static ML_block(&)
+		static ML_block(&) // window backend
 		{
 			ML_assert(window_context::initialize());
-
-			window_context::set_error_callback([](int32 code, cstring desc)
-			{
+			window_context::set_error_callback([](int32 code, cstring desc) {
 				debug::failure("{0}: {1}", code, desc);
 			});
 		};
@@ -33,7 +31,7 @@ namespace ml
 			window_key_event,
 			window_mouse_event
 		>();
-
+		
 		m_loop.set_loop_condition(&main_window::is_open, &m_window);
 		m_loop.set_enter_callback([&]() { on_enter(); });
 		m_loop.set_exit_callback([&]() { on_exit(); });
@@ -147,7 +145,7 @@ namespace ml
 
 			ImGuizmo::BeginFrame();
 
-			dockspace->SetWindowFlag(ImGuiWindowFlags_MenuBar, menubar->GetWindow());
+			dockspace->SetWindowFlag(ImGuiWindowFlags_MenuBar, menubar->Get());
 
 			dockspace->Draw(context->Viewports[0], [&](auto) noexcept
 			{

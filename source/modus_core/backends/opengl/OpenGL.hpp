@@ -103,9 +103,9 @@
 #define ML_glUniform2f(loc, x, y)					glUniform2fARB( loc, x, y )
 #define ML_glUniform3f(loc, x, y, z)				glUniform3fARB( loc, x, y, z )
 #define ML_glUniform4f(loc, x, y, z, w)				glUniform4fARB( loc, x, y, z, w )
-#define ML_glUniformMatrix2fv(loc, transpose, ptr)	glUniformMatrix2fvARB( loc, 1, transpose, ptr )
-#define ML_glUniformMatrix3fv(loc, transpose, ptr)	glUniformMatrix3fvARB( loc, 1, transpose, ptr )
-#define ML_glUniformMatrix4fv(loc, transpose, ptr)	glUniformMatrix4fvARB( loc, 1, transpose, ptr )
+#define ML_glUniformMatrix2fv(l, n, transpose, ptr)	glUniformMatrix2fvARB( l, n, transpose, ptr )
+#define ML_glUniformMatrix3fv(l, n, transpose, ptr)	glUniformMatrix3fvARB( l, n, transpose, ptr )
+#define ML_glUniformMatrix4fv(l, n, transpose, ptr)	glUniformMatrix4fvARB( l, n, transpose, ptr )
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

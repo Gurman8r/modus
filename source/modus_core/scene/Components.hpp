@@ -21,7 +21,7 @@ namespace ml
 
 		ML_NODISCARD mat4 get_transform() const
 		{
-			return util::from_glm(
+			return util::glm_cast(
 				glm::translate(glm::mat4{ 1.f }, (glm::vec3)translation) *
 				glm::toMat4(glm::quat{ (glm::vec3)rotation }) *
 				glm::scale(glm::mat4{ 1.f }, (glm::vec3)scale));

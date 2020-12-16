@@ -1531,7 +1531,7 @@ namespace ml::gfx
 
 		virtual bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) = 0;
 
-		ML_NODISCARD virtual ds::string const & get_error_log() const noexcept = 0;
+		ML_NODISCARD virtual ds::string const & get_info_log() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<uint32, object_id> const & get_shaders() const noexcept = 0;
 

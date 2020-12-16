@@ -233,7 +233,7 @@ namespace ml::ImGuiExt
 			return ImGui::GetID(Title);
 		}
 
-		ML_NODISCARD auto GetWindow() const noexcept -> ImGuiWindow * {
+		ML_NODISCARD auto Get() const noexcept -> ImGuiWindow * {
 			return ImGui::FindWindowByName(Title);
 		}
 	};
@@ -251,8 +251,9 @@ namespace ml::ImGuiExt
 		template <class Fn, class ... Args
 		> bool Draw(Fn && fn, Args && ... args) noexcept
 		{
+			if (!IsOpen) { return false; }
 			ImGuiExt_ScopeID(this);
-			return IsOpen && ImGuiExt::BeginEnd
+			return ImGuiExt::BeginEnd
 			(
 				std::bind(&Panel::Begin, this),
 				std::bind(&Panel::End, this),
@@ -270,7 +271,14 @@ namespace ml::ImGuiExt
 	template <class Fn
 	> bool DrawSimpleOverlay(cstring title, bool * open = 0, int32 corner = 0, vec2 const & offset = { 10.f, 10.f }, float32 alpha = 0.35f, Fn fn = ([]() noexcept {}))
 	{
-		ImGuiWindowFlags window_flags{ ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav };
+		ImGuiWindowFlags window_flags{
+			ImGuiWindowFlags_NoDecoration |
+			ImGuiWindowFlags_NoDocking |
+			ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoNav
+		};
 		if (corner != -1)
 		{
 			window_flags |= ImGuiWindowFlags_NoMove;
@@ -361,7 +369,7 @@ namespace ml::ImGuiExt
 			return ImGui::GetID(Title);
 		}
 
-		ML_NODISCARD auto GetWindow() const noexcept -> ImGuiWindow * {
+		ML_NODISCARD auto Get() const noexcept -> ImGuiWindow * {
 			return ImGui::FindWindowByName(Title);
 		}
 
@@ -802,7 +810,7 @@ namespace ml::ImGuiExt
 // TRANSFORM
 namespace ml::ImGuiExt
 {
-	inline bool DrawVec3Control(cstring label, float32 * value, float32 reset_value = 0.f, float32 column_width = 100.f)
+	inline bool DrawVec3Control(cstring label, float32 * value, float32 reset_value = 0.f, float32 column_width = 100.f, cstring fmt = "%.3f")
 	{
 		bool dirty{};
 		ImGuiIO & io{ ImGui::GetIO() };
@@ -824,7 +832,7 @@ namespace ml::ImGuiExt
 		if (ImGui::Button("X", button_size)) { value[0] = reset_value; }
 		ImGui::PopStyleColor(3);
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##X", &value[0], 0.01f, 0.f, 0.f, "%.2f");
+		dirty |= ImGui::DragFloat("##X", &value[0], 0.01f, 0.f, 0.f, fmt);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -834,7 +842,7 @@ namespace ml::ImGuiExt
 		if (ImGui::Button("Y", button_size)) { value[1] = reset_value; }
 		ImGui::PopStyleColor(3);
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Y", &value[1], 0.01f, 0.f, 0.f, "%.2f");
+		dirty |= ImGui::DragFloat("##Y", &value[1], 0.01f, 0.f, 0.f, fmt);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
@@ -844,7 +852,7 @@ namespace ml::ImGuiExt
 		if (ImGui::Button("Z", button_size)) { value[2] = reset_value; }
 		ImGui::PopStyleColor(3);
 		ImGui::SameLine();
-		dirty |= ImGui::DragFloat("##Z", &value[2], 0.01f, 0.f, 0.f, "%.2f");
+		dirty |= ImGui::DragFloat("##Z", &value[2], 0.01f, 0.f, 0.f, fmt);
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();

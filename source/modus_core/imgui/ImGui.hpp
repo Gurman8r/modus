@@ -14,7 +14,7 @@
 		: x{ v[0] }, y{ v[1] }							\
 	{}													\
 	constexpr operator _ML vec2() const noexcept {		\
-		return { x, y };								\
+		return *(_ML vec2 *)&x;							\
 	}
 #endif
 
@@ -27,10 +27,10 @@
 		: x{ c[0] }, y{ c[1] }, z{ c[2] }, w{ c[3] }	\
 	{}													\
 	constexpr operator _ML vec4() const noexcept {		\
-		return { x, y, z, w };							\
+		return *(_ML vec4 *)&x;							\
 	}													\
 	constexpr operator _ML color() const noexcept {		\
-		return { x, y, z, w };							\
+		return *(_ML color *)&x;						\
 	}
 #endif
 

@@ -117,6 +117,10 @@ namespace ml
 		
 		ML_NODISCARD constexpr auto center() const noexcept -> coord_type { return (position() + (size() / (T)2)); }
 
+		ML_NODISCARD constexpr auto minimum() const noexcept -> coord_type { return position(); }
+		
+		ML_NODISCARD constexpr auto maximum() const noexcept -> coord_type { return position() + size(); }
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		constexpr auto left(value_type value) noexcept -> self_type & { m_data.at(0) = value; return (*this); }
@@ -136,6 +140,10 @@ namespace ml
 		constexpr auto size(coord_type const & value) noexcept -> self_type & { return width(value[0]).height(value[1]); }
 		
 		constexpr auto center(coord_type const & value) noexcept -> self_type & { return position(value - (size() / (T)2)); }
+
+		constexpr auto minimum(coord_type const & value) noexcept -> self_type & { return position(value); }
+
+		constexpr auto maximum(coord_type const & value) noexcept -> self_type & { return position(value - size()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

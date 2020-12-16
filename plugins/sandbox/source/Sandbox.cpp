@@ -25,6 +25,8 @@ namespace ml
 		enum
 		{
 			imgui_demo_panel,
+			imgui_metrics_panel,
+			imgui_about_panel,
 			browser_panel,
 			memory_panel,
 			settings_panel,
@@ -35,6 +37,8 @@ namespace ml
 		ImGuiExt::Panel m_panels[MAX_PANEL]
 		{
 			{ "Dear ImGui Demo", false },
+			{ "Dear ImGui Metrics", false },
+			{ "About Dear ImGui", false },
 			{ "browser", false, ImGuiWindowFlags_MenuBar },
 			{ "memory", false, ImGuiWindowFlags_MenuBar },
 			{ "settings", false, ImGuiWindowFlags_MenuBar },
@@ -138,7 +142,7 @@ namespace ml
 			// icon
 			if (bitmap const i{ get_app()->path_to("resource/modus_launcher.png"), false })
 			{
-				get_app()->get_window()->set_icons(i.width(), i.height(), i.data());
+				get_app()->get_window()->set_icons(1, i.width(), i.height(), i.data());
 			}
 
 			// textures
@@ -271,15 +275,22 @@ namespace ml
 			}
 			if (ImGui::BeginMenu("help")) {
 				ImGuiExt::MenuItem(m_panels + imgui_demo_panel);
+				ImGuiExt::MenuItem(m_panels + imgui_metrics_panel);
+				ImGuiExt::MenuItem(m_panels + imgui_about_panel);
 				ImGui::EndMenu();
 			}
 		}
 
 		void on_imgui_render(imgui_render_event const & ev)
 		{
-			// IMGUI DEMO
-			if (m_panels[imgui_demo_panel].IsOpen) {
+			if (m_panels[imgui_demo_panel].IsOpen) { // IMGUI DEMO
 				ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].IsOpen);
+			}
+			if (m_panels[imgui_metrics_panel].IsOpen) { // IMGUI METRICS
+				ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].IsOpen);
+			}
+			if (m_panels[imgui_about_panel].IsOpen) { // IMGUI ABOUT
+				ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].IsOpen);
 			}
 
 			draw_browser(ev);	// BROWSER
@@ -620,15 +631,6 @@ namespace ml
 			static ImGuiExt::SimpleOverlay debug_overlay{ "debug_overlay", true, -1, { 32, 32 }, .35f };
 			static ImGuiExt::TransformEditor xedit{};
 
-			main_window * const
-				window			{ get_app()->get_window() };
-			vec2 const
-				cursor_pos		{ (vec2)window->get_cursor_pos() },
-				window_pos		{ (vec2)window->get_position() },
-				window_size		{ (vec2)window->get_size() };
-			float_rect const
-				window_bounds	{ window_pos, window_size };
-
 			ImGuizmo::SetOrthographic(m_camera.is_orthographic());
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
@@ -797,10 +799,34 @@ namespace ml
 
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-				// viewport
-				float_rect const view_bounds{ (vec2)ev->Viewports[0]->GetWorkPos(), (vec2)ev->Viewports[0]->GetWorkSize() };
-				//float_rect const view_bounds{ ImGui::GetCursorPos(), ImGui::GetContentRegionAvail() };
-				m_viewport.set_bounds(view_bounds);
+				vec2 const mouse_pos{
+					(vec2)ev->IO.MousePos
+				};
+
+				ImGuiViewport * const main_viewport{
+					ev->Viewports[0]
+				};
+				float_rect const work_rect{
+					(vec2)main_viewport->GetWorkPos(),
+					(vec2)main_viewport->GetWorkSize()
+				};
+
+				ImGuiWindow * const current_window{
+					ev->CurrentWindow
+				};
+				float32 const titlebar_height{
+					current_window->TitleBarHeight()
+				};
+				float32 const menubar_height{
+					current_window->MenuBarHeight()
+				};
+				float_rect const view_rect{
+					work_rect.position() + vec2{ 0, titlebar_height + menubar_height },
+					work_rect.size() - vec2{ 0, titlebar_height + menubar_height }
+				};
+
+				// resize viewport
+				m_viewport.set_bounds(view_rect);
 
 				// main image
 				ImGui::Image(
@@ -810,19 +836,19 @@ namespace ml
 					colors::white,
 					colors::clear);
 
-				// overlay
-				debug_overlay.Draw([&
-					, fps	= get_app()->get_fps()
-					, input	= get_app()->get_input()
-				](auto o)
+				// debug overlay
+				debug_overlay.Draw([&](auto o)
 				{
-					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps->value, fps->value);
-					ImGui::Separator();
+					auto const fps{ ev->IO.Framerate };
+					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 					
-					if (!ImGui::IsMousePosValid()) { ImGui::Text("cursor pos: <invalid>"); }
-					else { ImGui::Text("cursor: (%.1f,%.1f)", input->cursor_pos[0], input->cursor_pos[1]); }
-					ImGui::Text("window: (%.1f,%.1f,%.1f,%.1f)", window_bounds[0], window_bounds[1], window_bounds[2], window_bounds[3]);
-					ImGui::Text("viewport: (%.1f,%.1f,%.1f,%.1f)", view_bounds[0], view_bounds[1], view_bounds[2], view_bounds[3]);
+					if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse: <invalid>"); }
+					else { ImGui::Text("mouse: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
+					
+					ImGui::Text("viewport: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
+					if (ImGui::IsItemHovered()) {
+						ImGui::GetForegroundDrawList()->AddRect(view_rect.minimum(), view_rect.maximum(), IM_COL32(255, 255, 0, 255));
+					}
 					
 					if (ImGui::BeginPopupContextWindow()) {
 						if (ImGui::MenuItem("custom", 0, o->Corner == -1)) { o->Corner = -1; }
@@ -840,7 +866,7 @@ namespace ml
 					view_matrix{ m_camera.get_view_matrix() },
 					proj_matrix{ m_camera.get_proj_matrix() };
 				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect(view_bounds[0], view_bounds[1], view_bounds[2], view_bounds[3]);
+				ImGuizmo::SetRect(view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
 				if (m_grid_enabled) {
 					ImGuizmo::DrawGrid(view_matrix, proj_matrix, m_grid_matrix, m_grid_size);
 				}

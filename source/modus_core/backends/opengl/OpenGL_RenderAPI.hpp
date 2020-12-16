@@ -606,7 +606,7 @@ namespace ml::gfx
 			return u;
 		}
 
-		ds::string const & get_error_log() const noexcept final { return m_error_log; }
+		ds::string const & get_info_log() const noexcept final { return m_error_log; }
 
 		ds::map<uint32, object_id> const & get_shaders() const noexcept final { return m_shaders; }
 

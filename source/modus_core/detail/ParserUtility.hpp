@@ -1,5 +1,5 @@
-#ifndef _ML_PARSER_UTIL_HPP_
-#define _ML_PARSER_UTIL_HPP_
+#ifndef _ML_PARSER_UTILITY_HPP_
+#define _ML_PARSER_UTILITY_HPP_
 
 #include <modus_core/detail/StringUtility.hpp>
 
@@ -263,4 +263,4 @@ namespace ml::util
 	}
 }
 
-#endif // !_ML_PARSER_UTIL_HPP_
+#endif // !_ML_PARSER_UTILITY_HPP_

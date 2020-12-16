@@ -502,7 +502,7 @@ namespace ml
 		glfwSetWindowAttrib(m_window, GLFW_FOCUS_ON_SHOW, value);
 	}
 
-	void glfw_window::set_icons(size_t w, size_t h, byte const * p, int32 n)
+	void glfw_window::set_icons(int32 n, size_t w, size_t h, byte const * p)
 	{
 		GLFWimage temp{ (int32)w, (int32)h, (byte *)p };
 

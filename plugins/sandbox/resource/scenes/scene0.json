@@ -1,0 +1,12 @@
+{
+    "entities":
+    [
+        {
+            "name": "test",
+            "type": "entity",
+            "uuid": 0,
+            "data": {
+            }
+        }
+    ]
+}

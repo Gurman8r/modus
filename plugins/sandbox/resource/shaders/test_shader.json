@@ -1,3 +1,20 @@
 {
-
+    "layout": [
+        { "name": "Position", "type": "float", "count": 3 },
+        { "name": "Normal", "type": "float", "count": 3 },
+        { "name": "Texcoord", "type": "float", "count": 2 }
+    ],
+    "properties": [
+        { "name": "Model", "type": "float", "count": 16 },
+        { "name": "View", "type": "float", "count": 16 },
+        { "name": "Proj", "type": "float", "count": 16 }
+    ],
+    "main": {
+        "vertex": [
+            ""
+        ],
+        "pixel": [
+            ""
+        ]
+    }
 }

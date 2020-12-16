@@ -2,6 +2,7 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#define ML_IMPL_GFX_CHECK
 #include "./OpenGL.hpp"
 #include "./OpenGL_RenderAPI.hpp"
 
@@ -90,6 +91,23 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	ds::ref<render_context> const & opengl_render_device::get_active_context() const noexcept
+	{
+		return m_context;
+	}
+
+	void opengl_render_device::set_active_context(ds::ref<render_context> const & value) noexcept
+	{
+		m_context = value;
+
+		ML_glCheck(glBindProgramPipeline
+		(
+			value ? ML_handle(uint32, value->get_handle()) : NULL
+		));
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	ds::ref<render_context> opengl_render_device::new_context(spec<render_context> const & desc, allocator_type alloc) noexcept
 	{
 		return m_objs.push_back<ds::unown<render_context>>(alloc_ref<opengl_render_context>(alloc, this, desc)).lock();
@@ -168,6 +186,24 @@ namespace ml::gfx
 		ML_glCheck(ML_glEnable(GL_MULTISAMPLE, desc.multisample));
 		ML_glCheck(ML_glEnable(GL_FRAMEBUFFER_SRGB, desc.srgb_capable));
 		ML_glCheck(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+
+		ML_glCheck(glGenProgramPipelines(1, &m_handle));
+		ML_glCheck(glBindProgramPipeline(m_handle));
+		ML_glCheck(glUseProgramStages(m_handle, shader_bit_all, NULL));
+	}
+
+	opengl_render_context::~opengl_render_context()
+	{
+		ML_glCheck(glDeleteProgramPipelines(1, &m_handle));
+	}
+
+	bool opengl_render_context::revalue()
+	{
+		if (m_handle) { ML_glCheck(glDeleteProgramPipelines(1, &m_handle)); }
+
+		ML_glCheck(glGenProgramPipelines(1, &m_handle));
+
+		return (bool)m_handle;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -462,10 +498,14 @@ namespace ml::gfx
 
 	void opengl_render_context::bind_shader(shader const * value)
 	{
-		ML_glCheck(glUseProgramStages(
-			m_handle,
-			GL_VERTEX_SHADER_BIT,
-			value ? ML_handle(uint32, value->get_handle()) : NULL));
+		if (value)
+		{
+			ML_glCheck(glUseProgramStages(m_handle, value->get_mask(), ML_handle(uint32, value->get_handle())));
+		}
+		else
+		{
+			ML_glCheck(glUseProgramStages(m_handle, shader_bit_all, NULL));
+		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1287,7 +1327,7 @@ namespace ml::gfx
 
 		if (m_handle)
 		{
-			ML_glCheck(ML_glDeleteProgram(m_handle));
+			ML_glCheck(glDeleteProgram(m_handle));
 			m_uniforms.clear(); m_textures.clear();
 		}
 
@@ -1295,31 +1335,30 @@ namespace ml::gfx
 		m_code = { str, str + count };
 
 		uint32 temp{};
-		ML_glCheck(temp = ML_glCreateShader(_shader_type<to_impl>(type)));
+		ML_glCheck(temp = glCreateShader(_shader_type<to_impl>(type)));
 		if (temp)
 		{
-			ML_glCheck(ML_glShaderSource(temp, (uint32)count, str, len));
-			ML_glCheck(ML_glCompileShader(temp));
+			ML_glCheck(glShaderSource(temp, (uint32)count, str, len));
+			ML_glCheck(glCompileShader(temp));
 
-			ML_glCheck(m_handle = ML_glCreateProgram());
+			ML_glCheck(m_handle = glCreateProgram());
 			if (m_handle)
 			{
 				int32 compiled{};
-				ML_glCheck(ML_glGetShaderCompileStatus(temp, &compiled));
+				ML_glCheck(glGetShaderiv(temp, GL_COMPILE_STATUS, &compiled));
 				ML_glCheck(glProgramParameteri(m_handle, GL_PROGRAM_SEPARABLE, true));
-				if (m_log.clear(); compiled)
+				if (compiled)
 				{
-					ML_glCheck(ML_glAttachShader(m_handle, temp));
-					ML_glCheck(ML_glLinkProgram(m_handle));
-					ML_glCheck(ML_glDetachShader(m_handle, temp));
+					ML_glCheck(glAttachShader(m_handle, temp));
+					ML_glCheck(glLinkProgram(m_handle));
+					ML_glCheck(glDetachShader(m_handle, temp));
 				}
 				else
 				{
 					gl_get_program_info_log(temp, m_log);
 				}
 			}
-
-			ML_glCheck(ML_glDeleteShader(temp));
+			ML_glCheck(glDeleteShader(temp));
 			return m_handle;
 		}
 		else

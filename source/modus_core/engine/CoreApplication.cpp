@@ -1,5 +1,4 @@
 #include <modus_core/engine/CoreApplication.hpp>
-#include <modus_core/engine/EngineEvents.hpp>
 
 namespace ml
 {

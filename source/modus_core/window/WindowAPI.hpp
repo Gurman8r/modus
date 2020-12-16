@@ -84,8 +84,6 @@ namespace ml
 	ML_alias window_char_mods_callback			= void(*)(window_handle, uint32, int32);
 	ML_alias window_close_callback				= void(*)(window_handle);
 	ML_alias window_content_scale_callback		= void(*)(window_handle, float32, float32);
-	ML_alias window_cursor_enter_callback		= void(*)(window_handle, int32);
-	ML_alias window_cursor_pos_callback			= void(*)(window_handle, float64, float64);
 	ML_alias window_drop_callback				= void(*)(window_handle, int32, cstring[]);
 	ML_alias window_error_callback				= void(*)(int32, cstring); // static error callback
 	ML_alias window_focus_callback				= void(*)(window_handle, int32);
@@ -93,7 +91,9 @@ namespace ml
 	ML_alias window_iconify_callback			= void(*)(window_handle, int32);
 	ML_alias window_key_callback				= void(*)(window_handle, int32, int32, int32, int32);
 	ML_alias window_maximize_callback			= void(*)(window_handle, int32);
-	ML_alias window_mouse_callback				= void(*)(window_handle, int32, int32, int32);
+	ML_alias window_mouse_button_callback		= void(*)(window_handle, int32, int32, int32);
+	ML_alias window_mouse_enter_callback		= void(*)(window_handle, int32);
+	ML_alias window_mouse_pos_callback			= void(*)(window_handle, float64, float64);
 	ML_alias window_position_callback			= void(*)(window_handle, int32, int32);
 	ML_alias window_refresh_callback			= void(*)(window_handle);
 	ML_alias window_resize_callback				= void(*)(window_handle, int32, int32);
@@ -106,15 +106,15 @@ namespace ml
 		window_char_mods_callback			on_char_mods			; // 
 		window_close_callback				on_close				; // 
 		window_content_scale_callback		on_content_scale		; // 
-		window_cursor_enter_callback		on_cursor_enter			; // 
-		window_cursor_pos_callback			on_cursor_pos			; // 
 		window_drop_callback				on_drop					; // 
 		window_focus_callback				on_focus				; // 
 		window_framebuffer_resize_callback	on_framebuffer_resize	; // 
 		window_iconify_callback				on_iconify				; // 
 		window_key_callback					on_key					; // 
 		window_maximize_callback			on_maximize				; // 
-		window_mouse_callback				on_mouse				; // 
+		window_mouse_button_callback		on_mouse_button			; // 
+		window_mouse_enter_callback			on_mouse_enter			; // 
+		window_mouse_pos_callback			on_mouse_pos			; // 
 		window_position_callback			on_position				; // 
 		window_refresh_callback				on_refresh				; // 
 		window_resize_callback				on_resize				; // 

@@ -175,7 +175,7 @@ namespace ml
 
 	struct ML_NODISCARD input_state final : trackable
 	{
-		vec2d			cursor_pos	; // cursor position
+		vec2d			mouse_pos	; // cursor position
 		keyboard_state	keyboard	; // keyboard state
 		mouse_state		mouse		; // mouse state
 

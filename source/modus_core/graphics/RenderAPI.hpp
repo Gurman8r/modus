@@ -72,28 +72,6 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual ds::list<ds::unown<render_context>> const & get_contexts() const noexcept = 0;
-
-		ML_NODISCARD virtual ds::list<ds::unown<vertexarray>> const & get_vertexarrays() const noexcept = 0;
-
-		ML_NODISCARD virtual ds::list<ds::unown<vertexbuffer>> const & get_vertexbuffers() const noexcept = 0;
-
-		ML_NODISCARD virtual ds::list<ds::unown<indexbuffer>> const & get_indexbuffers() const noexcept = 0;
-
-		ML_NODISCARD virtual ds::list<ds::unown<texture2d>> const & get_texture2ds() const noexcept = 0;
-
-		ML_NODISCARD virtual ds::list<ds::unown<texture3d>> const & get_texture3ds() const noexcept = 0;
-
-		ML_NODISCARD virtual ds::list<ds::unown<texturecube>> const & get_texturecubes() const noexcept = 0;
-
-		ML_NODISCARD virtual ds::list<ds::unown<framebuffer>> const & get_framebuffers() const noexcept = 0;
-
-		ML_NODISCARD virtual ds::list<ds::unown<program>> const & get_programs() const noexcept = 0;
-
-		ML_NODISCARD virtual ds::list<ds::unown<shader>> const & get_shaders() const noexcept = 0;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD virtual ds::ref<render_context> new_context(spec<render_context> const & desc, allocator_type alloc = {}) noexcept = 0;
 
 		ML_NODISCARD virtual ds::ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc = {}) noexcept = 0;
@@ -113,6 +91,28 @@ namespace ml::gfx
 		ML_NODISCARD virtual ds::ref<program> new_program(spec<program> const & desc, allocator_type alloc = {}) noexcept = 0;
 
 		ML_NODISCARD virtual ds::ref<shader> new_shader(spec<shader> const & desc, allocator_type alloc = {}) noexcept = 0;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD virtual ds::list<ds::unown<render_context>> const & get_contexts() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<vertexarray>> const & get_vertexarrays() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<vertexbuffer>> const & get_vertexbuffers() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<indexbuffer>> const & get_indexbuffers() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<texture2d>> const & get_texture2ds() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<texture3d>> const & get_texture3ds() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<texturecube>> const & get_texturecubes() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<framebuffer>> const & get_framebuffers() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<program>> const & get_programs() const noexcept = 0;
+
+		ML_NODISCARD virtual ds::list<ds::unown<shader>> const & get_shaders() const noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -187,7 +187,7 @@ namespace ml::gfx
 
 		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const &
 		{
-			return ML_check(m_parent)->get_active_context();
+			return m_parent->get_active_context();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -342,6 +342,8 @@ namespace ml::gfx
 		explicit render_context(render_device * parent) noexcept : render_object{ parent } {}
 
 		virtual ~render_context() override = default;
+
+		virtual bool revalue() = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -524,12 +526,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context().get())->bind_vertexarray(this);
+			get_context()->bind_vertexarray(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context().get())->bind_vertexarray(nullptr);
+			get_context()->bind_vertexarray(nullptr);
 		}
 	};
 
@@ -609,12 +611,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context().get())->bind_vertexbuffer(this);
+			get_context()->bind_vertexbuffer(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context().get())->bind_vertexbuffer(nullptr);
+			get_context()->bind_vertexbuffer(nullptr);
 		}
 	};
 
@@ -696,12 +698,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context().get())->bind_indexbuffer(this);
+			get_context()->bind_indexbuffer(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context().get())->bind_indexbuffer(nullptr);
+			get_context()->bind_indexbuffer(nullptr);
 		}
 	};
 
@@ -817,12 +819,12 @@ namespace ml::gfx
 	public:
 		inline void bind(uint32 slot = 0) const noexcept
 		{
-			ML_check(get_context().get())->bind_texture(this, slot);
+			get_context()->bind_texture(this, slot);
 		}
 
 		inline void unbind(uint32 slot = 0) const noexcept
 		{
-			ML_check(get_context().get())->bind_texture(nullptr, slot);
+			get_context()->bind_texture(nullptr, slot);
 		}
 	};
 }
@@ -1190,17 +1192,17 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context().get())->bind_framebuffer(this);
+			get_context()->bind_framebuffer(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context().get())->bind_framebuffer(nullptr);
+			get_context()->bind_framebuffer(nullptr);
 		}
 
 		inline void bind_texture(uint32 slot = 0) const noexcept
 		{
-			ML_check(get_context().get())->bind_texture
+			get_context()->bind_texture
 			(
 				get_color_attachments()[(size_t)slot].get(), slot
 			);
@@ -1291,12 +1293,12 @@ namespace ml::gfx
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context().get())->bind_program(this);
+			get_context()->bind_program(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context().get())->bind_program(nullptr);
+			get_context()->bind_program(nullptr);
 		}
 
 		inline void bind_textures() const noexcept
@@ -1321,7 +1323,7 @@ namespace ml::gfx
 				}
 				else
 				{
-					ML_check(get_context().get())->upload(loc, ML_forward(value));
+					get_context()->upload(loc, ML_forward(value));
 				}
 			});
 		}
@@ -1417,15 +1419,17 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual uint32 get_type() const noexcept = 0;
 
+		ML_NODISCARD virtual uint32 get_mask() const noexcept = 0;
+
 	public:
 		inline void bind() const noexcept
 		{
-			ML_check(get_context().get())->bind_shader(this);
+			get_context()->bind_shader(this);
 		}
 
 		inline void unbind() const noexcept
 		{
-			ML_check(get_context().get())->bind_shader(nullptr);
+			get_context()->bind_shader(nullptr);
 		}
 
 		inline void bind_textures() noexcept

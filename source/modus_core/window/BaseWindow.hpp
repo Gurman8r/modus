@@ -51,10 +51,6 @@ namespace ml
 
 		ML_NODISCARD virtual vec2 get_content_scale() const = 0;
 
-		ML_NODISCARD virtual int32 get_cursor_mode() const = 0;
-
-		ML_NODISCARD virtual vec2 get_cursor_pos() const = 0;
-
 		ML_NODISCARD virtual vec2i get_framebuffer_size() const = 0;
 
 		ML_NODISCARD virtual window_handle get_handle() const = 0;
@@ -71,6 +67,8 @@ namespace ml
 		ML_NODISCARD virtual int32 get_key(int32) const = 0;
 
 		ML_NODISCARD virtual int32 get_mouse_button(int32) const = 0;
+
+		ML_NODISCARD virtual vec2 get_mouse_pos() const = 0;
 
 		ML_NODISCARD virtual window_handle get_native_handle() const = 0;
 
@@ -122,7 +120,7 @@ namespace ml
 
 		virtual void set_cursor_mode(int32) = 0;
 
-		virtual void set_cursor_pos(vec2d const &) = 0;
+		virtual void set_mouse_pos(vec2d const &) = 0;
 
 		virtual void set_decorated(bool) = 0;
 
@@ -160,9 +158,9 @@ namespace ml
 		
 		ML_NODISCARD virtual window_content_scale_callback get_content_scale_callback() const = 0;
 		
-		ML_NODISCARD virtual window_cursor_enter_callback get_cursor_enter_callback() const = 0;
+		ML_NODISCARD virtual window_mouse_enter_callback get_mouse_enter_callback() const = 0;
 		
-		ML_NODISCARD virtual window_cursor_pos_callback get_cursor_pos_callback() const = 0;
+		ML_NODISCARD virtual window_mouse_pos_callback get_mouse_pos_callback() const = 0;
 		
 		ML_NODISCARD virtual window_drop_callback get_drop_callback() const = 0;
 		
@@ -176,7 +174,7 @@ namespace ml
 		
 		ML_NODISCARD virtual window_maximize_callback get_maximize_callback() const = 0;
 		
-		ML_NODISCARD virtual window_mouse_callback get_mouse_callback() const = 0;
+		ML_NODISCARD virtual window_mouse_button_callback get_mouse_button_callback() const = 0;
 		
 		ML_NODISCARD virtual window_position_callback get_position_callback() const = 0;
 		
@@ -196,9 +194,9 @@ namespace ml
 		
 		virtual window_content_scale_callback set_content_scale_callback(window_content_scale_callback) = 0;
 		
-		virtual window_cursor_enter_callback set_cursor_enter_callback(window_cursor_enter_callback) = 0;
+		virtual window_mouse_enter_callback set_mouse_enter_callback(window_mouse_enter_callback) = 0;
 		
-		virtual window_cursor_pos_callback set_cursor_pos_callback(window_cursor_pos_callback) = 0;
+		virtual window_mouse_pos_callback set_mouse_pos_callback(window_mouse_pos_callback) = 0;
 		
 		virtual window_drop_callback set_drop_callback(window_drop_callback) = 0;
 		
@@ -212,7 +210,7 @@ namespace ml
 		
 		virtual window_maximize_callback set_maximize_callback(window_maximize_callback) = 0;
 		
-		virtual window_mouse_callback set_mouse_callback(window_mouse_callback) = 0;
+		virtual window_mouse_button_callback set_mouse_button_callback(window_mouse_button_callback) = 0;
 		
 		virtual window_position_callback set_position_callback(window_position_callback) = 0;
 		
@@ -230,15 +228,15 @@ namespace ml
 			set_char_mods_callback			(nullptr);
 			set_close_callback				(nullptr);
 			set_content_scale_callback		(nullptr);
-			set_cursor_enter_callback		(nullptr);
-			set_cursor_pos_callback			(nullptr);
+			set_mouse_enter_callback		(nullptr);
+			set_mouse_pos_callback			(nullptr);
 			set_drop_callback				(nullptr);
 			set_focus_callback				(nullptr);
 			set_framebuffer_resize_callback	(nullptr);
 			set_iconify_callback			(nullptr);
 			set_key_callback				(nullptr);
 			set_maximize_callback			(nullptr);
-			set_mouse_callback				(nullptr);
+			set_mouse_button_callback				(nullptr);
 			set_position_callback			(nullptr);
 			set_refresh_callback			(nullptr);
 			set_resize_callback				(nullptr);
@@ -298,10 +296,6 @@ namespace ml
 
 		ML_NODISCARD vec2 get_content_scale() const noexcept final { return m_ptr->get_content_scale(); }
 
-		ML_NODISCARD int32 get_cursor_mode() const noexcept final { return m_ptr->get_cursor_mode(); }
-
-		ML_NODISCARD vec2 get_cursor_pos() const noexcept final { return m_ptr->get_cursor_pos(); }
-
 		ML_NODISCARD vec2i get_framebuffer_size() const noexcept final { return m_ptr->get_framebuffer_size(); }
 
 		ML_NODISCARD window_handle get_handle() const noexcept final { return m_ptr->get_handle(); }
@@ -313,6 +307,8 @@ namespace ml
 		ML_NODISCARD int32 get_key(int32 value) const noexcept final { return m_ptr->get_key(value); }
 
 		ML_NODISCARD int32 get_mouse_button(int32 value) const noexcept final { return m_ptr->get_mouse_button(value); }
+
+		ML_NODISCARD vec2 get_mouse_pos() const noexcept final { return m_ptr->get_mouse_pos(); }
 
 		ML_NODISCARD window_handle get_native_handle() const noexcept final { return m_ptr->get_native_handle(); }
 
@@ -364,7 +360,7 @@ namespace ml
 		
 		void set_cursor_mode(int32 value) noexcept final { m_ptr->set_cursor_mode(value); }
 		
-		void set_cursor_pos(vec2d const & value) noexcept final { m_ptr->set_cursor_pos(value); }
+		void set_mouse_pos(vec2d const & value) noexcept final { m_ptr->set_mouse_pos(value); }
 
 		void set_decorated(bool value) noexcept final { m_ptr->set_decorated(value); }
 
@@ -402,10 +398,6 @@ namespace ml
 		
 		ML_NODISCARD window_content_scale_callback get_content_scale_callback() const noexcept final { return m_ptr->get_content_scale_callback(); }
 		
-		ML_NODISCARD window_cursor_enter_callback get_cursor_enter_callback() const noexcept final { return m_ptr->get_cursor_enter_callback(); }
-		
-		ML_NODISCARD window_cursor_pos_callback get_cursor_pos_callback() const noexcept final { return m_ptr->get_cursor_pos_callback(); }
-		
 		ML_NODISCARD window_drop_callback get_drop_callback() const noexcept final { return m_ptr->get_drop_callback(); }
 		
 		ML_NODISCARD window_focus_callback get_focus_callback() const noexcept final { return m_ptr->get_focus_callback(); }
@@ -418,7 +410,11 @@ namespace ml
 		
 		ML_NODISCARD window_maximize_callback get_maximize_callback() const noexcept final { return m_ptr->get_maximize_callback(); }
 		
-		ML_NODISCARD window_mouse_callback get_mouse_callback() const noexcept final { return m_ptr->get_mouse_callback(); }
+		ML_NODISCARD window_mouse_button_callback get_mouse_button_callback() const noexcept final { return m_ptr->get_mouse_button_callback(); }
+
+		ML_NODISCARD window_mouse_enter_callback get_mouse_enter_callback() const noexcept final { return m_ptr->get_mouse_enter_callback(); }
+
+		ML_NODISCARD window_mouse_pos_callback get_mouse_pos_callback() const noexcept final { return m_ptr->get_mouse_pos_callback(); }
 		
 		ML_NODISCARD window_position_callback get_position_callback() const noexcept final { return m_ptr->get_position_callback(); }
 		
@@ -438,10 +434,6 @@ namespace ml
 		
 		window_content_scale_callback set_content_scale_callback(window_content_scale_callback value) noexcept final { return m_ptr->set_content_scale_callback(value); }
 		
-		window_cursor_enter_callback set_cursor_enter_callback(window_cursor_enter_callback value) noexcept final { return m_ptr->set_cursor_enter_callback(value); }
-		
-		window_cursor_pos_callback set_cursor_pos_callback(window_cursor_pos_callback value) noexcept final { return m_ptr->set_cursor_pos_callback(value); }
-		
 		window_drop_callback set_drop_callback(window_drop_callback value) noexcept final { return m_ptr->set_drop_callback(value); }
 		
 		window_focus_callback set_focus_callback(window_focus_callback value) noexcept final { return m_ptr->set_focus_callback(value); }
@@ -454,7 +446,11 @@ namespace ml
 		
 		window_maximize_callback set_maximize_callback(window_maximize_callback value) noexcept final { return m_ptr->set_maximize_callback(value); }
 		
-		window_mouse_callback set_mouse_callback(window_mouse_callback value) noexcept final { return m_ptr->set_mouse_callback(value); }
+		window_mouse_button_callback set_mouse_button_callback(window_mouse_button_callback value) noexcept final { return m_ptr->set_mouse_button_callback(value); }
+
+		window_mouse_enter_callback set_mouse_enter_callback(window_mouse_enter_callback value) noexcept final { return m_ptr->set_mouse_enter_callback(value); }
+
+		window_mouse_pos_callback set_mouse_pos_callback(window_mouse_pos_callback value) noexcept final { return m_ptr->set_mouse_pos_callback(value); }
 		
 		window_position_callback set_position_callback(window_position_callback value) noexcept final { return m_ptr->set_position_callback(value); }
 		

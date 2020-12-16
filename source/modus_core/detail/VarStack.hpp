@@ -10,7 +10,8 @@ namespace ml
 	enum var_type_
 	{
 		var_type_none,
-
+		var_type_int,
+		var_type_float,
 		var_type_MAX
 	};
 

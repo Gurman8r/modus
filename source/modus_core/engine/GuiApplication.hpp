@@ -48,11 +48,6 @@ namespace ml
 			return const_cast<fps_tracker *>(&m_fps_tracker);
 		}
 
-		ML_NODISCARD auto get_input() const noexcept -> input_state *
-		{
-			return const_cast<input_state *>(&m_input_state);
-		}
-
 		ML_NODISCARD auto get_loop() const noexcept -> loop_system *
 		{
 			return const_cast<loop_system *>(&m_loop);
@@ -82,7 +77,7 @@ namespace ml
 
 		void set_render_context(ds::ref<gfx::render_context> const & value) noexcept
 		{
-			m_render_device->set_active_context(value);
+			ML_check(m_render_device)->set_active_context(value);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -97,9 +92,9 @@ namespace ml
 			return const_cast<ImGuiExt::Dockspace *>(&m_dockspace);
 		}
 
-		ML_NODISCARD auto get_main_menu() const noexcept -> ImGuiExt::MainMenuBar *
+		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MainMenuBar *
 		{
-			return const_cast<ImGuiExt::MainMenuBar *>(&m_main_menu);
+			return const_cast<ImGuiExt::MainMenuBar *>(&m_menubar);
 		}
 
 		void set_imgui_context(ImGuiContext * value) noexcept
@@ -121,9 +116,8 @@ namespace ml
 		ds::scary<gfx::render_device>	m_render_device	; // render device
 		ds::scary<ImGuiContext>			m_imgui_context	; // imgui context
 		ImGuiExt::Dockspace				m_dockspace		; // main dockspace
-		ImGuiExt::MainMenuBar			m_main_menu		; // main menubar
+		ImGuiExt::MainMenuBar			m_menubar		; // main menubar
 		fps_tracker						m_fps_tracker	; // fps tracker
-		input_state						m_input_state	; // input state
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

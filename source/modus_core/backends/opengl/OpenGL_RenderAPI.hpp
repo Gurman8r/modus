@@ -54,39 +54,9 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::ref<render_context> const & get_active_context() const noexcept final
-		{
-			return m_context;
-		}
+		ds::ref<render_context> const & get_active_context() const noexcept final;
 
-		void set_active_context(ds::ref<render_context> const & value) noexcept final
-		{
-			if (m_context != value) {
-				m_context = value;
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ds::list<ds::unown<render_context>> const & get_contexts() const noexcept final { return m_objs.get<ds::unown<render_context>>(); }
-
-		ds::list<ds::unown<vertexarray>> const & get_vertexarrays() const noexcept { return m_objs.get<ds::unown<vertexarray>>(); }
-
-		ds::list<ds::unown<vertexbuffer>> const & get_vertexbuffers() const noexcept { return m_objs.get<ds::unown<vertexbuffer>>(); }
-
-		ds::list<ds::unown<indexbuffer>> const & get_indexbuffers() const noexcept { return m_objs.get<ds::unown<indexbuffer>>(); }
-
-		ds::list<ds::unown<texture2d>> const & get_texture2ds() const noexcept { return m_objs.get<ds::unown<texture2d>>(); }
-
-		ds::list<ds::unown<texture3d>> const & get_texture3ds() const noexcept { return m_objs.get<ds::unown<texture3d>>(); }
-
-		ds::list<ds::unown<texturecube>> const & get_texturecubes() const noexcept { return m_objs.get<ds::unown<texturecube>>(); }
-
-		ds::list<ds::unown<framebuffer>> const & get_framebuffers() const noexcept { return m_objs.get<ds::unown<framebuffer>>(); }
-
-		ds::list<ds::unown<program>> const & get_programs() const noexcept { return m_objs.get<ds::unown<program>>(); }
-
-		ds::list<ds::unown<shader>> const & get_shaders() const noexcept { return m_objs.get<ds::unown<shader>>(); }
+		void set_active_context(ds::ref<render_context> const & value) noexcept final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -109,6 +79,28 @@ namespace ml::gfx
 		ds::ref<program> new_program(spec<program> const & desc, allocator_type alloc) noexcept final;
 
 		ds::ref<shader> new_shader(spec<shader> const & desc, allocator_type alloc) noexcept final;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ds::list<ds::unown<render_context>> const & get_contexts() const noexcept final { return m_objs.get<ds::unown<render_context>>(); }
+
+		ds::list<ds::unown<vertexarray>> const & get_vertexarrays() const noexcept { return m_objs.get<ds::unown<vertexarray>>(); }
+
+		ds::list<ds::unown<vertexbuffer>> const & get_vertexbuffers() const noexcept { return m_objs.get<ds::unown<vertexbuffer>>(); }
+
+		ds::list<ds::unown<indexbuffer>> const & get_indexbuffers() const noexcept { return m_objs.get<ds::unown<indexbuffer>>(); }
+
+		ds::list<ds::unown<texture2d>> const & get_texture2ds() const noexcept { return m_objs.get<ds::unown<texture2d>>(); }
+
+		ds::list<ds::unown<texture3d>> const & get_texture3ds() const noexcept { return m_objs.get<ds::unown<texture3d>>(); }
+
+		ds::list<ds::unown<texturecube>> const & get_texturecubes() const noexcept { return m_objs.get<ds::unown<texturecube>>(); }
+
+		ds::list<ds::unown<framebuffer>> const & get_framebuffers() const noexcept { return m_objs.get<ds::unown<framebuffer>>(); }
+
+		ds::list<ds::unown<program>> const & get_programs() const noexcept { return m_objs.get<ds::unown<program>>(); }
+
+		ds::list<ds::unown<shader>> const & get_shaders() const noexcept { return m_objs.get<ds::unown<shader>>(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -135,7 +127,9 @@ namespace ml::gfx
 	public:
 		opengl_render_context(render_device * parent, spec_type const & desc, allocator_type alloc);
 
-		~opengl_render_context() final = default;
+		~opengl_render_context() final;
+
+		bool revalue() final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -202,7 +196,7 @@ namespace ml::gfx
 		void bind_framebuffer(framebuffer const * value) final;
 
 		void bind_program(program const * value) final;
-
+		
 		void bind_shader(shader const * value) final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -696,6 +690,15 @@ namespace ml::gfx
 		ds::map<uniform_id, ds::ref<texture>> const & get_textures() const noexcept final { return m_textures; }
 
 		uint32 get_type() const noexcept final { return m_type; }
+
+		uint32 get_mask() const noexcept final
+		{
+			uint32 mask{};
+			ML_flag_write(mask, shader_bit_vertex	, m_type == shader_type_vertex);
+			ML_flag_write(mask, shader_bit_pixel	, m_type == shader_type_pixel);
+			ML_flag_write(mask, shader_bit_geometry	, m_type == shader_type_geometry);
+			return mask;
+		}
 
 	protected:
 		void do_cache(uniform_id loc, ds::ref<texture> const & value) final

@@ -1,7 +1,8 @@
 #include <modus_core/engine/Application.hpp>
-#include <modus_core/engine/EngineEvents.hpp>
-#include <modus_core/window/WindowEvents.hpp>
-#include <modus_core/imgui/ImGuiEvents.hpp>
+#include <modus_core/events/InputEvents.hpp>
+#include <modus_core/events/WindowEvents.hpp>
+#include <modus_core/events/EngineEvents.hpp>
+#include <modus_core/events/ImGuiEvents.hpp>
 
 namespace ml
 {
@@ -19,14 +20,14 @@ namespace ml
 			app_enter_event,
 			app_exit_event,
 			app_idle_event,
-			imgui_dockspace_event,
-			imgui_menubar_event,
+			dock_builder_event,
+			main_menu_bar_event,
 			imgui_begin_event,
 			imgui_render_event,
 			imgui_end_event,
-			window_cursor_pos_event,
-			window_key_event,
-			window_mouse_event
+			key_event,
+			mouse_button_event,
+			mouse_pos_event
 		>();
 	}
 
@@ -54,12 +55,12 @@ namespace ml
 			auto && ev{ (app_idle_event &&)value };
 		} break;
 
-		case imgui_dockspace_event::ID: {
-			auto && ev{ (imgui_dockspace_event &&)value };
+		case dock_builder_event::ID: {
+			auto && ev{ (dock_builder_event &&)value };
 		} break;
 
-		case imgui_menubar_event::ID: {
-			auto && ev{ (imgui_menubar_event &&)value };
+		case main_menu_bar_event::ID: {
+			auto && ev{ (main_menu_bar_event &&)value };
 		} break;
 
 		case imgui_begin_event::ID: {
@@ -74,16 +75,16 @@ namespace ml
 			auto && ev{ (imgui_end_event &&)value };
 		} break;
 
-		case window_cursor_pos_event::ID: {
-			auto && ev{ (window_cursor_pos_event &&)value };
+		case key_event::ID: {
+			auto && ev{ (key_event &&)value };
 		} break;
 
-		case window_key_event::ID: {
-			auto && ev{ (window_key_event &&)value };
+		case mouse_button_event::ID: {
+			auto && ev{ (mouse_button_event &&)value };
 		} break;
 
-		case window_mouse_event::ID: {
-			auto && ev{ (window_mouse_event &&)value };
+		case mouse_pos_event::ID: {
+			auto && ev{ (mouse_pos_event &&)value };
 		} break;
 		}
 	}

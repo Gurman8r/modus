@@ -11,26 +11,6 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// IMGUI DOCKSPACE
-	ML_event(imgui_dockspace_event)
-	{
-		ImGuiExt::Dockspace * const p;
-		auto operator->() const noexcept { return p; }
-		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_dockspace_event(ImGuiExt::Dockspace * const p) noexcept : p{ p } {}
-	};
-
-	// IMGUI MENUBAR
-	ML_event(imgui_menubar_event)
-	{
-		ImGuiExt::MainMenuBar * const p;
-		auto operator->() const noexcept { return p; }
-		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_menubar_event(ImGuiExt::MainMenuBar * const p) noexcept : p{ p } {}
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	// IMGUI BEGIN
 	ML_event(imgui_begin_event)
 	{
@@ -56,6 +36,26 @@ namespace ml
 		auto operator->() const noexcept { return p; }
 		auto & operator*() const noexcept { return *p; }
 		constexpr imgui_end_event(ImGuiContext * const p) noexcept : p{ p } {}
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// DOCK BUILDER
+	ML_event(dock_builder_event)
+	{
+		ImGuiExt::Dockspace * const p;
+		auto operator->() const noexcept { return p; }
+		auto & operator*() const noexcept { return *p; }
+		constexpr dock_builder_event(ImGuiExt::Dockspace * const p) noexcept : p{ p } {}
+	};
+
+	// MAIN MENU BAR
+	ML_event(main_menu_bar_event)
+	{
+		ImGuiExt::MainMenuBar * const p;
+		auto operator->() const noexcept { return p; }
+		auto & operator*() const noexcept { return *p; }
+		constexpr main_menu_bar_event(ImGuiExt::MainMenuBar * const p) noexcept : p{ p } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

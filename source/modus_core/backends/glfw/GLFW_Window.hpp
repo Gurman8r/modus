@@ -123,10 +123,6 @@ namespace ml
 
 		vec2 get_content_scale() const final;
 
-		int32 get_cursor_mode() const final;
-
-		vec2 get_cursor_pos() const final;
-
 		vec2i get_framebuffer_size() const final;
 
 		window_handle get_handle() const final;
@@ -138,6 +134,8 @@ namespace ml
 		int32 get_key(int32 key) const final;
 
 		int32 get_mouse_button(int32 button) const final;
+
+		vec2 get_mouse_pos() const final;
 
 		window_handle get_native_handle() const final;
 
@@ -189,7 +187,7 @@ namespace ml
 		
 		void set_cursor_mode(int32 value) final;
 		
-		void set_cursor_pos(vec2d const & value) final;
+		void set_mouse_pos(vec2d const & value) final;
 
 		void set_decorated(bool value) final;
 
@@ -227,10 +225,6 @@ namespace ml
 		
 		window_content_scale_callback get_content_scale_callback() const final;
 		
-		window_cursor_enter_callback get_cursor_enter_callback() const final;
-		
-		window_cursor_pos_callback get_cursor_pos_callback() const final;
-		
 		window_drop_callback get_drop_callback() const final;
 		
 		window_focus_callback get_focus_callback() const final;
@@ -243,7 +237,11 @@ namespace ml
 		
 		window_maximize_callback get_maximize_callback() const final;
 		
-		window_mouse_callback get_mouse_callback() const final;
+		window_mouse_button_callback get_mouse_button_callback() const final;
+
+		window_mouse_enter_callback get_mouse_enter_callback() const final;
+
+		window_mouse_pos_callback get_mouse_pos_callback() const final;
 		
 		window_position_callback get_position_callback() const final;
 		
@@ -263,10 +261,6 @@ namespace ml
 		
 		window_content_scale_callback set_content_scale_callback(window_content_scale_callback value) final;
 		
-		window_cursor_enter_callback set_cursor_enter_callback(window_cursor_enter_callback value) final;
-		
-		window_cursor_pos_callback set_cursor_pos_callback(window_cursor_pos_callback value) final;
-		
 		window_drop_callback set_drop_callback(window_drop_callback value) final;
 		
 		window_focus_callback set_focus_callback(window_focus_callback value) final;
@@ -279,7 +273,11 @@ namespace ml
 		
 		window_maximize_callback set_maximize_callback(window_maximize_callback value) final;
 		
-		window_mouse_callback set_mouse_callback(window_mouse_callback value) final;
+		window_mouse_button_callback set_mouse_button_callback(window_mouse_button_callback value) final;
+
+		window_mouse_enter_callback set_mouse_enter_callback(window_mouse_enter_callback value) final;
+
+		window_mouse_pos_callback set_mouse_pos_callback(window_mouse_pos_callback value) final;
 		
 		window_position_callback set_position_callback(window_position_callback value) final;
 		

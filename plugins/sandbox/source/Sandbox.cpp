@@ -1,19 +1,4 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-#include <modus_core/detail/FileUtility.hpp>
-#include <modus_core/detail/StreamSniper.hpp>
-#include <modus_core/engine/Application.hpp>
-#include <modus_core/engine/PluginManager.hpp>
-#include <modus_core/graphics/Material.hpp>
-#include <modus_core/graphics/Mesh.hpp>
-#include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/scene/Components.hpp>
-
-#include <modus_core/engine/EngineEvents.hpp>
-#include <modus_core/window/WindowEvents.hpp>
-#include <modus_core/imgui/ImGuiEvents.hpp>
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+#include "./Sandbox.hpp"
 
 namespace ml
 {
@@ -42,7 +27,7 @@ namespace ml
 			{ "browser", false, ImGuiWindowFlags_MenuBar },
 			{ "memory", false, ImGuiWindowFlags_MenuBar },
 			{ "settings", false, ImGuiWindowFlags_MenuBar },
-			{ "terminal", false, ImGuiWindowFlags_MenuBar },
+			{ "terminal", true, ImGuiWindowFlags_MenuBar },
 			{ "viewport", true, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar },
 		};
 
@@ -57,6 +42,7 @@ namespace ml
 		ds::ref<scene> m_active_scene{}; // active scene
 		ds::hashmap<ds::string, ds::ref<gfx::texture>> m_textures{}; // textures
 		ds::hashmap<ds::string, ds::ref<gfx::program>> m_programs{}; // programs
+		ds::hashmap<ds::string, ds::ref<gfx::shader>> m_shaders{}; // shaders
 		ds::hashmap<ds::string, ds::ref<mesh>> m_meshes{}; // meshes
 
 		// rendering
@@ -111,12 +97,12 @@ namespace ml
 				app_enter_event,
 				app_exit_event,
 				app_idle_event,
-				imgui_dockspace_event,
-				imgui_menubar_event,
+				dock_builder_event,
+				main_menu_bar_event,
 				imgui_render_event,
-				window_cursor_pos_event,
-				window_key_event,
-				window_mouse_event
+				key_event,
+				mouse_button_event,
+				mouse_pos_event
 			>();
 		}
 
@@ -127,12 +113,12 @@ namespace ml
 			case app_enter_event		::ID: return on_app_enter((app_enter_event const &)value);
 			case app_exit_event			::ID: return on_app_exit((app_exit_event const &)value);
 			case app_idle_event			::ID: return on_app_idle((app_idle_event const &)value);
-			case imgui_dockspace_event	::ID: return on_imgui_dockspace((imgui_dockspace_event const &)value);
-			case imgui_menubar_event	::ID: return on_imgui_menubar((imgui_menubar_event const &)value);
+			case dock_builder_event		::ID: return on_dock_builder((dock_builder_event const &)value);
+			case main_menu_bar_event	::ID: return on_main_menu_bar((main_menu_bar_event const &)value);
 			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event const &)value);
-			case window_cursor_pos_event::ID: return on_window_cursor_pos((window_cursor_pos_event const &)value);
-			case window_key_event		::ID: return on_window_key((window_key_event const &)value);
-			case window_mouse_event		::ID: return on_window_mouse((window_mouse_event const &)value);
+			case key_event				::ID: return on_key((key_event const &)value);
+			case mouse_button_event		::ID: return on_mouse_button((mouse_button_event const &)value);
+			case mouse_pos_event		::ID: return on_mouse_pos((mouse_pos_event const &)value);
 			}
 		}
 
@@ -152,6 +138,15 @@ namespace ml
 			m_textures["earth_dm_2k"] = gfx::texture2d::create(path2("assets/textures/earth/earth_dm_2k.png"), gfx::texture_flags_default);
 			m_textures["earth_sm_2k"] = gfx::texture2d::create(path2("assets/textures/earth/earth_sm_2k.png"), gfx::texture_flags_default);
 
+			// shaders
+			if (gfx::program_source src{}
+			; shader_parser::parse(path2("plugins/sandbox/resource/shaders/basic_3D.shader"), src))
+			{
+				if (src[0]) m_shaders["v"] = gfx::shader::create({ 0, { *src[0] } });
+				if (src[1]) m_shaders["p"] = gfx::shader::create({ 1, { *src[1] } });
+				if (src[2]) m_shaders["g"] = gfx::shader::create({ 2, { *src[2] } });
+			}
+			
 			// programs
 			m_programs["2D"] = shader_parser::make_program(path2("plugins/sandbox/resource/shaders/basic_2D.shader"));
 			m_programs["3D"] = shader_parser::make_program(path2("plugins/sandbox/resource/shaders/basic_3D.shader"));
@@ -201,9 +196,9 @@ namespace ml
 				gfx::command::clear(m_camera.get_clear_flags()),
 				[&](gfx::render_context * ctx)
 				{
-					static auto & p{ m_programs["3D"] };
-					static auto & t{ m_textures["earth_dm_2k"] };
-					static auto & m{ m_meshes["sphere32x24"] };
+					static auto const & p{ m_programs["3D"] };
+					static auto const & t{ m_textures["earth_dm_2k"] };
+					static auto const & m{ m_meshes["sphere32x24"] };
 					p->bind();
 					p->set_uniform("u_model", m_object_matrix[0]);
 					p->set_uniform("u_view", m_camera.get_view_matrix());
@@ -220,12 +215,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_imgui_dockspace(imgui_dockspace_event const & ev)
+		void on_dock_builder(dock_builder_event const & ev)
 		{
 			ev->DockWindow(m_panels + viewport_panel, ev->GetID());
 		}
 
-		void on_imgui_menubar(imgui_menubar_event const & ev)
+		void on_main_menu_bar(main_menu_bar_event const & ev)
 		{
 			if (ImGui::BeginMenu("file")) {
 				if (ImGui::MenuItem("new", "ctrl+n")) {}
@@ -532,7 +527,7 @@ namespace ml
 				// help
 				m_term.AddCommand("help", {}, [&](auto line) {
 					for (auto const & name : m_term.Commands.get<0>()) {
-						debug::puts("- {0}", name);
+						debug::puts("/{0}", name);
 					}
 				});
 
@@ -830,17 +825,21 @@ namespace ml
 			// overlay
 			debug_overlay.Draw([&](auto o) noexcept
 			{
+				static auto const & info{ get_app()->get_render_device()->get_info() };
+				ImGui::Text(info.vendor.c_str()); ImGuiExt::Tooltip("vendor");
+				ImGui::Text(info.renderer.c_str()); ImGuiExt::Tooltip("renderer");
+				ImGui::Text(info.version.c_str()); ImGuiExt::Tooltip("version");
+				ImGui::Separator();
+
 				float32 const fps{ get_app()->get_fps()->value };
 				ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
-				ImGui::Separator();
 
-				vec2 const cursor_pos{ (vec2)get_app()->get_window()->get_cursor_pos() };
-				if (!ImGui::IsMousePosValid((ImVec2 *)&cursor_pos)) { ImGui::Text("cursor pos: <invalid>"); }
-				else { ImGui::Text("cursor pos: (%.1f,%.1f)", cursor_pos[0], cursor_pos[1]); }
-				ImGui::Separator();
+				vec2 const mouse_pos{ (vec2)get_app()->get_window()->get_mouse_pos() };
+				if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse pos: <invalid>"); }
+				else { ImGui::Text("mouse pos: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
 
 				float_rect const view_rect{ m_viewport.get_rect() };
-				ImGui::Text("viewport: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
+				ImGui::Text("view rect: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
 				if (ImGui::IsItemHovered()) {
 					ImGui::GetForegroundDrawList()->AddRect(view_rect.min(), view_rect.max(), IM_COL32(255, 155, 0, 255));
 				}
@@ -859,15 +858,15 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_window_cursor_pos(window_cursor_pos_event const & ev)
+		void on_key(key_event const & ev)
 		{
 		}
 
-		void on_window_key(window_key_event const & ev)
+		void on_mouse_button(mouse_button_event const & ev)
 		{
 		}
 
-		void on_window_mouse(window_mouse_event const & ev)
+		void on_mouse_pos(mouse_pos_event const & ev)
 		{
 		}
 

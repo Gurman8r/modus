@@ -1,7 +1,8 @@
 #include <modus_core/engine/GuiApplication.hpp>
-#include <modus_core/engine/EngineEvents.hpp>
-#include <modus_core/window/WindowEvents.hpp>
-#include <modus_core/imgui/ImGuiEvents.hpp>
+#include <modus_core/events/InputEvents.hpp>
+#include <modus_core/events/WindowEvents.hpp>
+#include <modus_core/events/EngineEvents.hpp>
+#include <modus_core/events/ImGuiEvents.hpp>
 
 namespace ml
 {
@@ -22,9 +23,8 @@ namespace ml
 		, m_render_device	{}
 		, m_imgui_context	{}
 		, m_dockspace		{}
-		, m_main_menu		{}
+		, m_menubar			{}
 		, m_fps_tracker		{}
-		, m_input_state		{}
 	{
 		ML_verify(begin_singleton<gui_application>(this));
 
@@ -38,22 +38,16 @@ namespace ml
 			});
 		};
 
-		subscribe<
-			window_cursor_pos_event,
-			window_key_event,
-			window_mouse_event
-		>();
-
-		m_loop.set_condition(&native_window::is_open, &m_window);
-		m_loop.set_enter_callback(&on_gui_app_enter, this);
-		m_loop.set_exit_callback(&on_gui_app_exit, this);
-		m_loop.set_idle_callback(&on_gui_app_idle, this);
-
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, auto u) { return ((memory_manager *)u)->allocate(s); },
 			[](void * p, auto u) { return ((memory_manager *)u)->deallocate(p); },
 			get_global<memory_manager>());
 		set_imgui_context(ImGui::CreateContext());
+
+		m_loop.set_condition(&native_window::is_open, &m_window);
+		m_loop.set_enter_callback(&on_gui_app_enter, this);
+		m_loop.set_exit_callback(&on_gui_app_exit, this);
+		m_loop.set_idle_callback(&on_gui_app_idle, this);
 	}
 
 	gui_application::~gui_application() noexcept
@@ -77,19 +71,16 @@ namespace ml
 	{
 		switch (value)
 		{
-		case window_cursor_pos_event::ID: {
-			auto && ev{ (window_cursor_pos_event &&)value };
-			m_input_state.cursor_pos = { ev.x, ev.y };
+		case mouse_pos_event::ID: {
+			auto && ev{ (mouse_pos_event &&)value };
 		} break;
 
-		case window_key_event::ID: {
-			auto && ev{ (window_key_event &&)value };
-			m_input_state.keyboard[ev.key] = ev.action;
+		case key_event::ID: {
+			auto && ev{ (key_event &&)value };
 		} break;
 
-		case window_mouse_event::ID: {
-			auto && ev{ (window_mouse_event &&)value };
-			m_input_state.mouse[ev.button] = ev.action;
+		case mouse_button_event::ID: {
+			auto && ev{ (mouse_button_event &&)value };
 		} break;
 		}
 	}
@@ -103,7 +94,7 @@ namespace ml
 		auto const win{ app->get_window() };
 		auto const dev{ app->get_render_device() };
 		auto const gui{ app->get_imgui_context() };
-		auto const menu{ app->get_main_menu() };
+		auto const menu{ app->get_menubar() };
 		auto const dock{ app->get_dockspace() };
 
 		// window settings
@@ -119,19 +110,19 @@ namespace ml
 		if (j_window.contains("callbacks") && j_window["callbacks"].get<bool>())
 		{
 			static event_bus * b{}; b = bus;
-			win->set_char_callback([](auto w, auto ... x) { b->fire<window_char_event>(x...); });
-			win->set_char_mods_callback([](auto w, auto ... x) { b->fire<window_char_mods_event>(x...); });
+			win->set_char_callback([](auto w, auto ... x) { b->fire<char_event>(x...); });
+			win->set_char_mods_callback([](auto w, auto ... x) { b->fire<char_mods_event>(x...); });
 			win->set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
-			win->set_cursor_enter_callback([](auto w, auto ... x) { b->fire<window_cursor_enter_event>(x...); });
-			win->set_cursor_pos_callback([](auto w, auto ... x) { b->fire<window_cursor_pos_event>(x...); });
 			win->set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
 			win->set_drop_callback([](auto w, auto ... x) { b->fire<window_drop_event>(x...); });
 			win->set_focus_callback([](auto w, auto ... x) { b->fire<window_focus_event>(x...); });
 			win->set_framebuffer_resize_callback([](auto w, auto ... x) { b->fire<window_framebuffer_resize_event>(x...); });
 			win->set_iconify_callback([](auto w, auto ... x) { b->fire<window_iconify_event>(x...); });
-			win->set_key_callback([](auto w, auto ... x) { b->fire<window_key_event>(x...); });
+			win->set_key_callback([](auto w, auto ... x) { b->fire<key_event>(x...); });
 			win->set_maximize_callback([](auto w, auto ... x) { b->fire<window_maximize_event>(x...); });
-			win->set_mouse_callback([](auto w, auto ... x) { b->fire<window_mouse_event>(x...); });
+			win->set_mouse_button_callback([](auto w, auto ... x) { b->fire<mouse_button_event>(x...); });
+			win->set_mouse_enter_callback([](auto w, auto ... x) { b->fire<mouse_enter_event>(x...); });
+			win->set_mouse_pos_callback([](auto w, auto ... x) { b->fire<mouse_pos_event>(x...); });
 			win->set_position_callback([](auto w, auto ... x) { b->fire<window_position_event>(x...); });
 			win->set_refresh_callback([](auto w, auto ... x) { b->fire<window_refresh_event>(x...); });
 			win->set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
@@ -208,7 +199,7 @@ namespace ml
 		auto const win{ app->get_window() };
 		auto const dev{ app->get_render_device() };
 		auto const gui{ app->get_imgui_context() };
-		auto const menu{ app->get_main_menu() };
+		auto const menu{ app->get_menubar() };
 		auto const dock{ app->get_dockspace() };
 
 		bus->fire<app_exit_event>();
@@ -221,7 +212,7 @@ namespace ml
 		auto const win{ app->get_window() };
 		auto const dev{ app->get_render_device() };
 		auto const gui{ app->get_imgui_context() };
-		auto const menu{ app->get_main_menu() };
+		auto const menu{ app->get_menubar() };
 		auto const dock{ app->get_dockspace() };
 		
 		// update fps
@@ -236,29 +227,28 @@ namespace ml
 		// imgui
 		_ML ImGui_NewFrame();
 		ImGui::NewFrame();
-		ImGui::PushID(app);
+		ImGuizmo::BeginFrame();
 		{
-			bus->fire<imgui_begin_event>(gui);
+			ImGuiExt_ScopeID(app);
 
-			ImGuizmo::BeginFrame();
+			bus->fire<imgui_begin_event>(gui);
 
 			dock->SetWindowFlag(ImGuiWindowFlags_MenuBar, menu->Get());
 
 			dock->Draw(gui->Viewports[0], [&](auto) noexcept
 			{
-				bus->fire<imgui_dockspace_event>(dock);
+				bus->fire<dock_builder_event>(dock);
 			});
 
 			menu->Draw([&](auto) noexcept
 			{
-				bus->fire<imgui_menubar_event>(menu);
+				bus->fire<main_menu_bar_event>(menu);
 			});
 
 			bus->fire<imgui_render_event>(gui);
 
 			bus->fire<imgui_end_event>(gui);
 		}
-		ImGui::PopID();
 		ImGui::Render();
 
 		app->get_render_context()->execute([&](gfx::render_context * ctx) noexcept
@@ -270,7 +260,8 @@ namespace ml
 
 		_ML ImGui_RenderDrawData(&gui->Viewports[0]->DrawDataP);
 
-		if (gui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+		if (gui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		{
 			auto const backup{ window_context::get_active_window() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();

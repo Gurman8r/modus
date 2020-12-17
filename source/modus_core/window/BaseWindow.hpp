@@ -226,17 +226,18 @@ namespace ml
 		{
 			set_char_callback				(nullptr);
 			set_char_mods_callback			(nullptr);
-			set_close_callback				(nullptr);
-			set_content_scale_callback		(nullptr);
+			set_key_callback				(nullptr);
 			set_mouse_enter_callback		(nullptr);
 			set_mouse_pos_callback			(nullptr);
+			set_mouse_button_callback		(nullptr);
+
+			set_close_callback				(nullptr);
+			set_content_scale_callback		(nullptr);
 			set_drop_callback				(nullptr);
 			set_focus_callback				(nullptr);
 			set_framebuffer_resize_callback	(nullptr);
 			set_iconify_callback			(nullptr);
-			set_key_callback				(nullptr);
 			set_maximize_callback			(nullptr);
-			set_mouse_button_callback				(nullptr);
 			set_position_callback			(nullptr);
 			set_refresh_callback			(nullptr);
 			set_resize_callback				(nullptr);

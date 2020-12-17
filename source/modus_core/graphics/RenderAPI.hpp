@@ -360,9 +360,9 @@ namespace ml::gfx
 		{
 			std::invoke(ML_forward(arg0), this);
 
-			meta::for_args([&](auto && cmd) noexcept
+			meta::for_args([&](auto && e) noexcept
 			{
-				std::invoke(ML_forward(cmd), this);
+				std::invoke(ML_forward(e), this);
 			}
 			, ML_forward(args)...);
 		}
@@ -1282,13 +1282,15 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual ds::string const & get_info_log() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::map<uint32, object_id> const & get_shaders() const noexcept = 0;
+		ML_NODISCARD virtual ds::array<object_id, shader_type_MAX> const & get_shaders() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<uint32, ds::list<ds::string>> const & get_source() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<uniform_id, ds::ref<texture>> const & get_textures() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<hash_t, uniform_id> const & get_uniforms() const noexcept = 0;
+
+		ML_NODISCARD virtual uint32 get_mask() const noexcept = 0;
 
 	public:
 		inline void bind() const noexcept

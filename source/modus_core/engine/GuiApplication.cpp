@@ -71,8 +71,8 @@ namespace ml
 	{
 		switch (value)
 		{
-		case mouse_pos_event::ID: {
-			auto && ev{ (mouse_pos_event &&)value };
+		case char_event::ID: {
+			auto && ev{ (char_event &&)value };
 		} break;
 
 		case key_event::ID: {
@@ -81,6 +81,10 @@ namespace ml
 
 		case mouse_button_event::ID: {
 			auto && ev{ (mouse_button_event &&)value };
+		} break;
+
+		case mouse_pos_event::ID: {
+			auto && ev{ (mouse_pos_event &&)value };
 		} break;
 		}
 	}
@@ -228,12 +232,11 @@ namespace ml
 		_ML ImGui_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
+		ImGui::PushID(app);
 		{
-			ImGuiExt_ScopeID(app);
-
 			bus->fire<imgui_begin_event>(gui);
 
-			dock->SetWindowFlag(ImGuiWindowFlags_MenuBar, menu->Get());
+			dock->SetWindowFlag(ImGuiWindowFlags_MenuBar, menu->IsOpen);
 
 			dock->Draw(gui->Viewports[0], [&](auto) noexcept
 			{
@@ -249,6 +252,7 @@ namespace ml
 
 			bus->fire<imgui_end_event>(gui);
 		}
+		ImGui::PopID();
 		ImGui::Render();
 
 		app->get_render_context()->execute([&](gfx::render_context * ctx) noexcept

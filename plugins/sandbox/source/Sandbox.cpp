@@ -11,6 +11,7 @@ namespace ml
 		{
 			imgui_demo_panel,
 			imgui_metrics_panel,
+			imgui_style_panel,
 			imgui_about_panel,
 			browser_panel,
 			memory_panel,
@@ -23,11 +24,13 @@ namespace ml
 		{
 			{ "Dear ImGui Demo", false },
 			{ "Dear ImGui Metrics", false },
+			{ "Dear ImGui Style Editor", false },
 			{ "About Dear ImGui", false },
+
 			{ "browser", false, ImGuiWindowFlags_MenuBar },
 			{ "memory", false, ImGuiWindowFlags_MenuBar },
 			{ "settings", false, ImGuiWindowFlags_MenuBar },
-			{ "terminal", true, ImGuiWindowFlags_MenuBar },
+			{ "terminal", false, ImGuiWindowFlags_MenuBar },
 			{ "viewport", true, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar },
 		};
 
@@ -38,18 +41,18 @@ namespace ml
 		stream_sniper m_cout{ &std::cout }; // stdout wrapper
 		ImGuiExt::Terminal m_term{}; // terminal
 
-		// content
-		ds::ref<scene> m_active_scene{}; // active scene
+		// resources
+		ds::list<ds::ref<gfx::framebuffer>> m_frames{}; // framebuffers
 		ds::hashmap<ds::string, ds::ref<gfx::texture>> m_textures{}; // textures
 		ds::hashmap<ds::string, ds::ref<gfx::program>> m_programs{}; // programs
 		ds::hashmap<ds::string, ds::ref<gfx::shader>> m_shaders{}; // shaders
 		ds::hashmap<ds::string, ds::ref<mesh>> m_meshes{}; // meshes
+		ds::hashmap<ds::string, ds::ref<scene>> m_scenes{}; // scenes
 
 		// rendering
 		bool m_cycle_bg{ true }; // cycle background
 		camera m_camera{}; // camera
 		viewport m_viewport{}; // viewport
-		ds::ref<gfx::framebuffer> m_framebuffer{}; // framebuffer
 
 		// grid
 		bool	m_grid_enabled	{ true }; // 
@@ -57,7 +60,7 @@ namespace ml
 		float32 m_grid_size		{ 100.f }; // 
 
 		// cubes
-		int32 m_object_count{ 0 }; // 
+		int32 m_object_count{ 1 }; // 
 		int32 m_object_index{ 0 }; // 
 		mat4 m_object_matrix[4] = // 
 		{
@@ -93,13 +96,17 @@ namespace ml
 
 		sandbox(plugin_manager * manager, void * userptr) : plugin{ manager, userptr }
 		{
-			subscribe<
+			subscribe
+			<
 				app_enter_event,
 				app_exit_event,
 				app_idle_event,
+
 				dock_builder_event,
 				main_menu_bar_event,
 				imgui_render_event,
+
+				char_event,
 				key_event,
 				mouse_button_event,
 				mouse_pos_event
@@ -113,9 +120,12 @@ namespace ml
 			case app_enter_event		::ID: return on_app_enter((app_enter_event const &)value);
 			case app_exit_event			::ID: return on_app_exit((app_exit_event const &)value);
 			case app_idle_event			::ID: return on_app_idle((app_idle_event const &)value);
+
 			case dock_builder_event		::ID: return on_dock_builder((dock_builder_event const &)value);
 			case main_menu_bar_event	::ID: return on_main_menu_bar((main_menu_bar_event const &)value);
 			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event const &)value);
+
+			case char_event				::ID: return on_char((char_event const &)value);
 			case key_event				::ID: return on_key((key_event const &)value);
 			case mouse_button_event		::ID: return on_mouse_button((mouse_button_event const &)value);
 			case mouse_pos_event		::ID: return on_mouse_pos((mouse_pos_event const &)value);
@@ -126,21 +136,23 @@ namespace ml
 
 		void on_app_enter(app_enter_event const & ev)
 		{
-			// path to
-			auto path2 = std::bind(&core_application::path_to, get_app(), std::placeholders::_1);
+			auto path_to = std::bind(&core_application::path_to, get_app(), std::placeholders::_1);
 
 			// icon
-			if (bitmap const i{ path2("resource/modus_launcher.png"), false }) {
+			if (bitmap const i{ path_to("resource/modus_launcher.png"), false }) {
 				get_app()->get_window()->set_icons(1, i.width(), i.height(), i.data());
 			}
 
+			// framebuffers
+			m_frames.push_back(gfx::framebuffer::create({ m_viewport.get_size() }));
+
 			// textures
-			m_textures["earth_dm_2k"] = gfx::texture2d::create(path2("assets/textures/earth/earth_dm_2k.png"), gfx::texture_flags_default);
-			m_textures["earth_sm_2k"] = gfx::texture2d::create(path2("assets/textures/earth/earth_sm_2k.png"), gfx::texture_flags_default);
+			m_textures["earth_dm_2k"] = gfx::texture2d::create(path_to("assets/textures/earth/earth_dm_2k.png"), gfx::texture_flags_default);
+			m_textures["earth_sm_2k"] = gfx::texture2d::create(path_to("assets/textures/earth/earth_sm_2k.png"), gfx::texture_flags_default);
 
 			// shaders
 			if (gfx::program_source src{}
-			; shader_parser::parse(path2("plugins/sandbox/resource/shaders/basic_3D.shader"), src))
+			; shader_parser::parse(path_to("plugins/sandbox/resource/shaders/basic_3D.shader"), src))
 			{
 				if (src[0]) m_shaders["v"] = gfx::shader::create({ 0, { *src[0] } });
 				if (src[1]) m_shaders["p"] = gfx::shader::create({ 1, { *src[1] } });
@@ -148,20 +160,19 @@ namespace ml
 			}
 			
 			// programs
-			m_programs["2D"] = shader_parser::make_program(path2("plugins/sandbox/resource/shaders/basic_2D.shader"));
-			m_programs["3D"] = shader_parser::make_program(path2("plugins/sandbox/resource/shaders/basic_3D.shader"));
+			m_programs["2D"] = shader_parser::make_program(path_to("plugins/sandbox/resource/shaders/basic_2D.shader"));
+			m_programs["3D"] = shader_parser::make_program(path_to("plugins/sandbox/resource/shaders/basic_3D.shader"));
 
 			// meshes
-			m_meshes["sphere8x6"] = make_ref<mesh>(path2("assets/models/sphere8x6.obj"));
-			m_meshes["sphere32x24"] = make_ref<mesh>(path2("assets/models/sphere32x24.obj"));
+			m_meshes["sphere8x6"] = make_ref<mesh>(path_to("assets/models/sphere8x6.obj"));
+			m_meshes["sphere32x24"] = make_ref<mesh>(path_to("assets/models/sphere32x24.obj"));
 
 			// scene
-			m_active_scene = make_ref<scene>(get_bus());
-			get_app()->set_active_scene(m_active_scene);
+			m_scenes["0"] = make_ref<scene>(get_bus());
+			get_app()->set_active_scene(m_scenes["0"]);
 
 			// viewport
 			m_viewport.set_size({ 1280, 720 });
-			m_framebuffer = gfx::framebuffer::create({ m_viewport.get_size() });
 
 			// camera
 			m_camera.set_clear_flags(gfx::clear_flags_color | gfx::clear_flags_depth);
@@ -180,7 +191,7 @@ namespace ml
 		{
 			ML_defer(&) { m_term.Output.Dump(m_cout.sstr()); };
 
-			m_framebuffer->resize(m_viewport.get_size());
+			for (auto & fb : m_frames) { fb->resize(m_viewport.get_size()); }
 
 			m_camera.recalculate(m_viewport.get_size());
 
@@ -191,11 +202,12 @@ namespace ml
 
 			get_app()->get_render_context()->execute
 			(
-				gfx::command::bind_framebuffer(m_framebuffer),
+				gfx::command::bind_framebuffer(m_frames[0]),
 				gfx::command::set_clear_color(m_camera.get_background()),
 				gfx::command::clear(m_camera.get_clear_flags()),
 				[&](gfx::render_context * ctx)
 				{
+					if (0 == m_object_count) { return; }
 					static auto const & p{ m_programs["3D"] };
 					static auto const & t{ m_textures["earth_dm_2k"] };
 					static auto const & m{ m_meshes["sphere32x24"] };
@@ -258,6 +270,7 @@ namespace ml
 			if (ImGui::BeginMenu("help")) {
 				ImGuiExt::MenuItem(m_panels + imgui_demo_panel);
 				ImGuiExt::MenuItem(m_panels + imgui_metrics_panel);
+				ImGuiExt::MenuItem(m_panels + imgui_style_panel);
 				ImGuiExt::MenuItem(m_panels + imgui_about_panel);
 				ImGui::EndMenu();
 			}
@@ -267,6 +280,7 @@ namespace ml
 		{
 			if (m_panels[imgui_demo_panel].IsOpen) { ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].IsOpen); }
 			if (m_panels[imgui_metrics_panel].IsOpen) { ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].IsOpen); }
+			if (m_panels[imgui_style_panel].IsOpen) { ImGui::ShowStyleEditor(); }
 			if (m_panels[imgui_about_panel].IsOpen) { ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].IsOpen); }
 
 			draw_browser(ev);	// BROWSER
@@ -782,7 +796,7 @@ namespace ml
 
 				// main image
 				ImGui::Image(
-					m_framebuffer->get_color_attachments()[0]->get_handle(),
+					m_frames[0]->get_color_attachments()[0]->get_handle(),
 					m_viewport.get_size(),
 					{ 0, 1 }, { 1, 0 },
 					colors::white,
@@ -857,6 +871,10 @@ namespace ml
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void on_char(char_event const & ev)
+		{
+		}
 
 		void on_key(key_event const & ev)
 		{

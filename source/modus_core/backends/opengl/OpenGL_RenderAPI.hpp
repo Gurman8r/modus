@@ -558,7 +558,7 @@ namespace ml::gfx
 
 		uint32									m_handle		{}; // handle
 		ds::string								m_error_log		{}; // error log
-		ds::map<uint32, object_id>				m_shaders		{}; // shader cache
+		ds::array<object_id, shader_type_MAX>	m_shaders		{}; // shader cache
 		ds::map<uint32, ds::list<ds::string>>	m_source		{}; // source cache
 		ds::map<uniform_id, ds::ref<texture>>	m_textures		{}; // texture cache
 		ds::map<hash_t, uniform_id>				m_uniforms		{}; // uniform cache
@@ -604,13 +604,23 @@ namespace ml::gfx
 
 		ds::string const & get_info_log() const noexcept final { return m_error_log; }
 
-		ds::map<uint32, object_id> const & get_shaders() const noexcept final { return m_shaders; }
+		ds::array<object_id, shader_type_MAX> const & get_shaders() const noexcept final { return m_shaders; }
 
 		ds::map<uint32, ds::list<ds::string>> const & get_source() const noexcept final { return m_source; }
 
 		ds::map<uniform_id, ds::ref<texture>> const & get_textures() const noexcept final { return m_textures; }
 
 		ds::map<hash_t, uniform_id> const & get_uniforms() const noexcept final { return m_uniforms; }
+
+		uint32 get_mask() const noexcept final
+		{
+			auto const & s{ get_shaders() };
+			uint32 mask{};
+			ML_flag_write(mask, shader_bit_vertex	, s[shader_type_vertex]);
+			ML_flag_write(mask, shader_bit_pixel	, s[shader_type_pixel]);
+			ML_flag_write(mask, shader_bit_geometry	, s[shader_type_geometry]);
+			return mask;
+		}
 
 	public:
 		void do_cache_texture(uniform_id loc, ds::ref<texture> const & value) noexcept final

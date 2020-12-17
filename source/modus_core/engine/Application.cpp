@@ -25,6 +25,7 @@ namespace ml
 			imgui_begin_event,
 			imgui_render_event,
 			imgui_end_event,
+			char_event,
 			key_event,
 			mouse_button_event,
 			mouse_pos_event
@@ -73,6 +74,10 @@ namespace ml
 
 		case imgui_end_event::ID: {
 			auto && ev{ (imgui_end_event &&)value };
+		} break;
+
+		case char_event::ID: {
+			auto && ev{ (char_event &&)value };
 		} break;
 
 		case key_event::ID: {

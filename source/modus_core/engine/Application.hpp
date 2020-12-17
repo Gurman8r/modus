@@ -65,6 +65,7 @@ namespace ml
 		bool initialize_interpreter() noexcept
 		{
 			ML_assert(!app_file_name().empty() && !library_paths().empty());
+
 			return m_interpreter.initialize(app_file_name(), library_paths(0));
 		}
 

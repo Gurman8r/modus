@@ -2,7 +2,7 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define ML_IMPL_GFX_CHECK
+//#define ML_IMPL_GFX_CHECK
 #include "./OpenGL.hpp"
 #include "./OpenGL_RenderAPI.hpp"
 
@@ -1204,16 +1204,17 @@ namespace ml::gfx
 	{
 		if (m_handle) { ML_glCheck(ML_glDeleteProgram(m_handle)); }
 
-		m_uniforms.clear(); m_textures.clear(); m_shaders.clear();
+		m_uniforms.clear();
+		m_textures.clear();
+		for (auto & e : m_shaders) { e = NULL; }
 		
 		ML_glCheck(m_handle = ML_glCreateProgram());
-		
 		return (bool)m_handle;
 	}
 
 	bool opengl_program::attach(uint32 type, size_t count, cstring * str, int32 const * len)
 	{
-		if (!count || !str || !*str || m_shaders.contains(type)) { return false; }
+		if (!count || !str || !*str) { return false; }
 
 		// create shader
 		uint32 temp{};
@@ -1236,7 +1237,7 @@ namespace ml::gfx
 		{
 			// attach shader
 			ML_glCheck(ML_glAttachShader(m_handle, temp));
-			m_shaders.insert(type, ML_handle(object_id, temp));
+			m_shaders[type] = ML_handle(object_id, temp);
 			m_source[type] = { str, str + count };
 		}
 		return success;
@@ -1244,21 +1245,17 @@ namespace ml::gfx
 
 	bool opengl_program::detach(uint32 type)
 	{
-		if (auto const it{ m_shaders.find(type) })
-		{
-			// detach shader
-			ML_glCheck(ML_glDetachShader(m_handle, ML_handle(uint32, *it->second)));
+		// detach shader
+		ML_glCheck(ML_glDetachShader(m_handle, ML_handle(uint32, m_shaders[type])));
 
-			// delete shader
-			ML_glCheck(ML_glDeleteShader(ML_handle(uint32, *it->second)));
+		// delete shader
+		ML_glCheck(ML_glDeleteShader(ML_handle(uint32, m_shaders[type])));
 
-			m_shaders.erase(it->first);
+		m_shaders[type] = NULL;
 
-			m_source[type].clear();
+		m_source[type].clear();
 
-			return true;
-		}
-		return false;
+		return true;
 	}
 
 	bool opengl_program::link()

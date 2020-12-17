@@ -24,18 +24,10 @@ namespace ml
 	native_window::native_window(allocator_type alloc) noexcept
 		: frontend_window{ ::new (alloc.allocate(sizeof(impl_window))) impl_window{ alloc } }
 	{
-		static ML_block(&) // initialize context
-		{
-			
-		};
 	}
 
 	native_window::~native_window() noexcept
 	{
-		static ML_defer(&) // finalize context
-		{
-			window_context::finalize();
-		};
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

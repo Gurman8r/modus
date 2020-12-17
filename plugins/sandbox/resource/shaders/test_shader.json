@@ -9,12 +9,8 @@
         { "name": "View", "type": "float", "count": 16 },
         { "name": "Proj", "type": "float", "count": 16 }
     ],
-    "main": {
-        "vertex": [
-            ""
-        ],
-        "pixel": [
-            ""
-        ]
+    "main_vertex": {
+    },
+    "main_pixel": {
     }
 }

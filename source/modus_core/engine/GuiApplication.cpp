@@ -154,6 +154,8 @@ namespace ml
 		window_context::poll_events();
 
 		// idle
+		m_input.mouse_delta = m_input.mouse_pos - m_input.last_mouse_pos;
+		m_input.last_mouse_pos = m_input.mouse_pos;
 		m_dispatcher.fire<app_idle_event>();
 
 		// imgui
@@ -230,8 +232,6 @@ namespace ml
 		case mouse_pos_event::ID: {
 			auto && ev{ (mouse_pos_event &&)value };
 			m_input.mouse_pos = { ev.x, ev.y };
-			m_input.mouse_delta = m_input.mouse_pos - m_input.last_mouse_pos;
-			m_input.last_mouse_pos = m_input.mouse_pos;
 		} break;
 
 		case scroll_event::ID: {

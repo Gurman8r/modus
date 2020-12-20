@@ -386,8 +386,8 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		camera_controller()
-			: m_camera	{}
+		camera_controller(camera * ptr = {})
+			: m_camera	{ ptr }
 			, m_position{ 5, 5, 5 }
 			, m_yaw		{ 32.f / 180.f * 3.14159f }
 			, m_pitch	{ 165.f / 180.f * 3.14159f }
@@ -447,10 +447,14 @@ namespace ml
 
 			vec3 const eye
 			{
-				cosf(glm::radians(m_yaw)) * cosf(glm::radians(m_pitch)) * m_zoom,
-				sinf(glm::radians(m_pitch)) * m_zoom,
-				sinf(glm::radians(m_yaw)) * cosf(glm::radians(m_pitch)) * m_zoom
+				cosf(glm::radians(m_yaw)) * cosf(glm::radians(m_pitch)),
+				sinf(glm::radians(m_pitch)),
+				sinf(glm::radians(m_yaw)) * cosf(glm::radians(m_pitch))
 			};
+
+			m_camera->set_eye(m_position);
+
+			m_camera->set_target(m_position + eye);
 
 			m_camera->recalculate(resolution);
 		}
@@ -477,16 +481,6 @@ namespace ml
 			return m_position;
 		}
 
-		void set_position(vec3 const & value) noexcept
-		{
-			if (m_position != value)
-			{
-				m_position = value;
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD auto get_yaw() const noexcept -> float32
 		{
 			return m_yaw;
@@ -505,6 +499,14 @@ namespace ml
 		ML_NODISCARD auto get_zoom() const noexcept -> float32
 		{
 			return m_zoom;
+		}
+
+		void set_position(vec3 const & value) noexcept
+		{
+			if (m_position != value)
+			{
+				m_position = value;
+			}
 		}
 
 		void set_yaw(float32 value) noexcept

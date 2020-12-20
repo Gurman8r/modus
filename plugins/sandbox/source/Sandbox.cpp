@@ -55,8 +55,9 @@ namespace ml
 
 		// rendering
 		bool m_cycle_background{ true }; // cycle background
-		camera m_camera{}; // camera
 		viewport m_viewport{}; // viewport
+		camera m_camera{}; // camera
+		camera_controller m_cc{ &m_camera }; // camera controller
 
 		// grid
 		bool	m_grid_enabled	{ true }; // 
@@ -187,6 +188,7 @@ namespace ml
 			m_camera.set_orthographic(false);
 			m_camera.set_eye({ 5.f, 3.f, 5.f });
 			m_camera.set_target({ 0.f, 0.f, 0.f });
+			m_cc.set_position(m_camera.get_eye());
 		}
 
 		void on_app_exit(app_exit_event const & ev)
@@ -204,6 +206,10 @@ namespace ml
 
 			for (auto & fb : m_frames) { fb->resize(view_size); }
 
+			vec2 const md{ (vec2)get_app()->get_input()->mouse_delta * (dt * 50) };
+			m_cc.set_position(m_camera.get_eye());
+			m_cc.set_yaw(m_cc.get_yaw() + md[0]);
+			m_cc.set_pitch(m_cc.get_pitch() - md[1]);
 			m_camera.recalculate(view_size);
 
 			if (m_cycle_background) {
@@ -304,11 +310,11 @@ namespace ml
 			{
 				ImGui::TextDisabled("stats");
 				{
-					float32 const tt{ get_app()->total_time().count() };
-					ImGui::Text("%.2fs", tt);
-
 					float32 const fps{ get_app()->frame_rate() };
 					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+
+					float32 const tt{ get_app()->total_time().count() };
+					ImGui::Text("uptime: %.2fs", tt);
 
 					vec2 const mouse_pos{ (vec2)get_app()->get_input()->mouse_pos };
 					if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse pos: <invalid>"); }

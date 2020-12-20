@@ -2,15 +2,12 @@
 #define _ML_SHARED_LIBRARY_HPP_
 
 #include <modus_core/detail/Hashmap.hpp>
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/system/Platform.hpp>
 
 namespace ml
 {
-	// library handle
-	ML_decl_handle(library_handle);
-
 	// shared library
-	struct ML_CORE_API shared_library final : non_copyable, trackable
+	struct shared_library final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -91,13 +88,46 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool open(fs::path const & path);
+		bool open(fs::path const & path)
+		{
+			if (m_handle || path.empty()) { return false; }
+			else
+			{
+				m_path = format_path(path);
 
-		bool close();
+				m_hash = hashof(m_path.string());
 
-		void * get_proc(ds::string const & name);
+				return m_handle = platform::load_library(m_path);
+			}
+		}
+
+		bool close()
+		{
+			if (!m_handle) { return false; }
+			else
+			{
+				m_path.clear();
+				m_procs.clear();
+				m_hash = {};
+				return platform::free_library(m_handle);
+			}
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void * get_proc(ds::string const & name)
+		{
+			if (!m_handle) { return nullptr; }
+			else if (auto const it{ m_procs.find(name) }
+			; it != m_procs.end()) { return it->second; }
+			else
+			{
+				return m_procs.insert({
+					name,
+					platform::get_proc_address(m_handle, name)
+				}).first->second;
+			}
+		}
 
 		template <class Ret, class ... Args, class Name
 		> auto get_proc(Name && name) noexcept
@@ -107,6 +137,8 @@ namespace ml
 				this->get_proc(ML_forward(name))
 			);
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Ret, class ... Args, class Name
 		> auto run_proc(Name && name, Args && ... args) noexcept -> proc_result<Ret>

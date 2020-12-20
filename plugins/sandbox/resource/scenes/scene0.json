@@ -2,11 +2,9 @@
     "entities":
     [
         {
-            "name": "test",
-            "type": "entity",
-            "uuid": 0,
-            "data": {
-            }
+            "tag": "ent0",
+            "transform": { "tr": [ 0, 0, 0 ], "rt": [ 0, 0, 0 ], "sc": [ 1, 1, 1 ] },
+            "camera": {}
         }
     ]
 }

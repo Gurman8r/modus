@@ -60,11 +60,11 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::ref<render_context> new_context(spec<render_context> const & desc, allocator_type alloc) noexcept final;
+		ds::ref<render_context> new_context(context_settings const & desc, allocator_type alloc) noexcept final;
 
 		ds::ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept final;
 
-		ds::ref<vertexbuffer> new_vertexbuffer(spec<vertexbuffer> const & des, allocator_type alloc) noexcept final;
+		ds::ref<vertexbuffer> new_vertexbuffer(spec<vertexbuffer> const & desc, allocator_type alloc) noexcept final;
 
 		ds::ref<indexbuffer> new_indexbuffer(spec<indexbuffer> const & desc, allocator_type alloc) noexcept final;
 
@@ -601,6 +601,8 @@ namespace ml::gfx
 			if (u) { std::invoke(fn, u.location); }
 			return u;
 		}
+
+		uniform_id get_uniform_location(cstring name) noexcept final;
 
 		ds::string const & get_info_log() const noexcept final { return m_error_log; }
 

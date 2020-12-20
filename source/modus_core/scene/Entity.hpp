@@ -5,35 +5,36 @@
 
 namespace ml
 {
-	struct entity : trackable, event_listener
+	struct entity : trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		virtual ~entity() noexcept override = default;
 
-		explicit entity(scene * scene, entt::entity handle) noexcept
-			: event_listener{ ML_check(scene)->get_bus() }
-			, m_scene		{ scene }
-			, m_handle		{ handle }
+		explicit entity(scene * scene) noexcept
+			: m_scene{ ML_check(scene) }
+			, m_handle{ m_scene->m_registry.create() }
+		{
+		}
+
+		entity(scene * scene, entt::entity handle) noexcept
+			: m_scene{ ML_check(scene) }
+			, m_handle{ handle }
 		{
 		}
 
 		entity(entity const & other)
-			: event_listener{ other.get_bus() }
-			, m_scene		{ other.m_scene }
-			, m_handle		{ other.m_handle }
+			: m_scene{ other.m_scene }
+			, m_handle{ other.m_handle }
 		{
 		}
 
 		entity(entity && other) noexcept
-			: event_listener{ other.get_bus() }
-			, m_scene		{}
-			, m_handle		{}
+			: m_scene{}
+			, m_handle{}
 		{
 			this->swap(std::move(other));
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		entity & operator=(entity const & other)
 		{
@@ -59,6 +60,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD operator entt::entity() const noexcept
+		{
+			return m_handle;
+		}
+
 		ML_NODISCARD auto get_handle() const noexcept -> entt::entity
 		{
 			return m_handle;
@@ -69,46 +75,43 @@ namespace ml
 			return m_scene;
 		}
 
-		ML_NODISCARD auto get_registry() const noexcept -> entt::registry &
+		ML_NODISCARD auto registry() const noexcept -> entt::registry &
 		{
-			return ML_check(m_scene)->get_registry();
+			return m_scene->registry();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Component, class ... Args
-		> decltype(auto) add_component(Args && ... args) noexcept
+		> auto add_component(Args && ... args) noexcept -> Component &
 		{
-			return this->get_registry().emplace<Component>(m_handle, ML_forward(args)...);
+			auto && c{ m_scene->m_registry.emplace<Component>(m_handle, ML_forward(args)...) };
+			m_scene->on_component_added(*this, c);
+			return c;
 		}
 
 		template <class ... Components
 		> ML_NODISCARD decltype(auto) get_component() noexcept
 		{
-			return this->get_registry().get<Components...>(m_handle);
+			return m_scene->m_registry.get<Components...>(m_handle);
 		}
 
 		template <class ... Components
 		> ML_NODISCARD bool has_component() const noexcept
 		{
-			return this->get_registry().has<Components...>(m_handle);
+			return m_scene->m_registry.has<Components...>(m_handle);
 		}
 
 		template <class ... Components
 		> void remove_component() noexcept
 		{
-			this->get_registry().remove<T...>(m_handle);
+			m_scene->m_registry.remove<T...>(m_handle);
 		}
 
 		ML_NODISCARD bool valid() const noexcept
 		{
-			return this->get_registry().valid(m_handle);
+			return m_scene->m_registry.valid(m_handle);
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		virtual void on_event(event const &) override {}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -150,7 +153,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		scene *			m_scene		; // scene
+		friend scene;
+
+		scene * 		m_scene		; // scene
 		entt::entity	m_handle	; // handle
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

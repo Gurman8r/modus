@@ -9,7 +9,7 @@
 
 // success message
 #ifndef ML_DEBUG_MSG_SUCCESS
-#define ML_DEBUG_MSG_SUCCESS "[ok] "
+#define ML_DEBUG_MSG_SUCCESS "[info] "
 #endif
 
 // failure message

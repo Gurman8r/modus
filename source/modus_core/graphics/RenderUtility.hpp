@@ -4,7 +4,6 @@
 #include <modus_core/detail/Map.hpp>
 #include <modus_core/detail/Method.hpp>
 #include <modus_core/graphics/Bitmap.hpp>
-#include <modus_core/window/WindowAPI.hpp>
 
 // types
 namespace ml::gfx
@@ -603,6 +602,89 @@ namespace ml::gfx
 		storage_type	m_elements	{}; // elements
 	};
 	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// states
+namespace ml::gfx
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// clear flags
+	enum clear_flags_ : uint32
+	{
+		clear_flags_none		= 0,		// no buffer
+		clear_flags_color		= 1 << 0,	// color buffer bit
+		clear_flags_depth		= 1 << 1,	// depth buffer bit
+		clear_flags_stencil		= 1 << 2,	// stencil buffer bit
+
+		// color / depth / stencil
+		clear_flags_all
+			= clear_flags_color
+			| clear_flags_depth
+			| clear_flags_stencil,
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// alpha state
+	struct ML_NODISCARD alpha_state final
+	{
+		bool		enabled		{ true }						; // enable alpha test
+		uint32		pred		{ predicate_greater }			; // alpha test predicate
+		float32		ref			{ 0.001f }						; // alpha test reference
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// blend state
+	struct ML_NODISCARD blend_state final
+	{
+		bool		enabled		{ true }						; // enable blend
+		color		color		{ colors::white }				; // blend color
+		uint32
+				color_equation	{ equation_add }				, // color equation
+				color_sfactor	{ factor_src_alpha }			, // color src factor
+				color_dfactor	{ factor_one_minus_src_alpha }	, // color dst factor
+				alpha_equation	{ equation_add }				, // alpha equation
+				alpha_sfactor	{ factor_src_alpha }			, // alpha src factor
+				alpha_dfactor	{ factor_one_minus_src_alpha }	; // alpha dst factor
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// cull state
+	struct ML_NODISCARD cull_state final
+	{
+		bool		enabled	{ true }						; // enable face culling
+		uint32		facet	{ facet_back }					; // front / back / front&back
+		uint32		order	{ order_ccw }					; // cull order
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// depth state
+	struct ML_NODISCARD depth_state final
+	{
+		bool		enabled	{ true }						; // enable depth test
+		uint32		pred	{ predicate_less }				; // depth test predicate
+		vec2		range	{ 0.f, 1.f }					; // depth test range
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// stencil state
+	struct ML_NODISCARD stencil_state final
+	{
+		bool		enabled		{ true }					; // enable stencil test
+		uint32		front_pred	{ predicate_always }		; // front test predicate
+		int32		front_ref	{ 0 }						; // front test reference
+		uint32		front_mask	{ 0xffffffff }				; // front test mask
+		uint32		back_pred	{ predicate_always }		; // back test predicate
+		int32		back_ref	{ 0 }						; // back test reference
+		uint32		back_mask	{ 0xffffffff }				; // back test mask
+	};
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 

@@ -32,30 +32,30 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// IMGUI BEGIN
-	ML_event(imgui_begin_event)
+	ML_event(begin_imgui_event)
 	{
 		ImGuiContext * const p;
 		auto operator->() const noexcept { return p; }
 		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_begin_event(ImGuiContext * const p) noexcept : p{ p } {}
+		constexpr begin_imgui_event(ImGuiContext * const p) noexcept : p{ p } {}
 	};
 
 	// IMGUI
-	ML_event(imgui_render_event)
+	ML_event(imgui_event)
 	{
 		ImGuiContext * const p;
 		auto operator->() const noexcept { return p; }
 		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_render_event(ImGuiContext * const p) noexcept : p{ p } {}
+		constexpr imgui_event(ImGuiContext * const p) noexcept : p{ p } {}
 	};
 
 	// IMGUI END
-	ML_event(imgui_end_event)
+	ML_event(end_imgui_event)
 	{
 		ImGuiContext * const p;
 		auto operator->() const noexcept { return p; }
 		auto & operator*() const noexcept { return *p; }
-		constexpr imgui_end_event(ImGuiContext * const p) noexcept : p{ p } {}
+		constexpr end_imgui_event(ImGuiContext * const p) noexcept : p{ p } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

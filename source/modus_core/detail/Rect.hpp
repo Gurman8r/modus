@@ -5,67 +5,68 @@
 
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	template <class T> struct basic_rect final
+	template <class _T> struct rectangle
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-		
-		using value_type		= typename T;
-		using self_type			= typename basic_rect<value_type>;
-		using storage_type		= typename tvec4<value_type>;
-		using coord_type		= typename tvec2<value_type>;
-		using pointer			= typename storage_type::pointer;
-		using reference			= typename storage_type::reference;
-		using const_pointer		= typename storage_type::const_pointer;
-		using const_reference	= typename storage_type::const_reference;
-		using iterator			= typename storage_type::iterator;
-		using const_iterator	= typename storage_type::const_iterator;
+
+		using value_type				= typename _T;
+		using self_type					= typename rectangle;
+		using coord_type				= typename tvec2<value_type>;
+		using storage_type				= typename tvec4<value_type>;
+		using pointer					= typename storage_type::pointer;
+		using reference					= typename storage_type::reference;
+		using const_pointer				= typename storage_type::const_pointer;
+		using const_reference			= typename storage_type::const_reference;
+		using iterator					= typename storage_type::iterator;
+		using const_iterator			= typename storage_type::const_iterator;
+		using reverse_iterator			= typename storage_type::reverse_iterator;
+		using const_reverse_iterator	= typename storage_type::const_reverse_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		constexpr basic_rect() noexcept
+		constexpr rectangle() noexcept : m_data{} {}
+
+		template <class X1, class Y1, class X2, class Y2
+		> constexpr rectangle(X1 x1, Y1 y1, X2 x2, Y2 y2)
+			: m_data{ (value_type)x1, (value_type)y1, (value_type)x2, (value_type)y2 }
+		{
+		}
+
+		constexpr rectangle(coord_type const & min, coord_type const & max)
+			: m_data{ min[0], min[1], max[0], max[1] }
+		{
+		}
+
+		constexpr rectangle(storage_type const & value)
+			: m_data{ value }
+		{
+		}
+
+		constexpr rectangle(self_type const & other)
+			: m_data{ other.m_data }
+		{
+		}
+
+		constexpr rectangle(self_type && other) noexcept
 			: m_data{}
 		{
-		}
-
-		constexpr basic_rect(self_type const & value) noexcept
-			: m_data{ value.m_data }
-		{
-		}
-
-		constexpr basic_rect(storage_type const & value) noexcept
-			: m_data{ value }
-		{
-		}
-
-		constexpr basic_rect(value_type value) noexcept
-			: m_data{ value }
-		{
-		}
-		
-		constexpr basic_rect(value_type w, value_type h) noexcept
-			: m_data{ 0, 0, w, h }
-		{
-		}
-		
-		constexpr basic_rect(coord_type const & pos, coord_type const & size) noexcept
-			: m_data{ pos[0], pos[1], size[0], size[1] }
-		{
-		}
-		
-		constexpr basic_rect(coord_type const & size) noexcept
-			: m_data{ 0, 0, size[0], size[1] }
-		{
-		}
-
-		template <class X, class Y, class W, class H
-		> constexpr basic_rect(X x, Y y, W w, H h) noexcept
-			: m_data{ static_cast<T>(x), static_cast<T>(y), static_cast<T>(w), static_cast<T>(h) }
-		{
+			this->swap(std::move(other));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		constexpr self_type & operator=(self_type const & other)
+		{
+			rectangle temp{ other };
+			this->swap(temp);
+			return (*this);
+		}
+
+		constexpr self_type & operator=(self_type && other) noexcept
+		{
+			this->swap(std::move(other));
+			return (*this);
+		}
 
 		constexpr void swap(self_type & other) noexcept
 		{
@@ -73,14 +74,6 @@ namespace ml
 			{
 				m_data.swap(other.m_data);
 			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		template <class T
-		> ML_NODISCARD constexpr operator basic_rect<T>() const noexcept
-		{
-			return { (tvec4<T>)m_data };
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -99,51 +92,108 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD constexpr auto left() const noexcept -> value_type { return m_data.at(0); }
-		
-		ML_NODISCARD constexpr auto top() const noexcept -> value_type { return m_data.at(1); }
-		
-		ML_NODISCARD constexpr auto width() const noexcept -> value_type { return m_data.at(2); }
-		
-		ML_NODISCARD constexpr auto height() const noexcept -> value_type { return m_data.at(3); }
-		
-		ML_NODISCARD constexpr auto bottom() const noexcept -> value_type { return (top() + height()); }
-		
-		ML_NODISCARD constexpr auto right() const noexcept -> value_type { return (left() + width()); }
-		
-		ML_NODISCARD constexpr auto position() const noexcept -> coord_type { return { left(), top() }; }
-		
-		ML_NODISCARD constexpr auto size() const noexcept -> coord_type { return { width(), height() }; }
-		
-		ML_NODISCARD constexpr auto center() const noexcept -> coord_type { return (position() + (size() / (T)2)); }
+		ML_NODISCARD constexpr coord_type & min() noexcept { return *(coord_type *)&m_data[0]; }
 
-		ML_NODISCARD constexpr auto min() const noexcept -> coord_type { return position(); }
-		
-		ML_NODISCARD constexpr auto max() const noexcept -> coord_type { return position() + size(); }
+		ML_NODISCARD constexpr coord_type const & min() const noexcept { return *(coord_type const *)&m_data[0]; }
+
+		template <class Value = coord_type
+		> coord_type & min(Value && value) noexcept { return min() = ML_forward(value); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		constexpr auto left(value_type value) noexcept -> self_type & { m_data.at(0) = value; return (*this); }
-		
-		constexpr auto top(value_type value) noexcept -> self_type & { m_data.at(1) = value; return (*this); }
-		
-		constexpr auto width(value_type value) noexcept -> self_type & { m_data.at(2) = value; return (*this); }
-		
-		constexpr auto height(value_type value) noexcept -> self_type & { m_data.at(3) = value; return (*this); }
-		
-		constexpr auto bottom(value_type value) noexcept -> self_type & { return height(value - top()); }
-		
-		constexpr auto right(value_type value) noexcept -> self_type & { return width(value - left()); }
-		
-		constexpr auto position(coord_type const & value) noexcept -> self_type & { return left(value[0]).top(value[1]); }
-		
-		constexpr auto size(coord_type const & value) noexcept -> self_type & { return width(value[0]).height(value[1]); }
-		
-		constexpr auto center(coord_type const & value) noexcept -> self_type & { return position(value - (size() / (T)2)); }
+		ML_NODISCARD constexpr coord_type & max() noexcept { return *(coord_type *)&m_data[2]; }
 
-		constexpr auto min(coord_type const & value) noexcept -> self_type & { return position(value); }
+		ML_NODISCARD constexpr coord_type const & max() const noexcept { return *(coord_type const *)&m_data[2]; }
 
-		constexpr auto max(coord_type const & value) noexcept -> self_type & { return position(value - size()); }
+		template <class Value = coord_type
+		> coord_type & max(Value && value) noexcept { return max() = ML_forward(value); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr value_type & at(size_t i) & noexcept { return m_data[i]; }
+
+		ML_NODISCARD constexpr value_type & left() & noexcept { return m_data[0]; }
+
+		ML_NODISCARD constexpr value_type & top() & noexcept { return m_data[1]; }
+
+		ML_NODISCARD constexpr value_type & right() & noexcept { return m_data[2]; }
+
+		ML_NODISCARD constexpr value_type & bottom() & noexcept { return m_data[3]; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr value_type const & at(size_t i) const & noexcept { return m_data[i]; }
+
+		ML_NODISCARD constexpr value_type const & left() const & noexcept { return m_data[0]; }
+
+		ML_NODISCARD constexpr value_type const & top() const & noexcept { return m_data[1]; }
+
+		ML_NODISCARD constexpr value_type const & right() const & noexcept { return m_data[2]; }
+
+		ML_NODISCARD constexpr value_type const & bottom() const & noexcept { return m_data[3]; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Value = value_type
+		> constexpr value_type & set(size_t i, Value && value) & noexcept { m_data[i] = ML_forward(value); }
+
+		template <class Value = value_type
+		> constexpr value_type & left(Value && value) & noexcept { m_data[0] = ML_forward(value); }
+
+		template <class Value = value_type
+		> constexpr value_type & top(Value && value) & noexcept { m_data[1] = ML_forward(value); }
+
+		template <class Value = value_type
+		> constexpr value_type & right(Value && value) & noexcept { m_data[2] = ML_forward(value); }
+
+		template <class Value = value_type
+		> constexpr value_type & bottom(Value && value) & noexcept { m_data[3] = ML_forward(value); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr value_type width() const noexcept { return m_data[2] - m_data[0]; }
+
+		ML_NODISCARD constexpr value_type height() const noexcept { return m_data[3] - m_data[1]; }
+
+		ML_NODISCARD constexpr coord_type size() const noexcept { return { m_data[2] - m_data[0], m_data[3] - m_data[1] }; }
+
+		ML_NODISCARD constexpr coord_type center() const noexcept { return (min() + max()) / 2; }
+
+		ML_NODISCARD constexpr coord_type position() const noexcept { return min(); }
+
+		ML_NODISCARD constexpr coord_type top_left() const noexcept { return min(); }
+
+		ML_NODISCARD constexpr coord_type top_right() const noexcept { return { m_data[2], m_data[1] }; }
+
+		ML_NODISCARD constexpr coord_type bottom_left() const noexcept { return { m_data[0], m_data[3] }; }
+
+		ML_NODISCARD constexpr coord_type bottom_right() const noexcept { return max(); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		
+		ML_NODISCARD constexpr auto begin() noexcept -> iterator { return m_data.begin(); }
+
+		ML_NODISCARD constexpr auto begin() const noexcept -> const_iterator { return m_data.begin(); }
+
+		ML_NODISCARD constexpr auto cbegin() const noexcept -> const_iterator { return m_data.cbegin(); }
+
+		ML_NODISCARD constexpr auto cend() const noexcept -> const_iterator { return m_data.cend(); }
+
+		ML_NODISCARD constexpr auto crbegin() const noexcept -> const_reverse_iterator { return m_data.crbegin(); }
+
+		ML_NODISCARD constexpr auto crend() const noexcept -> const_reverse_iterator { return m_data.crend(); }
+
+		ML_NODISCARD constexpr auto end() noexcept -> iterator { return m_data.end(); }
+
+		ML_NODISCARD constexpr auto end() const noexcept -> const_iterator { return m_data.end(); }
+
+		ML_NODISCARD constexpr auto rbegin() noexcept -> reverse_iterator { return m_data.rbegin(); }
+
+		ML_NODISCARD constexpr auto rbegin() const noexcept -> const_reverse_iterator { return m_data.rbegin(); }
+
+		ML_NODISCARD constexpr auto rend() noexcept -> reverse_iterator { return m_data.rend(); }
+
+		ML_NODISCARD constexpr auto rend() const noexcept -> const_reverse_iterator { return m_data.rend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -152,94 +202,15 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ML_alias float_rect = basic_rect<float32>;
-	ML_alias int_rect	= basic_rect<int32>;
-	ML_alias uint_rect	= basic_rect<uint32>;
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-// NEW RECTANGLE (WIP)
-namespace ml::ds
+namespace ml
 {
-	struct rectangle
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		constexpr rectangle(float32 x1, float32 y1, float32 x2, float32 y2)
-			: m_data{ x1, y1, x2, y2 }
-		{
-		}
-
-		constexpr rectangle(vec2 const & min, vec2 const & max)
-			: m_data{ min[0], min[1], max[0], max[1] }
-		{
-		}
-
-		constexpr rectangle(vec4 const & value)
-			: m_data{ value }
-		{
-		}
-
-		constexpr rectangle(rectangle const & other)
-			: m_data{ other.m_data }
-		{
-		}
-
-		constexpr rectangle(rectangle && other) noexcept
-		{
-			this->swap(std::move(other));
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		constexpr rectangle & operator=(rectangle const & other)
-		{
-			rectangle temp{ other };
-			this->swap(temp);
-			return (*this);
-		}
-
-		constexpr rectangle & operator=(rectangle && other) noexcept
-		{
-			this->swap(std::move(other));
-			return (*this);
-		}
-
-		constexpr void swap(rectangle & other) noexcept
-		{
-			if (this != std::addressof(other))
-			{
-				m_data.swap(other.m_data);
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD constexpr vec2 & min() noexcept { return *(vec2 *)&m_data[0]; }
-
-		ML_NODISCARD constexpr vec2 const & min() const noexcept { return *(vec2 const *)&m_data[0]; }
-
-		constexpr vec2 & min(vec2 const & value) noexcept { return min() = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD constexpr vec2 & max() noexcept { return *(vec2 *)&m_data[2]; }
-
-		ML_NODISCARD constexpr vec2 const & max() const noexcept { return *(vec2 const *)&m_data[2]; }
-
-		constexpr vec2 & max(vec2 const & value) noexcept { return max() = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		vec4 m_data;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
+	ML_alias float_rect		= _ML rectangle<float32>;
+	ML_alias double_rect	= _ML rectangle<float64>;
+	ML_alias int_rect		= _ML rectangle<int32>;
+	ML_alias uint_rect		= _ML rectangle<uint32>;
+	ML_alias size_rect		= _ML rectangle<size_t>;
 }
 
 #endif // !_ML_RECT_HPP_

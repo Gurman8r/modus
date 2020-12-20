@@ -10,6 +10,10 @@ namespace ml
 	struct material
 	{
 	};
+
+	struct uniform_buffer
+	{
+	};
 }
 
 #endif // !_ML_MATERIAL_HPP_

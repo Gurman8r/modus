@@ -1,33 +1,93 @@
-#if defined(ML_IMPL_WINDOW_GLFW)
-
 #include "./GLFW.hpp"
 #include "./GLFW_Window.hpp"
 
 // GLFW MONITOR
 namespace ml
 {
-	ds::list<monitor_handle> const & glfw_monitor::get_monitors()
+	inline auto make_monitor(GLFWmonitor * m)
 	{
-		static ds::list<monitor_handle> temp{};
-		static ML_block(&) // once
-		{
-			if (int32 count{}; GLFWmonitor * *monitors{ glfwGetMonitors(&count) })
-			{
-				temp.reserve((size_t)count);
+		ds::string name{ glfwGetMonitorName(m) };
 
-				for (size_t i = 0, imax = (size_t)count; i < imax; ++i)
-				{
-					temp.push_back((monitor_handle)monitors[i]);
-				}
-			}
-		};
+		int32 width, height;
+		glfwGetMonitorPhysicalSize(m, &width, &height);
+
+		void * userptr{ glfwGetMonitorUserPointer(m) };
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	glfw_monitor::glfw_monitor(allocator_type alloc) noexcept
+		: m_monitor		{}
+		, m_modes		{ alloc }
+		, m_current_mode{}
+	{
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	ds::string glfw_monitor::get_name() const
+	{
+		return glfwGetMonitorName(m_monitor);
+	}
+
+	monitor_handle glfw_monitor::get_handle() const
+	{
+		return (monitor_handle)m_monitor;
+	}
+
+	void * glfw_monitor::get_user_pointer() const
+	{
+		return glfwGetMonitorUserPointer(m_monitor);
+	}
+
+	void glfw_monitor::set_user_pointer(void * value)
+	{
+		glfwSetMonitorUserPointer(m_monitor, value);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	vec2i glfw_monitor::get_dimensions() const
+	{
+		vec2i temp{};
+		glfwGetMonitorPhysicalSize(m_monitor, &temp[0], &temp[1]);
 		return temp;
 	}
 
-	monitor_handle glfw_monitor::get_primary()
+	vec2f glfw_monitor::get_content_scale() const
 	{
-		return (monitor_handle)glfwGetPrimaryMonitor();
+		vec2f temp{};
+		glfwGetMonitorContentScale(m_monitor, &temp[0], &temp[1]);
+		return temp;
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	video_mode const & glfw_monitor::get_current_mode() const
+	{
+		return m_current_mode;
+	}
+
+	ds::list<video_mode> const & glfw_monitor::get_modes() const
+	{
+		return m_modes;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	monitor const & glfw_monitor::get_primary()
+	{
+		static glfw_monitor temp{};
+		return temp;
+	}
+
+	ds::list<monitor> const & glfw_monitor::get_monitors()
+	{
+		static ds::list<monitor> temp{};
+		return temp;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 // GLFW CONTEXT
@@ -43,23 +103,6 @@ namespace ml
 	void glfw_context::finalize()
 	{
 		glfwTerminate();
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	int32 glfw_context::extension_supported(cstring value)
-	{
-		return glfwExtensionSupported(value);
-	}
-
-	void * glfw_context::get_proc_address(cstring value)
-	{
-		return glfwGetProcAddress(value);
-	}
-
-	duration glfw_context::get_time()
-	{
-		return duration{ (float32)glfwGetTime() };
 	}
 
 	window_error_callback glfw_context::set_error_callback(window_error_callback value)
@@ -453,9 +496,9 @@ namespace ml
 		glfwSetWindowAttrib(m_window, GLFW_AUTO_ICONIFY, value);
 	}
 
-	void glfw_window::set_clipboard(cstring value)
+	void glfw_window::set_clipboard(ds::string const & value)
 	{
-		glfwSetClipboardString(m_window, value);
+		glfwSetClipboardString(m_window, value.c_str());
 	}
 
 	void glfw_window::set_cursor(cursor_handle value)
@@ -780,5 +823,3 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
-
-#endif // ML_IMPL_WINDOW_GLFW

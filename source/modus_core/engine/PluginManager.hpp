@@ -3,7 +3,7 @@
 
 #include <modus_core/detail/BatchVector.hpp>
 #include <modus_core/engine/Plugin.hpp>
-#include <modus_core/detail/SharedLibrary.hpp>
+#include <modus_core/system/SharedLibrary.hpp>
 
 // plugin instance
 namespace ml { ML_alias plugin_instance = typename ds::scary<plugin>; }
@@ -180,18 +180,10 @@ namespace ml
 
 		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
 
-		ML_NODISCARD auto get_data() noexcept -> plugin_storage & { return m_data; }
-
 		ML_NODISCARD auto get_data() const noexcept -> plugin_storage const & { return m_data; }
 
 		template <class T
-		> ML_NODISCARD auto get_data() & noexcept -> ds::list<T> & { return m_data.get<T>(); }
-
-		template <class T
 		> ML_NODISCARD auto get_data() const & noexcept -> ds::list<T> const & { return m_data.get<T>(); }
-
-		template <class T
-		> ML_NODISCARD auto get_data(size_t i) & noexcept -> T & { return m_data.at<T>(i); }
 
 		template <class T
 		> ML_NODISCARD auto get_data(size_t i) const & noexcept -> T const & { return m_data.at<T>(i); }

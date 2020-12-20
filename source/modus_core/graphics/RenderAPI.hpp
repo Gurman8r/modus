@@ -1,6 +1,7 @@
 #ifndef _ML_RENDER_API_HPP_
 #define _ML_RENDER_API_HPP_
 
+#include <modus_core/window/ContextSettings.hpp>
 #include <modus_core/graphics/RenderUtility.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -72,7 +73,7 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual ds::ref<render_context> new_context(spec<render_context> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ds::ref<render_context> new_context(context_settings const & desc, allocator_type alloc = {}) noexcept = 0;
 
 		ML_NODISCARD virtual ds::ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc = {}) noexcept = 0;
 
@@ -196,139 +197,16 @@ namespace ml::gfx
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// render states
-namespace ml::gfx
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// clear flags
-	enum clear_flags_ : uint32
-	{
-		clear_flags_none		= 0,		// no buffer
-		clear_flags_color		= 1 << 0,	// color buffer bit
-		clear_flags_depth		= 1 << 1,	// depth buffer bit
-		clear_flags_stencil		= 1 << 2,	// stencil buffer bit
-
-		// color / depth / stencil
-		clear_flags_all
-			= clear_flags_color
-			| clear_flags_depth
-			| clear_flags_stencil,
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// alpha state
-	struct ML_NODISCARD alpha_state final
-	{
-		bool		enabled		{ true }						; // enable alpha test
-		uint32		pred		{ predicate_greater }			; // alpha test predicate
-		float32		ref			{ 0.001f }						; // alpha test reference
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// blend state
-	struct ML_NODISCARD blend_state final
-	{
-		bool		enabled		{ true }						; // enable blend
-		color		color		{ colors::white }				; // blend color
-		uint32
-				color_equation	{ equation_add }				, // color equation
-				color_sfactor	{ factor_src_alpha }			, // color src factor
-				color_dfactor	{ factor_one_minus_src_alpha }	, // color dst factor
-				alpha_equation	{ equation_add }				, // alpha equation
-				alpha_sfactor	{ factor_src_alpha }			, // alpha src factor
-				alpha_dfactor	{ factor_one_minus_src_alpha }	; // alpha dst factor
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// cull state
-	struct ML_NODISCARD cull_state final
-	{
-		bool		enabled	{ true }						; // enable face culling
-		uint32		facet	{ facet_back }					; // front / back / front&back
-		uint32		order	{ order_ccw }					; // cull order
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// depth state
-	struct ML_NODISCARD depth_state final
-	{
-		bool		enabled	{ true }						; // enable depth test
-		uint32		pred	{ predicate_less }				; // depth test predicate
-		vec2		range	{ 0.f, 1.f }					; // depth test range
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// stencil state
-	struct ML_NODISCARD stencil_state final
-	{
-		bool		enabled		{ true }					; // enable stencil test
-		uint32		front_pred	{ predicate_always }		; // front test predicate
-		int32		front_ref	{ 0 }						; // front test reference
-		uint32		front_mask	{ 0xffffffff }				; // front test mask
-		uint32		back_pred	{ predicate_always }		; // back test predicate
-		int32		back_ref	{ 0 }						; // back test reference
-		uint32		back_mask	{ 0xffffffff }				; // back test mask
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 // render context
 namespace ml::gfx
 {
-	// render context specification
-	template <> struct ML_NODISCARD spec<render_context> final
-	{
-		int32		api				{ context_api_unknown };
-		int32		major			{},
-					minor			{};
-		int32		profile			{ context_profile_any };
-		int32		depth_bits		{};
-		int32		stencil_bits	{};
-		bool		multisample		{};
-		bool		srgb_capable	{};
-	};
-
-	static void from_json(json const & j, spec<render_context> & v)
-	{
-		j["api"			].get_to((context_api_ & )v.api);
-		j["major"		].get_to(v.major);
-		j["minor"		].get_to(v.minor);
-		j["profile"		].get_to((context_profile_ &)v.profile);
-		j["depth_bits"	].get_to(v.depth_bits);
-		j["stencil_bits"].get_to(v.stencil_bits);
-		j["multisample"	].get_to(v.multisample);
-		j["srgb_capable"].get_to(v.srgb_capable);
-	}
-
-	static void to_json(json & j, spec<render_context> const & v)
-	{
-		j["api"			] = (context_api_)v.api;
-		j["major"		] = v.major;
-		j["minor"		] = v.minor;
-		j["profile"		] = (context_profile_)v.profile;
-		j["depth_bits"	] = v.depth_bits;
-		j["stencil_bits"] = v.stencil_bits;
-		j["multisample"	] = v.multisample;
-		j["srgb_capable"] = v.srgb_capable;
-	}
-
-
 	// base render context
 	struct ML_CORE_API render_context : public render_object<render_context>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using spec_type = typename spec<render_context>;
+		using spec_type = typename context_settings;
 
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
@@ -1279,6 +1157,8 @@ namespace ml::gfx
 		virtual bool link() = 0;
 
 		virtual bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) = 0;
+
+		ML_NODISCARD virtual uniform_id get_uniform_location(cstring name) noexcept = 0;
 
 		ML_NODISCARD virtual ds::string const & get_info_log() const noexcept = 0;
 

@@ -134,7 +134,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		camera() noexcept
-			: m_clear_flags	{ 1 }
+			: m_is_primary	{}
+			, m_clear_flags	{ 1 }
 			, m_background	{ colors::magenta }
 			, m_proj		{ mat4::identity() }
 			, m_is_ortho	{}
@@ -148,7 +149,8 @@ namespace ml
 		}
 
 		camera(camera const & other)
-			: m_clear_flags	{ other.m_clear_flags }
+			: m_is_primary	{ other.m_is_primary }
+			, m_clear_flags	{ other.m_clear_flags }
 			, m_background	{ other.m_background }
 			, m_proj		{ other.m_proj }
 			, m_is_ortho	{ other.m_is_ortho }
@@ -187,17 +189,17 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				std::swap(m_is_ortho	, other.m_is_ortho);
-				std::swap(m_clear_flags	, other.m_clear_flags);
-				std::swap(m_fov			, other.m_fov);
-				std::swap(m_clip		, other.m_clip);
-
-				m_proj		.swap(other.m_proj);
-				m_view		.swap(other.m_view);
+				std::swap(m_is_primary, other.m_is_primary);
+				std::swap(m_clear_flags, other.m_clear_flags);
 				m_background.swap(other.m_background);
-				m_eye		.swap(other.m_eye);
-				m_target	.swap(other.m_target);
-				m_up		.swap(other.m_up);
+				m_proj.swap(other.m_proj);
+				std::swap(m_is_ortho, other.m_is_ortho);
+				std::swap(m_fov, other.m_fov);
+				std::swap(m_clip, other.m_clip);
+				m_view.swap(other.m_view);
+				m_eye.swap(other.m_eye);
+				m_target.swap(other.m_target);
+				m_up.swap(other.m_up);
 			}
 		}
 
@@ -237,6 +239,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD bool is_primary() const noexcept
+		{
+			return m_is_primary;
+		}
+
 		ML_NODISCARD auto get_clear_flags() const noexcept -> uint32
 		{
 			return m_clear_flags;
@@ -247,20 +254,19 @@ namespace ml
 			return m_background;
 		}
 
+		void set_primary(bool value) noexcept
+		{
+			m_is_primary = value;
+		}
+
 		void set_clear_flags(uint32 value) noexcept
 		{
-			if (m_clear_flags != value)
-			{
-				m_clear_flags = value;
-			}
+			m_clear_flags = value;
 		}
 
 		void set_background(color const & value) noexcept
 		{
-			if (m_background != value)
-			{
-				m_background = value;
-			}
+			m_background = value;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -287,34 +293,22 @@ namespace ml
 
 		void set_proj_matrix(mat4 const & value) noexcept
 		{
-			if (m_proj != value)
-			{
-				m_proj = value;
-			}
+			m_proj = value;
 		}
 
 		void set_orthographic(bool value) noexcept
 		{
-			if (m_is_ortho != value)
-			{
-				m_is_ortho = value;
-			}
+			m_is_ortho = value;
 		}
 
 		void set_fov(float32 value) noexcept
 		{
-			if (m_fov[m_is_ortho] != value)
-			{
-				m_fov[m_is_ortho] = value;
-			}
+			m_fov[m_is_ortho] = value;
 		}
 
 		void set_clip(vec2 const & value) noexcept
 		{
-			if (m_clip[m_is_ortho] != value)
-			{
-				m_clip[m_is_ortho] = value;
-			}
+			m_clip[m_is_ortho] = value;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -341,39 +335,28 @@ namespace ml
 
 		void set_view_matrix(mat4 const & value) noexcept
 		{
-			if (m_view != value)
-			{
-				m_view = value;
-			}
+			m_view = value;
 		}
 
 		void set_eye(vec3 const & value) noexcept
 		{
-			if (m_eye != value)
-			{
-				m_eye = value;
-			}
+			m_eye = value;
 		}
 
 		void set_target(vec3 const & value) noexcept
 		{
-			if (m_target != value)
-			{
-				m_target = value;
-			}
+			m_target = value;
 		}
 
 		void set_up(vec3 const & value) noexcept
 		{
-			if (m_up != value)
-			{
-				m_up = value;
-			}
+			m_up = value;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
+		bool	m_is_primary	; // 
 		uint32	m_clear_flags	; // 
 		color	m_background	; // 
 

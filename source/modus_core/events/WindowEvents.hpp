@@ -123,18 +123,6 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_event(window_scroll_event)
-	{
-		float64 x, y;
-
-		constexpr window_scroll_event(float64 x, float64 y) noexcept
-			: x{ x }, y{ y }
-		{
-		}
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	ML_event(window_resize_event)
 	{
 		int32 width, height;

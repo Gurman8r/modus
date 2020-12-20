@@ -1,18 +1,9 @@
 #include <modus_core/window/NativeWindow.hpp>
 
-#if defined(ML_os_windows)
-#include <modus_core/backends/win32/Win32_PlatformAPI.hpp>
-using impl_platform = _ML win32_platform_api;
-#else
-#error "platform_api unavailable"
-#endif
-
 #if defined(ML_IMPL_WINDOW_GLFW)
 #include <modus_core/backends/glfw/GLFW_Window.hpp>
-using impl_window	= _ML glfw_window;
-using impl_context	= _ML glfw_context;
-using impl_cursor	= _ML glfw_cursor;
-using impl_monitor	= _ML glfw_monitor;
+using impl_window = _ML glfw_window;
+
 #else
 #error "native_window unavailable"
 #endif
@@ -65,14 +56,14 @@ namespace ml
 	std::optional<fs::path> native_window::get_open_file_name(cstring filter) const
 	{
 		return is_open()
-			? impl_platform::get_open_file_name(get_native_handle(), filter)
+			? platform::get_open_file_name(get_native_handle(), filter)
 			: std::nullopt;
 	}
 
 	std::optional<fs::path> native_window::get_save_file_name(cstring filter) const
 	{
 		return is_open()
-			? impl_platform::get_save_file_name(get_native_handle(), filter)
+			? platform::get_save_file_name(get_native_handle(), filter)
 			: std::nullopt;
 	}
 

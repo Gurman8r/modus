@@ -15,7 +15,7 @@ namespace ml
 		using loop_condition			= typename ds::method<bool()>;
 		using enter_callback			= typename ds::method<void()>;
 		using exit_callback				= typename ds::method<void()>;
-		using idle_callback				= typename ds::method<void(duration const &)>;
+		using idle_callback				= typename ds::method<void()>;
 		using subsystem					= typename ds::ref<loop_system>;
 		using subsystem_list			= typename ds::list<subsystem>;
 		using iterator					= typename subsystem_list::iterator;
@@ -29,10 +29,6 @@ namespace ml
 
 		loop_system(allocator_type alloc = {}) noexcept
 			: m_running		{}
-			, m_main_timer	{}
-			, m_loop_timer	{}
-			, m_loop_delta	{}
-			, m_loop_index	{}
 			, m_subsystems	{ alloc }
 			, m_condition	{}
 			, m_on_enter	{}
@@ -43,10 +39,6 @@ namespace ml
 
 		explicit loop_system(loop_system const & other, allocator_type alloc = {})
 			: m_running		{}
-			, m_main_timer	{}
-			, m_loop_timer	{}
-			, m_loop_delta	{}
-			, m_loop_index	{}
 			, m_subsystems	{ other.m_subsystems, alloc }
 			, m_condition	{ other.m_condition }
 			, m_on_enter	{ other.m_on_enter }
@@ -81,10 +73,6 @@ namespace ml
 			if (this != std::addressof(other))
 			{
 				std::swap(m_running, other.m_running);
-				m_main_timer.swap(other.m_main_timer);
-				m_loop_timer.swap(other.m_loop_timer);
-				std::swap(m_loop_delta, other.m_loop_delta);
-				std::swap(m_loop_index, other.m_loop_index);
 				m_subsystems.swap(other.m_subsystems);
 				m_condition.swap(m_condition);
 				m_on_enter.swap(m_on_enter);
@@ -95,15 +83,30 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool running() const noexcept { return m_running; }
+		ML_NODISCARD bool running() const noexcept
+		{
+			return m_running;
+		}
 
-		ML_NODISCARD auto total_time() const noexcept -> duration { return m_main_timer.elapsed(); }
+		template <bool Recursive = true
+		> int32 process() noexcept
+		{
+			// lock
+			if (m_running) { return EXIT_FAILURE * 1; }
+			else { m_running = true; } ML_defer(&) { m_running = false; };
 
-		ML_NODISCARD auto delta_time() const noexcept -> duration { return m_loop_delta; }
-
-		ML_NODISCARD auto loop_index() const noexcept -> uint64 { return m_loop_index; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+			// enter
+			this->run_enter_callback<Recursive>();
+			
+			// exit
+			ML_defer(&) { this->run_exit_callback<Recursive>(); };
+			
+			// idle
+			if (!this->check_condition()) { return EXIT_FAILURE * 2; }
+			do { this->run_idle_callback<Recursive>(); }
+			while (this->check_condition());
+			return EXIT_SUCCESS;
+		}
 
 		template <bool Recursive = true
 		> void halt() noexcept
@@ -114,42 +117,6 @@ namespace ml
 			{
 				e->halt();
 			}
-		}
-
-		template <bool Recursive = true
-		> int32 process() noexcept
-		{
-			// lock
-			if (m_running) { return EXIT_FAILURE * 1; }
-			else { m_running = true; } ML_defer(&) { m_running = false; };
-
-			// timers
-			m_main_timer.restart();
-			ML_defer(&) {
-				m_main_timer.stop();
-				m_loop_timer.stop();
-			};
-
-			// enter
-			this->run_enter_callback<Recursive>();
-			
-			// exit
-			ML_defer(&) { this->run_exit_callback<Recursive>(); };
-			
-			// idle
-			if (!this->check_condition()) { return EXIT_FAILURE * 2; }
-			do
-			{
-				m_loop_timer.restart();
-
-				this->run_idle_callback<Recursive>(m_loop_delta);
-
-				++m_loop_index;
-
-				m_loop_delta = m_loop_timer.elapsed();
-			}
-			while (this->check_condition());
-			return EXIT_SUCCESS;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -172,9 +139,9 @@ namespace ml
 		}
 
 		template <bool Recursive = false, bool Reverse = false
-		> void run_idle_callback(duration const & dt) noexcept
+		> void run_idle_callback() noexcept
 		{
-			loop_system::run<Recursive, Reverse>(&loop_system::m_on_idle, this, dt);
+			loop_system::run<Recursive, Reverse>(&loop_system::m_on_idle, this);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -210,7 +177,7 @@ namespace ml
 		template <class Fn, class ... Args
 		> auto set_idle_callback(Fn && fn, Args && ... args) -> idle_callback
 		{
-			return util::chain(m_on_idle, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
+			return util::chain(m_on_idle, ML_forward(fn), ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -341,10 +308,6 @@ namespace ml
 
 	private:
 		bool					m_running		; // running
-		timer					m_main_timer	, // main timer
-								m_loop_timer	; // idle timer
-		duration				m_loop_delta	; // idle delta
-		uint64					m_loop_index	; // idle index
 		subsystem_list			m_subsystems	; // subsystem list
 		loop_condition			m_condition		; // loop condition
 		enter_callback			m_on_enter		; // enter callback

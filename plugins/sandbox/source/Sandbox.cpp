@@ -13,11 +13,13 @@ namespace ml
 			imgui_metrics_panel,
 			imgui_style_panel,
 			imgui_about_panel,
+
 			browser_panel,
 			memory_panel,
 			settings_panel,
 			terminal_panel,
 			viewport_panel,
+
 			MAX_PANEL
 		};
 		ImGuiExt::Panel m_panels[MAX_PANEL]
@@ -33,6 +35,8 @@ namespace ml
 			{ "terminal", false, ImGuiWindowFlags_MenuBar },
 			{ "viewport", true, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar },
 		};
+
+		ImGuiExt::SimpleOverlay m_debug_overlay{ "debug overlay", true, -1, { 32, 32 }, .35f };
 
 		// memory editor
 		MemoryEditor m_mem_editor{};
@@ -50,7 +54,7 @@ namespace ml
 		ds::hashmap<ds::string, ds::ref<scene>> m_scenes{}; // scenes
 
 		// rendering
-		bool m_cycle_bg{ true }; // cycle background
+		bool m_cycle_background{ true }; // cycle background
 		camera m_camera{}; // camera
 		viewport m_viewport{}; // viewport
 
@@ -104,12 +108,13 @@ namespace ml
 
 				dock_builder_event,
 				main_menu_bar_event,
-				imgui_render_event,
+				imgui_event,
 
 				char_event,
 				key_event,
 				mouse_button_event,
-				mouse_pos_event
+				mouse_pos_event,
+				scroll_event
 			>();
 		}
 
@@ -117,18 +122,19 @@ namespace ml
 		{
 			switch (value)
 			{
-			case app_enter_event		::ID: return on_app_enter((app_enter_event const &)value);
-			case app_exit_event			::ID: return on_app_exit((app_exit_event const &)value);
-			case app_idle_event			::ID: return on_app_idle((app_idle_event const &)value);
+			case app_enter_event	::ID: return on_app_enter((app_enter_event const &)value);
+			case app_exit_event		::ID: return on_app_exit((app_exit_event const &)value);
+			case app_idle_event		::ID: return on_app_idle((app_idle_event const &)value);
 
-			case dock_builder_event		::ID: return on_dock_builder((dock_builder_event const &)value);
-			case main_menu_bar_event	::ID: return on_main_menu_bar((main_menu_bar_event const &)value);
-			case imgui_render_event		::ID: return on_imgui_render((imgui_render_event const &)value);
+			case dock_builder_event	::ID: return on_dock_builder((dock_builder_event const &)value);
+			case main_menu_bar_event::ID: return on_main_menu_bar((main_menu_bar_event const &)value);
+			case imgui_event		::ID: return on_imgui((imgui_event const &)value);
 
-			case char_event				::ID: return on_char((char_event const &)value);
-			case key_event				::ID: return on_key((key_event const &)value);
-			case mouse_button_event		::ID: return on_mouse_button((mouse_button_event const &)value);
-			case mouse_pos_event		::ID: return on_mouse_pos((mouse_pos_event const &)value);
+			case char_event			::ID: return on_char((char_event const &)value);
+			case key_event			::ID: return on_key((key_event const &)value);
+			case mouse_button_event	::ID: return on_mouse_button((mouse_button_event const &)value);
+			case mouse_pos_event	::ID: return on_mouse_pos((mouse_pos_event const &)value);
+			case scroll_event		::ID: return on_scroll((scroll_event const &)value);
 			}
 		}
 
@@ -144,7 +150,7 @@ namespace ml
 			}
 
 			// framebuffers
-			m_frames.push_back(gfx::framebuffer::create({ m_viewport.get_size() }));
+			m_frames.push_back(gfx::framebuffer::create({ 1280, 720 }));
 
 			// textures
 			m_textures["earth_dm_2k"] = gfx::texture2d::create(path_to("assets/textures/earth/earth_dm_2k.png"), gfx::texture_flags_default);
@@ -168,11 +174,12 @@ namespace ml
 			m_meshes["sphere32x24"] = make_ref<mesh>(path_to("assets/models/sphere32x24.obj"));
 
 			// scene
-			m_scenes["0"] = make_ref<scene>(get_bus());
-			get_app()->set_active_scene(m_scenes["0"]);
+			auto & scene0 = m_scenes["0"] = make_ref<scene>();
+			get_app()->set_active_scene(scene0);
+			entity e{ scene0->new_entity() };
 
 			// viewport
-			m_viewport.set_size({ 1280, 720 });
+			m_viewport.set_rect({ 0, 0, 1280, 720 });
 
 			// camera
 			m_camera.set_clear_flags(gfx::clear_flags_color | gfx::clear_flags_depth);
@@ -191,16 +198,19 @@ namespace ml
 		{
 			ML_defer(&) { m_term.Output.Dump(m_cout.sstr()); };
 
-			for (auto & fb : m_frames) { fb->resize(m_viewport.get_size()); }
+			duration const dt{ get_app()->delta_time() };
 
-			m_camera.recalculate(m_viewport.get_size());
+			vec2 const view_size{ m_viewport.get_rect().size() };
 
-			if (m_cycle_bg) m_camera.set_background
-			(
-				util::rotate_hue(m_camera.get_background(), ev.delta_time * 10)
-			);
+			for (auto & fb : m_frames) { fb->resize(view_size); }
 
-			get_app()->get_render_context()->execute
+			m_camera.recalculate(view_size);
+
+			if (m_cycle_background) {
+				m_camera.set_background(util::rotate_hue(m_camera.get_background(), dt * 10));
+			}
+
+			get_app()->get_renderer()->get_context()->execute
 			(
 				gfx::command::bind_framebuffer(m_frames[0]),
 				gfx::command::set_clear_color(m_camera.get_background()),
@@ -208,18 +218,18 @@ namespace ml
 				[&](gfx::render_context * ctx)
 				{
 					if (0 == m_object_count) { return; }
-					static auto const & p{ m_programs["3D"] };
-					static auto const & t{ m_textures["earth_dm_2k"] };
-					static auto const & m{ m_meshes["sphere32x24"] };
-					p->bind();
-					p->set_uniform("u_model", m_object_matrix[0]);
-					p->set_uniform("u_view", m_camera.get_view_matrix());
-					p->set_uniform("u_proj", m_camera.get_proj_matrix());
-					p->set_uniform("u_color", (vec4)colors::white);
-					p->set_uniform("u_texture", t);
-					p->bind_textures();
-					ctx->draw(m->get_vertexarray());
-					p->unbind();
+					static auto const & pgm{ m_programs["3D"] };
+					static auto const & tex{ m_textures["earth_dm_2k"] };
+					static auto const & msh{ m_meshes["sphere32x24"] };
+					pgm->bind();
+					pgm->set_uniform("u_model", m_object_matrix[0]);
+					pgm->set_uniform("u_view", m_camera.get_view_matrix());
+					pgm->set_uniform("u_proj", m_camera.get_proj_matrix());
+					pgm->set_uniform("u_color", (vec4)colors::white);
+					pgm->set_uniform("u_texture", tex);
+					pgm->bind_textures();
+					ctx->draw(msh->get_vertexarray());
+					pgm->unbind();
 				},
 				gfx::command::bind_framebuffer(0)
 			);
@@ -276,7 +286,7 @@ namespace ml
 			}
 		}
 
-		void on_imgui_render(imgui_render_event const & ev)
+		void on_imgui(imgui_event const & ev)
 		{
 			if (m_panels[imgui_demo_panel].IsOpen) { ImGui::ShowDemoWindow(&m_panels[imgui_demo_panel].IsOpen); }
 			if (m_panels[imgui_metrics_panel].IsOpen) { ImGui::ShowMetricsWindow(&m_panels[imgui_metrics_panel].IsOpen); }
@@ -288,11 +298,47 @@ namespace ml
 			draw_settings(ev);	// SETTINGS
 			draw_terminal(ev);	// TERMINAL
 			draw_viewport(ev);	// VIEWPORT
+
+			// debug overlay
+			m_debug_overlay.Draw([&](auto o) noexcept
+			{
+				ImGui::TextDisabled("stats");
+				{
+					float32 const tt{ get_app()->total_time().count() };
+					ImGui::Text("%.2fs", tt);
+
+					float32 const fps{ get_app()->frame_rate() };
+					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+
+					vec2 const mouse_pos{ (vec2)get_app()->get_input()->mouse_pos };
+					if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse pos: <invalid>"); }
+					else { ImGui::Text("mouse pos: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
+
+					vec2 const mouse_delta{ (vec2)get_app()->get_input()->mouse_delta };
+					ImGui::Text("mouse delta: (%.1f,%.1f)", mouse_delta[0], mouse_delta[1]);
+
+					float_rect const & view_rect{ m_viewport.get_rect() };
+					ImGui::Text("view rect: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
+					if (ImGui::IsItemHovered()) {
+						ImGui::GetForegroundDrawList()->AddRect(view_rect.min(), view_rect.max(), IM_COL32(255, 155, 0, 255));
+					}
+				}
+
+				if (ImGui::BeginPopupContextWindow()) {
+					if (ImGui::MenuItem("custom", 0, o->Corner == -1)) { o->Corner = -1; }
+					if (ImGui::MenuItem("top-left", 0, o->Corner == 0)) { o->Corner = 0; }
+					if (ImGui::MenuItem("top-right", 0, o->Corner == 1)) { o->Corner = 1; }
+					if (ImGui::MenuItem("bottom-left", 0, o->Corner == 2)) { o->Corner = 2; }
+					if (ImGui::MenuItem("bottom-right", 0, o->Corner == 3)) { o->Corner = 3; }
+					if (ImGui::MenuItem("close")) { o->IsOpen = false; }
+					ImGui::EndPopup();
+				}
+			});
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void draw_browser(imgui_render_event const & ev)
+		void draw_browser(imgui_event const & ev)
 		{
 			if (m_panels[browser_panel].IsOpen) {
 				ImGui::SetNextWindowPos({ 64, 64 }, ImGuiCond_Once);
@@ -311,7 +357,7 @@ namespace ml
 			}
 		}
 
-		void draw_memory(imgui_render_event const & ev)
+		void draw_memory(imgui_event const & ev)
 		{
 			static size_t selected_index{};
 
@@ -437,9 +483,9 @@ namespace ml
 			});
 		}
 
-		void draw_settings(imgui_render_event const & ev)
+		void draw_settings(imgui_event const & ev)
 		{
-			auto const & dev{ get_app()->get_render_device() };
+			auto const & dev{ get_app()->get_renderer()->get_device() };
 			auto const & inf{ dev->get_info() };
 			auto const & ctx{ dev->get_active_context() };
 
@@ -518,7 +564,7 @@ namespace ml
 			}
 		}
 
-		void draw_terminal(imgui_render_event const & ev)
+		void draw_terminal(imgui_event const & ev)
 		{
 			static ML_block(&) // setup
 			{
@@ -621,12 +667,10 @@ namespace ml
 			
 		}
 
-		void draw_viewport(imgui_render_event const & ev)
+		void draw_viewport(imgui_event const & ev)
 		{
 			static ImGuiExt::TransformEditor xedit{};
-			static ImGuiExt::SimpleOverlay debug_overlay{ "debug overlay", true, -1, { 32, 32 }, .35f };
-
-			// viewport
+			
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
 			if (!m_panels[viewport_panel].Draw([&](auto)
 			{
@@ -789,20 +833,18 @@ namespace ml
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 				// resize viewport
-				m_viewport.set_rect({
-					(vec2)ev->CurrentWindow->InnerRect.Min,
-					(vec2)ev->CurrentWindow->InnerRect.GetSize()
-				});
+				float_rect const view_rect{ ev->CurrentWindow->InnerRect.ToVec4() };
+				m_viewport.set_rect(view_rect);
 
 				// main image
 				ImGui::Image(
 					m_frames[0]->get_color_attachments()[0]->get_handle(),
-					m_viewport.get_size(),
+					view_rect.size(),
 					{ 0, 1 }, { 1, 0 },
 					colors::white,
 					colors::clear);
 				if (ImGui::BeginPopupContextWindow()) {
-					ImGuiExt::MenuItem(&debug_overlay);
+					ImGuiExt::MenuItem(&m_debug_overlay);
 					ImGui::EndPopup();
 				}
 
@@ -813,10 +855,10 @@ namespace ml
 				ImGuizmo::SetOrthographic(m_camera.is_orthographic());
 				ImGuizmo::SetDrawlist();
 				ImGuizmo::SetRect(
-					m_viewport.get_left(),
-					m_viewport.get_top(),
-					m_viewport.get_width(),
-					m_viewport.get_height());
+					view_rect.left(),
+					view_rect.top(),
+					view_rect.width(),
+					view_rect.height());
 				if (m_grid_enabled) {
 					ImGuizmo::DrawGrid(view_matrix, proj_matrix, m_grid_matrix, m_grid_size);
 				}
@@ -835,39 +877,6 @@ namespace ml
 			{
 				ImGui::PopStyleVar(1);
 			}
-
-			// overlay
-			debug_overlay.Draw([&](auto o) noexcept
-			{
-				static auto const & info{ get_app()->get_render_device()->get_info() };
-				ImGui::Text(info.vendor.c_str()); ImGuiExt::Tooltip("vendor");
-				ImGui::Text(info.renderer.c_str()); ImGuiExt::Tooltip("renderer");
-				ImGui::Text(info.version.c_str()); ImGuiExt::Tooltip("version");
-				ImGui::Separator();
-
-				float32 const fps{ get_app()->get_fps()->value };
-				ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
-
-				vec2 const mouse_pos{ (vec2)get_app()->get_window()->get_mouse_pos() };
-				if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse pos: <invalid>"); }
-				else { ImGui::Text("mouse pos: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
-
-				float_rect const view_rect{ m_viewport.get_rect() };
-				ImGui::Text("view rect: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
-				if (ImGui::IsItemHovered()) {
-					ImGui::GetForegroundDrawList()->AddRect(view_rect.min(), view_rect.max(), IM_COL32(255, 155, 0, 255));
-				}
-
-				if (ImGui::BeginPopupContextWindow()) {
-					if (ImGui::MenuItem("custom", 0, o->Corner == -1)) { o->Corner = -1; }
-					if (ImGui::MenuItem("top-left", 0, o->Corner == 0)) { o->Corner = 0; }
-					if (ImGui::MenuItem("top-right", 0, o->Corner == 1)) { o->Corner = 1; }
-					if (ImGui::MenuItem("bottom-left", 0, o->Corner == 2)) { o->Corner = 2; }
-					if (ImGui::MenuItem("bottom-right", 0, o->Corner == 3)) { o->Corner = 3; }
-					if (ImGui::MenuItem("close")) { o->IsOpen = false; }
-					ImGui::EndPopup();
-				}
-			});
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -885,6 +894,10 @@ namespace ml
 		}
 
 		void on_mouse_pos(mouse_pos_event const & ev)
+		{
+		}
+
+		void on_scroll(scroll_event const & ev)
 		{
 		}
 

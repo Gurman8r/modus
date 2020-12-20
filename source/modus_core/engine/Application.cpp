@@ -8,10 +8,9 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	application::application(int32 argc, char * argv[], json const & attributes, allocator_type alloc)
-		: gui_application	{ argc, argv, attributes, alloc }
+	application::application(int32 argc, char * argv[], json const & j, allocator_type alloc)
+		: gui_application	{ argc, argv, j, alloc }
 		, m_plugin_manager	{ this, alloc }
-		, m_interpreter		{}
 		, m_active_scene	{}
 	{
 		ML_verify(begin_singleton<application>(this));
@@ -20,15 +19,18 @@ namespace ml
 			app_enter_event,
 			app_exit_event,
 			app_idle_event,
+
+			begin_imgui_event,
 			dock_builder_event,
 			main_menu_bar_event,
-			imgui_begin_event,
-			imgui_render_event,
-			imgui_end_event,
+			imgui_event,
+			end_imgui_event,
+
 			char_event,
 			key_event,
 			mouse_button_event,
-			mouse_pos_event
+			mouse_pos_event,
+			scroll_event
 		>();
 	}
 
@@ -45,51 +47,55 @@ namespace ml
 		switch (value)
 		{
 		case app_enter_event::ID: {
-			auto && ev{ (app_enter_event &&)value };
+			auto const & ev{ (app_enter_event const &)value };
 		} break;
 
 		case app_exit_event::ID: {
-			auto && ev{ (app_exit_event &&)value };
+			auto const & ev{ (app_exit_event const &)value };
 		} break;
 
 		case app_idle_event::ID: {
-			auto && ev{ (app_idle_event &&)value };
+			auto const & ev{ (app_idle_event const &)value };
+		} break;
+
+		case begin_imgui_event::ID: {
+			auto const & ev{ (begin_imgui_event const &)value };
 		} break;
 
 		case dock_builder_event::ID: {
-			auto && ev{ (dock_builder_event &&)value };
+			auto const & ev{ (dock_builder_event const &)value };
 		} break;
 
 		case main_menu_bar_event::ID: {
-			auto && ev{ (main_menu_bar_event &&)value };
+			auto const & ev{ (main_menu_bar_event const &)value };
 		} break;
 
-		case imgui_begin_event::ID: {
-			auto && ev{ (imgui_begin_event &&)value };
+		case imgui_event::ID: {
+			auto const & ev{ (imgui_event const &)value };
 		} break;
 
-		case imgui_render_event::ID: {
-			auto && ev{ (imgui_render_event &&)value };
-		} break;
-
-		case imgui_end_event::ID: {
-			auto && ev{ (imgui_end_event &&)value };
+		case end_imgui_event::ID: {
+			auto const & ev{ (end_imgui_event const &)value };
 		} break;
 
 		case char_event::ID: {
-			auto && ev{ (char_event &&)value };
+			auto const & ev{ (char_event const &)value };
 		} break;
 
 		case key_event::ID: {
-			auto && ev{ (key_event &&)value };
+			auto const & ev{ (key_event const &)value };
 		} break;
 
 		case mouse_button_event::ID: {
-			auto && ev{ (mouse_button_event &&)value };
+			auto const & ev{ (mouse_button_event const &)value };
 		} break;
 
 		case mouse_pos_event::ID: {
-			auto && ev{ (mouse_pos_event &&)value };
+			auto const & ev{ (mouse_pos_event const &)value };
+		} break;
+
+		case scroll_event::ID: {
+			auto const & ev{ (scroll_event const &)value };
 		} break;
 		}
 	}

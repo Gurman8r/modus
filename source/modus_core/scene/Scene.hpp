@@ -10,33 +10,31 @@ namespace ml
 {
 	struct entity;
 
-	struct ML_CORE_API scene : event_listener
+	struct ML_CORE_API scene : trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type			= typename pmr::polymorphic_allocator<byte>;
-		using storage_type				= typename ds::list<ds::ref<entity>>;
-		using iterator					= typename storage_type::iterator;
-		using const_iterator			= typename storage_type::const_iterator;
-		using reverse_iterator			= typename storage_type::reverse_iterator;
-		using const_reverse_iterator	= typename storage_type::const_reverse_iterator;
+		scene() noexcept : m_registry{} {}
+
+		scene(scene && other) noexcept : m_registry{ std::move(other.m_registry) } {}
+
+		~scene() noexcept override = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		scene(event_bus * bus, allocator_type alloc = {}) noexcept;
+		ML_NODISCARD auto registry() noexcept -> entt::registry & { return m_registry; }
 
-		virtual ~scene() noexcept override;
+		ML_NODISCARD auto registry() const noexcept -> entt::registry const & { return m_registry; }
+
+		ML_NODISCARD entity new_entity(ds::string const & name = {}) noexcept;
+
+		void delete_entity(entity const & value) noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD ds::ref<entity> new_entity(ds::string const & name = {}, allocator_type alloc = {}) noexcept;
+		void on_runtime_update();
 
-		auto delete_entity(ds::ref<entity> const & value) noexcept -> iterator
-		{
-			if (auto const it{ std::find(m_entities.begin(), m_entities.end(), value) }
-			; it == m_entities.end()) { return it; }
-			else { return m_entities.erase(it); }
-		}
+		void on_editor_update();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -44,75 +42,48 @@ namespace ml
 
 		void to_json(json & j) const;
 
-		ML_NODISCARD json to_json() const noexcept { json j{}; this->to_json(j); return j; }
+		ML_NODISCARD json to_json() const noexcept { json j; this->to_json(j); return j; }
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		std::istream & deserialize(std::istream & in)
+		{
+			this->from_json(json::parse(in));
+			return in;
+		}
+
+		std::ostream & serialize(std::ostream & out) const
+		{
+			return out << this->to_json();
+		}
 
 		bool load_from_file(fs::path const & path)
 		{
-			std::ifstream f{ path }; ML_defer(&f) { f.close(); };
+			std::ifstream f{ path };
+			ML_defer(&f) { f.close(); };
 			if (!f) { return debug::failure("failed reading scene: \'{0}\'", path); }
-			else
-			{
-				json j{ json::parse(f) };
-				from_json(j);
-				return true;
-			}
+			deserialize(f);
+			return true;
 		}
 
 		bool save_to_file(fs::path const & path) const
 		{
-			std::ofstream f{ path }; ML_defer(&f) { f.close(); };
+			std::ofstream f{ path };
+			ML_defer(&f) { f.close(); };
 			if (!f) { return debug::failure("failed writing scene: \'{0}\'", path); }
-			else
-			{
-				f << to_json();
-				return true;
-			}
+			serialize(f);
+			return true;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_entities() noexcept -> storage_type & { return m_entities; }
-
-		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return m_registry; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto begin() noexcept -> iterator { return m_entities.begin(); }
-
-		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_entities.begin(); }
-
-		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return m_entities.cbegin(); }
-
-		ML_NODISCARD auto end() noexcept -> iterator { return m_entities.end(); }
-
-		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_entities.end(); }
-
-		ML_NODISCARD auto cend() const noexcept -> const_iterator { return m_entities.cend(); }
-
-		ML_NODISCARD auto rbegin() noexcept -> reverse_iterator { return m_entities.rbegin(); }
-
-		ML_NODISCARD auto rbegin() const noexcept -> const_reverse_iterator { return m_entities.rbegin(); }
-
-		ML_NODISCARD auto crbegin() const noexcept -> const_reverse_iterator { return m_entities.crbegin(); }
-
-		ML_NODISCARD auto rend() noexcept -> reverse_iterator { return m_entities.rend(); }
-
-		ML_NODISCARD auto rend() const noexcept -> const_reverse_iterator { return m_entities.rend(); }
-
-		ML_NODISCARD auto crend() const noexcept -> const_reverse_iterator { return m_entities.crend(); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		virtual void on_event(event const &) override;
+	private:
+		template <class T> void on_component_added(entity, T &) {}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		storage_type	m_entities	; // entities
-		entt::registry	m_registry	; // registry
+		friend entity;
+
+		entt::registry m_registry; // registry
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

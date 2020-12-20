@@ -1,7 +1,7 @@
 #ifndef _ML_CORE_APPLICATION_HPP_
 #define _ML_CORE_APPLICATION_HPP_
 
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/embed/Python.hpp>
 
 namespace ml
 {
@@ -13,7 +13,7 @@ namespace ml
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		core_application(int32 argc, char * argv[], json const & attributes = {}, allocator_type alloc = {});
+		core_application(int32 argc, char * argv[], json const & j = {}, allocator_type alloc = {});
 
 		virtual ~core_application() noexcept override;
 
@@ -29,6 +29,11 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		ML_NODISCARD auto app_data_path() const noexcept -> fs::path const &
+		{
+			return m_app_data_path;
+		}
+
 		ML_NODISCARD auto app_file_name() const noexcept -> fs::path const &
 		{
 			return m_app_file_name;
@@ -91,42 +96,45 @@ namespace ml
 
 		ML_NODISCARD auto library_paths(size_t i) const noexcept -> fs::path const &
 		{
+			ML_assert(i < m_library_paths.size());
+
 			return m_library_paths[i];
 		}
 
 		ML_NODISCARD auto path_to(fs::path const & value) const noexcept -> fs::path
 		{
-			return !m_library_paths.empty()
-				? m_library_paths.front().native() + value.native()
-				: value;
+			return m_app_data_path.native() + value.native();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void set_app_name(ds::string const & value) noexcept
+		ML_NODISCARD auto get_interpreter() const noexcept -> python_interpreter *
 		{
-			if (m_app_name != value) { m_app_name = value; }
+			return const_cast<python_interpreter *>(&m_interpreter);
 		}
 
-		void set_app_version(ds::string const & value) noexcept
+		ML_NODISCARD bool has_interpreter() const noexcept
 		{
-			if (m_app_version != value) { m_app_version = value; }
+			return m_interpreter.is_initialized();
 		}
 
-		void set_attributes(json const & value) noexcept
+		bool initialize_interpreter() noexcept
 		{
-			if (m_attributes != value) { m_attributes = value; }
+			ML_assert(!m_app_file_name.empty() && !m_library_paths.empty());
+
+			return m_interpreter.initialize(m_app_file_name, m_library_paths[0]);
 		}
 
-		void set_library_paths(ds::list<fs::path> const & value) noexcept
+		bool finalize_interpreter() noexcept
 		{
-			if (m_library_paths != value) { m_library_paths = value; }
+			return m_interpreter.finalize();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		int32					m_exit_code		; // 
+		fs::path				m_app_data_path	; // 
 		fs::path				m_app_file_name	; // 
 		fs::path				m_app_file_path	; // 
 		ds::string				m_app_name		; // 
@@ -134,6 +142,7 @@ namespace ml
 		ds::list<ds::string>	m_arguments		; // 
 		json					m_attributes	; // 
 		ds::list<fs::path>		m_library_paths	; // 
+		python_interpreter		m_interpreter	; // python interpreter
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -21,7 +21,7 @@ namespace ml
 
 		ML_NODISCARD operator bool() const noexcept { return (bool)graphic; }
 
-		ML_NODISCARD auto bearing() const noexcept -> vec2 { return bounds.position(); }
+		ML_NODISCARD auto bearing() const noexcept -> vec2 { return bounds.min(); }
 		
 		ML_NODISCARD auto size() const noexcept -> vec2 { return bounds.size(); }
 		

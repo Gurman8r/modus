@@ -42,7 +42,7 @@ namespace ml
 
 		ML_NODISCARD inline int_rect get_bounds() const noexcept
 		{
-			return { get_position(), get_size() };
+			return int_rect{ get_position(), get_size() };
 		}
 
 		ML_NODISCARD virtual window_callbacks const & get_callbacks() const = 0;
@@ -114,7 +114,7 @@ namespace ml
 
 		virtual void set_auto_iconify(bool) = 0;
 
-		virtual void set_clipboard(cstring) = 0;
+		virtual void set_clipboard(ds::string const &) = 0;
 
 		virtual void set_cursor(cursor_handle) = 0;
 
@@ -230,6 +230,7 @@ namespace ml
 			set_mouse_enter_callback		(nullptr);
 			set_mouse_pos_callback			(nullptr);
 			set_mouse_button_callback		(nullptr);
+			set_scroll_callback				(nullptr);
 
 			set_close_callback				(nullptr);
 			set_content_scale_callback		(nullptr);
@@ -241,7 +242,6 @@ namespace ml
 			set_position_callback			(nullptr);
 			set_refresh_callback			(nullptr);
 			set_resize_callback				(nullptr);
-			set_scroll_callback				(nullptr);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -355,7 +355,7 @@ namespace ml
 
 		void set_auto_iconify(bool value) noexcept final { m_ptr->set_auto_iconify(value); }
 
-		void set_clipboard(cstring value) noexcept final { m_ptr->set_clipboard(value); }
+		void set_clipboard(ds::string const & value) noexcept final { m_ptr->set_clipboard(value); }
 		
 		void set_cursor(cursor_handle value) noexcept final { m_ptr->set_cursor(value); }
 		

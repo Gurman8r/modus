@@ -1,4 +1,3 @@
-#if defined(ML_IMPL_WINDOW_GLFW)
 #ifndef _ML_GLFW_WINDOW_HPP_
 #define _ML_GLFW_WINDOW_HPP_
 
@@ -10,36 +9,64 @@ struct GLFWmonitor;
 // GLFW MONITOR
 namespace ml
 {
-	struct glfw_monitor final
+	struct glfw_monitor final : monitor
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static monitor_handle get_primary();
+		using monitor::allocator_type;
 
-		ML_NODISCARD static ds::list<monitor_handle> const & get_monitors();
+		glfw_monitor(allocator_type alloc = {}) noexcept;
+
+		~glfw_monitor() noexcept final = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ds::string get_name() const final;
+
+		monitor_handle get_handle() const final;
+
+		void * get_user_pointer() const final;
+
+		void set_user_pointer(void * value) final;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		vec2i get_dimensions() const final;
+
+		vec2f get_content_scale() const final;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		video_mode const & get_current_mode() const final;
+
+		ds::list<video_mode> const & get_modes() const final;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static monitor const & get_primary();
+
+		static ds::list<monitor> const & get_monitors();
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	private:
+		GLFWmonitor *			m_monitor		; // 
+		ds::list<video_mode>	m_modes			; // 
+		video_mode				m_current_mode	; // 
 	};
 }
 
 // GLFW CONTEXT
 namespace ml
 {
-	struct glfw_context final
+	class glfw_context final
 	{
+	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		static int32 initialize();
 
 		static void finalize();
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD static int32 extension_supported(cstring value);
-
-		ML_NODISCARD static void * get_proc_address(cstring value);
-
-		ML_NODISCARD static duration get_time();
 
 		static window_error_callback set_error_callback(window_error_callback value);
 
@@ -181,7 +208,7 @@ namespace ml
 
 		void set_auto_iconify(bool value) final;
 
-		void set_clipboard(cstring value) final;
+		void set_clipboard(ds::string const & value) final;
 		
 		void set_cursor(cursor_handle value) final;
 		
@@ -300,5 +327,4 @@ namespace ml
 	};
 }
 
-#endif // !_ML_IMPL_WINDOW_GLFW_HPP_
 #endif // _ML_GLFW_WINDOW_HPP_

@@ -129,6 +129,18 @@ namespace ml
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	ML_event(scroll_event)
+	{
+		float64 x, y;
+
+		constexpr scroll_event(float64 x, float64 y) noexcept
+			: x{ x }, y{ y }
+		{
+		}
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_INPUT_EVENTS_HPP_

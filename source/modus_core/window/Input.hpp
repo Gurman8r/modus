@@ -166,6 +166,11 @@ namespace ml
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+namespace ml
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// input states
 
@@ -175,9 +180,18 @@ namespace ml
 
 	struct ML_NODISCARD input_state final : trackable
 	{
-		vec2d			mouse_pos	; // cursor position
-		keyboard_state	keyboard	; // keyboard state
-		mouse_state		mouse		; // mouse state
+		float64
+			mouse_scroll;
+		vec2d
+			mouse_pos,
+			mouse_delta,
+			last_mouse_pos;
+		int32
+			buttons[mouse_button_MAX],
+			keys[keycode_MAX];
+		float32 
+			button_times[mouse_button_MAX],
+			key_times[keycode_MAX];
 
 		input_state() noexcept = default;
 		input_state(input_state const &) = default;

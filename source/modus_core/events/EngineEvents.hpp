@@ -12,12 +12,7 @@ namespace ml
 
 	ML_event(app_exit_event) {};
 
-	ML_event(app_idle_event)
-	{
-		duration const delta_time;
-
-		constexpr app_idle_event(duration const & delta_time) noexcept : delta_time{ delta_time } {}
-	};
+	ML_event(app_idle_event) {};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

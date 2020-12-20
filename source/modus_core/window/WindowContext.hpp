@@ -6,43 +6,30 @@
 namespace ml
 {
 	// window context (WIP)
-	struct ML_CORE_API window_context final : non_copyable, trackable
+	class ML_CORE_API window_context final
 	{
+	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		window_context() noexcept { ML_assert(initialize()); }
+		static int32 initialize();
 
-		~window_context() noexcept override { finalize(); }
+		static void finalize();
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static int32 initialize() noexcept;
-
-		static void finalize() noexcept;
-		
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD static int32 extension_supported(ds::string const & value) noexcept;
-
-		ML_NODISCARD static void * get_proc_address(ds::string const & value) noexcept;
-
-		ML_NODISCARD static duration get_time() noexcept;
-
-		static window_error_callback set_error_callback(window_error_callback value) noexcept;
+		static window_error_callback set_error_callback(window_error_callback value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static window_handle get_active_window() noexcept;
+		ML_NODISCARD static window_handle get_active_window();
 
-		static void set_active_window(window_handle value) noexcept;
+		static void set_active_window(window_handle value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static void poll_events() noexcept;
+		static void poll_events();
 
-		static void swap_buffers(window_handle value) noexcept;
+		static void swap_buffers(window_handle value);
 
-		static void set_swap_interval(int32 value) noexcept;
+		static void set_swap_interval(int32 value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

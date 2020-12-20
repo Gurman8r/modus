@@ -4,7 +4,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <modus_core/detail/Matrix.hpp>
-#include <modus_core/detail/EventSystem.hpp>
+#include <modus_core/detail/Memory.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -66,7 +66,7 @@ namespace ml
 			
 			if constexpr (0 < sizeof...(args))
 			{
-				ML_assert(this->initialize(ML_forward(args)...));
+				ML_verify(this->initialize(ML_forward(args)...));
 			}
 		}
 
@@ -91,12 +91,11 @@ namespace ml
 		{
 			if (name.empty())		{ return debug::failure(); }
 			if (home.empty())		{ return debug::failure(); }
-			if (!resource)			{ return debug::failure(); }
 			if (Py_IsInitialized())	{ return debug::failure(); }
 
 			PyObject_SetArenaAllocator(std::invoke([&, &al = PyObjectArenaAllocator{}]()
 			{
-				al.ctx = resource;
+				al.ctx = resource ? resource : pmr::get_default_resource();
 				al.alloc = [](auto resource, size_t s)
 				{
 					return ((pmr::memory_resource *)resource)->allocate(s);

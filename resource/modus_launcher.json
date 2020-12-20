@@ -1,10 +1,10 @@
 {
 	"app_name": "modus",
 	"app_version": "alpha",
+	"app_data_path": "../../../",
 	"library_paths": [ "../../../" ],
 
 	"window": {
-		"callbacks": true,
 		"video": {
 			"resolution": [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
@@ -35,19 +35,7 @@
 	},
 
 	"imgui": {
-		"callbacks": true,
-		"guistyle": {
-			"path": "resource/modus_launcher.style"
-		},
-		"dockspace": {
-			"alpha": 0,
-			"border": 0,
-			"rounding": 0,
-			"padding": [ 0, 0 ],
-			"size": [ 0, 0 ]
-		},
-		"menubar": {
-		}
+		"style": { "path": "resource/modus_launcher.style" }
 	},
 
 	"plugins": [

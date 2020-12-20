@@ -365,10 +365,6 @@ namespace ml::ImGuiExt
 
 		bool IsOpen{ true };
 
-		void Configure(json const & j)
-		{
-		}
-
 		ML_NODISCARD auto GetID() const noexcept -> ImGuiID {
 			return ImGui::GetID(Title);
 		}
@@ -448,15 +444,6 @@ namespace ml::ImGuiExt
 			other.DockNodeFlags
 		}
 		{}
-
-		void Configure(json const & j)
-		{
-			util::get_json(j, "alpha"	, Alpha);
-			util::get_json(j, "border"	, Border);
-			util::get_json(j, "padding"	, Padding);
-			util::get_json(j, "rounding", Rounding);
-			util::get_json(j, "size"	, Size);
-		}
 
 		ML_NODISCARD static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept {
 			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;

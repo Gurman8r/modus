@@ -108,7 +108,7 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ds::ref<render_context> opengl_render_device::new_context(spec<render_context> const & desc, allocator_type alloc) noexcept
+	ds::ref<render_context> opengl_render_device::new_context(context_settings const & desc, allocator_type alloc) noexcept
 	{
 		return m_objs.push_back<ds::unown<render_context>>(alloc_ref<opengl_render_context>(alloc, this, desc)).lock();
 	}
@@ -417,8 +417,9 @@ namespace ml::gfx
 
 		bind_vertexarray(value.get());
 
-		if (auto const prim{ value->get_mode() }
-		; auto const & ib{ value->get_indices() })
+		primitive_ const mode{ value->get_mode() };
+
+		if (auto const & ib{ value->get_indices() })
 		{
 			bind_indexbuffer(ib.get());
 
@@ -426,7 +427,7 @@ namespace ml::gfx
 			{
 				bind_vertexbuffer(vb.get());
 
-				draw_indexed(prim, ib->get_count());
+				draw_indexed(mode, ib->get_count());
 			}
 		}
 		else
@@ -435,7 +436,7 @@ namespace ml::gfx
 			{
 				bind_vertexbuffer(vb.get());
 
-				draw_arrays(prim, 0, vb->get_count());
+				draw_arrays(mode, 0, vb->get_count());
 			}
 		}
 	}
@@ -483,7 +484,7 @@ namespace ml::gfx
 		{
 			ML_glCheck(glBindFramebuffer(GL_FRAMEBUFFER, ML_handle(uint32, value->get_handle())));
 
-			set_viewport({ vec2i::zero(), value->get_size() });
+			set_viewport({ {}, value->get_size() });
 		}
 		else
 		{
@@ -1245,13 +1246,15 @@ namespace ml::gfx
 
 	bool opengl_program::detach(uint32 type)
 	{
+		object_id & id{ m_shaders[type] };
+
 		// detach shader
-		ML_glCheck(ML_glDetachShader(m_handle, ML_handle(uint32, m_shaders[type])));
+		ML_glCheck(ML_glDetachShader(m_handle, ML_handle(uint32, id)));
 
 		// delete shader
-		ML_glCheck(ML_glDeleteShader(ML_handle(uint32, m_shaders[type])));
+		ML_glCheck(ML_glDeleteShader(ML_handle(uint32, id)));
 
-		m_shaders[type] = NULL;
+		id = NULL;
 
 		m_source[type].clear();
 
@@ -1271,6 +1274,17 @@ namespace ml::gfx
 			gl_get_program_info_log(m_handle, m_error_log);
 		}
 		return success;
+	}
+
+	uniform_id opengl_program::get_uniform_location(cstring name) noexcept
+	{
+		return m_uniforms.find_or_add_fn(hashof(name, std::strlen(name)), [&
+		]() noexcept
+		{
+			int32 temp{};
+			ML_glCheck(temp = ML_glGetUniformLocation(m_handle, name));
+			return ML_handle(uniform_id, temp);
+		});
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

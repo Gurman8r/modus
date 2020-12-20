@@ -1,14 +1,10 @@
 #ifndef _ML_CURSOR_HPP_
 #define _ML_CURSOR_HPP_
 
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/system/Platform.hpp>
 
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ML_decl_handle(cursor_handle); // cursor handle
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// cursor mode

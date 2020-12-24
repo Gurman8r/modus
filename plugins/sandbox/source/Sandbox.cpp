@@ -915,7 +915,7 @@ namespace ml
 					for (size_t i = 0; i < keycode_MAX; ++i) {
 						if (input->keys[i]) {
 							ImGui::SameLine();
-							cstring const fmt{ i < 256 ? "(%c:%.2fs)" : "(%i:%.2fs)" };
+							cstring const fmt{ (std::isalnum(i) || std::isspace(i)) ? "(\'%c\':%.2fs)" : "(%i:%.2fs)" };
 							ImGui::Text(fmt, i, input->key_timers[i].elapsed().count());
 						}
 					}

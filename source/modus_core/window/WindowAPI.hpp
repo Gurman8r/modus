@@ -81,7 +81,6 @@ namespace ml
 	ML_alias window_close_callback				= void(*)(window_handle);
 	ML_alias window_content_scale_callback		= void(*)(window_handle, float32, float32);
 	ML_alias window_drop_callback				= void(*)(window_handle, int32, cstring[]);
-	ML_alias window_error_callback				= void(*)(int32, cstring); // static error callback
 	ML_alias window_focus_callback				= void(*)(window_handle, int32);
 	ML_alias window_framebuffer_resize_callback	= void(*)(window_handle, int32, int32);
 	ML_alias window_iconify_callback			= void(*)(window_handle, int32);
@@ -114,7 +113,7 @@ namespace ml
 		window_position_callback			on_position				; // 
 		window_refresh_callback				on_refresh				; // 
 		window_resize_callback				on_resize				; // 
-		window_scroll_callback				on_scroll				; // 
+		window_scroll_callback				on_mouse_wheel				; // 
 	};
 }
 

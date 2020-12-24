@@ -137,6 +137,7 @@ namespace ml
 			: m_is_primary	{}
 			, m_clear_flags	{ 1 }
 			, m_background	{ colors::magenta }
+			, m_resolution	{ 1280, 720 }
 			, m_proj		{ mat4::identity() }
 			, m_is_ortho	{}
 			, m_clip		{ { 0.001f, 1000.f }, { 1000.f, -1000.f } }
@@ -152,6 +153,7 @@ namespace ml
 			: m_is_primary	{ other.m_is_primary }
 			, m_clear_flags	{ other.m_clear_flags }
 			, m_background	{ other.m_background }
+			, m_resolution	{ other.m_resolution }
 			, m_proj		{ other.m_proj }
 			, m_is_ortho	{ other.m_is_ortho }
 			, m_fov			{}
@@ -192,6 +194,7 @@ namespace ml
 				std::swap(m_is_primary, other.m_is_primary);
 				std::swap(m_clear_flags, other.m_clear_flags);
 				m_background.swap(other.m_background);
+				m_resolution.swap(other.m_resolution);
 				m_proj.swap(other.m_proj);
 				std::swap(m_is_ortho, other.m_is_ortho);
 				std::swap(m_fov, other.m_fov);
@@ -201,40 +204,6 @@ namespace ml
 				m_target.swap(other.m_target);
 				m_up.swap(other.m_up);
 			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void recalculate(vec2 const & resolution)
-		{
-			ML_assert((resolution[0] != 0.f) && (resolution[1] != 0.f));
-			
-			// projection
-			if (!m_is_ortho)
-			{
-				util::perspective(
-					m_fov[m_is_ortho],
-					resolution[0] / resolution[1],
-					m_clip[m_is_ortho][0],
-					m_clip[m_is_ortho][1],
-					m_proj);
-			}
-			else
-			{
-				auto const ortho_height{ m_fov[m_is_ortho] * resolution[1] / resolution[0] };
-				
-				util::orthographic(
-					-m_fov[m_is_ortho],
-					m_fov[m_is_ortho],
-					-ortho_height,
-					ortho_height,
-					m_clip[m_is_ortho][0],
-					m_clip[m_is_ortho][1],
-					m_proj);
-			}
-
-			// view
-			util::look_at(m_eye, m_target, m_up, m_view);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -291,6 +260,11 @@ namespace ml
 			return m_clip[m_is_ortho];
 		}
 
+		ML_NODISCARD auto get_resolution() const noexcept -> vec2 const &
+		{
+			return m_resolution;
+		}
+
 		void set_proj_matrix(mat4 const & value) noexcept
 		{
 			m_proj = value;
@@ -309,6 +283,41 @@ namespace ml
 		void set_clip(vec2 const & value) noexcept
 		{
 			m_clip[m_is_ortho] = value;
+		}
+
+		void set_resolution(vec2 const & value) noexcept
+		{
+			m_resolution = value;
+		}
+
+		void recalculate_proj() noexcept
+		{
+			ML_assert((m_resolution[0] != 0.f) && (m_resolution[1] != 0.f));
+
+			if (!m_is_ortho)
+			{
+				util::perspective(
+					m_fov[m_is_ortho],
+					m_resolution[0] / m_resolution[1],
+					m_clip[m_is_ortho][0],
+					m_clip[m_is_ortho][1],
+					m_proj);
+			}
+			else
+			{
+				float32 const ortho_height
+				{
+					m_fov[m_is_ortho] * m_resolution[1] / m_resolution[0]
+				};
+				util::orthographic(
+					-m_fov[m_is_ortho],
+					m_fov[m_is_ortho],
+					-ortho_height,
+					ortho_height,
+					m_clip[m_is_ortho][0],
+					m_clip[m_is_ortho][1],
+					m_proj);
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -353,10 +362,16 @@ namespace ml
 			m_up = value;
 		}
 
+		void recalculate_view() noexcept
+		{
+			util::look_at(m_eye, m_target, m_up, m_view);
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		bool	m_is_primary	; // 
+		vec2	m_resolution	; // 
 		uint32	m_clear_flags	; // 
 		color	m_background	; // 
 
@@ -453,10 +468,11 @@ namespace ml
 			};
 
 			m_camera->set_eye(m_position);
-
 			m_camera->set_target(m_position + eye);
+			m_camera->set_resolution(resolution);
 
-			m_camera->recalculate(resolution);
+			m_camera->recalculate_proj();
+			m_camera->recalculate_view();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -481,26 +497,6 @@ namespace ml
 			return m_position;
 		}
 
-		ML_NODISCARD auto get_yaw() const noexcept -> float32
-		{
-			return m_yaw;
-		}
-
-		ML_NODISCARD auto get_pitch() const noexcept -> float32
-		{
-			return m_pitch;
-		}
-
-		ML_NODISCARD auto get_roll() const noexcept -> float32
-		{
-			return m_roll;
-		}
-
-		ML_NODISCARD auto get_zoom() const noexcept -> float32
-		{
-			return m_zoom;
-		}
-
 		void set_position(vec3 const & value) noexcept
 		{
 			if (m_position != value)
@@ -509,37 +505,31 @@ namespace ml
 			}
 		}
 
-		void set_yaw(float32 value) noexcept
-		{
-			if (m_yaw != value)
-			{
-				m_yaw = value;
-			}
-		}
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void set_pitch(float32 value) noexcept
-		{
-			if (m_pitch != value)
-			{
-				m_pitch = value;
-			}
-		}
+		ML_NODISCARD auto get_yaw() const noexcept -> float32 { return m_yaw; }
 
-		void set_roll(float32 value) noexcept
-		{
-			if (m_roll != value)
-			{
-				m_roll = value;
-			}
-		}
+		ML_NODISCARD auto get_pitch() const noexcept -> float32 { return m_pitch; }
 
-		void set_zoom(float32 value) noexcept
-		{
-			if (m_zoom != value)
-			{
-				m_zoom = value;
-			}
-		}
+		ML_NODISCARD auto get_roll() const noexcept -> float32 { return m_roll; }
+
+		ML_NODISCARD auto get_zoom() const noexcept -> float32 { return m_zoom; }
+
+		void set_yaw(float32 value) noexcept { m_yaw = value; }
+
+		void set_pitch(float32 value) noexcept { m_pitch = value; }
+
+		void set_roll(float32 value) noexcept { m_roll = value; }
+
+		void set_zoom(float32 value) noexcept { m_zoom = value; }
+
+		void yaw(float32 value) noexcept { m_yaw += value; }
+
+		void pitch(float32 value) noexcept { m_pitch += value; }
+
+		void roll(float32 value) noexcept { m_roll += value; }
+
+		void zoom(float32 value) noexcept { m_zoom += value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

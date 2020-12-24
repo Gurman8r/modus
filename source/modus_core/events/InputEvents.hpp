@@ -47,6 +47,10 @@ namespace ml
 		constexpr bool is_mods		(int32 m) const noexcept { return mods == m; }
 		constexpr bool has_mods		(int32 m) const noexcept { return ML_flag_read(mods, m); }
 		
+		constexpr bool is_release	() const noexcept { return is_action(0); }
+		constexpr bool is_press		() const noexcept { return is_action(1); }
+		constexpr bool is_repeat	() const noexcept { return is_action(2); }
+		
 		constexpr bool is_release	(int32 k) const noexcept { return is_key(k) && is_action(0); }
 		constexpr bool is_press		(int32 k) const noexcept { return is_key(k) && is_action(1); }
 		constexpr bool is_repeat	(int32 k) const noexcept { return is_key(k) && is_action(2); }
@@ -55,12 +59,12 @@ namespace ml
 		constexpr bool is_press		(int32 k, int32 m) const noexcept { return is_press(k) && is_mods(m); }
 		constexpr bool is_repeat	(int32 k, int32 m) const noexcept { return is_repeat(k) && is_mods(m); }
 
-		constexpr bool is_shift		() const noexcept { return has_mods(keymods_shift);  }
+		constexpr bool is_shift		() const noexcept { return has_mods(keymods_shift); }
 		constexpr bool is_ctrl		() const noexcept { return has_mods(keymods_ctrl); }
 		constexpr bool is_alt		() const noexcept { return has_mods(keymods_alt); }
 		constexpr bool is_super		() const noexcept { return has_mods(keymods_super); }
-		constexpr bool is_caps		() const noexcept { return has_mods(keymods_caps_lock); }
-		constexpr bool is_numlk		() const noexcept { return has_mods(keymods_num_lock); }
+		constexpr bool is_caps		() const noexcept { return has_mods(keymods_caps); }
+		constexpr bool is_numlk		() const noexcept { return has_mods(keymods_numlk); }
 
 		constexpr bool is_shift		(int32 k) const noexcept { return is_press(k) && is_shift();  }
 		constexpr bool is_ctrl		(int32 k) const noexcept { return is_press(k) && is_ctrl(); }
@@ -94,14 +98,18 @@ namespace ml
 		constexpr bool is_button(int32 b) const noexcept { return button == b; }
 		constexpr bool is_mods(int32 m) const noexcept { return mods == m; }
 		constexpr bool has_mods(int32 m) const noexcept { return (m & mods) == m; }
+		
+		constexpr bool is_release	() const noexcept { return is_action(0); }
+		constexpr bool is_press		() const noexcept { return is_action(1); }
+		constexpr bool is_repeat	() const noexcept { return is_action(2); }
 
-		constexpr bool is_release(int32 b) const noexcept { return is_button(b) && is_action(0); }
-		constexpr bool is_press(int32 b) const noexcept { return is_button(b) && is_action(1); }
-		constexpr bool is_repeat(int32 b) const noexcept { return is_button(b) && is_action(2); }
+		constexpr bool is_release	(int32 b) const noexcept { return is_button(b) && is_action(0); }
+		constexpr bool is_press		(int32 b) const noexcept { return is_button(b) && is_action(1); }
+		constexpr bool is_repeat	(int32 b) const noexcept { return is_button(b) && is_action(2); }
 
-		constexpr bool is_release(int32 b, int32 m) const noexcept { return is_release(b) && is_mods(m); }
-		constexpr bool is_press(int32 b, int32 m) const noexcept { return is_press(b) && is_mods(m); }
-		constexpr bool is_repeat(int32 b, int32 m) const noexcept { return is_repeat(b) && is_mods(m); }
+		constexpr bool is_release	(int32 b, int32 m) const noexcept { return is_release(b) && is_mods(m); }
+		constexpr bool is_press		(int32 b, int32 m) const noexcept { return is_press(b) && is_mods(m); }
+		constexpr bool is_repeat	(int32 b, int32 m) const noexcept { return is_repeat(b) && is_mods(m); }
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -130,11 +138,11 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_event(scroll_event)
+	ML_event(mouse_wheel_event)
 	{
 		float64 x, y;
 
-		constexpr scroll_event(float64 x, float64 y) noexcept
+		constexpr mouse_wheel_event(float64 x, float64 y) noexcept
 			: x{ x }, y{ y }
 		{
 		}

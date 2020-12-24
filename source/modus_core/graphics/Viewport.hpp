@@ -26,6 +26,11 @@ namespace ml
 		{
 		}
 
+		viewport(float_rect const & rect, float_rect const & offset, allocator_type alloc = {}) noexcept
+			: m_rect{ rect }
+		{
+		}
+
 		viewport(viewport const & other, allocator_type alloc = {})
 			: m_rect{ other.m_rect }
 		{

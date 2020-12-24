@@ -12,14 +12,14 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ds::list<monitor> const & monitor::get_monitors() noexcept
-	{
-		return impl_monitor::get_monitors();
-	}
-
 	monitor const & monitor::get_primary() noexcept
 	{
 		return impl_monitor::get_primary();
+	}
+
+	ds::list<monitor> const & monitor::get_monitors() noexcept
+	{
+		return impl_monitor::get_monitors();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

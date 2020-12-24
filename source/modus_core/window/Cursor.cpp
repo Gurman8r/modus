@@ -12,17 +12,17 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	cursor_handle cursor::create_custom(size_t w, size_t h, byte const * p, int32 x, int32 y) noexcept
+	cursor cursor::create_custom(size_t w, size_t h, byte const * p, int32 x, int32 y) noexcept
 	{
 		return impl_cursor::create_custom(w, h, p, x, y);
 	}
 
-	cursor_handle cursor::create_standard(cursor_shape_ shape) noexcept
+	cursor cursor::create_standard(cursor_shape_ shape) noexcept
 	{
 		return impl_cursor::create_standard(shape);
 	}
 
-	void cursor::destroy(cursor_handle value) noexcept
+	void cursor::destroy(cursor const & value) noexcept
 	{
 		impl_cursor::destroy(value);
 	}

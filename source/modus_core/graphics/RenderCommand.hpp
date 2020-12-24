@@ -26,18 +26,6 @@ namespace ml::gfx
 
 		using std::function< void(render_context *) >::function;
 
-		template <class Fn, class ... Args
-		> ML_NODISCARD static command bind(Fn && fn, Args && ... args) noexcept
-		{
-			return std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
-		}
-
-		template <class Arg0, class ... Args
-		> ML_NODISCARD static command exec(Arg0 && arg0, Args && ... args) noexcept
-		{
-			return std::bind(&gfx::execute, std::placeholders::_1, ML_forward(arg0), ML_forward(args)...);
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD static command set_alpha_state(alpha_state const & value) noexcept

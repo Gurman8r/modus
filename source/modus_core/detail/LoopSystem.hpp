@@ -123,7 +123,7 @@ namespace ml
 
 		ML_NODISCARD bool check_condition() const noexcept
 		{
-			return m_running && m_condition && std::invoke(m_condition);
+			return m_running && m_condition && m_condition();
 		}
 
 		template <bool Recursive = false, bool Reverse = false

@@ -2,6 +2,7 @@
 #define _ML_CORE_APPLICATION_HPP_
 
 #include <modus_core/embed/Python.hpp>
+#include <modus_core/system/SharedLibrary.hpp>
 
 namespace ml
 {
@@ -64,31 +65,6 @@ namespace ml
 			return m_arguments[i];
 		}
 
-		ML_NODISCARD auto attr() noexcept -> json &
-		{
-			return m_attributes;
-		}
-
-		ML_NODISCARD auto attr() const noexcept -> json const &
-		{
-			return m_attributes;
-		}
-
-		template <class I> ML_NODISCARD auto attr(I && i) noexcept -> json &
-		{
-			return m_attributes[ML_forward(i)];
-		}
-
-		template <class I> ML_NODISCARD auto attr(I && i) const noexcept -> json const &
-		{
-			return m_attributes[ML_forward(i)];
-		}
-
-		template <class I> ML_NODISCARD bool has_attr(I && i) const
-		{
-			return m_attributes.contains(ML_forward(i));
-		}
-
 		ML_NODISCARD auto library_paths() const noexcept -> ds::list<fs::path> const &
 		{
 			return m_library_paths;
@@ -108,6 +84,38 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
+		ML_NODISCARD auto attr() noexcept -> json &
+		{
+			return m_attributes;
+		}
+
+		ML_NODISCARD auto attr() const noexcept -> json const &
+		{
+			return m_attributes;
+		}
+
+		template <class Arg0, class ... Args
+		> ML_NODISCARD auto attr(Arg0 && arg0, Args && ... args) noexcept -> json &
+		{
+			return *ML_check(util::json_ptr(&m_attributes, ML_forward(arg0), ML_forward(args)...));
+		}
+
+		template <class Arg0, class ... Args
+		> ML_NODISCARD auto attr(Arg0 && arg0, Args && ... args) const noexcept -> json const &
+		{
+			return *ML_check(util::json_ptr(&m_attributes, ML_forward(arg0), ML_forward(args)...));
+		}
+
+		template <class Arg0, class ... Args
+		> ML_NODISCARD bool has_attr(Arg0 && arg0, Args && ... args) const noexcept
+		{
+			return util::has_json(m_attributes, ML_forward(arg0), ML_forward(args)...);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		ML_NODISCARD auto get_interpreter() const noexcept -> python_interpreter *
 		{
 			return const_cast<python_interpreter *>(&m_interpreter);
@@ -120,7 +128,7 @@ namespace ml
 
 		bool initialize_interpreter() noexcept
 		{
-			ML_assert(!m_app_file_name.empty() && !m_library_paths.empty());
+			if (m_library_paths.empty()) { return debug::failure("library paths are empty"); }
 
 			return m_interpreter.initialize(m_app_file_name, m_library_paths[0]);
 		}
@@ -133,15 +141,15 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		int32					m_exit_code		; // 
-		fs::path				m_app_data_path	; // 
-		fs::path				m_app_file_name	; // 
-		fs::path				m_app_file_path	; // 
-		ds::string				m_app_name		; // 
-		ds::string				m_app_version	; // 
-		ds::list<ds::string>	m_arguments		; // 
-		json					m_attributes	; // 
-		ds::list<fs::path>		m_library_paths	; // 
+		int32					m_exit_code		; // exit code
+		fs::path				m_app_data_path	; // app data path
+		fs::path				m_app_file_name	; // app file name
+		fs::path				m_app_file_path	; // app file path
+		ds::string				m_app_name		; // app name
+		ds::string				m_app_version	; // app version
+		ds::list<ds::string>	m_arguments		; // arguments
+		ds::list<fs::path>		m_library_paths	; // library paths
+		json					m_attributes	; // attributes
 		python_interpreter		m_interpreter	; // python interpreter
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

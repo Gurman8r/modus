@@ -34,18 +34,19 @@ static class memcfg final : public singleton<memcfg>
 
 static auto const default_settings{ R"(
 {
-	"app_name": "modus",
+	"app_name": "modus launcher",
 	"app_version": "alpha",
+	"app_data_path": "../../../",
 	"library_paths": [ "../../../" ],
 
 	"window": {
-		"callbacks": true,
+		"title": "modus",
 		"video": {
 			"resolution": [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
 			"refresh_rate": -1
 		},
-		"context": {
+		"graphics": {
 			"api": "opengl",
 			"major": 4,
 			"minor": 6,
@@ -70,19 +71,7 @@ static auto const default_settings{ R"(
 	},
 
 	"imgui": {
-		"callbacks": true,
-		"guistyle": {
-			"path": "resource/modus_launcher.style"
-		},
-		"dockspace": {
-			"alpha": 0,
-			"border": 0,
-			"rounding": 0,
-			"padding": [ 0, 0 ],
-			"size": [ 0, 0 ]
-		},
-		"menubar": {
-		}
+		"style": { "path": "resource/modus_launcher.style" }
 	},
 
 	"plugins": [

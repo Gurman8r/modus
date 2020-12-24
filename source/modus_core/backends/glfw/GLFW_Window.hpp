@@ -9,72 +9,54 @@ struct GLFWmonitor;
 // GLFW MONITOR
 namespace ml
 {
-	struct glfw_monitor final : monitor
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		using monitor::allocator_type;
-
-		glfw_monitor(allocator_type alloc = {}) noexcept;
-
-		~glfw_monitor() noexcept final = default;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ds::string get_name() const final;
-
-		monitor_handle get_handle() const final;
-
-		void * get_user_pointer() const final;
-
-		void set_user_pointer(void * value) final;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		vec2i get_dimensions() const final;
-
-		vec2f get_content_scale() const final;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		video_mode const & get_current_mode() const final;
-
-		ds::list<video_mode> const & get_modes() const final;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static monitor const & get_primary();
-
-		static ds::list<monitor> const & get_monitors();
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		GLFWmonitor *			m_monitor		; // 
-		ds::list<video_mode>	m_modes			; // 
-		video_mode				m_current_mode	; // 
-	};
-}
-
-// GLFW CONTEXT
-namespace ml
-{
-	class glfw_context final
+	class glfw_monitor final
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static int32 initialize();
+		ML_NODISCARD static monitor const & get_primary();
 
-		static void finalize();
+		ML_NODISCARD static ds::list<monitor> const & get_monitors();
 
-		static window_error_callback set_error_callback(window_error_callback value);
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+}
+
+// GLFW CURSOR
+namespace ml
+{
+	class glfw_cursor final
+	{
+	public:
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static cursor create_custom(size_t w, size_t h, byte const * p, int32 x, int32 y);
+
+		static cursor create_standard(cursor_shape_ shape);
+
+		static void destroy(cursor const & value);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+}
+
+// GLFW PLATFORM
+namespace ml
+{
+	class glfw_platform final
+	{
+	public:
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static bool initialize();
+
+		static bool finalize();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static window_handle get_active_window();
+		ML_NODISCARD static window_handle get_context_current();
 
-		static void set_active_window(window_handle value);
+		static void make_context_current(window_handle value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -85,21 +67,10 @@ namespace ml
 		static void set_swap_interval(int32 value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-}
 
-// GLFW CURSOR
-namespace ml
-{
-	struct glfw_cursor final
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		static error_callback get_error_callback();
 
-		static cursor_handle create_custom(size_t w, size_t h, byte const * p, int32 x, int32 y);
-
-		static cursor_handle create_standard(int32 shape);
-
-		static void destroy(cursor_handle value);
+		static error_callback set_error_callback(error_callback value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

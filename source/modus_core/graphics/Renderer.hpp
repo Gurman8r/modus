@@ -48,7 +48,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::scary<gfx::render_device> m_device; // device
+		ds::scary<gfx::render_device> m_device; // render device
 	};
 }
 

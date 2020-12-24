@@ -36,7 +36,7 @@ namespace ml
 		}
 
 		// make current context
-		window_context::set_active_window(get_handle());
+		platform::make_context_current(get_handle());
 
 		// user pointer
 		set_user_pointer(this);
@@ -53,14 +53,14 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	std::optional<fs::path> native_window::get_open_file_name(cstring filter) const
+	std::optional<fs::path> native_window::get_open_file_name(ds::string const & filter) const
 	{
 		return is_open()
 			? platform::get_open_file_name(get_native_handle(), filter)
 			: std::nullopt;
 	}
 
-	std::optional<fs::path> native_window::get_save_file_name(cstring filter) const
+	std::optional<fs::path> native_window::get_save_file_name(ds::string const & filter) const
 	{
 		return is_open()
 			? platform::get_save_file_name(get_native_handle(), filter)

@@ -110,52 +110,72 @@ namespace ml::gfx
 
 	ds::ref<render_context> opengl_render_device::new_context(context_settings const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<render_context>>(alloc_ref<opengl_render_context>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_render_context>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<render_context>>(sp);
+		return sp;
 	}
 
 	ds::ref<vertexarray> opengl_render_device::new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<vertexarray>>(alloc_ref<opengl_vertexarray>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_vertexarray>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<vertexarray>>(sp);
+		return sp;
 	}
 
 	ds::ref<vertexbuffer> opengl_render_device::new_vertexbuffer(spec<vertexbuffer> const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<vertexbuffer>>(alloc_ref<opengl_vertexbuffer>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_vertexbuffer>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<vertexbuffer>>(sp);
+		return sp;
 	}
 
 	ds::ref<indexbuffer> opengl_render_device::new_indexbuffer(spec<indexbuffer> const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<indexbuffer>>(alloc_ref<opengl_indexbuffer>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_indexbuffer>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<indexbuffer>>(sp);
+		return sp;
 	}
 
 	ds::ref<texture2d> opengl_render_device::new_texture2d(spec<texture2d> const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<texture2d>>(alloc_ref<opengl_texture2d>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_texture2d>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<texture2d>>(sp);
+		return sp;
 	}
 
 	ds::ref<texture3d> opengl_render_device::new_texture3d(spec<texture3d> const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<texture3d>>(alloc_ref<opengl_texture3d>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_texture3d>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<texture3d>>(sp);
+		return sp;
 	}
 
 	ds::ref<texturecube> opengl_render_device::new_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<texturecube>>(alloc_ref<opengl_texturecube>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_texturecube>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<texturecube>>(sp);
+		return sp;
 	}
 
 	ds::ref<framebuffer> opengl_render_device::new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<framebuffer>>(alloc_ref<opengl_framebuffer>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_framebuffer>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<framebuffer>>(sp);
+		return sp;
 	}
 
 	ds::ref<program> opengl_render_device::new_program(spec<program> const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<program>>(alloc_ref<opengl_program>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_program>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<program>>(sp);
+		return sp;
 	}
 
 	ds::ref<shader> opengl_render_device::new_shader(spec<shader> const & desc, allocator_type alloc) noexcept
 	{
-		return m_objs.push_back<ds::unown<shader>>(alloc_ref<opengl_shader>(alloc, this, desc)).lock();
+		auto sp{ alloc_ref<opengl_shader>(alloc, this, desc) };
+		m_objs.push_back<ds::unown<shader>>(sp);
+		return sp;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -4,19 +4,36 @@
 #include <modus_core/detail/Timer.hpp>
 #include <modus_core/detail/Memory.hpp>
 
+// HANDLES
 namespace ml
 {
-	ML_decl_handle(cursor_handle);
-	ML_decl_handle(library_handle);
-	ML_decl_handle(monitor_handle);
-	ML_decl_handle(window_handle);
+	ML_decl_handle(cursor_handle)	; // cursor handle
+	ML_decl_handle(library_handle)	; // library handle
+	ML_decl_handle(monitor_handle)	; // monitor handle
+	ML_decl_handle(window_handle)	; // window handle
+	
+	ML_alias error_callback = void(*)(int32, cstring); // static error callback
 }
 
+// PLATFORM
 namespace ml
 {
+	// platform
 	class ML_CORE_API platform final
 	{
 	public:
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static bool initialize();
+
+		static bool finalize();
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD static error_callback get_error_callback();
+
+		static error_callback set_error_callback(error_callback value);
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		static library_handle load_library(fs::path const & path);
@@ -24,6 +41,16 @@ namespace ml
 		static bool free_library(library_handle instance);
 
 		static void * get_proc_address(library_handle instance, ds::string const & name);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD static window_handle get_context_current();
+
+		static void make_context_current(window_handle value);
+
+		static void poll_events();
+
+		static void swap_buffers(window_handle window);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

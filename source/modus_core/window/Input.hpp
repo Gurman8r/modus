@@ -2,6 +2,7 @@
 #define _ML_INPUT_HPP_
 
 #include <modus_core/detail/Matrix.hpp>
+#include <modus_core/detail/Timer.hpp>
 
 namespace ml
 {
@@ -122,11 +123,11 @@ namespace ml
 		keycode_kp_enter		= 335,	// keypad enter
 		keycode_kp_equal		= 336,	// keypad equal
 		keycode_left_shift		= 340,	// left shift
-		keycode_left_control	= 341,	// left control
+		keycode_left_ctrl		= 341,	// left control
 		keycode_left_alt		= 342,	// left alt
 		keycode_left_super		= 343,	// left super
 		keycode_right_shift		= 344,	// right shift
-		keycode_right_control	= 345,	// right control
+		keycode_right_ctrl		= 345,	// right control
 		keycode_right_alt		= 346,	// right alt
 		keycode_right_super		= 347,	// right super
 		keycode_menu			= 348,	// menu
@@ -139,13 +140,13 @@ namespace ml
 	// key modifiers
 	enum keymods_ : int32
 	{
-		keymods_none		= 0 << 0,	// none
-		keymods_shift		= 0 << 1,	// shift
-		keymods_ctrl		= 1 << 1,	// ctrl
-		keymods_alt			= 1 << 2,	// alt
-		keymods_super		= 1 << 3,	// super
-		keymods_caps_lock	= 1 << 4,	// caps
-		keymods_num_lock	= 1 << 5	// numlock
+		keymods_none	= 0 << 0,	// none
+		keymods_shift	= 0 << 1,	// shift
+		keymods_ctrl	= 1 << 1,	// ctrl
+		keymods_alt		= 1 << 2,	// alt
+		keymods_super	= 1 << 3,	// super
+		keymods_caps	= 1 << 4,	// caps
+		keymods_numlk	= 1 << 5	// numlock
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -166,38 +167,13 @@ namespace ml
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
 
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// input states
-
-	ML_alias keyboard_state = typename ds::array<int32, keycode_MAX>;
-
-	ML_alias mouse_state = typename ds::array<int32, mouse_button_MAX>;
-
-	struct ML_NODISCARD input_state final : trackable
+	// actions
+	enum input_action_
 	{
-		float64
-			mouse_scroll;
-		vec2d
-			mouse_pos,
-			mouse_delta,
-			last_mouse_pos;
-		int32
-			buttons[mouse_button_MAX],
-			keys[keycode_MAX];
-		float32 
-			button_times[mouse_button_MAX],
-			key_times[keycode_MAX];
-
-		input_state() noexcept = default;
-		input_state(input_state const &) = default;
-		input_state(input_state &&) noexcept = default;
-		input_state & operator=(input_state const &) = default;
-		input_state & operator=(input_state &&) noexcept = default;
+		input_action_release,
+		input_action_press,
+		input_action_repeat
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

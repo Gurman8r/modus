@@ -38,55 +38,19 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// cursor (WIP)
-	struct ML_CORE_API cursor final : non_copyable, trackable
+	struct ML_CORE_API cursor final
 	{
-	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		~cursor() noexcept override { if (m_handle) { destroy(m_handle); } }
-
-		cursor(cursor_handle value) noexcept : m_handle{ value } {}
-
-		cursor(cursor_shape_ shape) noexcept
-			: cursor{ create_standard(shape) } {}
-
-		cursor(size_t w, size_t h, byte const * p, int32 x = 0, int32 y = 0) noexcept
-			: cursor{ create_custom(w, h, p, x, y) } {}
-
-		cursor() noexcept : cursor{ nullptr } {}
-
-		cursor(cursor && other) noexcept : cursor{} { this->swap(std::move(other)); }
+		cursor_handle ID;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		cursor & operator=(cursor && other) noexcept
-		{
-			this->swap(std::move(other));
-			return (*this);
-		}
+		ML_NODISCARD static cursor create_custom(size_t w, size_t h, byte const * p, int32 x = 0, int32 y = 0) noexcept;
 
-		void swap(cursor & other) noexcept
-		{
-			if (this != std::addressof(other))
-			{
-				std::swap(m_handle, other.m_handle);
-			}
-		}
+		ML_NODISCARD static cursor create_standard(cursor_shape_ shape) noexcept;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_handle() const noexcept -> cursor_handle { return m_handle; }
-
-		ML_NODISCARD static cursor_handle create_custom(size_t w, size_t h, byte const * p, int32 x = 0, int32 y = 0) noexcept;
-
-		ML_NODISCARD static cursor_handle create_standard(cursor_shape_ shape) noexcept;
-
-		static void destroy(cursor_handle value) noexcept;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		cursor_handle m_handle;
+		static void destroy(cursor const & value) noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

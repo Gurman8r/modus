@@ -36,7 +36,7 @@ namespace ml::gfx
 			}
 		});
 
-		begin_singleton<render_device>(temp);
+		(void)begin_singleton<render_device>(temp);
 
 		return temp;
 	}
@@ -45,7 +45,7 @@ namespace ml::gfx
 	{
 		if (!value) { value = get_global<render_device>(); }
 
-		end_singleton<render_device>(value);
+		(void)end_singleton<render_device>(value);
 
 		delete value;
 	}

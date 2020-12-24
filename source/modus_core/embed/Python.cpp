@@ -23,7 +23,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// exit
-	m.def("exit", [](py::args) { ML_check(get_global<core_application>())->quit(); });
+	m.def("exit", [](py::args) { ML_singleton(core_application)->quit(); });
 	py::module::import("builtins").attr("exit") = m.attr("exit");
 	py::module::import("sys").attr("exit") = m.attr("exit");
 
@@ -53,14 +53,13 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	struct py_stdio
+	struct py_stdio final
 	{
-		struct output
+		struct output final
 		{
 			std::reference_wrapper<std::ostream> m_os{ std::cout };
 
-			int32 fileno() const noexcept
-			{
+			int32 fileno() const noexcept {
 				if (auto const addr{ std::addressof(m_os.get()) }; !addr) { return -2; }
 				else if (addr == std::addressof(std::cout)) { return 1; }
 				else if (addr == std::addressof(std::cerr)) { return 2; }
@@ -74,17 +73,9 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 			void writelines(py::list l) noexcept { for (auto const & e : l) { m_os << e; } }
 		};
 
-		static auto cerr(py::object) noexcept
-		{
-			//static output temp{ std::cerr }; return temp;
-			return output{ std::cerr };
-		}
+		static output cerr(py::object) noexcept { return { std::cerr }; }
 
-		static auto cout(py::object) noexcept
-		{
-			//static output temp{ std::cout }; return temp;
-			return output{ std::cout };
-		}
+		static output cout(py::object) noexcept { return { std::cout }; }
 	};
 	py::class_<py_stdio::output>(m, "output")
 		.def(py::init<>())
@@ -157,7 +148,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	py::class_<memory_record>(py_mem, "record")
 		.def(py::init<>())
 		.def(py::init<memory_record const &>())
-		.def(py::init([g = get_global<memory_manager>()](intptr_t p) -> memory_record
+		.def(py::init([g = ML_singleton(memory_manager)](intptr_t p) -> memory_record
 		{
 			if (auto const i{ g->get_storage().lookup<memory_manager::id_addr>((byte *)p) }
 			; i != g->get_storage().npos) {
@@ -188,22 +179,19 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	};
 
 	py_mem // memory
-		.def("get_default_resource", []() { return (intptr_t)pmr::get_default_resource(); })
-		.def("set_default_resource", [](intptr_t p) { return (intptr_t)pmr::set_default_resource((pmr::memory_resource *)p); })
-
 		// test resource
-		.def("arena_base"	, []() { return get_global<memory_manager>()->get_resource()->base(); })
-		.def("arena_count"	, []() { return get_global<memory_manager>()->get_resource()->count(); })
-		.def("arena_free"	, []() { return get_global<memory_manager>()->get_resource()->free(); })
-		.def("arena_size"	, []() { return get_global<memory_manager>()->get_resource()->capacity(); })
-		.def("arena_used"	, []() { return get_global<memory_manager>()->get_resource()->used(); })
+		.def("num_allocations", []() { return ML_singleton(memory_manager)->get_resource()->num_allocations(); })
+		.def("buffer_base", []() { return ML_singleton(memory_manager)->get_resource()->buffer_base(); })
+		.def("buffer_free", []() { return ML_singleton(memory_manager)->get_resource()->buffer_free(); })
+		.def("buffer_size", []() { return ML_singleton(memory_manager)->get_resource()->buffer_size(); })
+		.def("buffer_used", []() { return ML_singleton(memory_manager)->get_resource()->buffer_used(); })
 
 		// allocation
-		.def("malloc"	, [](size_t s) { return (intptr_t)get_global<memory_manager>()->allocate(s); })
-		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)get_global<memory_manager>()->allocate(c, s); })
-		.def("free"		, [](intptr_t p) { get_global<memory_manager>()->deallocate((void *)p); })
-		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)get_global<memory_manager>()->reallocate((void *)p, s); })
-		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)get_global<memory_manager>()->reallocate((void *)p, o, n); })
+		.def("malloc"	, [](size_t s) { return (intptr_t)ML_singleton(memory_manager)->allocate(s); })
+		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)ML_singleton(memory_manager)->allocate(c, s); })
+		.def("free"		, [](intptr_t p) { ML_singleton(memory_manager)->deallocate((void *)p); })
+		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)ML_singleton(memory_manager)->reallocate((void *)p, s); })
+		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)ML_singleton(memory_manager)->reallocate((void *)p, o, n); })
 
 		// getters
 		.def("memget"	, [&memget](intptr_t p) { return memget(p, 1); })
@@ -267,8 +255,8 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// CONTEXT CLIENT
-	py::class_<context_api_>(m, "context_client")
+	// CONTEXT API
+	py::class_<context_api_>(m, "context_api")
 		.def_property_readonly_static("unknown"	, [](py::object) { return (int32)context_api_unknown; })
 		.def_property_readonly_static("opengl"	, [](py::object) { return (int32)context_api_opengl; })
 		.def_property_readonly_static("vulkan"	, [](py::object) { return (int32)context_api_vulkan; })
@@ -416,11 +404,11 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def_property_readonly_static("kp_enter"		, [](py::object) { return (int32)keycode_kp_enter; })
 		.def_property_readonly_static("kp_equal"		, [](py::object) { return (int32)keycode_kp_equal; })
 		.def_property_readonly_static("left_shift"		, [](py::object) { return (int32)keycode_left_shift; })
-		.def_property_readonly_static("left_control"	, [](py::object) { return (int32)keycode_left_control; })
+		.def_property_readonly_static("left_control"	, [](py::object) { return (int32)keycode_left_ctrl; })
 		.def_property_readonly_static("left_alt"		, [](py::object) { return (int32)keycode_left_alt; })
 		.def_property_readonly_static("left_super"		, [](py::object) { return (int32)keycode_left_super; })
 		.def_property_readonly_static("right_shift"		, [](py::object) { return (int32)keycode_right_shift; })
-		.def_property_readonly_static("right_control"	, [](py::object) { return (int32)keycode_right_control; })
+		.def_property_readonly_static("right_control"	, [](py::object) { return (int32)keycode_right_ctrl; })
 		.def_property_readonly_static("right_alt"		, [](py::object) { return (int32)keycode_right_alt; })
 		.def_property_readonly_static("right_super"		, [](py::object) { return (int32)keycode_right_super; })
 		.def_property_readonly_static("menu"			, [](py::object) { return (int32)keycode_menu; })
@@ -433,8 +421,8 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def_property_readonly_static("ctrl", [](py::object) { return (int32)keymods_ctrl; })
 		.def_property_readonly_static("alt", [](py::object) { return (int32)keymods_alt; })
 		.def_property_readonly_static("super", [](py::object) { return (int32)keymods_super; })
-		.def_property_readonly_static("caps_lock", [](py::object) { return (int32)keymods_caps_lock; })
-		.def_property_readonly_static("num_lock", [](py::object) { return (int32)keymods_num_lock; })
+		.def_property_readonly_static("caps", [](py::object) { return (int32)keymods_caps; })
+		.def_property_readonly_static("numlk", [](py::object) { return (int32)keymods_numlk; })
 		;
 
 	// WINDOW HINTS

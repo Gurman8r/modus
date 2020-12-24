@@ -22,9 +22,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto registry() noexcept -> entt::registry & { return m_registry; }
+		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return m_registry; }
 
-		ML_NODISCARD auto registry() const noexcept -> entt::registry const & { return m_registry; }
+		ML_NODISCARD auto get_registry() const noexcept -> entt::registry const & { return m_registry; }
 
 		ML_NODISCARD entity new_entity(ds::string const & name = {}) noexcept;
 

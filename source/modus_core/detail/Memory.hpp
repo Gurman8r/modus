@@ -2,7 +2,7 @@
 #define _ML_MEMORY_HPP_
 
 #include <modus_core/detail/BatchVector.hpp>
-#include <modus_core/detail/Debug.hpp>
+#include <modus_core/detail/Globals.hpp>
 
 // passthrough resource
 namespace ml
@@ -29,25 +29,23 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto upstream() const noexcept -> pmr::memory_resource * const { return m_upstream; }
+		ML_NODISCARD bool is_default() const noexcept { return this == pmr::get_default_resource(); }
 
-		ML_NODISCARD auto data() const noexcept -> pointer const { return m_buffer; }
+		ML_NODISCARD auto resource() const noexcept -> pmr::memory_resource * const { return m_upstream; }
 
-		ML_NODISCARD auto base() const noexcept -> size_t { return (size_t)m_buffer; }
+		ML_NODISCARD auto num_allocations() const noexcept -> size_t { return m_num_allocations; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto count() const noexcept -> size_t { return m_num_allocations; }
+		ML_NODISCARD auto buffer_data() const noexcept -> pointer { return m_buffer; }
 
-		ML_NODISCARD auto capacity() const noexcept -> size_t { return m_total_bytes; }
+		ML_NODISCARD auto buffer_base() const noexcept -> intptr_t { return (intptr_t)m_buffer; }
 
-		ML_NODISCARD auto used() const noexcept -> size_t { return m_used_bytes; }
+		ML_NODISCARD auto buffer_size() const noexcept -> size_t { return m_total_bytes; }
 
-		ML_NODISCARD auto free() const noexcept -> size_t { return m_total_bytes - m_used_bytes; }
+		ML_NODISCARD auto buffer_used() const noexcept -> size_t { return m_used_bytes; }
 
-		ML_NODISCARD auto fraction() const noexcept -> float32 { return (float32)m_used_bytes / (float32)m_total_bytes; }
-
-		ML_NODISCARD auto percentage() const noexcept -> float32 { return fraction() * 100.f; }
+		ML_NODISCARD auto buffer_free() const noexcept -> size_t { return m_total_bytes - m_used_bytes; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -165,17 +163,13 @@ namespace ml
 	template <class T, class ... Args
 	> ML_NODISCARD ds::scope<T> make_scope(Args && ... args)
 	{
-		auto const g{ ML_check(get_global<memory_manager>()) };
-
-		return { g->new_object<T>(ML_forward(args)...), default_delete<T>{} };
+		return { ML_singleton(memory_manager)->new_object<T>(ML_forward(args)...), default_delete<T>{} };
 	}
 
 	template <class T, class ... Args
 	> ML_NODISCARD ds::scary<T> make_scary(Args && ... args)
 	{
-		auto const g{ ML_check(get_global<memory_manager>()) };
-
-		return { g->new_object<T>(ML_forward(args)...), no_delete{} };
+		return { ML_singleton(memory_manager)->new_object<T>(ML_forward(args)...), no_delete{} };
 	}
 }
 
@@ -423,31 +417,31 @@ namespace ml
 	// malloc
 	inline void * ml_malloc(size_t size) noexcept
 	{
-		return ML_check(get_global<memory_manager>())->allocate(size);
+		return ML_singleton(memory_manager)->allocate(size);
 	}
 
 	// calloc
 	inline void * ml_calloc(size_t count, size_t size) noexcept
 	{
-		return ML_check(get_global<memory_manager>())->allocate(count, size);
+		return ML_singleton(memory_manager)->allocate(count, size);
 	}
 
 	// realloc
 	inline void * ml_realloc(void * addr, size_t size) noexcept
 	{
-		return ML_check(get_global<memory_manager>())->reallocate(addr, size);
+		return ML_singleton(memory_manager)->reallocate(addr, size);
 	}
 
 	// realloc (sized)
 	inline void * ml_realloc(void * addr, size_t oldsz, size_t newsz) noexcept
 	{
-		return ML_check(get_global<memory_manager>())->reallocate(addr, oldsz, newsz);
+		return ML_singleton(memory_manager)->reallocate(addr, oldsz, newsz);
 	}
 
 	// free
 	inline void ml_free(void * addr) noexcept
 	{
-		ML_check(get_global<memory_manager>())->deallocate(addr);
+		ML_singleton(memory_manager)->deallocate(addr);
 	}
 }
 

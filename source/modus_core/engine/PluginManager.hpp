@@ -128,7 +128,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Ev
-		> void broadcast(Ev && value) noexcept
+		> void fire(Ev && value) noexcept
 		{
 			for (auto & p : m_data.get<plugin_instance>())
 			{
@@ -137,10 +137,12 @@ namespace ml
 		}
 
 		template <class Ev, class ... Args
-		> void broadcast(Args && ... args) noexcept
+		> void fire(Args && ... args) noexcept
 		{
-			this->broadcast(Ev{ ML_forward(args)... });
+			this->fire(Ev{ ML_forward(args)... });
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Ev
 		> void send(size_t i, Ev && value) noexcept

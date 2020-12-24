@@ -2,12 +2,12 @@
 #define _ML_GUI_APPLICATION_HPP_
 
 #include <modus_core/engine/CoreApplication.hpp>
-#include <modus_core/detail/EventSystem.hpp>
-#include <modus_core/detail/LoopSystem.hpp>
-#include <modus_core/window/NativeWindow.hpp>
+#include <modus_core/engine/InputManager.hpp>
 #include <modus_core/graphics/Renderer.hpp>
 #include <modus_core/graphics/Viewport.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
+#include <modus_core/scene/Scene.hpp>
+#include <modus_core/window/NativeWindow.hpp>
 
 namespace ml
 {
@@ -50,42 +50,29 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_loop() const noexcept -> loop_system *
-		{
-			return const_cast<loop_system *>(&m_loop);
-		}
+		ML_NODISCARD auto get_input() const noexcept { return const_cast<input_manager *>(&m_input); }
 
-		ML_NODISCARD auto get_input() const noexcept -> input_state *
-		{
-			return const_cast<input_state *>(&m_input);
-		}
+		ML_NODISCARD auto get_loop() const noexcept { return const_cast<loop_system *>(&m_loop); }
 
-		ML_NODISCARD auto get_window() const noexcept -> native_window *
-		{
-			return const_cast<native_window *>(&m_window);
-		}
+		ML_NODISCARD auto get_window() const noexcept { return const_cast<native_window *>(&m_window); }
 
-		ML_NODISCARD auto get_renderer() const noexcept -> renderer *
-		{
-			return const_cast<renderer *>(&m_renderer);
-		}
+		ML_NODISCARD auto get_renderer() const noexcept { return const_cast<renderer *>(&m_renderer); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_imgui() const noexcept -> ImGuiContext *
-		{
-			return m_imgui.get();
-		}
+		ML_NODISCARD auto get_imgui_context() const noexcept -> ImGuiContext * { return m_imgui.get(); }
 
-		ML_NODISCARD auto get_dockspace() const noexcept -> ImGuiExt::Dockspace *
-		{
-			return const_cast<ImGuiExt::Dockspace *>(&m_dockspace);
-		}
+		ML_NODISCARD auto get_dock_builder() const noexcept { return const_cast<ImGuiExt::Dockspace *>(&m_dock_builder); }
 
-		ML_NODISCARD auto get_menubar() const noexcept -> ImGuiExt::MainMenuBar *
-		{
-			return const_cast<ImGuiExt::MainMenuBar *>(&m_menubar);
-		}
+		ML_NODISCARD auto get_main_menu_bar() const noexcept { return const_cast<ImGuiExt::MainMenuBar *>(&m_main_menu_bar); }
+
+		void set_imgui_context(ImGuiContext * value) noexcept { m_imgui.reset(value); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_active_scene() const noexcept -> ds::ref<scene> const & { return m_scene; }
+
+		void set_active_scene(ds::ref<scene> const & value) noexcept { if (m_scene != value) { m_scene = value; } }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -102,12 +89,15 @@ namespace ml
 
 	private:
 		event_bus				m_dispatcher	; // event bus
-		loop_system				m_loop			; // main loop
-		native_window			m_window		; // main window
+		native_window			m_window		; // window
 		renderer				m_renderer		; // renderer
+
 		ds::scary<ImGuiContext>	m_imgui			; // imgui context
-		ImGuiExt::Dockspace		m_dockspace		; // dockspace
-		ImGuiExt::MainMenuBar	m_menubar		; // menubar
+		ImGuiExt::Dockspace		m_dock_builder	; // dock builder
+		ImGuiExt::MainMenuBar	m_main_menu_bar	; // main menu bar
+
+		loop_system				m_loop			; // main loop
+		ds::ref<scene>			m_scene			; // active scene
 
 		timer					m_main_timer	, // main timer
 								m_loop_timer	; // idle timer
@@ -117,7 +107,7 @@ namespace ml
 		float32					m_fps_accum		; // fps accumulator
 		size_t					m_fps_index		; // fps index
 		ds::list<float32>		m_fps_times		; // fps times
-		input_state				m_input			; // input state
+		input_manager			m_input			; // input manager
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

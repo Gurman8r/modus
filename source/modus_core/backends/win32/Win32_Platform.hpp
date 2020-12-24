@@ -7,7 +7,7 @@ static_assert(ML_os_windows);
 
 namespace ml
 {
-	// win32 platform
+	// windows platform api
 	class win32_platform final
 	{
 	public:

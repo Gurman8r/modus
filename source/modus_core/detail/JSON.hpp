@@ -54,18 +54,51 @@ namespace ml
 			}
 		}
 
-		template <class I, class T, class Default = T
-		> bool get_json(json const & j, I && i, T & vv, Default const & dv = {})
+		template <class Arg0, class ... Args
+		> ML_NODISCARD bool has_json(json const & j, Arg0 && arg0, Args && ... args)
 		{
-			if (j.contains(i))
+			if constexpr (0 < sizeof...(args))
 			{
-				j[i].get_to(vv);
-				return true;
+				return _ML util::has_json(j, ML_forward(arg0))
+					&& _ML util::has_json(j[ML_forward(arg0)], ML_forward(args)...);
 			}
 			else
 			{
-				vv = ML_forward(dv);
-				return false;
+				return j.contains(ML_forward(arg0));
+			}
+		}
+
+		template <class JsonPtr, class Arg0, class ... Args
+		> ML_NODISCARD auto json_ptr(JsonPtr j, Arg0 && arg0, Args && ... args) -> JsonPtr
+		{
+			if constexpr (0 < sizeof...(args))
+			{
+				return util::json_ptr(util::json_ptr(j, ML_forward(arg0)), ML_forward(args)...);
+			}
+			else if (j && j->contains(ML_forward(arg0)))
+			{
+				return std::addressof(j->at(ML_forward(arg0)));
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+
+		template <class J, class Arg0, class ... Args
+		> ML_NODISCARD auto json_ref(std::optional<std::reference_wrapper<J>> j, Arg0 && arg0, Args && ... args) -> std::optional<std::reference_wrapper<J>>
+		{
+			if constexpr (0 < sizeof...(args))
+			{
+				return util::json_ref(util::json_ref(j, ML_forward(arg0)), ML_forward(args)...);
+			}
+			else if (j && j->get().contains(ML_forward(arg0)))
+			{
+				return j->get().at(ML_forward(arg0));
+			}
+			else
+			{
+				return std::nullopt;
 			}
 		}
 	}

@@ -25,12 +25,12 @@ namespace ml
 	std::optional<fs::path> win32_platform::get_open_file_name(window_handle window, ds::string const & filter)
 	{
 		OPENFILENAMEA ofn;
-		CHAR szFile[MAX_PATH]{};
+		CHAR file[MAX_PATH]{};
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = (HWND)window;
-		ofn.lpstrFile = szFile;
-		ofn.nMaxFile = sizeof(szFile);
+		ofn.lpstrFile = file;
+		ofn.nMaxFile = sizeof(file);
 		ofn.lpstrFilter = filter.c_str();
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
@@ -40,12 +40,12 @@ namespace ml
 	std::optional<fs::path> win32_platform::get_save_file_name(window_handle window, ds::string const & filter)
 	{
 		OPENFILENAMEA ofn;
-		CHAR szFile[MAX_PATH]{};
+		CHAR file[MAX_PATH]{};
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = (HWND)window;
-		ofn.lpstrFile = szFile;
-		ofn.nMaxFile = sizeof(szFile);
+		ofn.lpstrFile = file;
+		ofn.nMaxFile = sizeof(file);
 		ofn.lpstrFilter = filter.c_str();
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;

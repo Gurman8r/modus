@@ -1,3 +1,4 @@
+
 #include <modus_core/engine/GuiApplication.hpp>
 #include <modus_core/events/InputEvents.hpp>
 #include <modus_core/events/WindowEvents.hpp>
@@ -12,12 +13,14 @@ namespace ml
 		: core_application	{ argc, argv, j, alloc }
 		, event_listener	{ &m_dispatcher }
 		, m_dispatcher		{ alloc }
-		, m_loop			{ alloc }
 		, m_window			{ alloc }
 		, m_renderer		{ alloc }
 		, m_imgui			{}
-		, m_dockspace		{}
-		, m_menubar			{}
+		, m_dock_builder	{}
+		, m_main_menu_bar	{}
+		, m_loop			{ alloc }
+		, m_scene			{}
+
 		, m_main_timer		{ true }
 		, m_loop_timer		{}
 		, m_loop_delta		{}
@@ -30,17 +33,14 @@ namespace ml
 	{
 		ML_verify(begin_singleton<gui_application>(this));
 
-		static ML_block(&) {
-			ML_verify(window_context::initialize());
-			window_context::set_error_callback([](int32 code, cstring desc) {
-				debug::failure("{0}: {1}", code, desc);
-			});
-		};
+		static ML_block(&) { ML_verify(platform::initialize()); };
+
+		platform::set_error_callback([](int32 code, cstring desc) { debug::failure("{0}: {1}", code, desc); });
 
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, auto u) { return ((memory_manager *)u)->allocate(s); },
 			[](void * p, auto u) { return ((memory_manager *)u)->deallocate(p); },
-			get_global<memory_manager>());
+			ML_singleton(memory_manager));
 		m_imgui.reset(ImGui::CreateContext());
 		m_imgui->IO.LogFilename = "";
 		m_imgui->IO.IniFilename = "";
@@ -53,18 +53,19 @@ namespace ml
 		m_loop.set_exit_callback([&]() { on_exit(); });
 		m_loop.set_idle_callback([&]() { on_idle(); });
 
-		subscribe<
+		subscribe
+		<
 			char_event,
 			key_event,
 			mouse_button_event,
 			mouse_pos_event,
-			scroll_event
+			mouse_wheel_event
 		>();
 	}
 
 	gui_application::~gui_application() noexcept
 	{
-		ML_verify(end_singleton<gui_application>(this));
+		if (m_scene) { m_scene.reset(); }
 
 		_ML ImGui_Shutdown();
 
@@ -72,7 +73,9 @@ namespace ml
 
 		unsubscribe(); // manual unsubscribe required because we own the bus
 
-		static ML_defer(&) { window_context::finalize(); };
+		ML_verify(end_singleton<gui_application>(this));
+
+		static ML_defer(&) { platform::finalize(); };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -82,13 +85,11 @@ namespace ml
 		// setup window
 		ML_verify(has_attr("window"));
 		json & j_window{ attr("window") };
-		ML_verify(m_window.open
-		(
+		ML_verify(m_window.open(
 			j_window.contains("title") ? j_window["title"] : app_name(),
 			j_window.contains("video") ? j_window["video"] : video_mode{},
 			j_window.contains("context") ? j_window["context"] : context_settings{},
-			j_window.contains("hints") ? j_window["hints"] : window_hints_default
-		));
+			j_window.contains("hints") ? j_window["hints"] : window_hints_default));
 		{
 			static event_bus * b{}; b = &m_dispatcher;
 			m_window.set_char_callback([](auto w, auto ... x) { b->fire<char_event>(x...); });
@@ -97,7 +98,7 @@ namespace ml
 			m_window.set_mouse_button_callback([](auto w, auto ... x) { b->fire<mouse_button_event>(x...); });
 			m_window.set_mouse_enter_callback([](auto w, auto ... x) { b->fire<mouse_enter_event>(x...); });
 			m_window.set_mouse_pos_callback([](auto w, auto ... x) { b->fire<mouse_pos_event>(x...); });
-			m_window.set_scroll_callback([](auto w, auto ... x) { b->fire<scroll_event>(x...); });
+			m_window.set_scroll_callback([](auto w, auto ... x) { b->fire<mouse_wheel_event>(x...); });
 			
 			m_window.set_close_callback([](auto w, auto ... x) { b->fire<window_close_event>(x...); });
 			m_window.set_content_scale_callback([](auto w, auto ... x) { b->fire<window_content_scale_event>(x...); });
@@ -111,30 +112,30 @@ namespace ml
 			m_window.set_resize_callback([](auto w, auto ... x) { b->fire<window_resize_event>(x...); });
 		}
 
-		// setup renderer
-		ML_verify(m_renderer.initialize(j_window["context"]));
+		// setup graphics
+		ML_verify(j_window.contains("graphics"));
+		json & j_graphics{ j_window["graphics"] };
+		ML_verify(m_renderer.initialize(j_graphics));
 
 		// setup imgui
-		_ML ImGui_Init(m_window.get_handle(), true);
-		if (has_attr("imgui")) {
-			json & j_imgui{ attr("imgui") };
-			// load style
-			if (j_imgui.contains("style")) {
-				json & j_style{ j_imgui["style"] };
-				if (j_style.contains("path")) {
-					ImGui_LoadStyle(path_to(j_style["path"]));
-				}
+		ML_verify(has_attr("imgui"));
+		json & j_imgui{ attr("imgui") };
+		ML_verify(_ML ImGui_Init(m_window.get_handle(), true));
+		if (j_imgui.contains("style")) {
+			json & j_style{ j_imgui["style"] };
+			if (j_style.contains("path")) {
+				ImGui_LoadStyle(path_to(j_style["path"]));
 			}
 		}
 
-		m_dispatcher.fire<app_enter_event>();
+		m_dispatcher.fire<load_event>(this);
 	}
 
 	void gui_application::on_exit()
 	{
 		m_loop_timer.stop();
 
-		m_dispatcher.fire<app_exit_event>();
+		m_dispatcher.fire<unload_event>(this);
 
 		m_main_timer.stop();
 	}
@@ -148,45 +149,47 @@ namespace ml
 		m_fps_times[m_fps_index] = dt;
 		m_fps_index = (m_fps_index + 1) % m_fps_times.size();
 		m_fps_value = (0.f < m_fps_accum) ? (1.f / (m_fps_accum / (float32)m_fps_times.size())) : FLT_MAX;
-		ML_defer(&) { m_loop_delta = m_loop_timer.elapsed(); };
 
 		// poll events
-		window_context::poll_events();
+		platform::poll_events();
 
-		// idle
-		m_input.mouse_delta = m_input.mouse_pos - m_input.last_mouse_pos;
-		m_input.last_mouse_pos = m_input.mouse_pos;
-		m_dispatcher.fire<app_idle_event>();
+		// begin step
+		m_dispatcher.fire<begin_step_event>(this);
 
 		// imgui
+		ImGuiContext * const gui{ get_imgui_context() };
 		_ML ImGui_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
 		{
 			ImGuiExt_ScopeID(this);
 
-			ImGuiContext * const imgui{ m_imgui.get() };
+			m_dock_builder.SetWindowFlag(ImGuiWindowFlags_MenuBar, m_main_menu_bar.IsOpen);
 
-			m_dispatcher.fire<begin_imgui_event>(imgui);
-
-			m_dockspace.SetWindowFlag(ImGuiWindowFlags_MenuBar, m_menubar.IsOpen);
-
-			m_dockspace.Draw(m_imgui->Viewports[0], [&](auto) noexcept
+			m_dock_builder.Draw(gui->Viewports[0], [&](ImGuiExt::Dockspace * d) noexcept
 			{
-				m_dispatcher.fire<dock_builder_event>(&m_dockspace);
+				if (ImGuiID const id{ d->GetID() }; !d->GetNode(id))
+				{
+					d->RemoveNode(id);
+
+					d->AddNode(id, d->DockNodeFlags);
+
+					m_dispatcher.fire<dock_builder_event>(d);
+
+					d->Finish(id);
+				}
 			});
 
-			m_menubar.Draw([&](auto) noexcept
+			m_main_menu_bar.Draw([&](ImGuiExt::MainMenuBar * m) noexcept
 			{
-				m_dispatcher.fire<main_menu_bar_event>(&m_menubar);
+				m_dispatcher.fire<main_menu_bar_event>(m);
 			});
 
-			m_dispatcher.fire<imgui_event>(imgui);
-
-			m_dispatcher.fire<end_imgui_event>(imgui);
+			m_dispatcher.fire<imgui_event>(gui);
 		}
 		ImGui::Render();
 
+		// clear screen
 		m_renderer.get_context()->execute([&](gfx::render_context * ctx) noexcept
 		{
 			ctx->set_viewport({ {}, (vec2)m_window.get_framebuffer_size() });
@@ -194,21 +197,29 @@ namespace ml
 			ctx->clear(gfx::clear_flags_color);
 		});
 
+		// render imgui
 		_ML ImGui_RenderDrawData(&m_imgui->Viewports[0]->DrawDataP);
 
-		if (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-		{
-			auto const backup{ window_context::get_active_window() };
+		// imgui platform windows
+		if (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+			auto const backup{ platform::get_context_current() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			window_context::set_active_window(backup);
+			platform::make_context_current(backup);
 		}
 
 		// swap buffers
-		if (m_window.has_hints(window_hints_doublebuffer))
-		{
-			window_context::swap_buffers(m_window.get_handle());
+		if (m_window.has_hints(window_hints_doublebuffer)) {
+			platform::swap_buffers(m_window.get_handle());
 		}
+
+		// end step
+		m_dispatcher.fire<end_step_event>(this);
+		static vec2 last_mouse_pos{};
+		m_input.mouse_delta = m_input.mouse_pos - last_mouse_pos;
+		last_mouse_pos = m_input.mouse_pos;
+		m_input.mouse_wheel = 0.f;
+		m_loop_delta = m_loop_timer.elapsed();
 	}
 
 	void gui_application::on_event(event const & value)
@@ -216,26 +227,32 @@ namespace ml
 		switch (value)
 		{
 		case char_event::ID: {
-			auto && ev{ (char_event &&)value };
+			auto const & ev{ (char_event const &)value };
+			m_input.last_char = ev.value;
 		} break;
 
 		case key_event::ID: {
-			auto && ev{ (key_event &&)value };
-			m_input.keys[ev.key] = ev.action;
+			auto const & ev{ (key_event const &)value };
+			m_input.keys[ev.key] = !ev.is_release();
+			if (ev.is_release()) { m_input.key_timers[ev.key].stop(); }
+			else if (ev.is_press()) { m_input.key_timers[ev.key].restart(); }
 		} break;
 
 		case mouse_button_event::ID: {
-			auto && ev{ (mouse_button_event &&)value };
-			m_input.buttons[ev.button] = ev.action;
+			auto const & ev{ (mouse_button_event const &)value };
+			m_input.mouse[ev.button] = !ev.is_release();
+			if (ev.is_release()) { m_input.mouse_timers[ev.button].stop(); }
+			else if (ev.is_press()) { m_input.mouse_timers[ev.button].restart(); }
 		} break;
 
 		case mouse_pos_event::ID: {
-			auto && ev{ (mouse_pos_event &&)value };
-			m_input.mouse_pos = { ev.x, ev.y };
+			auto const & ev{ (mouse_pos_event const &)value };
+			m_input.mouse_pos = { (float32)ev.x, (float32)ev.y };
 		} break;
 
-		case scroll_event::ID: {
-			auto && ev{ (scroll_event &&)value };
+		case mouse_wheel_event::ID: {
+			auto const & ev{ (mouse_wheel_event const &)value };
+			m_input.mouse_wheel = (float32)ev.y;
 		} break;
 		}
 	}

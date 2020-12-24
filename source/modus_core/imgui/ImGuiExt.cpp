@@ -5,14 +5,6 @@ namespace ml::ImGuiExt
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	TextLog::TextLog(cstring default_filter, bool auto_scroll, allocator_type alloc) noexcept
-		: Filter		{ default_filter }
-		, Lines			{ alloc }
-		, AutoScroll	{ auto_scroll }
-		, ScrollToBottom{}
-	{
-	}
-
 	void TextLog::Draw(Printer const & print) noexcept
 	{
 		// print lines
@@ -36,13 +28,13 @@ namespace ml::ImGuiExt
 	TextLog::Printer TextLog::Printer::Default{ [
 	](ds::list<pmr::string> const & lines, size_t i) noexcept
 	{
-		auto check_prefix = [&lines, i](auto str) noexcept -> bool
+		auto check_prefix = [&lines, i](cstring str) noexcept -> bool
 		{
 			return !std::strncmp(lines[i].c_str(), str, std::strlen(str));
 		};
 
 		color c;
-		if (check_prefix( "# ")) {
+		if (check_prefix("# ")) {
 			c = { 1.0f, 0.8f, 0.6f, 1.0f };
 		}
 		else if (check_prefix(ML_DEBUG_MSG_SUCCESS)) {
@@ -71,53 +63,39 @@ namespace ml::ImGuiExt
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	Terminal::Terminal(allocator_type alloc) noexcept
-		: User		{ alloc }
-		, Host		{ alloc }
-		, Path		{ alloc }
-		, Mode		{ alloc }
-		, Input		{}
-		, Output	{ alloc }
-		, Commands	{ alloc }
-		, History	{ alloc }
-		, HistoryPos{ -1 }
-		, Colors	{}
-	{
-	}
-
 	void Terminal::DrawPrefixOptions()
 	{
 		// USER
-		char username[32]{}; std::strcpy(username, this->User.c_str());
+		char username[32]{}; std::strcpy(username, UserName.c_str());
 		ImGui::TextDisabled("user"); ImGui::SameLine();
 		if (ImGui::InputText("##username", username, ML_arraysize(username), ImGuiInputTextFlags_EnterReturnsTrue)) {
-			this->User = username;
+			UserName = username;
 		} ImGui::SameLine();
-		ImGui::ColorEdit4("##usercolor", this->Colors.User, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+		ImGui::ColorEdit4("##usercolor", Colors.UserName, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 
 		// HOST
-		char hostname[32]{}; std::strcpy(hostname, this->Host.c_str());
+		char hostname[32]{}; std::strcpy(hostname, HostName.c_str());
 		ImGui::TextDisabled("host"); ImGui::SameLine();
 		if (ImGui::InputText("##hostname", hostname, ML_arraysize(hostname), ImGuiInputTextFlags_EnterReturnsTrue)) {
-			this->Host = hostname;
+			HostName = hostname;
 		} ImGui::SameLine();
-		ImGui::ColorEdit4("##hostcolor", this->Colors.Host, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+		ImGui::ColorEdit4("##hostcolor", Colors.HostName, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 
 		// PATH
-		char pathname[32]{}; std::strcpy(pathname, this->Path.c_str());
+		char pathname[32]{}; std::strcpy(pathname, PathName.c_str());
 		ImGui::TextDisabled("path"); ImGui::SameLine();
 		if (ImGui::InputText("##pathname", pathname, ML_arraysize(pathname), ImGuiInputTextFlags_EnterReturnsTrue)) {
-			this->Path = pathname;
+			PathName = pathname;
 		} ImGui::SameLine();
-		ImGui::ColorEdit4("##pathcolor", this->Colors.Path, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+		ImGui::ColorEdit4("##pathcolor", Colors.PathName, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 
 		// MODE
-		char modename[32]{}; std::strcpy(modename, this->Mode.c_str());
+		char modename[32]{}; std::strcpy(modename, ModeName.c_str());
 		ImGui::TextDisabled("mode"); ImGui::SameLine();
 		if (ImGui::InputText("##modename", modename, ML_arraysize(modename), ImGuiInputTextFlags_EnterReturnsTrue)) {
-			this->Mode = modename;
+			ModeName = modename;
 		} ImGui::SameLine();
-		ImGui::ColorEdit4("##modecolor", this->Colors.Mode, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
+		ImGui::ColorEdit4("##modecolor", Colors.ModeName, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
 	}
 
 	void Terminal::DrawPrefix()
@@ -127,29 +105,29 @@ namespace ml::ImGuiExt
 
 		// PREFIX user@host:path$ /mode
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0, 0 });
-		ImGui::PushStyleColor(ImGuiCol_Text, Colors.Delim);
-		if (!User.empty()) {
-			ImGui::PushStyleColor(ImGuiCol_Text, Colors.User);
-			ImGui::Text("%.*s", User.size(), User.data());
+		ImGui::PushStyleColor(ImGuiCol_Text, Colors.Delimeter);
+		if (!UserName.empty()) {
+			ImGui::PushStyleColor(ImGuiCol_Text, Colors.UserName);
+			ImGui::Text("%.*s", UserName.size(), UserName.data());
 			ImGui::PopStyleColor(); ImGui::SameLine();
 		}
 		ImGui::Text("@"); ImGui::SameLine();
-		if (!Host.empty()) {
-			ImGui::PushStyleColor(ImGuiCol_Text, Colors.Host);
-			ImGui::Text("%.*s", Host.size(), Host.data());
+		if (!HostName.empty()) {
+			ImGui::PushStyleColor(ImGuiCol_Text, Colors.HostName);
+			ImGui::Text("%.*s", HostName.size(), HostName.data());
 			ImGui::PopStyleColor(); ImGui::SameLine();
 		}
 		ImGui::Text(":"); ImGui::SameLine();
-		if (!Path.empty()) {
-			ImGui::PushStyleColor(ImGuiCol_Text, Colors.Path);
-			ImGui::Text("%.*s", Path.size(), Path.data());
+		if (!PathName.empty()) {
+			ImGui::PushStyleColor(ImGuiCol_Text, Colors.PathName);
+			ImGui::Text("%.*s", PathName.size(), PathName.data());
 			ImGui::PopStyleColor(); ImGui::SameLine();
 		}
 		ImGui::Text("$"); ImGui::SameLine();
-		if (!Mode.empty()) {
+		if (!ModeName.empty()) {
 			ImGui::Text(" /"); ImGui::SameLine();
-			ImGui::PushStyleColor(ImGuiCol_Text, Colors.Mode);
-			ImGui::Text("%.*s", Mode.size(), Mode.data());
+			ImGui::PushStyleColor(ImGuiCol_Text, Colors.ModeName);
+			ImGui::Text("%.*s", ModeName.size(), ModeName.data());
 			ImGui::PopStyleColor(); ImGui::SameLine();
 		}
 		ImGui::PopStyleColor();
@@ -198,7 +176,7 @@ namespace ml::ImGuiExt
 		} History.push_back(line);
 
 		// validate line
-		if ((line.front() != '/' && Mode.empty()) || util::trim_front(line, [
+		if ((line.front() != '/' && ModeName.empty()) || util::trim_front(line, [
 		](char c) { return c == '/' || util::is_whitespace(c); }).empty()) {
 			return debug::failure();
 		}
@@ -206,8 +184,8 @@ namespace ml::ImGuiExt
 		// process command
 		if (ds::string name; auto const proc{ GetProc(std::invoke([&]() noexcept -> auto &
 		{
-			if (!Mode.empty()) {
-				name = Mode;
+			if (!ModeName.empty()) {
+				name = ModeName;
 			}
 			else if (size_t const i{ line.find_first_of(' ') }; i != line.npos) {
 				name = line.substr(0, i);
@@ -222,7 +200,7 @@ namespace ml::ImGuiExt
 		{
 			std::invoke(*proc, std::move(line));
 
-			return debug::success();
+			return true;
 		}
 		else
 		{
@@ -251,7 +229,7 @@ namespace ml::ImGuiExt
 
 			// build list of candidates
 			ds::list<cstring> candidates{};
-			for (auto const & name : Commands.get<ds::string>())
+			for (auto const & name : CommandData.get<ds::string>())
 			{
 				if (!std::strncmp(name.c_str(), first, (size_t)(last - first)))
 				{

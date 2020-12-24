@@ -4,141 +4,36 @@
 // GLFW MONITOR
 namespace ml
 {
-	inline auto make_monitor(GLFWmonitor * m)
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	inline monitor make_monitor(GLFWmonitor * m)
 	{
+		monitor temp{};
+
 		ds::string name{ glfwGetMonitorName(m) };
 
 		int32 width, height;
 		glfwGetMonitorPhysicalSize(m, &width, &height);
 
 		void * userptr{ glfwGetMonitorUserPointer(m) };
-	}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	glfw_monitor::glfw_monitor(allocator_type alloc) noexcept
-		: m_monitor		{}
-		, m_modes		{ alloc }
-		, m_current_mode{}
-	{
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ds::string glfw_monitor::get_name() const
-	{
-		return glfwGetMonitorName(m_monitor);
-	}
-
-	monitor_handle glfw_monitor::get_handle() const
-	{
-		return (monitor_handle)m_monitor;
-	}
-
-	void * glfw_monitor::get_user_pointer() const
-	{
-		return glfwGetMonitorUserPointer(m_monitor);
-	}
-
-	void glfw_monitor::set_user_pointer(void * value)
-	{
-		glfwSetMonitorUserPointer(m_monitor, value);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	vec2i glfw_monitor::get_dimensions() const
-	{
-		vec2i temp{};
-		glfwGetMonitorPhysicalSize(m_monitor, &temp[0], &temp[1]);
 		return temp;
 	}
-
-	vec2f glfw_monitor::get_content_scale() const
-	{
-		vec2f temp{};
-		glfwGetMonitorContentScale(m_monitor, &temp[0], &temp[1]);
-		return temp;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	video_mode const & glfw_monitor::get_current_mode() const
-	{
-		return m_current_mode;
-	}
-
-	ds::list<video_mode> const & glfw_monitor::get_modes() const
-	{
-		return m_modes;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	monitor const & glfw_monitor::get_primary()
 	{
-		static glfw_monitor temp{};
+		static monitor temp{ make_monitor(glfwGetPrimaryMonitor()) };
 		return temp;
 	}
 
 	ds::list<monitor> const & glfw_monitor::get_monitors()
 	{
 		static ds::list<monitor> temp{};
+		if (int32 count; GLFWmonitor ** m{ glfwGetMonitors(&count) })
+		{
+
+		}
 		return temp;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-// GLFW CONTEXT
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	int32 glfw_context::initialize()
-	{
-		return glfwInit();
-	}
-
-	void glfw_context::finalize()
-	{
-		glfwTerminate();
-	}
-
-	window_error_callback glfw_context::set_error_callback(window_error_callback value)
-	{
-		return reinterpret_cast<window_error_callback>(
-			glfwSetErrorCallback(
-				reinterpret_cast<GLFWerrorfun>(value)));
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	void glfw_context::poll_events()
-	{
-		glfwPollEvents();
-	}
-
-	void glfw_context::swap_buffers(window_handle value)
-	{
-		glfwSwapBuffers((GLFWwindow *)value);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	window_handle glfw_context::get_active_window()
-	{
-		return (window_handle)glfwGetCurrentContext();
-	}
-
-	void glfw_context::set_active_window(window_handle value)
-	{
-		glfwMakeContextCurrent((GLFWwindow *)value);
-	}
-
-	void glfw_context::set_swap_interval(int32 value)
-	{
-		glfwSwapInterval(value);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -149,20 +44,20 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	cursor_handle glfw_cursor::create_custom(size_t w, size_t h, byte const * p, int32 x, int32 y)
+	cursor glfw_cursor::create_custom(size_t w, size_t h, byte const * p, int32 x, int32 y)
 	{
 		GLFWimage temp{ (int32)w, (int32)h, (byte *)p };
 
-		return (cursor_handle)glfwCreateCursor(&temp, x, y);
+		return { (cursor_handle)glfwCreateCursor(&temp, x, y) };
 	}
 
-	cursor_handle glfw_cursor::create_standard(int32 shape)
+	cursor glfw_cursor::create_standard(cursor_shape_ shape)
 	{
-		return (cursor_handle)glfwCreateStandardCursor(std::invoke([shape]() noexcept
+		return { (cursor_handle)glfwCreateStandardCursor(std::invoke([shape]() noexcept
 		{
 			switch (shape)
 			{
-			default							: return 0;
+			default: return 0;
 			case cursor_shape_arrow			: return GLFW_ARROW_CURSOR;
 			case cursor_shape_ibeam			: return GLFW_IBEAM_CURSOR;
 			case cursor_shape_crosshair		: return GLFW_CROSSHAIR_CURSOR;
@@ -179,12 +74,74 @@ namespace ml
 			case cursor_shape_vresize		: return GLFW_VRESIZE_CURSOR;
 			case cursor_shape_hand			: return GLFW_HAND_CURSOR;
 			}
-		}));
+		})) };
 	}
 
-	void glfw_cursor::destroy(cursor_handle value)
+	void glfw_cursor::destroy(cursor const & value)
 	{
-		glfwDestroyCursor((GLFWcursor *)value);
+		glfwDestroyCursor((GLFWcursor *)value.ID);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// GLFW CONTEXT
+namespace ml
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool glfw_platform::initialize()
+	{
+		return glfwInit();
+	}
+
+	bool glfw_platform::finalize()
+	{
+		glfwTerminate();
+		return true;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	window_handle glfw_platform::get_context_current()
+	{
+		return (window_handle)glfwGetCurrentContext();
+	}
+
+	void glfw_platform::make_context_current(window_handle value)
+	{
+		glfwMakeContextCurrent((GLFWwindow *)value);
+	}
+
+	void glfw_platform::poll_events()
+	{
+		glfwPollEvents();
+	}
+
+	void glfw_platform::swap_buffers(window_handle value)
+	{
+		glfwSwapBuffers((GLFWwindow *)value);
+	}
+
+	void glfw_platform::set_swap_interval(int32 value)
+	{
+		glfwSwapInterval(value);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	static error_callback g_window_error_callback{};
+
+	error_callback glfw_platform::get_error_callback()
+	{
+		return g_window_error_callback;
+	}
+
+	error_callback glfw_platform::set_error_callback(error_callback value)
+	{
+		return reinterpret_cast<error_callback>(
+			glfwSetErrorCallback(
+				reinterpret_cast<GLFWerrorfun>(g_window_error_callback = value)));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -697,7 +654,7 @@ namespace ml
 
 	window_scroll_callback glfw_window::get_scroll_callback() const
 	{
-		return m_clbk.on_scroll;
+		return m_clbk.on_mouse_wheel;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -818,7 +775,7 @@ namespace ml
 	{
 		return reinterpret_cast<window_scroll_callback>(
 			glfwSetScrollCallback(m_window,
-				reinterpret_cast<GLFWscrollfun>(m_clbk.on_scroll = value)));
+				reinterpret_cast<GLFWscrollfun>(m_clbk.on_mouse_wheel = value)));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -3,7 +3,6 @@
 
 #include <modus_core/engine/GuiApplication.hpp>
 #include <modus_core/engine/PluginManager.hpp>
-#include <modus_core/scene/Scene.hpp>
 
 namespace ml
 {
@@ -31,16 +30,6 @@ namespace ml
 			return const_cast<plugin_manager *>(&m_plugin_manager);
 		}
 
-		ML_NODISCARD auto get_active_scene() const noexcept -> ds::ref<scene> const &
-		{
-			return m_active_scene;
-		}
-
-		void set_active_scene(ds::ref<scene> const & value) noexcept
-		{
-			m_active_scene = value;
-		}
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
@@ -55,8 +44,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		plugin_manager m_plugin_manager	; // plugin manager
-		ds::ref<scene> m_active_scene	; // active scene
+		plugin_manager m_plugin_manager; // plugin manager
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -25,9 +25,9 @@ namespace ml
 		static constexpr auto default_extension // native file type
 		{
 #ifdef ML_os_windows
-			L".dll"
+			ML_wide(".dll")
 #else
-			L".so"
+			ML_wide(".so")
 #endif
 		};
 
@@ -97,7 +97,7 @@ namespace ml
 
 				m_hash = hashof(m_path.string());
 
-				return m_handle = platform::load_library(m_path);
+				return m_handle = platform::load_library(path);
 			}
 		}
 

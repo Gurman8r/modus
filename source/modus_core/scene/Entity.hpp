@@ -75,9 +75,9 @@ namespace ml
 			return m_scene;
 		}
 
-		ML_NODISCARD auto registry() const noexcept -> entt::registry &
+		ML_NODISCARD auto get_registry() const noexcept -> entt::registry &
 		{
-			return m_scene->registry();
+			return ML_check(m_scene)->m_registry;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -85,7 +85,7 @@ namespace ml
 		template <class Component, class ... Args
 		> auto add_component(Args && ... args) noexcept -> Component &
 		{
-			auto && c{ m_scene->m_registry.emplace<Component>(m_handle, ML_forward(args)...) };
+			Component & c{ get_registry().emplace<Component>(m_handle, ML_forward(args)...) };
 			m_scene->on_component_added(*this, c);
 			return c;
 		}
@@ -93,24 +93,24 @@ namespace ml
 		template <class ... Components
 		> ML_NODISCARD decltype(auto) get_component() noexcept
 		{
-			return m_scene->m_registry.get<Components...>(m_handle);
+			return get_registry().get<Components...>(m_handle);
 		}
 
 		template <class ... Components
 		> ML_NODISCARD bool has_component() const noexcept
 		{
-			return m_scene->m_registry.has<Components...>(m_handle);
+			return get_registry().has<Components...>(m_handle);
 		}
 
 		template <class ... Components
 		> void remove_component() noexcept
 		{
-			m_scene->m_registry.remove<T...>(m_handle);
+			get_registry().remove<T...>(m_handle);
 		}
 
 		ML_NODISCARD bool valid() const noexcept
 		{
-			return m_scene->m_registry.valid(m_handle);
+			return get_registry().valid(m_handle);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

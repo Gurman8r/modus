@@ -3,7 +3,6 @@
 
 #include <gcem/include/gcem.hpp>
 #include <modus_core/detail/Flow.hpp>
-#include <modus_core/detail/Globals.hpp>
 #include <modus_core/detail/JSON.hpp>
 #include <modus_core/detail/Meta.hpp>
 #include <modus_core/detail/Singleton.hpp>	// NonCopyable.hpp

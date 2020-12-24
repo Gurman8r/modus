@@ -1,7 +1,7 @@
 #ifndef _ML_BASE_WINDOW_HPP_
 #define _ML_BASE_WINDOW_HPP_
 
-#include <modus_core/window/WindowContext.hpp>
+#include <modus_core/window/WindowAPI.hpp>
 
 // BACKEND
 namespace ml

@@ -1,16 +1,17 @@
 {
-	"app_name": "modus",
+	"app_name": "modus launcher",
 	"app_version": "alpha",
 	"app_data_path": "../../../",
 	"library_paths": [ "../../../" ],
 
 	"window": {
+		"title": "modus",
 		"video": {
 			"resolution": [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
 			"refresh_rate": -1
 		},
-		"context": {
+		"graphics": {
 			"api": "opengl",
 			"major": 4,
 			"minor": 6,

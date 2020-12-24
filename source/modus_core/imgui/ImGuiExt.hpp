@@ -32,14 +32,15 @@ namespace ml::ImGuiExt
 	template <class Fn, class ... Args
 	> void TooltipEx(Fn && fn, Args && ... args) noexcept
 	{
-		if (!ImGui::IsItemHovered()) { return; }
-		ImGui::BeginTooltip();
-		std::invoke(ML_forward(fn), ML_forward(args)...);
-		ImGui::EndTooltip();
+		if (ImGui::IsItemHovered()) {
+			ImGui::BeginTooltip();
+			std::invoke(ML_forward(fn), ML_forward(args)...);
+			ImGui::EndTooltip();
+		}
 	}
 
 	// TOOLTIP
-	inline void Tooltip(cstring first, cstring last = {}) noexcept
+	inline void Tooltip(cstring first, cstring last = NULL) noexcept
 	{
 		TooltipEx([first, last]() noexcept
 		{
@@ -50,7 +51,7 @@ namespace ml::ImGuiExt
 	}
 
 	// HELP MARKER
-	inline void HelpMarker(cstring first, cstring last = nullptr) noexcept
+	inline void HelpMarker(cstring first, cstring last = NULL) noexcept
 	{
 		ImGui::TextDisabled("(?)");
 		Tooltip(first, last);
@@ -293,7 +294,7 @@ namespace ml::ImGuiExt
 		return ImGuiExt::Window(title, open, window_flags, fn);
 	}
 
-	struct ML_NODISCARD SimpleOverlay : BasicPanel<SimpleOverlay>
+	struct ML_NODISCARD Overlay : BasicPanel<Overlay>
 	{
 		int32	Corner	{ 0 };
 		vec2	Offset	{ 10.f, 10.f };
@@ -309,9 +310,9 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoNav
 		};
 
-		using BasicPanel<SimpleOverlay>::BasicPanel;
+		using BasicPanel<Overlay>::BasicPanel;
 
-		SimpleOverlay(
+		Overlay(
 			cstring			title,
 			bool			open = false,
 			int32			corner = 0,
@@ -540,21 +541,10 @@ namespace ml::ImGuiExt
 			ImGui::PopStyleVar(3);
 			if (is_open)
 			{
-				ImGuiID const id{ GetID() };
-
-				if (!GetNode(id))
-				{
-					RemoveNode(id);
-					
-					AddNode(id, DockNodeFlags);
-
-					std::invoke(ML_forward(fn), this, ML_forward(args)...);
-					
-					Finish(id);
-				}
+				std::invoke(ML_forward(fn), this, ML_forward(args)...);
 
 				ImGui::DockSpace(
-					id,
+					GetID(),
 					Size,
 					ImGuiDockNodeFlags_PassthruCentralNode | DockNodeFlags,
 					nullptr);
@@ -602,15 +592,21 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit TextLog(allocator_type alloc) noexcept : TextLog{ NULL, true, alloc } {}
+		explicit TextLog(allocator_type alloc) noexcept : TextLog{ "", true, alloc } {}
 
-		TextLog(cstring default_filter = "", bool auto_scroll = true, allocator_type alloc = {}) noexcept;
+		TextLog(cstring default_filter = "", bool auto_scroll = true, allocator_type alloc = {}) noexcept
+			: Filter		{ default_filter }
+			, Lines			{ alloc }
+			, AutoScroll	{ auto_scroll }
+			, ScrollToBottom{}
+		{
+		}
 
 		void Draw(Printer const & print = {}) noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto & Write(char const value) noexcept
+		auto & Write(char value) noexcept
 		{
 			switch (value)
 			{
@@ -628,7 +624,7 @@ namespace ml::ImGuiExt
 
 		auto & Print(cstring value = "\n") noexcept
 		{
-			std::for_each_n(value, std::strlen(value), [&](char c)
+			std::for_each_n(value, std::strlen(value), [&](char c) noexcept
 			{
 				this->Write(c);
 			});
@@ -699,26 +695,28 @@ namespace ml::ImGuiExt
 		
 		using Printer = typename TextLog::Printer;
 
-		using CommandName = typename ds::string;
-		
 		using CommandProc = typename ds::method< void(Line &&) >;
 		
 		using CommandInfo = typename ds::list<ds::string>;
 
-		using CommandData = typename ds::batch_vector
+		using CommandStorage = typename ds::batch_vector
 		<
-			CommandName, CommandInfo, CommandProc
+			ds::string, CommandInfo, CommandProc
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::string User, Host, Path, Mode; // session
+		ds::string
+			UserName,
+			HostName,
+			PathName,
+			ModeName;
 
 		InputBuffer Input; // input
 
 		TextLog Output; // output
 
-		CommandData Commands; // commands
+		CommandStorage CommandData; // commands
 
 		ds::list<Line> History; // history
 
@@ -727,16 +725,28 @@ namespace ml::ImGuiExt
 		// colors
 		struct ML_NODISCARD {
 			color
-				Delim	{ colors::white },
-				User	{ colors::aqua },
-				Host	{ colors::magenta },
-				Path	{ colors::cyan },
-				Mode	{ colors::fuchsia };
+				Delimeter	{ colors::white },
+				UserName	{ colors::aqua },
+				HostName	{ colors::magenta },
+				PathName	{ colors::cyan },
+				ModeName	{ colors::fuchsia };
 		} Colors;
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		Terminal(allocator_type alloc = {}) noexcept
+			: UserName		{ alloc }
+			, HostName		{ alloc }
+			, PathName		{ alloc }
+			, ModeName		{ alloc }
+			, Input			{}
+			, Output		{ alloc }
+			, CommandData	{ alloc }
+			, History		{ alloc }
+			, HistoryPos	{ -1 }
+			, Colors		{}
+		{
+		}
 
-		Terminal(allocator_type alloc = {}) noexcept;
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void DrawPrefixOptions();
 
@@ -748,46 +758,46 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Name = CommandName
+		template <class Name = ds::string
 		> bool AddCommand(Name && name, CommandInfo const & info, CommandProc const & clbk) noexcept
 		{
 			if (this->HasCommand(ML_forward(name))) { return false; }
-			else { Commands.push_back(ML_forward(name), info, clbk); return true; }
+			else { CommandData.push_back(ML_forward(name), info, clbk); return true; }
 		}
 
-		template <class Name = CommandName
+		template <class Name = ds::string
 		> bool DelCommand(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return false; }
-			else { Commands.erase(*i); return true; }
+			else { CommandData.erase(*i); return true; }
 		}
 
-		template <class Name = CommandName
+		template <class Name = ds::string
 		> ML_NODISCARD bool HasCommand(Name && name) const noexcept
 		{
-			return Commands.contains<ds::string>(ML_forward(name));
+			return CommandData.contains<ds::string>(ML_forward(name));
 		}
 
-		template <class Name = CommandName
+		template <class Name = ds::string
 		> ML_NODISCARD std::optional<size_t> GetIndex(Name && name) const noexcept
 		{
-			if (auto const i{ Commands.lookup<ds::string>(ML_forward(name)) }
-			; i == Commands.npos) { return std::nullopt; }
+			if (auto const i{ CommandData.lookup<ds::string>(ML_forward(name)) }
+			; i == CommandData.npos) { return std::nullopt; }
 			else { return i; }
 		}
 
-		template <class Name = CommandName
+		template <class Name = ds::string
 		> ML_NODISCARD CommandInfo * GetInfo(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
-			else { return std::addressof(Commands.at<CommandInfo>(*i)); }
+			else { return std::addressof(CommandData.at<CommandInfo>(*i)); }
 		}
 
-		template <class Name = CommandName
+		template <class Name = ds::string
 		> ML_NODISCARD CommandProc * GetProc(Name && name) noexcept
 		{
 			if (auto const i{ this->GetIndex(ML_forward(name)) }; !i) { return nullptr; }
-			else { return std::addressof(Commands.at<CommandProc>(*i)); }
+			else { return std::addressof(CommandData.at<CommandProc>(*i)); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -12,8 +12,8 @@ namespace ml
 		, m_app_name		{ fs::path{ argv[0] }.stem().string(), alloc }
 		, m_app_version		{ alloc }
 		, m_arguments		{ argv, argv + argc, alloc }
-		, m_attributes		{ json{ j } }
 		, m_library_paths	{ alloc }
+		, m_attributes		{ json{ j } }
 		, m_interpreter		{}
 	{
 		ML_verify(begin_singleton<core_application>(this));

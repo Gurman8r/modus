@@ -211,7 +211,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_context(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_context(ML_forward(desc), alloc);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -374,7 +374,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_vertexarray(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_vertexarray(ML_forward(desc), alloc);
 		}
 
 	public:
@@ -461,7 +461,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_vertexbuffer(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_vertexbuffer(ML_forward(desc), alloc);
 		}
 
 	public:
@@ -548,7 +548,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_indexbuffer(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_indexbuffer(ML_forward(desc), alloc);
 		}
 
 	public:
@@ -745,7 +745,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_texture2d(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_texture2d(ML_forward(desc), alloc);
 		}
 
 		ML_NODISCARD static auto create(bitmap const & img, texture_flags_ flags = texture_flags_default, allocator_type alloc = {}) noexcept
@@ -848,7 +848,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_texture3d(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_texture3d(ML_forward(desc), alloc);
 		}
 
 	public:
@@ -931,7 +931,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_texturecube(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_texturecube(ML_forward(desc), alloc);
 		}
 
 	public:
@@ -1026,7 +1026,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_framebuffer(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_framebuffer(ML_forward(desc), alloc);
 		}
 
 	public:
@@ -1121,7 +1121,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_program(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_program(ML_forward(desc), alloc);
 		}
 
 	public:
@@ -1136,7 +1136,7 @@ namespace ml::gfx
 		ML_NODISCARD virtual typeof_t<> const & get_self_type() const noexcept override = 0;
 
 	public:
-		virtual bool attach(uint32 type, size_t count, cstring * str, int32 const * len = {}) = 0;
+		virtual bool attach(uint32 type, size_t count, cstring * str, int32 const * len = nullptr) = 0;
 
 		inline bool attach(uint32 type, ds::string const & str) noexcept
 		{
@@ -1276,7 +1276,7 @@ namespace ml::gfx
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
 		{
-			return ML_check(get_global<render_device>())->new_shader(ML_forward(desc), alloc);
+			return ML_singleton(render_device)->new_shader(ML_forward(desc), alloc);
 		}
 
 	public:

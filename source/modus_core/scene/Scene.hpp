@@ -10,21 +10,18 @@ namespace ml
 {
 	struct entity;
 
-	struct ML_CORE_API scene : trackable
+	struct ML_CORE_API scene : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
+		virtual ~scene() noexcept override = default;
 
 		scene() noexcept : m_registry{} {}
 
 		scene(scene && other) noexcept : m_registry{ std::move(other.m_registry) } {}
 
-		~scene() noexcept override = default;
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return m_registry; }
-
-		ML_NODISCARD auto get_registry() const noexcept -> entt::registry const & { return m_registry; }
 
 		ML_NODISCARD entity new_entity(ds::string const & name = {}) noexcept;
 
@@ -38,39 +35,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void from_json(json const & j);
-
-		void to_json(json & j) const;
-
-		ML_NODISCARD json to_json() const noexcept { json j; this->to_json(j); return j; }
-
-		std::istream & deserialize(std::istream & in)
+		ML_NODISCARD auto get_registry() const noexcept -> entt::registry *
 		{
-			this->from_json(json::parse(in));
-			return in;
-		}
-
-		std::ostream & serialize(std::ostream & out) const
-		{
-			return out << this->to_json();
-		}
-
-		bool load_from_file(fs::path const & path)
-		{
-			std::ifstream f{ path };
-			ML_defer(&f) { f.close(); };
-			if (!f) { return debug::failure("failed reading scene: \'{0}\'", path); }
-			deserialize(f);
-			return true;
-		}
-
-		bool save_to_file(fs::path const & path) const
-		{
-			std::ofstream f{ path };
-			ML_defer(&f) { f.close(); };
-			if (!f) { return debug::failure("failed writing scene: \'{0}\'", path); }
-			serialize(f);
-			return true;
+			return const_cast<entt::registry *>(&m_registry);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -91,9 +58,9 @@ namespace ml
 
 namespace ml
 {
-	inline void from_json(json const & j, scene & v) noexcept { v.from_json(j); }
+	inline void from_json(json const & j, scene & v) noexcept {}
 
-	inline void to_json(json & j, scene const & v) noexcept { v.to_json(j); }
+	inline void to_json(json & j, scene const & v) noexcept {}
 }
 
 #endif // !_ML_SCENE_HPP_

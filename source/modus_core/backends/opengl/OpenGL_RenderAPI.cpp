@@ -2,7 +2,7 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-//#define ML_IMPL_GFX_CHECK
+#define ML_IMPL_GFX_CHECK
 #include "./OpenGL.hpp"
 #include "./OpenGL_RenderAPI.hpp"
 
@@ -16,7 +16,7 @@ namespace ml::gfx
 	opengl_render_device::opengl_render_device(spec_type const & desc, allocator_type alloc) : render_device{}
 	{
 		static bool const opengl_init{ ML_IMPL_OPENGL_INIT() };
-		ML_assert("failed initializing opengl device" && opengl_init);
+		ML_verify("failed initializing opengl device" && opengl_init);
 
 		// renderer
 		ML_glCheck(m_info.renderer = (cstring)glGetString(GL_RENDERER));
@@ -88,23 +88,6 @@ namespace ml::gfx
 	}
 
 	opengl_render_device::~opengl_render_device() {}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ds::ref<render_context> const & opengl_render_device::get_active_context() const noexcept
-	{
-		return m_context;
-	}
-
-	void opengl_render_device::set_active_context(ds::ref<render_context> const & value) noexcept
-	{
-		m_context = value;
-
-		ML_glCheck(glBindProgramPipeline
-		(
-			value ? ML_handle(uint32, value->get_handle()) : NULL
-		));
-	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -193,7 +176,7 @@ namespace ml::gfx
 		, m_handle		{}
 		, m_desc		{ desc }
 	{
-		ML_assert("invalid render context api" && desc.api == context_api_opengl);
+		ML_verify("invalid render context api" && desc.api == context_api_opengl);
 
 		if (auto const major{ parent->get_info().major_version }; major != desc.major) {
 			debug::warning("opengl major version mismatch: {0}!={1}", major, desc.major);
@@ -519,6 +502,8 @@ namespace ml::gfx
 
 	void opengl_render_context::bind_shader(shader const * value)
 	{
+		ML_glCheck(glBindProgramPipeline(m_handle));
+
 		if (value)
 		{
 			ML_glCheck(glUseProgramStages(m_handle, value->get_mask(), ML_handle(uint32, value->get_handle())));

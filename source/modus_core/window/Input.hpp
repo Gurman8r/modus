@@ -4,6 +4,7 @@
 #include <modus_core/detail/Matrix.hpp>
 #include <modus_core/detail/Timer.hpp>
 
+// enums
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -177,6 +178,50 @@ namespace ml
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// state
+namespace ml
+{
+	struct ML_NODISCARD input_state final
+	{
+	public:
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		char
+			last_char{};
+		float32
+			mouse_wheel{};
+		vec2
+			mouse_pos{}, last_mouse_pos{},
+			mouse_delta{};
+		bool
+			mouse_down[mouse_button_MAX]{},
+			keys_down[keycode_MAX]{};
+		float32
+			mouse_times[mouse_button_MAX],
+			key_times[keycode_MAX];
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD bool is_shift() const noexcept { return keys_down[keycode_left_shift] || keys_down[keycode_right_shift]; }
+
+		ML_NODISCARD bool is_ctrl() const noexcept { return keys_down[keycode_left_ctrl] || keys_down[keycode_right_ctrl]; }
+
+		ML_NODISCARD bool is_alt() const noexcept { return keys_down[keycode_left_alt] || keys_down[keycode_right_alt]; }
+
+		ML_NODISCARD bool is_super() const noexcept { return keys_down[keycode_left_super] || keys_down[keycode_right_super]; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		input_state() noexcept = default;
+		input_state(input_state const &) = default;
+		input_state(input_state &&) noexcept = default;
+		input_state & operator=(input_state const &) = default;
+		input_state & operator=(input_state &&) noexcept = default;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
 }
 
 #endif // !_ML_INPUT_HPP_

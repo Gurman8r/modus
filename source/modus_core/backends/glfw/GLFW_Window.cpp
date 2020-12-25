@@ -123,27 +123,6 @@ namespace ml
 		glfwSwapBuffers((GLFWwindow *)value);
 	}
 
-	void glfw_platform::set_swap_interval(int32 value)
-	{
-		glfwSwapInterval(value);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	static error_callback g_window_error_callback{};
-
-	error_callback glfw_platform::get_error_callback()
-	{
-		return g_window_error_callback;
-	}
-
-	error_callback glfw_platform::set_error_callback(error_callback value)
-	{
-		return reinterpret_cast<error_callback>(
-			glfwSetErrorCallback(
-				reinterpret_cast<GLFWerrorfun>(g_window_error_callback = value)));
-	}
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
@@ -158,11 +137,14 @@ namespace ml
 		, m_monitor	{}
 		, m_hints	{}
 	{
+		static ML_block(&) { ML_verify(glfw_platform::initialize()); };
 	}
 
 	glfw_window::~glfw_window()
 	{
 		glfwDestroyWindow(m_window);
+
+		static ML_defer(&) { ML_verify(glfw_platform::finalize()); };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

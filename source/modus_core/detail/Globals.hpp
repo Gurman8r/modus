@@ -19,16 +19,18 @@
 // globals implementation ( source.cpp )
 #define ML_impl_global(T) template <> T *
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 namespace ml::globals
 {
-	// backend global getter
+	// get global
 	template <class T> ML_NODISCARD T * get() noexcept
 	{
 		static_assert(0, "get global not implemented for type");
 		return nullptr;
 	}
 
-	// backend global setter
+	// set global
 	template <class T> ML_NODISCARD T * set(T *) noexcept
 	{
 		static_assert(0, "set global not implemented for type");
@@ -38,51 +40,17 @@ namespace ml::globals
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-namespace ml
-{
-	// get global macro
-#define ML_global(T) _ML get_global<T>()
+// get global macro
+#define ML_get_global(T)			(_ML_GLOBALS get<T>())
 
-	// get global
-	template <class T> ML_NODISCARD auto get_global() noexcept
-	{
-		static_assert(!std::is_same_v<T, void>, "?");
+// set global macro
+#define ML_set_global(T, value)		(_ML_GLOBALS set<T>(value))
 
-		return _ML_GLOBALS get<T>();
-	}
+// begin global macro
+#define ML_begin_global(T, value)	((value) && (ML_get_global(T) == nullptr) && ML_set_global(T, (value)))
 
-	// set global
-	template <class T> auto set_global(void * value) noexcept
-	{
-		static_assert(!std::is_same_v<T, void>, "?");
-		
-		return _ML_GLOBALS set<T>(static_cast<T *>(value));
-	}
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-namespace ml
-{
-	// get singleton macro (checked global)
-#define ML_singleton(T) ((T *)ML_check(ML_global(T)))
-
-	// begin singleton
-	template <class T> ML_NODISCARD bool begin_singleton(void * value) noexcept
-	{
-		return value
-			&& _ML get_global<T>() == nullptr
-			&& _ML set_global<T>(value);
-	}
-
-	// end singleton
-	template <class T> ML_NODISCARD bool end_singleton(void * value) noexcept
-	{
-		return value
-			&& _ML get_global<T>() == value
-			&& !_ML set_global<T>(nullptr);
-	}
-}
+// end global macro
+#define ML_end_global(T, value)		((value) && (ML_get_global(T) == (value)) && !ML_set_global(T, nullptr))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

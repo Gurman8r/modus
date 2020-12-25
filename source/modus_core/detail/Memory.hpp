@@ -12,64 +12,81 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using pointer			= typename byte *;
-		using const_pointer		= typename byte const *;
-		using reference			= typename byte &;
-		using const_reference	= typename byte const &;
-		using iterator			= typename pointer;
-		using const_iterator	= typename const_pointer;
+		using pointer					= typename byte *;
+		using const_pointer				= typename byte const *;
+		using reference					= typename byte &;
+		using const_reference			= typename byte const &;
+		using iterator					= typename pointer;
+		using const_iterator			= typename const_pointer;
+		using reverse_iterator			= typename std::reverse_iterator<iterator>;
+		using const_reverse_iterator	= typename std::reverse_iterator<const_iterator>;
+		using size_type					= typename size_t;
+		using difference_type			= typename ptrdiff_t;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
-		explicit passthrough_resource(pmr::memory_resource * u, pointer const b, size_t c) noexcept
-			: m_upstream{ u }, m_buffer{ b }, m_total_bytes{ c }
+		passthrough_resource(pmr::memory_resource * mres, pointer data, size_t size) noexcept
+			: m_resource	{ mres }
+			, m_buffer_data	{ data }
+			, m_buffer_size	{ size }
 		{
-			ML_assert("invalid passthrough_resource parameters" && u && b && c);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD bool is_default() const noexcept { return this == pmr::get_default_resource(); }
 
-		ML_NODISCARD auto resource() const noexcept -> pmr::memory_resource * const { return m_upstream; }
+		ML_NODISCARD auto get_resource() const noexcept -> pmr::memory_resource * const { return m_resource; }
 
 		ML_NODISCARD auto num_allocations() const noexcept -> size_t { return m_num_allocations; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto buffer_data() const noexcept -> pointer { return m_buffer; }
+		ML_NODISCARD auto buffer_data() const noexcept -> pointer { return m_buffer_data; }
 
-		ML_NODISCARD auto buffer_base() const noexcept -> intptr_t { return (intptr_t)m_buffer; }
+		ML_NODISCARD auto buffer_base() const noexcept -> intptr_t { return (intptr_t)m_buffer_data; }
 
-		ML_NODISCARD auto buffer_size() const noexcept -> size_t { return m_total_bytes; }
+		ML_NODISCARD auto buffer_size() const noexcept -> size_t { return m_buffer_size; }
 
-		ML_NODISCARD auto buffer_used() const noexcept -> size_t { return m_used_bytes; }
+		ML_NODISCARD auto buffer_used() const noexcept -> size_t { return m_buffer_used; }
 
-		ML_NODISCARD auto buffer_free() const noexcept -> size_t { return m_total_bytes - m_used_bytes; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto front() & noexcept -> reference { return m_buffer[0]; }
-
-		ML_NODISCARD auto front() const & noexcept -> const_reference { return m_buffer[0]; }
-
-		ML_NODISCARD auto back() & noexcept -> reference { return m_buffer[m_total_bytes - 1]; }
-
-		ML_NODISCARD auto back() const & noexcept -> const_reference { return m_buffer[m_total_bytes - 1]; }
+		ML_NODISCARD auto buffer_free() const noexcept -> size_t { return m_buffer_size - m_buffer_used; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto begin() noexcept -> iterator { return m_buffer; }
+		ML_NODISCARD auto front() & noexcept -> reference { return m_buffer_data[0]; }
 
-		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_buffer; }
+		ML_NODISCARD auto front() const & noexcept -> const_reference { return m_buffer_data[0]; }
+
+		ML_NODISCARD auto back() & noexcept -> reference { return m_buffer_data[m_buffer_size - 1]; }
+
+		ML_NODISCARD auto back() const & noexcept -> const_reference { return m_buffer_data[m_buffer_size - 1]; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto begin() noexcept -> iterator { return m_buffer_data; }
+
+		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_buffer_data; }
 
 		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return begin(); }
 
-		ML_NODISCARD auto end() noexcept -> iterator { return m_buffer + m_total_bytes; }
+		ML_NODISCARD auto end() noexcept -> iterator { return m_buffer_data + m_buffer_size; }
 
-		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_buffer + m_total_bytes; }
+		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_buffer_data + m_buffer_size; }
 
 		ML_NODISCARD auto cend() const noexcept -> const_iterator { return end(); }
+
+		ML_NODISCARD auto rbegin() noexcept -> reverse_iterator { return std::make_reverse_iterator(end()); }
+
+		ML_NODISCARD auto rbegin() const noexcept -> const_reverse_iterator { return std::make_reverse_iterator(end()); }
+
+		ML_NODISCARD auto crbegin() const noexcept -> const_reverse_iterator { return rbegin(); }
+
+		ML_NODISCARD auto rend() noexcept -> reverse_iterator { return std::make_reverse_iterator(begin()); }
+
+		ML_NODISCARD auto rend() const noexcept -> const_reverse_iterator { return std::make_reverse_iterator(begin()); }
+
+		ML_NODISCARD auto crend() const noexcept -> const_reverse_iterator { return crend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -77,31 +94,31 @@ namespace ml
 		void * do_allocate(size_t bytes, size_t align) override
 		{
 			++m_num_allocations;
-			m_used_bytes += bytes;
-			return m_upstream->allocate(bytes, align);
+			m_buffer_used += bytes;
+			return m_resource->allocate(bytes, align);
 		}
 
 		void do_deallocate(void * ptr, size_t bytes, size_t align) override
 		{
 			--m_num_allocations;
-			m_used_bytes -= bytes;
-			return m_upstream->deallocate(ptr, bytes, align);
+			m_buffer_used -= bytes;
+			return m_resource->deallocate(ptr, bytes, align);
 		}
 
 		bool do_is_equal(pmr::memory_resource const & value) const noexcept override
 		{
-			return m_upstream->is_equal(value);
+			return m_resource->is_equal(value);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		pmr::memory_resource * m_upstream;
-		pointer const m_buffer;
-		size_t const m_total_bytes;
+		pmr::memory_resource * m_resource;
+		pointer const m_buffer_data;
+		size_t const m_buffer_size;
 
 		size_t m_num_allocations{};
-		size_t m_used_bytes{};
+		size_t m_buffer_used{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -163,13 +180,13 @@ namespace ml
 	template <class T, class ... Args
 	> ML_NODISCARD ds::scope<T> make_scope(Args && ... args)
 	{
-		return { ML_singleton(memory_manager)->new_object<T>(ML_forward(args)...), default_delete<T>{} };
+		return { ML_get_global(memory_manager)->new_object<T>(ML_forward(args)...), default_delete<T>{} };
 	}
 
 	template <class T, class ... Args
 	> ML_NODISCARD ds::scary<T> make_scary(Args && ... args)
 	{
-		return { ML_singleton(memory_manager)->new_object<T>(ML_forward(args)...), no_delete{} };
+		return { ML_get_global(memory_manager)->new_object<T>(ML_forward(args)...), no_delete{} };
 	}
 }
 
@@ -411,39 +428,45 @@ namespace ml::globals
 	ML_decl_global(memory_manager) set(memory_manager * value) noexcept;
 }
 
-// standard interface
+// c-like memory interface
 namespace ml
 {
 	// malloc
 	inline void * ml_malloc(size_t size) noexcept
 	{
-		return ML_singleton(memory_manager)->allocate(size);
+		return ML_get_global(memory_manager)->allocate(size);
 	}
 
 	// calloc
 	inline void * ml_calloc(size_t count, size_t size) noexcept
 	{
-		return ML_singleton(memory_manager)->allocate(count, size);
+		return ML_get_global(memory_manager)->allocate(count, size);
 	}
 
 	// realloc
 	inline void * ml_realloc(void * addr, size_t size) noexcept
 	{
-		return ML_singleton(memory_manager)->reallocate(addr, size);
+		return ML_get_global(memory_manager)->reallocate(addr, size);
 	}
 
 	// realloc (sized)
 	inline void * ml_realloc(void * addr, size_t oldsz, size_t newsz) noexcept
 	{
-		return ML_singleton(memory_manager)->reallocate(addr, oldsz, newsz);
+		return ML_get_global(memory_manager)->reallocate(addr, oldsz, newsz);
 	}
 
 	// free
 	inline void ml_free(void * addr) noexcept
 	{
-		ML_singleton(memory_manager)->deallocate(addr);
+		ML_get_global(memory_manager)->deallocate(addr);
 	}
 }
+
+#define ML_free(addr)							ML_get_global(_ML memory_manager)->deallocate(addr)
+#define ML_malloc(size)							ML_get_global(_ML memory_manager)->allocate(size)
+#define ML_calloc(count, size)					ML_get_global(_ML memory_manager)->allocate(count, size)
+#define ML_realloc(addr, size)					ML_get_global(_ML memory_manager)->reallocate(addr, size)
+#define ML_realloc_sized(addr, oldsz, newsz)	ML_get_global(_ML memory_manager)->reallocate(addr, oldsz, newsz)
 
 // trackable
 namespace ml
@@ -455,13 +478,13 @@ namespace ml
 
 		virtual ~trackable() noexcept = default;
 
-		ML_NODISCARD void * operator new(size_t size) noexcept { return ml_malloc(size); }
+		ML_NODISCARD void * operator new(size_t size) noexcept { return ML_malloc(size); }
 
-		ML_NODISCARD void * operator new[](size_t size) noexcept { return ml_malloc(size); }
+		ML_NODISCARD void * operator new[](size_t size) noexcept { return ML_malloc(size); }
 
-		void operator delete(void * addr) noexcept { ml_free(addr); }
+		void operator delete(void * addr) noexcept { ML_free(addr); }
 
-		void operator delete[](void * addr) noexcept { ml_free(addr); }
+		void operator delete[](void * addr) noexcept { ML_free(addr); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

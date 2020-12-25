@@ -7,7 +7,7 @@ namespace ml
 
 	library_handle win32_platform::load_library(fs::path const & path)
 	{
-		return (library_handle)LoadLibraryExW(path.c_str(), nullptr, 0);
+		return (library_handle)LoadLibraryExW(path.c_str(), nullptr, 0u);
 	}
 
 	bool win32_platform::free_library(library_handle instance)

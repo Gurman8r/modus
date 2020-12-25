@@ -66,7 +66,7 @@ namespace ml
 			return m_running;
 		}
 
-		ML_NODISCARD auto elapsed() const noexcept -> duration
+		ML_NODISCARD duration elapsed() const noexcept
 		{
 			if (m_running)
 			{
@@ -80,16 +80,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto start() noexcept -> self_type &
+		self_type & start() noexcept
 		{
-			if (m_running) { return (*this); }
-			else
-			{
-				return this->restart();
-			}
+			return m_running ? (*this) : this->restart();
 		}
 
-		auto restart() noexcept -> self_type &
+		self_type & restart() noexcept
 		{
 			m_running = true;
 			
@@ -100,17 +96,15 @@ namespace ml
 			return (*this);
 		}
 
-		auto stop() noexcept -> self_type &
+		self_type & stop() noexcept
 		{
 			if (!m_running) { return (*this); }
-			else
-			{
-				m_running = false;
 
-				m_elapsed = ((m_stop_time = clock_type::now()) - m_start_time);
+			m_running = false;
 
-				return (*this);
-			}
+			m_elapsed = ((m_stop_time = clock_type::now()) - m_start_time);
+
+			return (*this);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

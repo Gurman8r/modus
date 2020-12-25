@@ -1,5 +1,4 @@
-#include <modus_core/engine/Application.hpp>
-#include <modus_core/embed/Python.hpp>
+#include <modus_core/runtime/Application.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -41,7 +40,7 @@ static auto const default_settings{ R"(
 
 	"window": {
 		"title": "modus",
-		"video": {
+		"display": {
 			"resolution": [ 1280, 720 ],
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
 			"refresh_rate": -1
@@ -88,24 +87,20 @@ static auto const default_settings{ R"(
 
 int32 main(int32 argc, char * argv[])
 {
-	application app{ argc, argv, util::load_json(SETTINGS_PATH, default_settings) };
+	application app{ argc, argv, util::json_load(SETTINGS_PATH, default_settings) };
 
-	if (!app.has_interpreter()) {
-		ML_assert(app.initialize_interpreter());
-	}
-
-	if (app.has_attr("plugins")) {
-		for (json const & e : app.attr("plugins")) {
+	if (json const * j{ app.attr("plugins") }) {
+		for (json const & e : *j) {
 			if (e.contains("path")) {
-				app.get_plugin_manager()->install(e["path"]);
+				app.load_plugin(e["path"]);
 			}
 		}
 	}
 
-	if (app.has_attr("scripts")) {
-		for (json const & e : app.attr("scripts")) {
+	if (json const * j{ app.attr("scripts") }) {
+		for (json const & e : *j) {
 			if (e.contains("path")) {
-				app.get_interpreter()->eval_file(app.path_to(e["path"]));
+				py::eval_file(app.path_to(e["path"]));
 			}
 		}
 	}

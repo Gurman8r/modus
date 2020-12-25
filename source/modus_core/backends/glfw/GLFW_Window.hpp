@@ -58,19 +58,9 @@ namespace ml
 
 		static void make_context_current(window_handle value);
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		static void poll_events();
 
 		static void swap_buffers(window_handle value);
-
-		static void set_swap_interval(int32 value);
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static error_callback get_error_callback();
-
-		static error_callback set_error_callback(error_callback value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

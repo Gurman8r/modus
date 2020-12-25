@@ -14,9 +14,7 @@ namespace ml
 			imgui_style_panel,
 			imgui_about_panel,
 
-			browser_panel,
 			memory_panel,
-			settings_panel,
 			terminal_panel,
 			viewport_panel,
 
@@ -29,14 +27,12 @@ namespace ml
 			{ "Dear ImGui Style Editor", false },
 			{ "About Dear ImGui", false },
 
-			{ "browser", false, ImGuiWindowFlags_MenuBar },
 			{ "memory", false, ImGuiWindowFlags_MenuBar },
-			{ "settings", false, ImGuiWindowFlags_MenuBar },
 			{ "terminal", false, ImGuiWindowFlags_MenuBar },
 			{ "viewport", true, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar },
 		};
 
-		ImGuiExt::Overlay m_debug_overlay{ "debug overlay", true, -1, { 32, 32 }, .35f };
+		ImGuiExt::Overlay m_overlay{ "overlay", true, -1, { 32, 32 }, .35f };
 
 		// terminal
 		stream_sniper m_cout{ &std::cout }; // stdout wrapper
@@ -51,7 +47,7 @@ namespace ml
 		ds::hashmap<ds::string, ds::ref<scene>> m_scenes{}; // scenes
 
 		// rendering
-		bool m_cycle_background{ true }; // cycle background
+		bool m_shift_bg_hue{ true }; // cycle background
 		viewport m_viewport{}; // viewport
 		camera m_camera{}; // camera
 		camera_controller m_cc{ &m_camera }; // camera controller
@@ -99,11 +95,10 @@ namespace ml
 
 		sandbox(plugin_manager * manager, void * userptr) : plugin{ manager, userptr }
 		{
-			subscribe
-			<
+			subscribe<
 				load_event, unload_event,
 
-				begin_step_event, end_step_event,
+				begin_frame_event, end_frame_event,
 
 				dock_builder_event, main_menu_bar_event, imgui_event,
 
@@ -118,8 +113,8 @@ namespace ml
 			case load_event			::ID: return on_load((load_event const &)value);
 			case unload_event		::ID: return on_unload((unload_event const &)value);
 			
-			case begin_step_event	::ID: return on_begin_step((begin_step_event const &)value);
-			case end_step_event		::ID: return on_end_step((end_step_event const &)value);
+			case begin_frame_event	::ID: return on_begin_frame((begin_frame_event const &)value);
+			case end_frame_event	::ID: return on_end_frame((end_frame_event const &)value);
 			
 			case dock_builder_event	::ID: return on_dock_builder((dock_builder_event const &)value);
 			case main_menu_bar_event::ID: return on_main_menu_bar((main_menu_bar_event const &)value);
@@ -157,8 +152,8 @@ namespace ml
 			if (gfx::program_source src{}
 			; shader_parser::parse(path2("plugins/sandbox/resource/shaders/basic_3D.shader"), src))
 			{
-				if (src[0]) { m_shaders["vertex"] = gfx::shader::create({ 0, { *src[0] } }); }
-				if (src[1]) { m_shaders["pixel"] = gfx::shader::create({ 1, { *src[1] } }); }
+				if (src[0]) { m_shaders["vs"] = gfx::shader::create({ 0, { *src[0] } }); }
+				if (src[1]) { m_shaders["ps"] = gfx::shader::create({ 1, { *src[1] } }); }
 			}
 			
 			// programs
@@ -173,11 +168,11 @@ namespace ml
 			m_viewport.set_rect({ 0, 0, 1280, 720 });
 
 			// camera
-			m_camera.set_primary(true);
 			m_camera.set_clear_flags(gfx::clear_flags_color | gfx::clear_flags_depth);
 			m_camera.set_background({ 0.223f, 0.f, 0.46f, 1.f });
 			m_camera.set_orthographic(false);
 			m_camera.set_eye({ -5.f, 3.f, -5.f });
+			m_cc.set_position(m_camera.get_eye());
 			m_cc.set_yaw(45.f);
 			m_cc.set_pitch(-25.f);
 
@@ -196,17 +191,21 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_begin_step(begin_step_event const & ev)
+		void on_begin_frame(begin_frame_event const & ev)
 		{
-			m_term.Output.Dump(m_cout.sstr());
+			ds::string const str{ m_cout.str() };
+			m_term.Output.Print(str);
+			m_cout.str({});
 
 			duration const dt{ ev->delta_time() };
 
-			input_manager * const input{ ev->get_input() };
+			input_state * const input{ ev->get_input() };
 
 			vec2 const view_size{ m_viewport.get_rect().size() };
 
 			for (auto const & fb : m_framebuffers) { fb->resize(view_size); }
+
+			if (m_shift_bg_hue) { m_camera.set_background(util::rotate_hue(m_camera.get_background(), dt * 10)); }
 
 			if (m_drag_view) {
 				vec2 const md{ input->mouse_delta * (dt * 50) };
@@ -214,14 +213,19 @@ namespace ml
 				m_cc.pitch(+md[1]);
 				m_drag_view = false;
 			}
-			m_cc.set_position(m_camera.get_eye());
+			vec3 pos{ m_cc.get_position() };
+			if (input->keys_down[keycode_w]) {}
+			if (input->keys_down[keycode_a]) {}
+			if (input->keys_down[keycode_s]) {}
+			if (input->keys_down[keycode_d]) {}
+			m_cc.set_position(pos);
 			m_cc.recalculate(view_size);
 
-			if (m_cycle_background) {
-				m_camera.set_background(util::rotate_hue(m_camera.get_background(), dt * 10));
-			}
-
-			ev->get_renderer()->get_context()->execute
+			static auto const & pgm{ m_programs["3D"] };
+			static auto const & tex{ m_textures["earth_dm_2k"] };
+			static auto const & msh{ m_meshes["sphere32x24"] };
+			static auto const & vs{ m_shaders["vs"] }, & ps{ m_shaders["ps"] };
+			ev->get_render_context()->execute
 			(
 				gfx::command::bind_framebuffer(m_framebuffers[0]),
 				gfx::command::set_clear_color(m_camera.get_background()),
@@ -229,9 +233,6 @@ namespace ml
 				[&](gfx::render_context * ctx)
 				{
 					if (0 == m_object_count) { return; }
-					static auto const & pgm{ m_programs["3D"] };
-					static auto const & tex{ m_textures["earth_dm_2k"] };
-					static auto const & msh{ m_meshes["sphere32x24"] };
 					pgm->bind();
 					pgm->set_uniform("u_model", m_object_matrix[0]);
 					pgm->set_uniform("u_view", m_camera.get_view_matrix());
@@ -246,7 +247,7 @@ namespace ml
 			);
 		}
 
-		void on_end_step(end_step_event const & ev)
+		void on_end_frame(end_frame_event const & ev)
 		{
 		}
 
@@ -268,7 +269,7 @@ namespace ml
 				if (ImGui::MenuItem("save", "ctrl+s")) {}
 				if (ImGui::MenuItem("save as", "ctrl+shift+s")) {}
 				ImGui::Separator();
-				if (ImGui::MenuItem("quit", "alt+f4")) { get_app()->quit(); }
+				if (ImGui::MenuItem("exit", "alt+f4")) { ML_get_global(application)->quit(); }
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("edit")) {
@@ -285,9 +286,7 @@ namespace ml
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("view")) {
-				ImGuiExt::MenuItem(m_panels + browser_panel);
 				ImGuiExt::MenuItem(m_panels + memory_panel);
-				ImGuiExt::MenuItem(m_panels + settings_panel);
 				ImGuiExt::MenuItem(m_panels + terminal_panel);
 				ImGuiExt::MenuItem(m_panels + viewport_panel);
 				ImGui::EndMenu();
@@ -308,9 +307,7 @@ namespace ml
 			if (m_panels[imgui_style_panel].IsOpen) { ImGui::ShowStyleEditor(&ev->Style); }
 			if (m_panels[imgui_about_panel].IsOpen) { ImGui::ShowAboutWindow(&m_panels[imgui_about_panel].IsOpen); }
 
-			draw_browser(ev);	// BROWSER
 			draw_memory(ev);	// MEMORY
-			draw_settings(ev);	// SETTINGS
 			draw_terminal(ev);	// TERMINAL
 			draw_viewport(ev);	// VIEWPORT
 			draw_overlay(ev);	// OVERLAY
@@ -318,28 +315,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void draw_browser(imgui_event const & ev)
-		{
-			if (m_panels[browser_panel].IsOpen) {
-				ImGui::SetNextWindowPos({ 64, 64 }, ImGuiCond_Once);
-				ImGui::SetNextWindowSize({ 320, 340 }, ImGuiCond_Once);
-			}
-			if (!m_panels[browser_panel].Draw([&](auto)
-			{
-				if (ImGui::BeginMenuBar())
-				{
-					ImGui::EndMenuBar();
-				}
-				ImGui::Separator();
-				ImGui::Separator();
-			}))
-			{
-			}
-		}
-
 		void draw_memory(imgui_event const & ev)
 		{
-			memory_manager * const mman{ ML_singleton(memory_manager) };
+			memory_manager * const mman{ ML_get_global(memory_manager) };
 			memory_manager::record_storage const & mrec{ mman->get_storage() };
 			passthrough_resource * const mres{ mman->get_resource() };
 			byte * const
@@ -383,7 +361,8 @@ namespace ml
 			};
 
 			if (m_panels[memory_panel].IsOpen) {
-				static auto const winsize{ (vec2)get_app()->get_window()->get_size() };
+				
+				static vec2 const winsize{ (vec2)ev->IO.DisplaySize };
 				ImGui::SetNextWindowSize(winsize * 0.5f, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize * 0.5f, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
@@ -449,7 +428,7 @@ namespace ml
 
 					// PROGRESS BAR
 					char progress_str[32]{};
-					std::sprintf(progress_str, "%u / %u (%.2f%%)",
+					std::sprintf(progress_str, "%zu / %zu (%.2f%%)",
 						buffer_used,
 						buffer_size,
 						fraction_used * 100.f);
@@ -457,10 +436,10 @@ namespace ml
 
 					ImGuiExt::TooltipEx([&]() noexcept
 					{
-						ImGui::Text("allocations: %u", num_allocations);
-						ImGui::Text("total:       %u", buffer_size);
-						ImGui::Text("in use:      %u", buffer_used);
-						ImGui::Text("available:   %u", buffer_free);
+						ImGui::Text("allocations: %zu", num_allocations);
+						ImGui::Text("total:       %zu", buffer_size);
+						ImGui::Text("in use:      %zu", buffer_used);
+						ImGui::Text("available:   %zu", buffer_free);
 					});
 					ImGui::Separator();
 
@@ -472,85 +451,74 @@ namespace ml
 			});
 		}
 
-		void draw_settings(imgui_event const & ev)
+		void draw_overlay(imgui_event const & ev)
 		{
-			auto const & dev{ get_app()->get_renderer()->get_device() };
-			auto const & inf{ dev->get_info() };
-			auto const & ctx{ dev->get_active_context() };
+			ImGuiIO & io{ ev->IO };
 
-			if (m_panels[settings_panel].IsOpen) {
-				ImGui::SetNextWindowPos({ 64, 64 }, ImGuiCond_Once);
-				ImGui::SetNextWindowSize({ 320, 340 }, ImGuiCond_Once);
-			}
-			
-			if (!m_panels[settings_panel].Draw([&](auto)
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, 1 });
+			ML_defer(&) { ImGui::PopStyleVar(1); };
+			m_overlay.Draw(ev->Viewports[0], [&](ImGuiExt::Overlay * o) noexcept
 			{
-				if (ImGui::BeginMenuBar())
+				ImGui::TextDisabled("debug");
 				{
-					ImGui::Text(inf.vendor.c_str()); ImGuiExt::Tooltip("vendor"); ImGui::Separator();
-					ImGui::Text(inf.renderer.c_str()); ImGuiExt::Tooltip("renderer"); ImGui::Separator();
-					ImGui::Text(inf.version.c_str()); ImGuiExt::Tooltip("version"); ImGui::Separator();
-					ImGui::Text(inf.shading_language_version.c_str()); ImGuiExt::Tooltip("shading language version"); ImGui::Separator();
-					ImGui::EndMenuBar();
-				}
-				ImGui::Separator();
+					float32 const fps{ io.Framerate };
+					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 
-				if (gfx::alpha_state astate{}
-				; ImGui::CollapsingHeader("alpha") && ctx->get_alpha_state(&astate))
-				{
-					ImGui::Checkbox("enabled", &astate.enabled);
-					ImGui::Text("pred: %s (%u)", gfx::predicate_NAMES[astate.pred], astate.pred);
-					ImGui::Text("ref: %f", astate.ref);
-				}
-				ImGui::Separator();
+					float32 const tt{ 0.f };
+					ImGui::Text("uptime: %.2fs", tt);
 
-				if (gfx::blend_state bstate{}
-				; ImGui::CollapsingHeader("blend") && ctx->get_blend_state(&bstate))
-				{
-					ImGui::Checkbox("enabled", &bstate.enabled);
-					ImGui::ColorEdit4("color", bstate.color);
-					ImGui::Text("color equation: %s (%u)", gfx::equation_NAMES[bstate.color_equation], bstate.color_equation);
-					ImGui::Text("color sfactor: %s (%u)", gfx::factor_NAMES[bstate.color_sfactor], bstate.color_sfactor);
-					ImGui::Text("color dfactor: %s (%u)", gfx::factor_NAMES[bstate.color_dfactor], bstate.color_dfactor);
-					ImGui::Text("alpha equation: %s (%u)", gfx::equation_NAMES[bstate.alpha_equation], bstate.alpha_equation);
-					ImGui::Text("alpha sfactor: %s (%u)", gfx::factor_NAMES[bstate.alpha_sfactor], bstate.alpha_sfactor);
-					ImGui::Text("alpha dfactor: %s (%u)", gfx::factor_NAMES[bstate.alpha_dfactor], bstate.alpha_dfactor);
+					float_rect const & view_rect{ m_viewport.get_rect() };
+					ImGui::Text("view rect: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
+					if (ImGui::IsItemHovered()) {
+						ImGui::GetForegroundDrawList()->AddRect(view_rect.min(), view_rect.max(), IM_COL32(255, 155, 0, 255));
+					}
 				}
-				ImGui::Separator();
+				ImGui::NewLine();
+				ImGui::TextDisabled("input");
+				{
+					vec2 const mouse_pos{ (vec2)io.MousePos };
+					if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse pos: <invalid>"); }
+					else { ImGui::Text("mouse pos: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
 
-				if (gfx::cull_state cstate{}
-				; ImGui::CollapsingHeader("cull") && ctx->get_cull_state(&cstate))
-				{
-					ImGui::Checkbox("enabled", &cstate.enabled);
-					ImGui::Text("facet: %s (%u)", gfx::facet_NAMES[cstate.facet], cstate.facet);
-					ImGui::Text("order: %s (%u)", gfx::order_NAMES[cstate.order], cstate.order);
-				}
-				ImGui::Separator();
+					vec2 const mouse_delta{ (vec2)io.MouseDelta };
+					ImGui::Text("mouse delta: (%.1f,%.1f)", mouse_delta[0], mouse_delta[1]);
 
-				if (gfx::depth_state dstate{}
-				; ImGui::CollapsingHeader("depth") && ctx->get_depth_state(&dstate))
-				{
-					ImGui::Checkbox("enabled", &dstate.enabled);
-					ImGui::Text("pred: %s (%u) ", gfx::predicate_NAMES[dstate.pred], dstate.pred);
-					ImGui::Text("range: %f, %f", dstate.range[0], dstate.range[1]);
-				}
-				ImGui::Separator();
+					float32 const mouse_wheel{ io.MouseWheel };
+					ImGui::Text("mouse wheel: %.1f", mouse_wheel);
 
-				if (gfx::stencil_state sstate{}
-				; ImGui::CollapsingHeader("stencil") && ctx->get_stencil_state(&sstate))
-				{
-					ImGui::Checkbox("enabled", &sstate.enabled);
-					ImGui::Text("front pred: %s (%u)", gfx::predicate_NAMES[sstate.front_pred], sstate.front_pred);
-					ImGui::Text("front ref: %i", sstate.front_ref);
-					ImGui::Text("front mask: %u", sstate.front_mask);
-					ImGui::Text("back pred: %s (%u)", gfx::predicate_NAMES[sstate.back_pred], sstate.back_pred);
-					ImGui::Text("back ref: %i", sstate.back_ref);
-					ImGui::Text("back mask: %u", sstate.back_mask);
+					ImGui::Text("mouse: ");
+					for (size_t i = 0; i < mouse_button_MAX; ++i) {
+						if (io.MouseDown[i]) {
+							ImGui::SameLine();
+							ImGui::Text("(b%i:%.2fs)", i, io.MouseDownDuration[i]);
+						}
+					}
+
+					ImGui::Text("keys: ");
+					for (size_t i = 0; i < keycode_MAX; ++i) {
+						if (io.KeysDown[i]) {
+							ImGui::SameLine();
+							ImGui::Text("(%i:%.2fs)", i, io.KeysDownDuration[i]);
+						}
+					}
+
+					ImGui::Text("mods: %s%s%s%s",
+						io.KeyShift	? "shift "	: "",
+						io.KeyCtrl	? "ctrl "	: "",
+						io.KeyAlt	? "alt "	: "",
+						io.KeySuper	? "super "	: "");
 				}
-				ImGui::Separator();
-			}))
-			{
-			}
+
+				if (ImGui::BeginPopupContextWindow()) {
+					if (ImGui::MenuItem("custom", 0, o->Corner == -1)) { o->Corner = -1; }
+					if (ImGui::MenuItem("top-left", 0, o->Corner == 0)) { o->Corner = 0; }
+					if (ImGui::MenuItem("top-right", 0, o->Corner == 1)) { o->Corner = 1; }
+					if (ImGui::MenuItem("bottom-left", 0, o->Corner == 2)) { o->Corner = 2; }
+					if (ImGui::MenuItem("bottom-right", 0, o->Corner == 3)) { o->Corner = 3; }
+					if (ImGui::MenuItem("close")) { o->IsOpen = false; }
+					ImGui::EndPopup();
+				}
+			});
 		}
 
 		void draw_terminal(imgui_event const & ev)
@@ -570,7 +538,7 @@ namespace ml
 
 				// exit
 				m_term.AddCommand("exit", {}, [&](auto line) {
-					get_app()->quit();
+					ML_get_global(application)->quit();
 				});
 
 				// help
@@ -598,18 +566,18 @@ namespace ml
 						m_term.ModeName.clear(); return;
 					}
 					// execute
-					get_app()->get_interpreter()->exec(line);
+					py::exec((std::string)line);
 				});
 			};
 
 			if (m_panels[terminal_panel].IsOpen) {
-				static auto const winsize{ (vec2)get_app()->get_window()->get_size() };
+				
+				static vec2 const winsize{ (vec2)ev->IO.DisplaySize };
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
 			}
 			
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4, 4 });
-			
 			if (!m_panels[terminal_panel].Draw([&](auto)
 			{
 				ImGui::PopStyleVar(1);
@@ -822,17 +790,10 @@ namespace ml
 
 				/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-				// resize viewport
-				float_rect const view_rect{ ev->CurrentWindow->InnerRect.ToVec4() };
-				m_viewport.set_rect(view_rect);
-
 				// main image
-				ImGui::Image(
-					m_framebuffers[0]->get_color_attachments()[0]->get_handle(),
-					view_rect.size(),
-					{ 0, 1 }, { 1, 0 },
-					colors::white,
-					colors::clear);
+				ImRect const bb{ ev->CurrentWindow->InnerRect };
+				m_viewport.set_rect((vec4)bb.ToVec4());
+				Widgets::Image(m_framebuffers[0]->get_color_attachments()[0], bb);
 				m_drag_view = ImGui::IsItemHovered() && ImGui::IsMouseDragging(0);
 
 				// gizmos
@@ -841,7 +802,7 @@ namespace ml
 					proj_matrix{ m_camera.get_proj_matrix() };
 				ImGuizmo::SetOrthographic(m_camera.is_orthographic());
 				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect(view_rect.left(), view_rect.top(), view_rect.width(), view_rect.height());
+				ImGuizmo::SetRect(bb.Min.x, bb.Min.y, bb.GetWidth(), bb.GetHeight());
 				if (m_grid_enabled) {
 					ImGuizmo::DrawGrid(view_matrix, proj_matrix, m_grid_matrix, m_grid_size);
 				}
@@ -861,82 +822,6 @@ namespace ml
 			{
 				ImGui::PopStyleVar(1);
 			}
-		}
-
-		void draw_overlay(imgui_event const & ev)
-		{
-			application * const app{ get_app() };
-			input_manager * const input{ app->get_input() };
-
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, 1 });
-			ML_defer(&) { ImGui::PopStyleVar(1); };
-			m_debug_overlay.Draw([&](ImGuiExt::Overlay * o) noexcept
-			{
-				ImGui::TextDisabled("debug");
-				{
-					float32 const fps{ app->frame_rate() };
-					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
-
-					float32 const tt{ app->total_time().count() };
-					ImGui::Text("uptime: %.2fs", tt);
-
-					float_rect const & view_rect{ m_viewport.get_rect() };
-					ImGui::Text("view rect: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
-					if (ImGui::IsItemHovered()) {
-						ImGui::GetForegroundDrawList()->AddRect(view_rect.min(), view_rect.max(), IM_COL32(255, 155, 0, 255));
-					}
-				}
-				ImGui::NewLine();
-				ImGui::TextDisabled("input");
-				{
-					char const last_char{ input->last_char };
-					if (!last_char) { ImGui::Text("last char: <invalid>"); }
-					else { ImGui::Text("last char: \'%c\'", last_char); }
-
-					vec2 const mouse_pos{ input->mouse_pos };
-					if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse pos: <invalid>"); }
-					else { ImGui::Text("mouse pos: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
-
-					vec2 const mouse_delta{ input->mouse_delta };
-					ImGui::Text("mouse delta: (%.1f,%.1f)", mouse_delta[0], mouse_delta[1]);
-
-					float32 const mouse_wheel{ input->mouse_wheel };
-					ImGui::Text("mouse wheel: %.1f", mouse_wheel);
-
-					ImGui::Text("mouse: ");
-					for (size_t i = 0; i < mouse_button_MAX; ++i) {
-						if (input->mouse[i]) {
-							ImGui::SameLine();
-							ImGui::Text("(b%i:%.2fs)", i, input->mouse_timers[i].elapsed().count());
-						}
-					}
-
-					ImGui::Text("keys: ");
-					for (size_t i = 0; i < keycode_MAX; ++i) {
-						if (input->keys[i]) {
-							ImGui::SameLine();
-							cstring const fmt{ (std::isalnum(i) || std::isspace(i)) ? "(\'%c\':%.2fs)" : "(%i:%.2fs)" };
-							ImGui::Text(fmt, i, input->key_timers[i].elapsed().count());
-						}
-					}
-
-					ImGui::Text("mods: ");
-					if (input->is_shift()) { ImGui::SameLine(); ImGui::Text("shift "); }
-					if (input->is_ctrl()) { ImGui::SameLine(); ImGui::Text("ctrl "); }
-					if (input->is_alt()) { ImGui::SameLine(); ImGui::Text("alt "); }
-					if (input->is_super()) { ImGui::SameLine(); ImGui::Text("super "); }
-				}
-
-				if (ImGui::BeginPopupContextWindow()) {
-					if (ImGui::MenuItem("custom", 0, o->Corner == -1)) { o->Corner = -1; }
-					if (ImGui::MenuItem("top-left", 0, o->Corner == 0)) { o->Corner = 0; }
-					if (ImGui::MenuItem("top-right", 0, o->Corner == 1)) { o->Corner = 1; }
-					if (ImGui::MenuItem("bottom-left", 0, o->Corner == 2)) { o->Corner = 2; }
-					if (ImGui::MenuItem("bottom-right", 0, o->Corner == 3)) { o->Corner = 3; }
-					if (ImGui::MenuItem("close")) { o->IsOpen = false; }
-					ImGui::EndPopup();
-				}
-			});
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -876,16 +876,30 @@ namespace ml::ds
 		template <size_t I, class U = value_i<I>
 		> ML_NODISCARD size_t lookup(U && value) const noexcept
 		{
-			if (auto const it{ this->find<I>(ML_forward(value)) }
-			; it == this->end<I>()) { return npos; }
+			if (auto const it{ this->find<I>(ML_forward(value)) }; it == this->end<I>()) { return npos; }
 			else { return this->index_of<I>(it); }
 		}
 
 		template <class T, class U = value_t<T>
 		> ML_NODISCARD size_t lookup(U && value) const noexcept
 		{
-			if (auto const it{ this->find<T>(ML_forward(value)) }
-			; it == this->end<T>()) { return npos; }
+			if (auto const it{ this->find<T>(ML_forward(value)) }; it == this->end<T>()) { return npos; }
+			else { return this->index_of<T>(it); }
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <size_t I, class Pr
+		> ML_NODISCARD size_t lookup_if(Pr && pr) const noexcept
+		{
+			if (auto const it{ this->find_if<I>(ML_forward(pr)) }; it == this->end<I>()) { return npos; }
+			else { return this->index_of<I>(it); }
+		}
+
+		template <class T, class Pr
+		> ML_NODISCARD size_t lookup_if(Pr && pr) const noexcept
+		{
+			if (auto const it{ this->find_if<T>(ML_forward(pr)) }; it == this->end<T>()) { return npos; }
 			else { return this->index_of<T>(it); }
 		}
 

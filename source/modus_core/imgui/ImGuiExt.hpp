@@ -525,7 +525,7 @@ namespace ml::ImGuiExt
 		{
 			if (!IsOpen || !IsDockingEnabled()) { return false; }
 
-			if (!vp) { ML_assert(vp = ImGui::GetMainViewport()); }
+			if (!vp) { ML_verify(vp = ImGui::GetMainViewport()); }
 
 			ImGuiExt_ScopeID(this);
 			ImGui::SetNextWindowPos(vp->Pos);
@@ -652,13 +652,6 @@ namespace ml::ImGuiExt
 		> auto & Printf(Line const & str, Args && ... args) noexcept
 		{
 			return this->Printf(str.c_str(), ML_forward(args)...);
-		}
-
-		auto & Dump(ds::stringstream & ss) noexcept
-		{
-			this->Print(ss.str());
-			ss.str({});
-			return (*this);
 		}
 
 		auto & operator<<(char value) noexcept { return this->Write(value); }

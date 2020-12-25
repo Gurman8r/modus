@@ -56,7 +56,7 @@ namespace ml
 				{
 					if (src[i])
 					{
-						temp->attach(i, *src[i]);
+						temp->attach((uint32)i, *src[i]);
 					}
 				}
 				if (!temp->link())

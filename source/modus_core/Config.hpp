@@ -18,11 +18,9 @@
 #if defined(_DEBUG)
 //                              Debug
 #   define ML_is_debug          1
-#   define ML_configuration     "debug"
 #else
 //                              Release
 #   define ML_is_debug          0
-#   define ML_configuration     "release"
 #endif
 
 
@@ -124,24 +122,24 @@
 //                              x64
 #   define ML_x64               1
 #   define ML_arch              64
-#   define ML_platform          "x64"
+#   define ML_cpu               "x64"
 
 #elif defined(__i386__) || defined(_M_IX86)
 //                              x86
 #   define ML_x86               1
 #   define ML_arch              32
-#   define ML_platform          "x86"
+#   define ML_cpu               "x86"
 
 #elif defined(__arm__) || defined(_M_ARM) || defined(__aarch64__)
 //                              ARM
 #   if defined(__aarch64__)
 #       define ML_arm64         1
 #       define ML_arch          64
-#       define ML_platform      "arm64"
+#       define ML_cpu           "arm64"
 #   else
 #       define ML_arm32         1
 #       define ML_arch          32
-#       define ML_platform      "arm32"
+#       define ML_cpu           "arm32"
 #   endif
 
 #elif defined(ppc) || defined(_M_PPC) || defined(__ppc64__)
@@ -149,11 +147,11 @@
 #   if defined(__ppc64__)
 #       define ML_ppc64         1
 #       define ML_arch          64
-#       define ML_platform      "ppc64"
+#       define ML_cpu           "ppc64"
 #   else
 #       define ML_ppc32         1
 #       define ML_arch          32
-#       define ML_platform      "ppc32"
+#       define ML_cpu           "ppc32"
 #   endif
 
 #else

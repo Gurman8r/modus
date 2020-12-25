@@ -1,11 +1,11 @@
 #include <modus_core/window/NativeWindow.hpp>
 
-#if defined(ML_IMPL_WINDOW_GLFW)
-#include <modus_core/backends/glfw/GLFW_Window.hpp>
-using impl_window = _ML glfw_window;
+#ifdef ML_os_windows
+#include <modus_core/backends/win32/Win32_Platform.hpp>
+#endif
 
-#else
-#error "native_window unavailable"
+#ifdef ML_IMPL_WINDOW_GLFW
+#include <modus_core/backends/glfw/GLFW_Window.hpp>
 #endif
 
 namespace ml
@@ -13,7 +13,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	native_window::native_window(allocator_type alloc) noexcept
-		: frontend_window{ ::new (alloc.allocate(sizeof(impl_window))) impl_window{ alloc } }
+		: frontend_window{ ::new (alloc.allocate(sizeof(glfw_window))) glfw_window{ alloc } }
 	{
 	}
 
@@ -36,7 +36,7 @@ namespace ml
 		}
 
 		// make current context
-		platform::make_context_current(get_handle());
+		glfw_platform::make_context_current(get_handle());
 
 		// user pointer
 		set_user_pointer(this);
@@ -53,17 +53,49 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	bool native_window::initialize() noexcept
+	{
+		return glfw_platform::initialize();
+	}
+
+	bool native_window::finalize() noexcept
+	{
+		return glfw_platform::finalize();
+	}
+
+	window_handle native_window::get_context_current() noexcept
+	{
+		return glfw_platform::get_context_current();
+	}
+
+	void native_window::make_context_current(window_handle value) noexcept
+	{
+		glfw_platform::make_context_current(value);
+	}
+
+	void native_window::poll_events() noexcept
+	{
+		glfw_platform::poll_events();
+	}
+
+	void native_window::swap_buffers(window_handle value) noexcept
+	{
+		glfw_platform::swap_buffers(value);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	std::optional<fs::path> native_window::get_open_file_name(ds::string const & filter) const
 	{
 		return is_open()
-			? platform::get_open_file_name(get_native_handle(), filter)
+			? win32_platform::get_open_file_name(get_native_handle(), filter)
 			: std::nullopt;
 	}
 
 	std::optional<fs::path> native_window::get_save_file_name(ds::string const & filter) const
 	{
 		return is_open()
-			? platform::get_save_file_name(get_native_handle(), filter)
+			? win32_platform::get_save_file_name(get_native_handle(), filter)
 			: std::nullopt;
 	}
 

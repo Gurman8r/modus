@@ -32,24 +32,20 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void scene::from_json(json const & j)
-	{
-	}
-
-	void scene::to_json(json & j) const
-	{
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	template <> void scene::on_component_added(entity e, tag_component & c)
 	{
-
 	}
 
 	template <> void scene::on_component_added(entity e, transform_component & c)
 	{
+	}
 
+	template <> void scene::on_component_added(entity e, camera_component & c)
+	{
+	}
+
+	template <> void scene::on_component_added(entity e, native_script_component & c)
+	{
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

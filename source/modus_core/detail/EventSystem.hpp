@@ -5,6 +5,9 @@
 #include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Method.hpp>
 
+// EVENT DECLARATOR
+#define ML_event(T) struct T : _ML impl::event_helper<T>
+
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -58,10 +61,6 @@ namespace ml
 		};
 	}
 
-	// EVENT DECLARATOR
-#define ML_event(Type) \
-	struct Type : _ML impl::event_helper<Type>
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// EVENT LISTENER
@@ -71,7 +70,7 @@ namespace ml
 
 		explicit event_listener(event_bus * bus) noexcept
 			: m_bus{ ML_check(bus) }
-			, m_order{ make_id(bus) }
+			, m_order{ make_order(bus) }
 		{
 		}
 
@@ -94,11 +93,11 @@ namespace ml
 		// on event
 		virtual void on_event(event const &) = 0;
 
-		// id helper
+		// order helper
 		template <class Bus = event_bus
-		> static uint64 make_id(Bus * bus) noexcept
+		> static uint64 make_order(Bus * bus) noexcept
 		{
-			return ML_check(bus)->make_id();
+			return ML_check(bus)->make_order();
 		}
 
 		// subscribe
@@ -233,7 +232,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD uint64 make_id() noexcept
+		ML_NODISCARD uint64 make_order() noexcept
 		{
 			return m_counter++;
 		}

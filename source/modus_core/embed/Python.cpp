@@ -1,20 +1,5 @@
 #include <modus_core/embed/Python.hpp>
-#include <modus_core/engine/Application.hpp>
-
-namespace ml::globals
-{
-	static python_interpreter * g_python_interpreter{};
-
-	ML_impl_global(python_interpreter) get() noexcept
-	{
-		return g_python_interpreter;
-	}
-	
-	ML_impl_global(python_interpreter) set(python_interpreter * value) noexcept
-	{
-		return g_python_interpreter = value;
-	}
-}
+#include <modus_core/runtime/Application.hpp>
 
 PYBIND11_EMBEDDED_MODULE(modus, m)
 {
@@ -23,7 +8,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// exit
-	m.def("exit", [](py::args) { ML_singleton(core_application)->quit(); });
+	m.def("exit", [](py::args) { ML_get_global(core_application)->quit(); });
 	py::module::import("builtins").attr("exit") = m.attr("exit");
 	py::module::import("sys").attr("exit") = m.attr("exit");
 
@@ -42,13 +27,13 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 		.def_property_readonly_static("lib_url"			, [](py::object) { return ML_lib_url; })
 		.def_property_readonly_static("lib_ver"			, [](py::object) { return ML_lib_ver; })
 		.def_property_readonly_static("is_debug"		, [](py::object) { return ML_is_debug; })
-		.def_property_readonly_static("configuration"	, [](py::object) { return ML_configuration; })
+		.def_property_readonly_static("configuration"	, [](py::object) { return ML_is_debug ? "debug" : "release"; })
 		.def_property_readonly_static("cc_lang"			, [](py::object) { return ML_cc_lang; })
 		.def_property_readonly_static("cc_name"			, [](py::object) { return ML_cc_name; })
 		.def_property_readonly_static("cc_ver"			, [](py::object) { return ML_cc_ver; })
 		.def_property_readonly_static("os"				, [](py::object) { return ML_os_name; })
 		.def_property_readonly_static("arch"			, [](py::object) { return ML_arch; })
-		.def_property_readonly_static("platform"		, [](py::object) { return ML_platform; })
+		.def_property_readonly_static("cpu"				, [](py::object) { return ML_cpu; })
 		;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -148,7 +133,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	py::class_<memory_record>(py_mem, "record")
 		.def(py::init<>())
 		.def(py::init<memory_record const &>())
-		.def(py::init([g = ML_singleton(memory_manager)](intptr_t p) -> memory_record
+		.def(py::init([g = ML_get_global(memory_manager)](intptr_t p) -> memory_record
 		{
 			if (auto const i{ g->get_storage().lookup<memory_manager::id_addr>((byte *)p) }
 			; i != g->get_storage().npos) {
@@ -180,18 +165,18 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	py_mem // memory
 		// test resource
-		.def("num_allocations", []() { return ML_singleton(memory_manager)->get_resource()->num_allocations(); })
-		.def("buffer_base", []() { return ML_singleton(memory_manager)->get_resource()->buffer_base(); })
-		.def("buffer_free", []() { return ML_singleton(memory_manager)->get_resource()->buffer_free(); })
-		.def("buffer_size", []() { return ML_singleton(memory_manager)->get_resource()->buffer_size(); })
-		.def("buffer_used", []() { return ML_singleton(memory_manager)->get_resource()->buffer_used(); })
+		.def("num_allocations", []() { return ML_get_global(memory_manager)->get_resource()->num_allocations(); })
+		.def("buffer_base", []() { return ML_get_global(memory_manager)->get_resource()->buffer_base(); })
+		.def("buffer_free", []() { return ML_get_global(memory_manager)->get_resource()->buffer_free(); })
+		.def("buffer_size", []() { return ML_get_global(memory_manager)->get_resource()->buffer_size(); })
+		.def("buffer_used", []() { return ML_get_global(memory_manager)->get_resource()->buffer_used(); })
 
 		// allocation
-		.def("malloc"	, [](size_t s) { return (intptr_t)ML_singleton(memory_manager)->allocate(s); })
-		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)ML_singleton(memory_manager)->allocate(c, s); })
-		.def("free"		, [](intptr_t p) { ML_singleton(memory_manager)->deallocate((void *)p); })
-		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)ML_singleton(memory_manager)->reallocate((void *)p, s); })
-		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)ML_singleton(memory_manager)->reallocate((void *)p, o, n); })
+		.def("malloc"	, [](size_t s) { return (intptr_t)ML_get_global(memory_manager)->allocate(s); })
+		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)ML_get_global(memory_manager)->allocate(c, s); })
+		.def("free"		, [](intptr_t p) { ML_get_global(memory_manager)->deallocate((void *)p); })
+		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)ML_get_global(memory_manager)->reallocate((void *)p, s); })
+		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)ML_get_global(memory_manager)->reallocate((void *)p, o, n); })
 
 		// getters
 		.def("memget"	, [&memget](intptr_t p) { return memget(p, 1); })

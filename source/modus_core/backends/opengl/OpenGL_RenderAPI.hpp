@@ -54,9 +54,9 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::ref<render_context> const & get_active_context() const noexcept final;
+		ds::ref<render_context> const & get_context() const noexcept final { return m_context; }
 
-		void set_active_context(ds::ref<render_context> const & value) noexcept final;
+		void set_context(ds::ref<render_context> const & value) noexcept final { m_context = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -82,25 +82,25 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::list<ds::unown<render_context>> const & get_contexts() const noexcept final { return m_objs.get<ds::unown<render_context>>(); }
+		ds::list<ds::unown<render_context>> const & all_contexts() const noexcept final { return m_objs.get<ds::unown<render_context>>(); }
 
-		ds::list<ds::unown<vertexarray>> const & get_vertexarrays() const noexcept { return m_objs.get<ds::unown<vertexarray>>(); }
+		ds::list<ds::unown<vertexarray>> const & all_vertexarrays() const noexcept { return m_objs.get<ds::unown<vertexarray>>(); }
 
-		ds::list<ds::unown<vertexbuffer>> const & get_vertexbuffers() const noexcept { return m_objs.get<ds::unown<vertexbuffer>>(); }
+		ds::list<ds::unown<vertexbuffer>> const & all_vertexbuffers() const noexcept { return m_objs.get<ds::unown<vertexbuffer>>(); }
 
-		ds::list<ds::unown<indexbuffer>> const & get_indexbuffers() const noexcept { return m_objs.get<ds::unown<indexbuffer>>(); }
+		ds::list<ds::unown<indexbuffer>> const & all_indexbuffers() const noexcept { return m_objs.get<ds::unown<indexbuffer>>(); }
 
-		ds::list<ds::unown<texture2d>> const & get_texture2ds() const noexcept { return m_objs.get<ds::unown<texture2d>>(); }
+		ds::list<ds::unown<texture2d>> const & all_texture2ds() const noexcept { return m_objs.get<ds::unown<texture2d>>(); }
 
-		ds::list<ds::unown<texture3d>> const & get_texture3ds() const noexcept { return m_objs.get<ds::unown<texture3d>>(); }
+		ds::list<ds::unown<texture3d>> const & all_texture3ds() const noexcept { return m_objs.get<ds::unown<texture3d>>(); }
 
-		ds::list<ds::unown<texturecube>> const & get_texturecubes() const noexcept { return m_objs.get<ds::unown<texturecube>>(); }
+		ds::list<ds::unown<texturecube>> const & all_texturecubes() const noexcept { return m_objs.get<ds::unown<texturecube>>(); }
 
-		ds::list<ds::unown<framebuffer>> const & get_framebuffers() const noexcept { return m_objs.get<ds::unown<framebuffer>>(); }
+		ds::list<ds::unown<framebuffer>> const & all_framebuffers() const noexcept { return m_objs.get<ds::unown<framebuffer>>(); }
 
-		ds::list<ds::unown<program>> const & get_programs() const noexcept { return m_objs.get<ds::unown<program>>(); }
+		ds::list<ds::unown<program>> const & all_programs() const noexcept { return m_objs.get<ds::unown<program>>(); }
 
-		ds::list<ds::unown<shader>> const & get_shaders() const noexcept { return m_objs.get<ds::unown<shader>>(); }
+		ds::list<ds::unown<shader>> const & all_shaders() const noexcept { return m_objs.get<ds::unown<shader>>(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

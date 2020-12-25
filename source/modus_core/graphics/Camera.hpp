@@ -134,8 +134,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		camera() noexcept
-			: m_is_primary	{}
-			, m_clear_flags	{ 1 }
+			: m_clear_flags	{ 1 }
 			, m_background	{ colors::magenta }
 			, m_resolution	{ 1280, 720 }
 			, m_proj		{ mat4::identity() }
@@ -150,8 +149,7 @@ namespace ml
 		}
 
 		camera(camera const & other)
-			: m_is_primary	{ other.m_is_primary }
-			, m_clear_flags	{ other.m_clear_flags }
+			: m_clear_flags	{ other.m_clear_flags }
 			, m_background	{ other.m_background }
 			, m_resolution	{ other.m_resolution }
 			, m_proj		{ other.m_proj }
@@ -191,7 +189,6 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				std::swap(m_is_primary, other.m_is_primary);
 				std::swap(m_clear_flags, other.m_clear_flags);
 				m_background.swap(other.m_background);
 				m_resolution.swap(other.m_resolution);
@@ -208,11 +205,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool is_primary() const noexcept
-		{
-			return m_is_primary;
-		}
-
 		ML_NODISCARD auto get_clear_flags() const noexcept -> uint32
 		{
 			return m_clear_flags;
@@ -221,11 +213,6 @@ namespace ml
 		ML_NODISCARD auto get_background() const noexcept -> color const &
 		{
 			return m_background;
-		}
-
-		void set_primary(bool value) noexcept
-		{
-			m_is_primary = value;
 		}
 
 		void set_clear_flags(uint32 value) noexcept
@@ -370,7 +357,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		bool	m_is_primary	; // 
 		vec2	m_resolution	; // 
 		uint32	m_clear_flags	; // 
 		color	m_background	; // 

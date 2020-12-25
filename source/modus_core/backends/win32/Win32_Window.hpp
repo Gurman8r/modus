@@ -3,7 +3,7 @@
 
 // NYI
 
-#include <modus_core/window/BaseWindow.hpp>
+#include "./Win32_Platform.hpp"
 
 static_assert(ML_os_windows);
 

@@ -89,7 +89,7 @@ namespace ml
 		}
 
 		template <bool Recursive = true
-		> int32 process() noexcept
+		> int32 loop() noexcept
 		{
 			// lock
 			if (m_running) { return EXIT_FAILURE * 1; }

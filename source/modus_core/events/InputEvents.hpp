@@ -94,10 +94,9 @@ namespace ml
 		{
 		}
 
-		constexpr bool is_action(int32 a) const noexcept { return action == a; }
-		constexpr bool is_button(int32 b) const noexcept { return button == b; }
-		constexpr bool is_mods(int32 m) const noexcept { return mods == m; }
-		constexpr bool has_mods(int32 m) const noexcept { return (m & mods) == m; }
+		constexpr bool is_action	(int32 a) const noexcept { return action == a; }
+		constexpr bool is_button	(int32 b) const noexcept { return button == b; }
+		constexpr bool is_mods		(int32 m) const noexcept { return (m & mods) == m; }
 		
 		constexpr bool is_release	() const noexcept { return is_action(0); }
 		constexpr bool is_press		() const noexcept { return is_action(1); }

@@ -36,16 +36,16 @@ namespace ml::gfx
 			}
 		});
 
-		(void)begin_singleton<render_device>(temp);
+		(void)ML_begin_global(render_device, temp);
 
 		return temp;
 	}
 
 	void render_device::destroy(render_device * value)
 	{
-		if (!value) { value = get_global<render_device>(); }
+		if (!value) { value = ML_get_global(render_device); }
 
-		(void)end_singleton<render_device>(value);
+		ML_end_global(render_device, value);
 
 		delete value;
 	}

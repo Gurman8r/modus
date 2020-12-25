@@ -1,27 +1,23 @@
-
-#include <modus_core/engine/GuiApplication.hpp>
+#include <modus_core/runtime/GuiApplication.hpp>
 #include <modus_core/events/InputEvents.hpp>
 #include <modus_core/events/WindowEvents.hpp>
-#include <modus_core/events/EngineEvents.hpp>
+#include <modus_core/events/RuntimeEvents.hpp>
 #include <modus_core/events/ImGuiEvents.hpp>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	gui_application::gui_application(int32 argc, char * argv[], json const & j, allocator_type alloc)
-		: core_application	{ argc, argv, j, alloc }
-		, event_listener	{ &m_dispatcher }
-		, m_dispatcher		{ alloc }
+	gui_application::gui_application(int32 argc, char * argv[], json const & attrs, allocator_type alloc)
+		: core_application	{ argc, argv, attrs, alloc }
+		, m_loop			{ alloc }
 		, m_window			{ alloc }
-		, m_renderer		{ alloc }
-		, m_imgui			{}
+		, m_render_device	{}
+		, m_imgui_context	{}
 		, m_dock_builder	{}
 		, m_main_menu_bar	{}
-		, m_loop			{ alloc }
-		, m_scene			{}
+		, m_active_scene	{}
 
-		, m_main_timer		{ true }
 		, m_loop_timer		{}
 		, m_loop_delta		{}
 		, m_loop_index		{}
@@ -31,51 +27,43 @@ namespace ml
 		, m_fps_times		{ 120, 0.f, alloc }
 		, m_input			{}
 	{
-		ML_verify(begin_singleton<gui_application>(this));
+		ML_verify(ML_begin_global(gui_application, this));
 
-		static ML_block(&) { ML_verify(platform::initialize()); };
-
-		platform::set_error_callback([](int32 code, cstring desc) { debug::failure("{0}: {1}", code, desc); });
-
-		ImGui::SetAllocatorFunctions(
-			[](size_t s, auto u) { return ((memory_manager *)u)->allocate(s); },
-			[](void * p, auto u) { return ((memory_manager *)u)->deallocate(p); },
-			ML_singleton(memory_manager));
-		m_imgui.reset(ImGui::CreateContext());
-		m_imgui->IO.LogFilename = "";
-		m_imgui->IO.IniFilename = "";
-		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		m_imgui->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-		m_loop.set_condition(&native_window::is_open, get_window());
-		m_loop.set_enter_callback([&]() { on_enter(); });
-		m_loop.set_exit_callback([&]() { on_exit(); });
-		m_loop.set_idle_callback([&]() { on_idle(); });
-
-		subscribe
-		<
+		subscribe<
 			char_event,
 			key_event,
 			mouse_button_event,
 			mouse_pos_event,
 			mouse_wheel_event
 		>();
+
+		ImGui::SetAllocatorFunctions(
+			[](size_t s, auto u) { return ((memory_manager *)u)->allocate(s); },
+			[](void * p, auto u) { return ((memory_manager *)u)->deallocate(p); },
+			ML_get_global(memory_manager));
+		set_imgui_context(ImGui::CreateContext());
+		m_imgui_context->IO.LogFilename = m_imgui_context->IO.IniFilename = NULL;
+		m_imgui_context->IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		m_imgui_context->IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		m_imgui_context->IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+		m_loop.set_condition(&native_window::is_open, get_window());
+		m_loop.set_enter_callback([&]() { on_enter(); });
+		m_loop.set_exit_callback([&]() { on_exit(); });
+		m_loop.set_idle_callback([&]() { on_idle(); });
 	}
 
 	gui_application::~gui_application() noexcept
 	{
-		if (m_scene) { m_scene.reset(); }
+		if (m_active_scene) { m_active_scene.reset(); }
 
 		_ML ImGui_Shutdown();
 
-		ImGui::DestroyContext(m_imgui.release());
+		ImGui::DestroyContext(m_imgui_context);
 
-		unsubscribe(); // manual unsubscribe required because we own the bus
+		gfx::destroy_device(m_render_device);
 
-		ML_verify(end_singleton<gui_application>(this));
-
-		static ML_defer(&) { platform::finalize(); };
+		ML_verify(ML_end_global(gui_application, this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -83,15 +71,17 @@ namespace ml
 	void gui_application::on_enter()
 	{
 		// setup window
-		ML_verify(has_attr("window"));
-		json & j_window{ attr("window") };
-		ML_verify(m_window.open(
+		ML_assert(has_attr("window"));
+		json & j_window{ *attr("window") };
+		ML_verify(m_window.open
+		(
 			j_window.contains("title") ? j_window["title"] : app_name(),
-			j_window.contains("video") ? j_window["video"] : video_mode{},
-			j_window.contains("context") ? j_window["context"] : context_settings{},
-			j_window.contains("hints") ? j_window["hints"] : window_hints_default));
+			j_window.contains("display") ? j_window["display"] : video_mode{},
+			j_window.contains("graphics") ? j_window["graphics"] : context_settings{},
+			j_window.contains("hints") ? j_window["hints"] : window_hints_default
+		));
 		{
-			static event_bus * b{}; b = &m_dispatcher;
+			static event_bus * b{}; b = get_bus();
 			m_window.set_char_callback([](auto w, auto ... x) { b->fire<char_event>(x...); });
 			m_window.set_char_mods_callback([](auto w, auto ... x) { b->fire<char_mods_event>(x...); });
 			m_window.set_key_callback([](auto w, auto ... x) { b->fire<key_event>(x...); });
@@ -113,13 +103,22 @@ namespace ml
 		}
 
 		// setup graphics
-		ML_verify(j_window.contains("graphics"));
-		json & j_graphics{ j_window["graphics"] };
-		ML_verify(m_renderer.initialize(j_graphics));
+		context_settings cs{};
+		if (auto a{ attr("window", "graphics") }) { a->get_to(cs); }
+		set_render_device(gfx::render_device::create({ cs.api }));
+		set_render_context(get_render_device()->new_context(cs));
+		get_render_context()->execute([](gfx::render_context * ctx) noexcept
+		{
+			ctx->set_alpha_state({});
+			ctx->set_blend_state({});
+			ctx->set_cull_state({});
+			ctx->set_depth_state({});
+			ctx->set_stencil_state({});
+		});
 
 		// setup imgui
-		ML_verify(has_attr("imgui"));
-		json & j_imgui{ attr("imgui") };
+		ML_assert(has_attr("imgui"));
+		json & j_imgui{ *attr("imgui") };
 		ML_verify(_ML ImGui_Init(m_window.get_handle(), true));
 		if (j_imgui.contains("style")) {
 			json & j_style{ j_imgui["style"] };
@@ -128,16 +127,14 @@ namespace ml
 			}
 		}
 
-		m_dispatcher.fire<load_event>(this);
+		get_bus()->fire<load_event>(this);
 	}
 
 	void gui_application::on_exit()
 	{
 		m_loop_timer.stop();
 
-		m_dispatcher.fire<unload_event>(this);
-
-		m_main_timer.stop();
+		get_bus()->fire<unload_event>(this);
 	}
 
 	void gui_application::on_idle()
@@ -151,13 +148,12 @@ namespace ml
 		m_fps_value = (0.f < m_fps_accum) ? (1.f / (m_fps_accum / (float32)m_fps_times.size())) : FLT_MAX;
 
 		// poll events
-		platform::poll_events();
+		native_window::poll_events();
 
-		// begin step
-		m_dispatcher.fire<begin_step_event>(this);
+		// begin frame
+		get_bus()->fire<begin_frame_event>(this);
 
 		// imgui
-		ImGuiContext * const gui{ get_imgui_context() };
 		_ML ImGui_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
@@ -166,31 +162,28 @@ namespace ml
 
 			m_dock_builder.SetWindowFlag(ImGuiWindowFlags_MenuBar, m_main_menu_bar.IsOpen);
 
-			m_dock_builder.Draw(gui->Viewports[0], [&](ImGuiExt::Dockspace * d) noexcept
+			m_dock_builder.Draw(m_imgui_context->Viewports[0], [&](ImGuiExt::Dockspace * d) noexcept
 			{
 				if (ImGuiID const id{ d->GetID() }; !d->GetNode(id))
 				{
 					d->RemoveNode(id);
-
 					d->AddNode(id, d->DockNodeFlags);
-
-					m_dispatcher.fire<dock_builder_event>(d);
-
+					get_bus()->fire<dock_builder_event>(d);
 					d->Finish(id);
 				}
 			});
 
 			m_main_menu_bar.Draw([&](ImGuiExt::MainMenuBar * m) noexcept
 			{
-				m_dispatcher.fire<main_menu_bar_event>(m);
+				get_bus()->fire<main_menu_bar_event>(m);
 			});
 
-			m_dispatcher.fire<imgui_event>(gui);
+			get_bus()->fire<imgui_event>(m_imgui_context);
 		}
 		ImGui::Render();
 
 		// clear screen
-		m_renderer.get_context()->execute([&](gfx::render_context * ctx) noexcept
+		get_render_context()->execute([&](gfx::render_context * ctx) noexcept
 		{
 			ctx->set_viewport({ {}, (vec2)m_window.get_framebuffer_size() });
 			ctx->set_clear_color(colors::black);
@@ -198,32 +191,40 @@ namespace ml
 		});
 
 		// render imgui
-		_ML ImGui_RenderDrawData(&m_imgui->Viewports[0]->DrawDataP);
+		_ML ImGui_RenderDrawData(&m_imgui_context->Viewports[0]->DrawDataP);
 
 		// imgui platform windows
-		if (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-			auto const backup{ platform::get_context_current() };
+		if (m_imgui_context->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+			auto const backup{ native_window::get_context_current() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			platform::make_context_current(backup);
+			native_window::make_context_current(backup);
 		}
 
 		// swap buffers
 		if (m_window.has_hints(window_hints_doublebuffer)) {
-			platform::swap_buffers(m_window.get_handle());
+			native_window::swap_buffers(m_window.get_handle());
 		}
 
-		// end step
-		m_dispatcher.fire<end_step_event>(this);
-		static vec2 last_mouse_pos{};
-		m_input.mouse_delta = m_input.mouse_pos - last_mouse_pos;
-		last_mouse_pos = m_input.mouse_pos;
+		// update inputs
+		m_input.mouse_delta = m_input.mouse_pos - m_input.last_mouse_pos;
+		m_input.last_mouse_pos = m_input.mouse_pos;
 		m_input.mouse_wheel = 0.f;
+		for (size_t i = 0; i < mouse_button_MAX; ++i) {
+			m_input.mouse_times[i] = (m_input.mouse_down[i] ? (m_input.mouse_times[i] < 0.f ? 0.f : m_input.mouse_times[i] + dt) : -1.f);
+		}
+		for (size_t i = 0; i < keycode_MAX; ++i) {
+			m_input.key_times[i] = (m_input.keys_down[i] ? (m_input.key_times[i] < 0.f ? 0.f : m_input.key_times[i] + dt) : -1.f);
+		}
+
+		// end frame
+		get_bus()->fire<end_frame_event>(this);
 		m_loop_delta = m_loop_timer.elapsed();
 	}
 
 	void gui_application::on_event(event const & value)
 	{
+		core_application::on_event(value);
 		switch (value)
 		{
 		case char_event::ID: {
@@ -233,16 +234,12 @@ namespace ml
 
 		case key_event::ID: {
 			auto const & ev{ (key_event const &)value };
-			m_input.keys[ev.key] = !ev.is_release();
-			if (ev.is_release()) { m_input.key_timers[ev.key].stop(); }
-			else if (ev.is_press()) { m_input.key_timers[ev.key].restart(); }
+			m_input.keys_down[ev.key] = !ev.is_release();
 		} break;
 
 		case mouse_button_event::ID: {
 			auto const & ev{ (mouse_button_event const &)value };
-			m_input.mouse[ev.button] = !ev.is_release();
-			if (ev.is_release()) { m_input.mouse_timers[ev.button].stop(); }
-			else if (ev.is_press()) { m_input.mouse_timers[ev.button].restart(); }
+			m_input.mouse_down[ev.button] = !ev.is_release();
 		} break;
 
 		case mouse_pos_event::ID: {

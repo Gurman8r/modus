@@ -24,31 +24,34 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// assert implementation
-#ifndef ML_IMPL_WASSERT
-#define ML_IMPL_WASSERT _wassert
+// verify backend
+#ifndef ML_IMPL_VERIFY
+#define ML_IMPL_VERIFY ::_wassert
 #endif
 
-// assert extended
-#define ML_assert_ext(expr, msg, file, line) \
-	(void)((!!(expr)) || (ML_IMPL_WASSERT(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
+// verify extended
+#define ML_verify_ex(expr, msg, file, line) \
+	(void)((!!(expr)) || (ML_IMPL_VERIFY(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
 
 // verify
 #define ML_verify(expr) \
-	ML_assert_ext(expr, ML_to_string(expr), __FILE__, __LINE__)
+	ML_verify_ex(expr, ML_str(expr), __FILE__, __LINE__)
 
-// assert
-#define ML_assert(expr) \
-	ML_assert_ext(expr, ML_to_string(expr), __FILE__, __LINE__)
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// check
-#define ML_check(expr)												\
-	([](auto const & x) noexcept -> auto const &					\
-	{																\
-		ML_assert_ext(x, ML_to_string(expr), __FILE__, __LINE__);	\
-		return x;													\
-	}																\
-	)(expr)
+// enable assertions
+#ifndef ML_ENABLE_ASSERT
+#define ML_ENABLE_ASSERT ML_is_debug
+#endif
+
+// assertions
+#if ML_ENABLE_ASSERT
+#define ML_assert(expr)	ML_verify(expr)
+#define ML_check(expr)	(([](auto const & x) noexcept -> auto const & { ML_verify(x); return x; })(expr))
+#else
+#define ML_assert(expr)	((void)(expr))
+#define ML_check(expr)	(expr)
+#endif
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

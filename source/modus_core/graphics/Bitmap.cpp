@@ -1,9 +1,9 @@
 #include <modus_core/graphics/Bitmap.hpp>
 
-#define STBI_MALLOC(s)				_ML ml_malloc(s)
-#define STBI_FREE(p)				_ML ml_free(p)
-#define STBI_REALLOC(p, s)			_ML ml_realloc(p, s)
-#define STBI_REALLOC_SIZED(p, o, n) _ML ml_realloc(p, o, n)
+#define STBI_FREE			ML_free
+#define STBI_MALLOC			ML_malloc
+#define STBI_REALLOC		ML_realloc
+#define STBI_REALLOC_SIZED	ML_realloc_sized
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>

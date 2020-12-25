@@ -1,7 +1,7 @@
 #include <modus_core/detail/Memory.hpp>
 
-#ifndef ML_IMPL_LEAK_CLEANUP
-#define ML_IMPL_LEAK_CLEANUP 0
+#ifndef ML_CLEANUP_LEAKS
+#define ML_CLEANUP_LEAKS false
 #endif
 
 namespace ml
@@ -14,17 +14,17 @@ namespace ml
 		, m_records	{ m_alloc }
 		, m_counter	{}
 	{
-		ML_verify(begin_singleton<memory_manager>(this));
+		ML_verify(ML_begin_global(memory_manager, this));
 	}
 
 	memory_manager::~memory_manager() noexcept
 	{
-#if ML_IMPL_LEAK_CLEANUP
+#if ML_CLEANUP_LEAKS
 		while (!m_records.empty()) { this->deallocate(m_records.back<id_addr>()); }
 #else
-		ML_assert("MEMORY LEAKS DETECTED" && m_records.empty());
+		ML_verify("MEMORY LEAKS DETECTED" && m_records.empty());
 #endif
-		ML_verify(end_singleton<memory_manager>(this));
+		ML_verify(ML_end_global(memory_manager, this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

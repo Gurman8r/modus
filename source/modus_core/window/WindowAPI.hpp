@@ -7,9 +7,14 @@
 #include <modus_core/window/Monitor.hpp>
 #include <modus_core/window/VideoMode.hpp>
 
-// WINDOW HINTS
 namespace ml
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	ML_decl_handle(window_handle); // window handle
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// window hints
 	enum window_hints_ : int32
 	{
@@ -71,11 +76,9 @@ namespace ml
 		j["resizable"		] = ML_flag_read(v, window_hints_resizable		);
 		j["visible"			] = ML_flag_read(v, window_hints_visible		);
 	}
-}
 
-// WINDOW CALLBACKS
-namespace ml
-{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	ML_alias window_char_callback				= void(*)(window_handle, uint32);
 	ML_alias window_char_mods_callback			= void(*)(window_handle, uint32, int32);
 	ML_alias window_close_callback				= void(*)(window_handle);
@@ -113,8 +116,10 @@ namespace ml
 		window_position_callback			on_position				; // 
 		window_refresh_callback				on_refresh				; // 
 		window_resize_callback				on_resize				; // 
-		window_scroll_callback				on_mouse_wheel				; // 
+		window_scroll_callback				on_mouse_wheel			; // 
 	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_WINDOW_API_HPP_

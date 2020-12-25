@@ -1,8 +1,7 @@
 #ifndef _ML_APPLICATION_HPP_
 #define _ML_APPLICATION_HPP_
 
-#include <modus_core/engine/GuiApplication.hpp>
-#include <modus_core/engine/PluginManager.hpp>
+#include <modus_core/runtime/GuiApplication.hpp>
 
 namespace ml
 {
@@ -11,40 +10,30 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		using gui_application::allocator_type;
 
-		application(int32 argc, char * argv[], json const & j = {}, allocator_type alloc = {});
+		application(int32 argc, char * argv[], json const & attrs = {}, allocator_type alloc = {});
 
 		virtual ~application() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		using gui_application::exec;
 
 		using gui_application::exit;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager *
-		{
-			return const_cast<plugin_manager *>(&m_plugin_manager);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+		
 	protected:
 		using gui_application::on_enter;
-
+		
 		using gui_application::on_exit;
-
+		
 		using gui_application::on_idle;
 
 		virtual void on_event(event const & value) override;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		plugin_manager m_plugin_manager; // plugin manager
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -1,5 +1,5 @@
-#ifndef _ML_ENGINE_EVENTS_HPP_
-#define _ML_ENGINE_EVENTS_HPP_
+#ifndef _ML_RUNTIME_EVENTS_HPP_
+#define _ML_RUNTIME_EVENTS_HPP_
 
 #include <modus_core/detail/EventSystem.hpp>
 #include <modus_core/detail/Duration.hpp>
@@ -30,23 +30,23 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_event(begin_step_event)
+	ML_event(begin_frame_event)
 	{
 		gui_application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr begin_step_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+		constexpr begin_frame_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	ML_event(end_step_event)
+	ML_event(end_frame_event)
 	{
 		gui_application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr end_step_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+		constexpr end_frame_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-#endif // !_ML_ENGINE_EVENTS_HPP_
+#endif // !_ML_RUNTIME_EVENTS_HPP_

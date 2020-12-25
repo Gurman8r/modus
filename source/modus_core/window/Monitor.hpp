@@ -3,11 +3,13 @@
 
 // WIP
 
-#include <modus_core/system/Platform.hpp>
 #include <modus_core/window/VideoMode.hpp>
 
 namespace ml
 {
+	// monitor handle
+	ML_decl_handle(monitor_handle);
+
 	// monitor
 	struct ML_CORE_API monitor final
 	{

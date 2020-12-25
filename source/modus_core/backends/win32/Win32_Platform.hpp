@@ -1,7 +1,8 @@
 #ifndef _ML_WIN32_PLATFORM_HPP_
 #define _ML_WIN32_PLATFORM_HPP_
 
-#include <modus_core/system/Platform.hpp>
+#include <modus_core/runtime/SharedLibrary.hpp>
+#include <modus_core/window/BaseWindow.hpp>
 
 static_assert(ML_os_windows);
 
@@ -21,9 +22,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static std::optional<fs::path> get_open_file_name(window_handle window, ds::string const & filter);
+		static std::optional<fs::path> get_open_file_name(window_handle window, ds::string const & filter = "");
 
-		static std::optional<fs::path> get_save_file_name(window_handle window, ds::string const & filter);
+		static std::optional<fs::path> get_save_file_name(window_handle window, ds::string const & filter = "");
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -19,7 +19,7 @@
 #endif
 
 // static string string
-#define ML_STATIC_STRING_STRING ML_stringify(ML_STATIC_STRING_CLASS)
+#define ML_STATIC_STRING_STRING ML_xstr(ML_STATIC_STRING_CLASS)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

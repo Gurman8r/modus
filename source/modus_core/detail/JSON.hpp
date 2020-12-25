@@ -23,7 +23,48 @@ namespace ml
 	// helpers
 	namespace util
 	{
-		ML_NODISCARD inline json load_json(fs::path const & path, json const & dv = {})
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Arg0, class ... Args
+		> ML_NODISCARD bool json_contains(json const & j, Arg0 && arg0, Args && ... args)
+		{
+			if constexpr (0 < sizeof...(args))
+			{
+				json::const_iterator const it{ j.find(ML_forward(arg0)) };
+
+				return (it != j.end()) && util::json_contains(*it, ML_forward(args)...);
+			}
+			else
+			{
+				return j.contains(ML_forward(arg0));
+			}
+		}
+
+		template <class JsonPtr, class Arg0, class ... Args
+		> ML_NODISCARD auto json_find(JsonPtr j, Arg0 && arg0, Args && ... args) -> JsonPtr
+		{
+			static_assert(std::is_pointer_v<decltype(j)>);
+			if (!j)
+			{
+				return (JsonPtr)nullptr;
+			}
+			else if constexpr (0 < sizeof...(args))
+			{
+				return util::json_find(util::json_find(j, ML_forward(arg0)), ML_forward(args)...);
+			}
+			else if (auto const it{ j->find(ML_forward(arg0)) }; it != j->end())
+			{
+				return (JsonPtr)std::addressof(*it);
+			}
+			else
+			{
+				return (JsonPtr)nullptr;
+			}
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD inline json json_load(fs::path const & path, json const & dv = {})
 		{
 			std::ifstream f{ path };
 			ML_defer(&f) { f.close(); };
@@ -54,53 +95,7 @@ namespace ml
 			}
 		}
 
-		template <class Arg0, class ... Args
-		> ML_NODISCARD bool has_json(json const & j, Arg0 && arg0, Args && ... args)
-		{
-			if constexpr (0 < sizeof...(args))
-			{
-				return _ML util::has_json(j, ML_forward(arg0))
-					&& _ML util::has_json(j[ML_forward(arg0)], ML_forward(args)...);
-			}
-			else
-			{
-				return j.contains(ML_forward(arg0));
-			}
-		}
-
-		template <class JsonPtr, class Arg0, class ... Args
-		> ML_NODISCARD auto json_ptr(JsonPtr j, Arg0 && arg0, Args && ... args) -> JsonPtr
-		{
-			if constexpr (0 < sizeof...(args))
-			{
-				return util::json_ptr(util::json_ptr(j, ML_forward(arg0)), ML_forward(args)...);
-			}
-			else if (j && j->contains(ML_forward(arg0)))
-			{
-				return std::addressof(j->at(ML_forward(arg0)));
-			}
-			else
-			{
-				return nullptr;
-			}
-		}
-
-		template <class J, class Arg0, class ... Args
-		> ML_NODISCARD auto json_ref(std::optional<std::reference_wrapper<J>> j, Arg0 && arg0, Args && ... args) -> std::optional<std::reference_wrapper<J>>
-		{
-			if constexpr (0 < sizeof...(args))
-			{
-				return util::json_ref(util::json_ref(j, ML_forward(arg0)), ML_forward(args)...);
-			}
-			else if (j && j->get().contains(ML_forward(arg0)))
-			{
-				return j->get().at(ML_forward(arg0));
-			}
-			else
-			{
-				return std::nullopt;
-			}
-		}
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	}
 }
 

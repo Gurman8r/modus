@@ -2,7 +2,6 @@
 
 #if defined(ML_os_windows)
 #	include <Windows.h>
-
 #else
 #	error ""
 #endif

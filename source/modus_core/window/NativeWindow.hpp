@@ -29,6 +29,20 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD static bool initialize() noexcept;
+
+		ML_NODISCARD static bool finalize() noexcept;
+
+		ML_NODISCARD static window_handle get_context_current() noexcept;
+
+		static void make_context_current(window_handle value) noexcept;
+
+		static void poll_events() noexcept;
+
+		static void swap_buffers(window_handle value) noexcept;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ML_NODISCARD std::optional<fs::path> get_open_file_name(ds::string const & filter = "") const;
 
 		ML_NODISCARD std::optional<fs::path> get_save_file_name(ds::string const & filter = "") const;

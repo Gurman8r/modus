@@ -9,32 +9,41 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		virtual ~entity() noexcept override = default;
 
-		explicit entity(scene * scene) noexcept
-			: m_scene{ ML_check(scene) }
-			, m_handle{ m_scene->m_registry.create() }
+		entity() noexcept
+			: m_parent{}
+			, m_handle{}
 		{
 		}
 
-		entity(scene * scene, entt::entity handle) noexcept
-			: m_scene{ ML_check(scene) }
+		explicit entity(scene * parent) noexcept
+			: m_parent{ parent }
+			, m_handle{ m_parent->m_registry.create() }
+		{
+		}
+
+		entity(scene * parent, entt::entity handle) noexcept
+			: m_parent{ parent }
 			, m_handle{ handle }
 		{
 		}
 
 		entity(entity const & other)
-			: m_scene{ other.m_scene }
+			: m_parent{ other.m_parent }
 			, m_handle{ other.m_handle }
 		{
 		}
 
 		entity(entity && other) noexcept
-			: m_scene{}
+			: m_parent{}
 			, m_handle{}
 		{
 			this->swap(std::move(other));
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		entity & operator=(entity const & other)
 		{
@@ -53,64 +62,52 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				std::swap(m_scene, other.m_scene);
+				std::swap(m_parent, other.m_parent);
 				std::swap(m_handle, other.m_handle);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD operator entt::entity() const noexcept
-		{
-			return m_handle;
-		}
+		ML_NODISCARD operator entt::entity() const noexcept { return m_handle; }
 
-		ML_NODISCARD auto get_handle() const noexcept -> entt::entity
-		{
-			return m_handle;
-		}
+		ML_NODISCARD auto get_handle() const noexcept -> entt::entity { return m_handle; }
 
-		ML_NODISCARD auto get_scene() const noexcept -> scene *
-		{
-			return m_scene;
-		}
+		ML_NODISCARD auto get_scene() const noexcept -> scene * { return m_parent; }
 
-		ML_NODISCARD auto get_registry() const noexcept -> entt::registry &
-		{
-			return ML_check(m_scene)->m_registry;
-		}
+		ML_NODISCARD auto get_registry() const noexcept -> entt::registry * { return ML_check(m_parent)->get_registry(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Component, class ... Args
 		> auto add_component(Args && ... args) noexcept -> Component &
 		{
-			Component & c{ get_registry().emplace<Component>(m_handle, ML_forward(args)...) };
-			m_scene->on_component_added(*this, c);
+			auto & c{ m_parent->m_registry.emplace<Component>(m_handle, ML_forward(args)...) };
+			ML_check(m_parent)->on_component_added(*this, c);
 			return c;
 		}
 
 		template <class ... Components
 		> ML_NODISCARD decltype(auto) get_component() noexcept
 		{
-			return get_registry().get<Components...>(m_handle);
+			return this->get_registry()->get<Components...>(m_handle);
 		}
 
 		template <class ... Components
 		> ML_NODISCARD bool has_component() const noexcept
 		{
-			return get_registry().has<Components...>(m_handle);
+			return this->get_registry()->has<Components...>(m_handle);
 		}
 
 		template <class ... Components
 		> void remove_component() noexcept
 		{
-			get_registry().remove<T...>(m_handle);
+			this->get_registry()->remove<T...>(m_handle);
 		}
 
 		ML_NODISCARD bool valid() const noexcept
 		{
-			return get_registry().valid(m_handle);
+			return this->get_registry()->valid(m_handle);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -121,9 +118,9 @@ namespace ml
 		{
 			if constexpr (std::is_same_v<U, entity>)
 			{
-				if (m_scene != other.m_scene)
+				if (m_parent != other.m_parent)
 				{
-					return ML_compare(m_scene, other.m_scene);
+					return ML_compare(m_parent, other.m_parent);
 				}
 				else
 				{
@@ -155,8 +152,8 @@ namespace ml
 	private:
 		friend scene;
 
-		scene * 		m_scene		; // scene
-		entt::entity	m_handle	; // handle
+		scene * 		m_parent	; // owning scene
+		entt::entity	m_handle	; // entity handle
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

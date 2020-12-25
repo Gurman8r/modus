@@ -3,52 +3,22 @@
 
 #include <modus_core/Preprocessor.hpp>
 
-#if (ML_has_cxx14)
-#	include <cassert>
-#	include <chrono>
-#	include <fstream>
-#	include <functional>
-#	include <iostream>
-#	include <sstream>
-#	include <vector>
-#endif
+static_assert(ML_has_cxx14);
+#include <cassert>
+#include <chrono>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <sstream>
+#include <vector>
 
-#if (ML_has_cxx17)
-#	include <any>
-#	include <filesystem>
-#	include <memory_resource>
-#	include <optional>
-#	include <string_view>
-#	include <variant>
-#endif
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// root namespace
-#define _ML						::ml::
-
-// global typedef
-#define ML_alias				using
-
-// fixed array size
-#define ML_arraysize(arr)		(sizeof(arr) / sizeof(*arr))
-
-// ternary comparison
-#define ML_compare(lhs, rhs)	(((lhs) != (rhs)) ? (((lhs) < (rhs)) ? -1 : 1) : 0)
-
-// automatic forward
-#define ML_forward(expr)		std::forward<decltype(expr)>(expr)
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// declare handle
-#define ML_decl_handle(name)	struct ML_cat(name, __) { _ML int32 unused; }; \
-								ML_alias name = typename ML_cat(name, __) *
-
-// handle cast
-#define ML_handle(type, value)	((type)(_ML intptr_t)(value))
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+static_assert(ML_has_cxx17);
+#include <any>
+#include <filesystem>
+#include <memory_resource>
+#include <optional>
+#include <string_view>
+#include <variant>
 
 namespace ml
 {

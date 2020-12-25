@@ -453,19 +453,14 @@ namespace ml
 
 		void draw_overlay(imgui_event const & ev)
 		{
-			ImGuiIO & io{ ev->IO };
-
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, 1 });
 			ML_defer(&) { ImGui::PopStyleVar(1); };
 			m_overlay.Draw(ev->Viewports[0], [&](ImGuiExt::Overlay * o) noexcept
 			{
 				ImGui::TextDisabled("debug");
 				{
-					float32 const fps{ io.Framerate };
+					float32 const fps{ ev->IO.Framerate };
 					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
-
-					float32 const tt{ 0.f };
-					ImGui::Text("uptime: %.2fs", tt);
 
 					float_rect const & view_rect{ m_viewport.get_rect() };
 					ImGui::Text("view rect: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);
@@ -476,37 +471,37 @@ namespace ml
 				ImGui::NewLine();
 				ImGui::TextDisabled("input");
 				{
-					vec2 const mouse_pos{ (vec2)io.MousePos };
+					vec2 const mouse_pos{ (vec2)ev->IO.MousePos };
 					if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse pos: <invalid>"); }
 					else { ImGui::Text("mouse pos: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
 
-					vec2 const mouse_delta{ (vec2)io.MouseDelta };
+					vec2 const mouse_delta{ (vec2)ev->IO.MouseDelta };
 					ImGui::Text("mouse delta: (%.1f,%.1f)", mouse_delta[0], mouse_delta[1]);
 
-					float32 const mouse_wheel{ io.MouseWheel };
+					float32 const mouse_wheel{ ev->IO.MouseWheel };
 					ImGui::Text("mouse wheel: %.1f", mouse_wheel);
 
 					ImGui::Text("mouse: ");
 					for (size_t i = 0; i < mouse_button_MAX; ++i) {
-						if (io.MouseDown[i]) {
+						if (ev->IO.MouseDown[i]) {
 							ImGui::SameLine();
-							ImGui::Text("(b%i:%.2fs)", i, io.MouseDownDuration[i]);
+							ImGui::Text("(b%i:%.2fs)", i, ev->IO.MouseDownDuration[i]);
 						}
 					}
 
 					ImGui::Text("keys: ");
 					for (size_t i = 0; i < keycode_MAX; ++i) {
-						if (io.KeysDown[i]) {
+						if (ev->IO.KeysDown[i]) {
 							ImGui::SameLine();
-							ImGui::Text("(%i:%.2fs)", i, io.KeysDownDuration[i]);
+							ImGui::Text("(%i:%.2fs)", i, ev->IO.KeysDownDuration[i]);
 						}
 					}
 
 					ImGui::Text("mods: %s%s%s%s",
-						io.KeyShift	? "shift "	: "",
-						io.KeyCtrl	? "ctrl "	: "",
-						io.KeyAlt	? "alt "	: "",
-						io.KeySuper	? "super "	: "");
+						ev->IO.KeyShift	? "shift "	: "",
+						ev->IO.KeyCtrl	? "ctrl "	: "",
+						ev->IO.KeyAlt	? "alt "	: "",
+						ev->IO.KeySuper	? "super "	: "");
 				}
 
 				if (ImGui::BeginPopupContextWindow()) {

@@ -6,12 +6,11 @@ namespace ml
 
 	core_application::core_application(int32 argc, char * argv[], json const & attrs, allocator_type alloc)
 		: event_listener	{ &m_dispatcher }
-		, m_main_timer		{ true }
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_app_data_path	{}
 		, m_app_file_name	{ argv[0] }
 		, m_app_file_path	{ fs::current_path() }
-		, m_app_name		{ fs::path{ argv[0] }.stem().string(), alloc }
+		, m_app_name		{ m_app_file_name.stem().string(), alloc }
 		, m_app_version		{ alloc }
 		, m_arguments		{ argv, argv + argc, alloc }
 		, m_library_paths	{ alloc }

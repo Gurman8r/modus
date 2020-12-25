@@ -51,8 +51,6 @@ namespace ml
 
 		ML_NODISCARD auto path_to(fs::path const & value) const noexcept -> fs::path { return m_app_data_path.native() + value.native(); }
 
-		ML_NODISCARD auto uptime() const noexcept -> duration { return m_main_timer.elapsed(); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
@@ -118,7 +116,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		timer					m_main_timer	; // main timer
 		int32					m_exit_code		; // exit code
 		fs::path				m_app_data_path	; // app data path
 		fs::path				m_app_file_name	; // app file name
@@ -127,11 +124,10 @@ namespace ml
 		ds::string				m_app_version	; // app version
 		ds::list<ds::string>	m_arguments		; // arguments
 		ds::list<fs::path>		m_library_paths	; // library paths
-
-		json					m_attributes	; // attrs
-		event_bus				m_dispatcher	; // event bus
+		json					m_attributes	; // attributes
 		library_manager			m_libraries		; // library manager
 		plugin_manager			m_plugins		; // plugin manager
+		event_bus				m_dispatcher	; // event bus
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

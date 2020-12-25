@@ -15,15 +15,6 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD static library_handle load_library(fs::path const & path);
-
-		static bool free_library(library_handle instance);
-
-		ML_NODISCARD static void * get_proc_address(library_handle instance, ds::string const & method_name);
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 		
 		using proc_table = typename ds::hashmap<ds::string, void *>;
@@ -116,8 +107,6 @@ namespace ml
 			}
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		void * proc(ds::string const & method_name)
 		{
 			if (!m_handle) { return nullptr; }
@@ -163,6 +152,15 @@ namespace ml
 		ML_NODISCARD auto hash_code() const noexcept -> hash_t { return m_hash; }
 
 		ML_NODISCARD auto path() const noexcept -> fs::path const & { return m_path; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
+		ML_NODISCARD static library_handle load_library(fs::path const & path);
+
+		static bool free_library(library_handle instance);
+
+		ML_NODISCARD static void * get_proc_address(library_handle instance, ds::string const & method_name);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -15,7 +15,7 @@ namespace ml
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		core_application(int32 argc, char * argv[], json const & attrs = {}, allocator_type alloc = {});
+		core_application(int32 argc, char * argv[], json const & argj = {}, allocator_type alloc = {});
 
 		virtual ~core_application() noexcept override;
 

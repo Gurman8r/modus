@@ -4,7 +4,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	core_application::core_application(int32 argc, char * argv[], json const & attrs, allocator_type alloc)
+	core_application::core_application(int32 argc, char * argv[], json const & argj, allocator_type alloc)
 		: event_listener	{ &m_dispatcher }
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_app_data_path	{}
@@ -14,7 +14,7 @@ namespace ml
 		, m_app_version		{ alloc }
 		, m_arguments		{ argv, argv + argc, alloc }
 		, m_library_paths	{ alloc }
-		, m_attributes		{ json{ attrs } }
+		, m_attributes		{ json{ argj } }
 		, m_dispatcher		{ alloc }
 		, m_libraries		{ alloc }
 		, m_plugins			{ &m_dispatcher, alloc }

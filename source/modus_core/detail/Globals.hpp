@@ -36,6 +36,18 @@ namespace ml::globals
 		static_assert(0, "set global not implemented for type");
 		return nullptr;
 	}
+
+	// begin global
+	template <class T> ML_NODISCARD bool begin(T * value) noexcept
+	{
+		return value && (_ML_GLOBALS get<T>() == nullptr) && _ML_GLOBALS set<T>(value);
+	}
+
+	// end global
+	template <class T> ML_NODISCARD bool end(T * value) noexcept
+	{
+		return value && (_ML_GLOBALS get<T>() == value) && !_ML_GLOBALS set<T>(nullptr);
+	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -47,10 +59,10 @@ namespace ml::globals
 #define ML_set_global(T, value)		(_ML_GLOBALS set<T>(value))
 
 // begin global macro
-#define ML_begin_global(T, value)	((value) && (ML_get_global(T) == nullptr) && ML_set_global(T, (value)))
+#define ML_begin_global(T, value)	(_ML_GLOBALS begin<T>(value))
 
 // end global macro
-#define ML_end_global(T, value)		((value) && (ML_get_global(T) == (value)) && !ML_set_global(T, nullptr))
+#define ML_end_global(T, value)		(_ML_GLOBALS end<T>(value))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

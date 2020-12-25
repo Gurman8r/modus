@@ -8,8 +8,8 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	application::application(int32 argc, char * argv[], json const & j, allocator_type alloc)
-		: gui_application{ argc, argv, j, alloc }
+	application::application(int32 argc, char * argv[], json const & argj, allocator_type alloc)
+		: gui_application{ argc, argv, argj, alloc }
 	{
 		ML_verify(ML_begin_global(application, this));
 

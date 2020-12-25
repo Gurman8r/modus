@@ -40,6 +40,8 @@ namespace ml
 			}
 		}
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		template <class JsonPtr, class Arg0, class ... Args
 		> ML_NODISCARD auto json_find(JsonPtr j, Arg0 && arg0, Args && ... args) -> JsonPtr
 		{
@@ -59,39 +61,6 @@ namespace ml
 			else
 			{
 				return (JsonPtr)nullptr;
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD inline json json_load(fs::path const & path, json const & dv = {})
-		{
-			std::ifstream f{ path };
-			ML_defer(&f) { f.close(); };
-			return f ? json::parse(f) : dv;
-		}
-
-		inline bool read_json(fs::path const & path, json & j)
-		{
-			std::ifstream f{ path };
-			ML_defer(&f) { f.close(); };
-			if (!f) { return false; }
-			else
-			{
-				j = json::parse(f);
-				return true;
-			}
-		}
-
-		inline bool write_json(fs::path const & path, json const & j)
-		{
-			std::ofstream f{ path };
-			ML_defer(&f) { f.close(); };
-			if (!f) { return false; }
-			else
-			{
-				f << j;
-				return true;
 			}
 		}
 

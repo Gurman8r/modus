@@ -17,7 +17,7 @@ namespace ml
 	public:
 		using core_application::allocator_type;
 
-		gui_application(int32 argc, char * argv[], json const & attrs = {}, allocator_type alloc = {});
+		gui_application(int32 argc, char * argv[], json const & argj = {}, allocator_type alloc = {});
 		
 		virtual ~gui_application() noexcept override;
 

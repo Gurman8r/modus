@@ -8,8 +8,8 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	gui_application::gui_application(int32 argc, char * argv[], json const & attrs, allocator_type alloc)
-		: core_application	{ argc, argv, attrs, alloc }
+	gui_application::gui_application(int32 argc, char * argv[], json const & argj, allocator_type alloc)
+		: core_application	{ argc, argv, argj, alloc }
 		, m_loop			{ alloc }
 		, m_window			{ alloc }
 		, m_render_device	{}

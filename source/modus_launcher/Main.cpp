@@ -31,7 +31,7 @@ static class memcfg final : public singleton<memcfg>
 #define SETTINGS_PATH "../../../resource/modus_launcher.json"
 #endif
 
-static auto const default_settings{ R"(
+static json const g_default_settings{ R"(
 {
 	"app_name": "modus launcher",
 	"app_version": "alpha",
@@ -83,24 +83,33 @@ static auto const default_settings{ R"(
 }
 )"_json };
 
+ML_NODISCARD json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
+{
+	std::ifstream f{ path };
+	ML_defer(&f) { f.close(); };
+	return f ? json::parse(f) : g_default_settings;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 int32 main(int32 argc, char * argv[])
 {
-	application app{ argc, argv, util::json_load(SETTINGS_PATH, default_settings) };
+	application app{ argc, argv, load_settings() };
 
 	if (json const * j{ app.attr("plugins") }) {
-		for (json const & e : *j) {
-			if (e.contains("path")) {
-				app.load_plugin(e["path"]);
+		for (json const & elem : *j) {
+			if (auto const path{ elem.find("path") }
+			; (path != elem.end()) && path->is_string()) {
+				app.load_plugin(*path);
 			}
 		}
 	}
 
 	if (json const * j{ app.attr("scripts") }) {
-		for (json const & e : *j) {
-			if (e.contains("path")) {
-				py::eval_file(app.path_to(e["path"]));
+		for (json const & elem : *j) {
+			if (auto const path{ elem.find("path") }
+			; (path != elem.end()) && path->is_string()) {
+				py::eval_file(app.path_to(*path));
 			}
 		}
 	}

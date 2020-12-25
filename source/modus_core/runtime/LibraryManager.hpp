@@ -23,19 +23,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		library_manager(allocator_type alloc = {}) noexcept
-			: m_data{ alloc }
+			: m_alloc	{ alloc }
+			, m_data	{ alloc }
 		{
-		}
-
-		explicit library_manager(storage_type && value, allocator_type alloc = {}) noexcept
-			: m_data{ std::move(value), alloc }
-		{
-		}
-
-		explicit library_manager(library_manager && other, allocator_type alloc = {}) noexcept
-			: m_data{ alloc }
-		{
-			this->swap(std::move(other));
 		}
 
 		~library_manager() noexcept final
@@ -45,19 +35,23 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		library_manager & operator=(library_manager && other) noexcept
-		{
-			this->swap(std::move(other));
-			return (*this);
-		}
+		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_alloc; }
 
-		void swap(library_manager & other) noexcept
-		{
-			if (this != std::addressof(other))
-			{
-				m_data.swap(other.m_data);
-			}
-		}
+		ML_NODISCARD auto get_data() const noexcept -> storage_type const & { return m_data; }
+
+		template <class T
+		> ML_NODISCARD auto get_data() const noexcept -> ds::list<T> const & { return m_data.get<T>(); }
+
+		template <class T
+		> ML_NODISCARD auto get_data(size_t i) const noexcept -> T const & { return m_data.at<T>(i); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD bool contains(library_id id) const { return m_data.contains<library_id>(id); }
+
+		ML_NODISCARD bool contains(fs::path const & path) const noexcept { return this->contains((library_id)hashof(path.string())); }
+
+		ML_NODISCARD bool contains(ds::ref<shared_library> const & value) const noexcept { return value && this->contains((library_id)value->hash_code()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -184,26 +178,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_data() const noexcept -> storage_type const & { return m_data; }
-
-		template <class T
-		> ML_NODISCARD auto get_data() const noexcept -> ds::list<T> const & { return m_data.get<T>(); }
-
-		template <class T
-		> ML_NODISCARD auto get_data(size_t i) const noexcept -> T const & { return m_data.at<T>(i); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD bool contains(library_id id) const { return m_data.contains<library_id>(id); }
-
-		ML_NODISCARD bool contains(fs::path const & path) const noexcept { return this->contains((library_id)hashof(path.string())); }
-
-		ML_NODISCARD bool contains(ds::ref<shared_library> const & value) const noexcept { return value && this->contains((library_id)value->hash_code()); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	private:
-		storage_type m_data;
+		allocator_type		m_alloc	; // allocator
+		storage_type		m_data	; // storage
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -1,65 +1,9 @@
 #ifndef _ML_PLUGIN_MANAGER_HPP_
 #define _ML_PLUGIN_MANAGER_HPP_
 
-#include <modus_core/detail/EventSystem.hpp>
-#include <modus_core/runtime/LibraryManager.hpp>
+#include <modus_core/runtime/Plugin.hpp>
+#include <modus_core/runtime/SharedLibrary.hpp>
 
-#ifndef ML_PLUGIN_API
-#define ML_PLUGIN_API ML_API_EXPORT
-#endif
-
-// TYPES
-namespace ml
-{
-	ML_decl_handle(plugin_id);
-
-	struct plugin			; // plugin
-	struct plugin_control	; // plugin binder
-	struct plugin_manager	; // plugin manager
-}
-
-// PLUGIN
-namespace ml
-{
-	// plugin
-	struct ML_CORE_API plugin : non_copyable, trackable, event_listener
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		friend plugin_manager;
-
-		plugin(plugin_manager * manager, void * userptr = nullptr);
-
-		virtual ~plugin() noexcept override;
-
-		virtual void on_event(event const &) override = 0;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	public:
-		using allocator_type = typename pmr::polymorphic_allocator<byte>;
-
-		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_alloc; }
-
-		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager * { return m_manager; }
-
-		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
-
-		void set_user_pointer(void * value) noexcept { m_userptr = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		plugin_manager * const	m_manager	; // manager pointer
-		allocator_type			m_alloc		; // allocator
-		void *					m_userptr	; // user pointer
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-}
-
-// PLUGIN CONTROL
 namespace ml
 {
 	// plugin control
@@ -67,21 +11,20 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
 		plugin_id hash_code;
 		ds::string file_name, file_path, extension;
-		ds::method<plugin *(plugin_manager *, void *)> allocate;
+		ds::method<plugin * (plugin_manager *, void *)> allocate;
 		ds::method<void(plugin_manager *, plugin *)> deallocate;
 
 		explicit plugin_control(ds::ref<shared_library> const & lib) : plugin_control{}
 		{
 			if (!lib || !*lib) { return; }
-			hash_code	= (plugin_id)lib->hash_code();
-			file_name	= lib->path().stem().string();
-			file_path	= lib->path().string();
-			extension	= lib->path().extension().string();
-			allocate	= lib->proc<plugin *, plugin_manager *, void *>("ml_plugin_create");
-			deallocate	= lib->proc<void, plugin_manager *, plugin *>("ml_plugin_destroy");
+			hash_code = (plugin_id)lib->hash_code();
+			file_name = lib->path().stem().string();
+			file_path = lib->path().string();
+			extension = lib->path().extension().string();
+			allocate = lib->proc<plugin *, plugin_manager *, void *>("ml_plugin_create");
+			deallocate = lib->proc<void, plugin_manager *, plugin *>("ml_plugin_destroy");
 		}
 
 		plugin_control() noexcept = default;
@@ -92,11 +35,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-}
 
-// PLUGIN MANAGER
-namespace ml
-{
 	// plugin manager
 	struct plugin_manager final : non_copyable, trackable
 	{
@@ -114,16 +53,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		plugin_manager(event_bus * bus, void * userptr, allocator_type alloc = {}) noexcept
+		plugin_manager(event_bus * bus, allocator_type alloc = {}) noexcept
 			: m_bus		{ bus }
 			, m_alloc	{ alloc }
 			, m_data	{ alloc }
-			, m_userptr	{ userptr }
-		{
-		}
-
-		explicit plugin_manager(event_bus * bus, allocator_type alloc) noexcept
-			: plugin_manager{ bus, nullptr, alloc }
+			, m_userptr	{}
 		{
 		}
 
@@ -131,6 +65,32 @@ namespace ml
 		{
 			this->free_all_plugins();
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_alloc; }
+
+		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
+
+		ML_NODISCARD auto get_data() const noexcept -> storage_type const & { return m_data; }
+
+		template <class T
+		> ML_NODISCARD auto get_data() const noexcept -> ds::list<T> const & { return m_data.get<T>(); }
+
+		template <class T
+		> ML_NODISCARD auto get_data(size_t i) const noexcept -> T const & { return m_data.at<T>(i); }
+
+		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
+
+		void set_user_pointer(void * value) noexcept { m_userptr = value; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD bool contains(plugin_id id) const noexcept { return m_data.contains<plugin_id>(id); }
+
+		ML_NODISCARD bool contains(fs::path const & path) const noexcept { return this->contains((plugin_id)hashof(path.string())); }
+
+		ML_NODISCARD bool contains(ds::ref<shared_library> const & value) const noexcept { return value && this->contains((plugin_id)value->hash_code()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -155,7 +115,7 @@ namespace ml
 
 		plugin_id load_plugin(ds::ref<shared_library> const & lib, void * userptr = nullptr)
 		{
-			if (!lib)
+			if (!lib || !*lib)
 			{
 				return nullptr;
 			}
@@ -207,34 +167,6 @@ namespace ml
 
 			while (!ids.empty()) { this->free_plugin(ids.back()); }
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_allocator() const noexcept -> allocator_type { return m_alloc; }
-
-		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
-
-		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
-
-		void set_user_pointer(void * value) noexcept { m_userptr = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_data() const noexcept -> storage_type const & { return m_data; }
-
-		template <class T
-		> ML_NODISCARD auto get_data() const noexcept -> ds::list<T> const & { return m_data.get<T>(); }
-
-		template <class T
-		> ML_NODISCARD auto get_data(size_t i) const noexcept -> T const & { return m_data.at<T>(i); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD bool contains(plugin_id id) const noexcept { return m_data.contains<plugin_id>(id); }
-
-		ML_NODISCARD bool contains(fs::path const & path) const noexcept { return this->contains((plugin_id)hashof(path.string())); }
-
-		ML_NODISCARD bool contains(ds::ref<shared_library> const & value) const noexcept { return value && this->contains((plugin_id)value->hash_code()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

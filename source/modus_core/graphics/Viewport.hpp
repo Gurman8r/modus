@@ -13,7 +13,7 @@ namespace ml
 
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using framebuffer_spec	= typename gfx::spec<gfx::framebuffer>;
-		using framebuffer_ref	= typename ds::ref<gfx::framebuffer>;
+		using framebuffer_ref	= typename ref<gfx::framebuffer>;
 		using framebuffer_list	= typename ds::list<framebuffer_ref>;
 
 		viewport(allocator_type alloc = {}) noexcept

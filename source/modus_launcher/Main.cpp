@@ -1,4 +1,5 @@
 #include <modus_core/runtime/Application.hpp>
+#include <modus_core/embed/Python.hpp>
 
 using namespace ml;
 using namespace ml::byte_literals;
@@ -19,9 +20,9 @@ static class memcfg final : public singleton<memcfg>
 	passthrough_resource				view{ &pool, data.data(), data.size() };
 	memory_manager						mman{ &view };
 
-	memcfg() noexcept { pmr::set_default_resource(mman.get_resource()); }
+	memcfg() { pmr::set_default_resource(mman.get_resource()); }
 
-	~memcfg() noexcept { pmr::set_default_resource(nullptr); }
+	~memcfg() { pmr::set_default_resource(nullptr); }
 
 } const & ML_anon{ memcfg::get_singleton() };
 
@@ -31,7 +32,7 @@ static class memcfg final : public singleton<memcfg>
 #define SETTINGS_PATH "../../../resource/modus_launcher.json"
 #endif
 
-static json const g_default_settings{ R"(
+static json const default_settings{ R"(
 {
 	"app_name": "modus launcher",
 	"app_version": "alpha",
@@ -87,7 +88,7 @@ ML_NODISCARD json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
 {
 	std::ifstream f{ path };
 	ML_defer(&f) { f.close(); };
-	return f ? json::parse(f) : g_default_settings;
+	return f ? json::parse(f) : default_settings;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -96,19 +97,19 @@ int32 main(int32 argc, char * argv[])
 {
 	application app{ argc, argv, load_settings() };
 
-	if (json const * j{ app.attr("plugins") }) {
+	if (json const * j{ app.attr("plugins") }; j && j->is_array()) {
 		for (json const & elem : *j) {
 			if (auto const path{ elem.find("path") }
-			; (path != elem.end()) && path->is_string()) {
+			; path != elem.end() && path->is_string()) {
 				app.load_plugin(*path);
 			}
 		}
 	}
 
-	if (json const * j{ app.attr("scripts") }) {
+	if (json const * j{ app.attr("scripts") }; j && j->is_array()) {
 		for (json const & elem : *j) {
 			if (auto const path{ elem.find("path") }
-			; (path != elem.end()) && path->is_string()) {
+			; path != elem.end() && path->is_string()) {
 				py::eval_file(app.path_to(*path));
 			}
 		}

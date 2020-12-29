@@ -14,9 +14,9 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	py::class_<non_copyable, ds::scary<non_copyable>>(m, "non_copyable");
+	py::class_<non_copyable, scary<non_copyable>>(m, "non_copyable");
 
-	py::class_<trackable, ds::scary<trackable>>(m, "trackable");
+	py::class_<trackable, scary<trackable>>(m, "trackable");
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -164,7 +164,7 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	};
 
 	py_mem // memory
-		// test resource
+		// passthrough resource
 		.def("num_allocations", []() { return ML_get_global(memory_manager)->get_resource()->num_allocations(); })
 		.def("buffer_base", []() { return ML_get_global(memory_manager)->get_resource()->buffer_base(); })
 		.def("buffer_free", []() { return ML_get_global(memory_manager)->get_resource()->buffer_free(); })

@@ -13,7 +13,7 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		using category_type = typename ds::hashmap<ds::string, ds::ref<std::any>>;
+		using category_type = typename ds::hashmap<ds::string, ref<std::any>>;
 
 		using categories_type = typename ds::hashmap<typeof_t<>, category_type>;
 
@@ -44,7 +44,7 @@ namespace ml
 
 		// get element
 		template <class Type, class Key = ds::string
-		> ML_NODISCARD ds::ref<std::any> & element(Key && key) noexcept
+		> ML_NODISCARD ref<std::any> & element(Key && key) noexcept
 		{
 			category_type & cat{ this->category<Type>() };
 			if (auto const it{ cat.find(ML_forward(key)) }
@@ -192,7 +192,7 @@ namespace ml
 
 		ML_NODISCARD bool expired() const noexcept { return m_ptr.expired(); }
 		
-		ML_NODISCARD auto lock() const noexcept -> ds::ref<std::any> { return m_ptr.lock(); }
+		ML_NODISCARD auto lock() const noexcept -> ref<std::any> { return m_ptr.lock(); }
 
 		ML_NODISCARD auto get() const noexcept -> reference { return *std::any_cast<value_type>(ML_check(lock().get())); }
 
@@ -243,7 +243,7 @@ namespace ml
 	private:
 		simple_database *	m_db	; // 
 		ds::string			m_name	; // 
-		ds::unown<std::any>	m_ptr	; // 
+		unown<std::any>	m_ptr	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

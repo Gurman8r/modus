@@ -6,7 +6,7 @@
 #include <modus_core/detail/Method.hpp>
 
 // EVENT DECLARATOR
-#define ML_event(T) struct T : _ML impl::event_helper<T>
+#define ML_event(Ev) struct Ev : _ML impl::event_helper<Ev>
 
 namespace ml
 {
@@ -211,8 +211,8 @@ namespace ml
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using category			= typename ds::set<event_listener *, comparator>;
 		using categories		= typename ds::map<hash_t, category>;
-		using event_queue		= typename ds::list<ds::scope<event>>;
-		using dummy_ref			= typename ds::ref<dummy_listener>;
+		using event_queue		= typename ds::list<scope<event>>;
+		using dummy_ref			= typename ref<dummy_listener>;
 		using dummy_list		= typename ds::list<dummy_ref>;
 
 		template <class Ev> static constexpr bool is_valid_event
@@ -317,7 +317,7 @@ namespace ml
 		void process_events() noexcept
 		{
 			std::for_each(m_queue.begin(), m_queue.end(), [&
-			](ds::scope<event> const & ev) noexcept
+			](scope<event> const & ev) noexcept
 			{
 				this->fire(*ev.get());
 			});

@@ -219,7 +219,7 @@ namespace ml
 		if (!(m_window = glfwCreateWindow(
 			vm.resolution[0],
 			vm.resolution[1],
-			m_title.c_str(), // title
+			m_title.c_str(),
 			nullptr, // monitor
 			nullptr // share
 		)))

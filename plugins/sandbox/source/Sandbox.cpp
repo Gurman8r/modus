@@ -39,12 +39,12 @@ namespace ml
 		ImGuiExt::Terminal m_term{}; // terminal
 
 		// resources
-		ds::list<ds::ref<gfx::framebuffer>> m_framebuffers{}; // framebuffers
-		ds::hashmap<ds::string, ds::ref<gfx::texture>> m_textures{}; // textures
-		ds::hashmap<ds::string, ds::ref<gfx::program>> m_programs{}; // programs
-		ds::hashmap<ds::string, ds::ref<gfx::shader>> m_shaders{}; // shaders
-		ds::hashmap<ds::string, ds::ref<mesh>> m_meshes{}; // meshes
-		ds::hashmap<ds::string, ds::ref<scene>> m_scenes{}; // scenes
+		ds::list<ref<gfx::framebuffer>> m_framebuffers{}; // framebuffers
+		ds::hashmap<ds::string, ref<gfx::texture>> m_textures{}; // textures
+		ds::hashmap<ds::string, ref<gfx::program>> m_programs{}; // programs
+		ds::hashmap<ds::string, ref<gfx::shader>> m_shaders{}; // shaders
+		ds::hashmap<ds::string, ref<mesh>> m_meshes{}; // meshes
+		ds::hashmap<ds::string, ref<scene>> m_scenes{}; // scenes
 
 		// rendering
 		bool m_shift_bg_hue{ true }; // cycle background
@@ -461,6 +461,9 @@ namespace ml
 				{
 					float32 const fps{ ev->IO.Framerate };
 					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
+
+					float32 const time{ ML_get_global(application)->time().count() };
+					ImGui::Text("time: %.2f", time);
 
 					float_rect const & view_rect{ m_viewport.get_rect() };
 					ImGui::Text("view rect: (%.1f,%.1f,%.1f,%.1f)", view_rect[0], view_rect[1], view_rect[2], view_rect[3]);

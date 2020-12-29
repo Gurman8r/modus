@@ -6,6 +6,25 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// types
+namespace ml::gfx
+{
+	struct	render_device	; // 
+	struct	render_context	; // 
+	struct	vertexarray		; // 
+	struct	vertexbuffer	; // 
+	struct	indexbuffer		; // 
+	struct	texture			; // 
+	struct	texture2d		; // 
+	struct	texture3d		; // WIP
+	struct	texturecube		; // WIP
+	struct	framebuffer		; // 
+	struct	program			; // 
+	struct	shader			; // WIP
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // render device
 namespace ml::gfx
 {
@@ -67,53 +86,53 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual ds::ref<render_context> const & get_context() const noexcept = 0;
+		ML_NODISCARD virtual ref<render_context> const & get_context() const noexcept = 0;
 
-		virtual void set_context(ds::ref<render_context> const & value) noexcept = 0;
+		virtual void set_context(ref<render_context> const & value) noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual ds::ref<render_context> new_context(context_settings const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<render_context> new_context(spec<render_context> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<vertexarray> new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<vertexbuffer> new_vertexbuffer(spec<vertexbuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<vertexbuffer> new_vertexbuffer(spec<vertexbuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<indexbuffer> new_indexbuffer(spec<indexbuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<indexbuffer> new_indexbuffer(spec<indexbuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<texture2d> new_texture2d(spec<texture2d> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<texture2d> new_texture2d(spec<texture2d> const & desc, allocator_type alloc = {}) noexcept = 0;
 		
-		ML_NODISCARD virtual ds::ref<texture3d> new_texture3d(spec<texture3d> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<texture3d> new_texture3d(spec<texture3d> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<texturecube> new_texturecube(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<texturecube> new_texturecube(spec<texturecube> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<framebuffer> new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<framebuffer> new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<program> new_program(spec<program> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<program> new_program(spec<program> const & desc, allocator_type alloc = {}) noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<shader> new_shader(spec<shader> const & desc, allocator_type alloc = {}) noexcept = 0;
+		ML_NODISCARD virtual ref<shader> new_shader(spec<shader> const & desc, allocator_type alloc = {}) noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual ds::list<ds::unown<render_context>> const & all_contexts() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<render_context>> const & all_contexts() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::unown<vertexarray>> const & all_vertexarrays() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<vertexarray>> const & all_vertexarrays() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::unown<vertexbuffer>> const & all_vertexbuffers() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<vertexbuffer>> const & all_vertexbuffers() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::unown<indexbuffer>> const & all_indexbuffers() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<indexbuffer>> const & all_indexbuffers() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::unown<texture2d>> const & all_texture2ds() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<texture2d>> const & all_texture2ds() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::unown<texture3d>> const & all_texture3ds() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<texture3d>> const & all_texture3ds() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::unown<texturecube>> const & all_texturecubes() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<texturecube>> const & all_texturecubes() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::unown<framebuffer>> const & all_framebuffers() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<framebuffer>> const & all_framebuffers() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::unown<program>> const & all_programs() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<program>> const & all_programs() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::unown<shader>> const & all_shaders() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<unown<shader>> const & all_shaders() const noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -186,7 +205,7 @@ namespace ml::gfx
 
 		ML_NODISCARD inline auto get_device() const noexcept -> render_device * { return m_parent; }
 
-		ML_NODISCARD inline auto get_context() const noexcept -> ds::ref<render_context> const &
+		ML_NODISCARD inline auto get_context() const noexcept -> ref<render_context> const &
 		{
 			return m_parent->get_context();
 		}
@@ -200,13 +219,51 @@ namespace ml::gfx
 // render context
 namespace ml::gfx
 {
+	// context settings
+	template <> struct ML_NODISCARD spec<render_context> final
+	{
+		int32	api				{ context_api_opengl };
+		int32	major			{ 4 };
+		int32	minor			{ 6 };
+		int32	profile			{ context_profile_compat };
+		int32	depth_bits		{ 24 };
+		int32	stencil_bits	{ 8 };
+		bool	multisample		{ true };
+		bool	srgb_capable	{ false };
+	};
+
+	inline void from_json(json const & j, spec<render_context> & v)
+	{
+		j["api"			].get_to((context_api_ & )v.api);
+		j["major"		].get_to(v.major);
+		j["minor"		].get_to(v.minor);
+		j["profile"		].get_to((context_profile_ &)v.profile);
+		j["depth_bits"	].get_to(v.depth_bits);
+		j["stencil_bits"].get_to(v.stencil_bits);
+		j["multisample"	].get_to(v.multisample);
+		j["srgb_capable"].get_to(v.srgb_capable);
+	}
+
+	inline void to_json(json & j, spec<render_context> const & v)
+	{
+		j["api"			] = (context_api_)v.api;
+		j["major"		] = v.major;
+		j["minor"		] = v.minor;
+		j["profile"		] = (context_profile_)v.profile;
+		j["depth_bits"	] = v.depth_bits;
+		j["stencil_bits"] = v.stencil_bits;
+		j["multisample"	] = v.multisample;
+		j["srgb_capable"] = v.srgb_capable;
+	}
+
+
 	// base render context
 	struct ML_CORE_API render_context : public render_object<render_context>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using spec_type = typename context_settings;
+		using spec_type = typename spec<render_context>;
 
 		template <class Desc = spec_type
 		> ML_NODISCARD static auto create(Desc && desc, allocator_type alloc = {}) noexcept
@@ -281,7 +338,7 @@ namespace ml::gfx
 
 		virtual void clear(uint32 mask) = 0;
 
-		virtual void draw(ds::ref<vertexarray> const & value) = 0;
+		virtual void draw(ref<vertexarray> const & value) = 0;
 
 		virtual void draw_arrays(uint32 prim, size_t first, size_t count) = 0;
 
@@ -387,19 +444,19 @@ namespace ml::gfx
 		ML_NODISCARD virtual typeof_t<> const & get_self_type() const noexcept override = 0;
 
 	public:
-		virtual void add_vertices(ds::ref<vertexbuffer> const & value) = 0;
+		virtual void add_vertices(ref<vertexbuffer> const & value) = 0;
 
 		virtual void set_layout(buffer_layout const & value) = 0;
 
-		virtual void set_indices(ds::ref<indexbuffer> const & value) = 0;
+		virtual void set_indices(ref<indexbuffer> const & value) = 0;
 
 		ML_NODISCARD virtual buffer_layout const & get_layout() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::ref<indexbuffer> const & get_indices() const noexcept = 0;
+		ML_NODISCARD virtual ref<indexbuffer> const & get_indices() const noexcept = 0;
 
 		ML_NODISCARD virtual uint32 get_mode() const noexcept = 0;
 		
-		ML_NODISCARD virtual ds::list<ds::ref<vertexbuffer>> const & get_vertices() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<ref<vertexbuffer>> const & get_vertices() const noexcept = 0;
 
 	public:
 		inline void bind() const noexcept
@@ -1041,15 +1098,15 @@ namespace ml::gfx
 		ML_NODISCARD virtual typeof_t<> const & get_self_type() const noexcept override = 0;
 
 	public:
-		virtual bool attach(ds::ref<texture2d> const & value) = 0;
+		virtual bool attach(ref<texture2d> const & value) = 0;
 
-		virtual bool detach(ds::ref<texture2d> const & value) = 0;
+		virtual bool detach(ref<texture2d> const & value) = 0;
 
 		virtual void resize(vec2i const & value) = 0;
 
-		ML_NODISCARD virtual ds::list<ds::ref<texture2d>> const & get_color_attachments() const noexcept = 0;
+		ML_NODISCARD virtual ds::list<ref<texture2d>> const & get_color_attachments() const noexcept = 0;
 		
-		ML_NODISCARD virtual ds::ref<texture2d> const & get_depth_attachment() const noexcept = 0;
+		ML_NODISCARD virtual ref<texture2d> const & get_depth_attachment() const noexcept = 0;
 
 		ML_NODISCARD virtual vec2i const & get_size() const noexcept = 0;
 
@@ -1166,7 +1223,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual ds::map<uint32, ds::list<ds::string>> const & get_source() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::map<uniform_id, ds::ref<texture>> const & get_textures() const noexcept = 0;
+		ML_NODISCARD virtual ds::map<uniform_id, ref<texture>> const & get_textures() const noexcept = 0;
 
 		ML_NODISCARD virtual ds::map<hash_t, uniform_id> const & get_uniforms() const noexcept = 0;
 
@@ -1187,7 +1244,7 @@ namespace ml::gfx
 		{
 			uint32 slot{};
 			get_textures().for_each([&, ctx = ML_check(get_context().get())
-			](uniform_id loc, ds::ref<texture> const & tex) noexcept
+			](uniform_id loc, ref<texture> const & tex) noexcept
 			{
 				ctx->bind_texture(tex.get(), slot);
 
@@ -1199,7 +1256,7 @@ namespace ml::gfx
 		{
 			return bind_uniform(name, [&](uniform_id loc) noexcept
 			{
-				if constexpr (std::is_convertible_v<T, ds::ref<texture>>)
+				if constexpr (std::is_convertible_v<T, ref<texture>>)
 				{
 					do_cache_texture(loc, ML_forward(value));
 				}
@@ -1211,7 +1268,7 @@ namespace ml::gfx
 		}
 
 	protected:
-		virtual void do_cache_texture(uniform_id loc, ds::ref<texture> const & value) noexcept = 0;
+		virtual void do_cache_texture(uniform_id loc, ref<texture> const & value) noexcept = 0;
 	};
 
 	// allocate program
@@ -1297,7 +1354,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual ds::list<ds::string> const & get_source() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::map<uniform_id, ds::ref<texture>> const & get_textures() const noexcept = 0;
+		ML_NODISCARD virtual ds::map<uniform_id, ref<texture>> const & get_textures() const noexcept = 0;
 
 		ML_NODISCARD virtual uint32 get_type() const noexcept = 0;
 
@@ -1318,7 +1375,7 @@ namespace ml::gfx
 		{
 			uint32 slot{};
 			get_textures().for_each(
-			[&](uniform_id loc, ds::ref<texture> const & tex) noexcept
+			[&](uniform_id loc, ref<texture> const & tex) noexcept
 			{
 				do_upload(loc, tex, slot++);
 			});
@@ -1329,7 +1386,7 @@ namespace ml::gfx
 		{
 			return bind_uniform(name, [&](uniform_id loc) noexcept
 			{
-				if constexpr (std::is_convertible_v<T, ds::ref<texture>>)
+				if constexpr (std::is_convertible_v<T, ref<texture>>)
 				{
 					do_cache(loc, ML_forward(value));
 				}
@@ -1341,7 +1398,7 @@ namespace ml::gfx
 		}
 
 	protected:
-		virtual void do_cache(uniform_id loc, ds::ref<texture> const & value) = 0;
+		virtual void do_cache(uniform_id loc, ref<texture> const & value) = 0;
 
 		virtual void do_upload(uniform_id loc, bool value) = 0;
 
@@ -1363,7 +1420,7 @@ namespace ml::gfx
 
 		virtual void do_upload(uniform_id loc, mat4f const & value, bool transpose = false) = 0;
 
-		virtual void do_upload(uniform_id loc, ds::ref<texture> const & value, uint32 slot = 0) = 0;
+		virtual void do_upload(uniform_id loc, ref<texture> const & value, uint32 slot = 0) = 0;
 	};
 
 	// allocate shader

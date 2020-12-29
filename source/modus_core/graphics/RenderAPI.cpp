@@ -45,7 +45,7 @@ namespace ml::gfx
 	{
 		if (!value) { value = ML_get_global(render_device); }
 
-		ML_end_global(render_device, value);
+		(void)ML_end_global(render_device, value);
 
 		delete value;
 	}

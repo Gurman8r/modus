@@ -2,38 +2,36 @@
 #define _ML_PLUGIN_MANAGER_HPP_
 
 #include <modus_core/runtime/Plugin.hpp>
-#include <modus_core/runtime/SharedLibrary.hpp>
+#include <modus_core/runtime/Library.hpp>
 
 namespace ml
 {
-	// plugin control
-	struct ML_NODISCARD plugin_control final : trackable
+	// plugin context
+	struct ML_NODISCARD plugin_context final
 	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		plugin_id hash_code;
 		ds::string file_name, file_path, extension;
 		ds::method<plugin * (plugin_manager *, void *)> allocate;
 		ds::method<void(plugin_manager *, plugin *)> deallocate;
 
-		explicit plugin_control(ds::ref<shared_library> const & lib) : plugin_control{}
+		plugin_context() noexcept = default;
+		plugin_context(plugin_context const &) = default;
+		plugin_context(plugin_context &&) noexcept = default;
+		plugin_context & operator=(plugin_context const &) = default;
+		plugin_context & operator=(plugin_context &&) noexcept = default;
+
+	private:
+		friend plugin_manager;
+
+		explicit plugin_context(ref<library> const & lib)
+			: hash_code	{ (plugin_id)lib->hash_code() }
+			, file_name	{ lib->path().stem().string() }
+			, file_path	{ lib->path().string() }
+			, extension	{ lib->path().extension().string() }
+			, allocate	{ lib->proc<plugin *, plugin_manager *, void *>("ml_plugin_create") }
+			, deallocate{ lib->proc<void, plugin_manager *, plugin *>("ml_plugin_destroy") }
 		{
-			if (!lib || !*lib) { return; }
-			hash_code = (plugin_id)lib->hash_code();
-			file_name = lib->path().stem().string();
-			file_path = lib->path().string();
-			extension = lib->path().extension().string();
-			allocate = lib->proc<plugin *, plugin_manager *, void *>("ml_plugin_create");
-			deallocate = lib->proc<void, plugin_manager *, plugin *>("ml_plugin_destroy");
 		}
-
-		plugin_control() noexcept = default;
-		plugin_control(plugin_control const &) = default;
-		plugin_control(plugin_control &&) noexcept = default;
-		plugin_control & operator=(plugin_control const &) = default;
-		plugin_control & operator=(plugin_control &&) noexcept = default;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 
 	// plugin manager
@@ -44,11 +42,12 @@ namespace ml
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		using storage_type = typename ds::batch_vector<
+		using storage_type = typename ds::batch_vector
+		<
 			plugin_id,
-			plugin_control,
-			ds::unown<shared_library>,
-			ds::scary<plugin>
+			plugin_context,
+			unown<library>,
+			scary<plugin>
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -90,7 +89,7 @@ namespace ml
 
 		ML_NODISCARD bool contains(fs::path const & path) const noexcept { return this->contains((plugin_id)hashof(path.string())); }
 
-		ML_NODISCARD bool contains(ds::ref<shared_library> const & value) const noexcept { return value && this->contains((plugin_id)value->hash_code()); }
+		ML_NODISCARD bool contains(ref<library> const & value) const noexcept { return value && this->contains((plugin_id)value->hash_code()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -113,13 +112,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		plugin_id load_plugin(ds::ref<shared_library> const & lib, void * userptr = nullptr)
+		plugin_id load_plugin(ref<library> const & lib, void * userptr = nullptr)
 		{
-			if (!lib || !*lib)
-			{
-				return nullptr;
-			}
-			else if (size_t const i{ m_data.lookup_if<ds::unown<shared_library>>([&
+			if (!lib || !*lib) { return nullptr; }
+			
+			if (size_t const i{ m_data.lookup_if<unown<library>>([&
 			](auto const & e) { return !e.expired() && e.lock()->hash_code() == lib->hash_code(); }) }
 			; i != m_data.npos)
 			{
@@ -127,11 +124,11 @@ namespace ml
 			}
 			else
 			{
-				m_data.push_back((plugin_id)lib->hash_code(), plugin_control{ lib }, lib, nullptr);
+				m_data.push_back((plugin_id)lib->hash_code(), plugin_context{ lib }, lib, nullptr);
 
-				if (plugin * p{ m_data.back<plugin_control>().allocate(this, userptr) })
+				if (plugin * p{ m_data.back<plugin_context>().allocate(this, userptr) })
 				{
-					m_data.back<ds::scary<plugin>>().reset(p);
+					m_data.back<scary<plugin>>().reset(p);
 
 					return m_data.back<plugin_id>();
 				}
@@ -149,8 +146,8 @@ namespace ml
 			; i == m_data.npos) { return false; }
 			else
 			{
-				plugin * const p{ m_data.at<ds::scary<plugin>>(i).release() };
-				m_data.at<plugin_control>(i).deallocate(this, p);
+				plugin * const p{ m_data.at<scary<plugin>>(i).release() };
+				m_data.at<plugin_context>(i).deallocate(this, p);
 				m_data.erase(i);
 				return true;
 			}

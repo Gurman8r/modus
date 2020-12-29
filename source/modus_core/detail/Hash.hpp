@@ -62,22 +62,24 @@ namespace ml
 	template <class Arg0, class ... Args
 	> ML_NODISCARD constexpr hash_t hashof(Arg0 && arg0, Args && ... args)
 	{
+		using namespace _ML util;
+
 		if constexpr (0 == sizeof...(args))
 		{
 			using T = std::decay_t<decltype(arg0)>;
 
 			if constexpr (std::is_scalar_v<T> && !std::is_pointer_v<T>)
 			{
-				return static_cast<hash_t>(arg0);
+				return (fnv1a_basis ^ static_cast<hash_t>(arg0)) * fnv1a_prime;
 			}
 			else
 			{
-				return util::fnv1a_hash(ML_forward(arg0));
+				return fnv1a_hash(ML_forward(arg0));
 			}
 		}
 		else
 		{
-			return util::fnv1a_hash(ML_forward(arg0), ML_forward(args)...);
+			return fnv1a_hash(ML_forward(arg0), ML_forward(args)...);
 		}
 	}
 }

@@ -2,22 +2,22 @@
 #define _ML_LIBRARY_MANAGER_HPP_
 
 #include <modus_core/detail/BatchVector.hpp>
-#include <modus_core/runtime/SharedLibrary.hpp>
+#include <modus_core/runtime/Library.hpp>
 
 namespace ml
 {
-	ML_decl_handle(library_id);
-
+	// library manager
 	struct library_manager final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		using storage_type = typename ds::batch_vector<
-			library_id				,	// id
-			fs::path				,	// path
-			ds::ref<shared_library>		// library
+		using storage_type = typename ds::batch_vector
+		<
+			library_id,		// id
+			fs::path,		// path
+			ref<library>	// library
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -51,19 +51,19 @@ namespace ml
 
 		ML_NODISCARD bool contains(fs::path const & path) const noexcept { return this->contains((library_id)hashof(path.string())); }
 
-		ML_NODISCARD bool contains(ds::ref<shared_library> const & value) const noexcept { return value && this->contains((library_id)value->hash_code()); }
+		ML_NODISCARD bool contains(ref<library> const & value) const noexcept { return value && this->contains((library_id)value->hash_code()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto load_library(fs::path const & path) -> ds::ref<shared_library>
+		auto load_library(fs::path const & path) -> ref<library>
 		{
-			if (ds::ref<shared_library> lib{ this->find(path) })
+			if (ref<library> lib{ this->find(path) })
 			{
 				return lib;
 			}
 			else
 			{
-				lib = make_ref<shared_library>(path);
+				lib = make_ref<library>(path);
 
 				m_data.push_back((library_id)lib->hash_code(), lib->path(), lib);
 
@@ -73,13 +73,19 @@ namespace ml
 
 		bool free_library(library_id id) noexcept
 		{
-			if (size_t const i{ m_data.lookup<library_id>(id) }; i == m_data.npos) { return false; }
+			if (size_t const i{ m_data.lookup<library_id>(id) }
+			; i == m_data.npos) { return false; }
 			else { m_data.erase(i); return true; }
 		}
 
 		bool free_library(fs::path const & path) noexcept
 		{
 			return this->free_library((library_id)hashof(path.string()));
+		}
+
+		bool free_library(ref<library> const & lib) noexcept
+		{
+			return lib && this->free_library((library_id)lib->hash_code());
 		}
 
 		void free_all_libraries()
@@ -91,26 +97,26 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto find(library_id id) -> ds::ref<shared_library>
+		ML_NODISCARD auto find(library_id id) -> ref<library>
 		{
 			if (size_t const i{ m_data.lookup<library_id>(id) }
 			; i == m_data.npos) { return nullptr; }
-			else { return m_data.at<ds::ref<shared_library>>(i); }
+			else { return m_data.at<ref<library>>(i); }
 		}
 
-		ML_NODISCARD auto find(library_id id) const -> ds::ref<shared_library>
+		ML_NODISCARD auto find(library_id id) const -> ref<library>
 		{
 			if (size_t const i{ m_data.lookup<library_id>(id) }
 			; i == m_data.npos) { return nullptr; }
-			else { return m_data.at<ds::ref<shared_library>>(i); }
+			else { return m_data.at<ref<library>>(i); }
 		}
 
-		ML_NODISCARD auto find(fs::path const & path) noexcept -> ds::ref<shared_library>
+		ML_NODISCARD auto find(fs::path const & path) noexcept -> ref<library>
 		{
 			return this->find((library_id)hashof(path.string()));
 		}
 
-		ML_NODISCARD auto find(fs::path const & path) const noexcept -> ds::ref<shared_library>
+		ML_NODISCARD auto find(fs::path const & path) const noexcept -> ref<library>
 		{
 			return this->find((library_id)hashof(path.string()));
 		}
@@ -158,7 +164,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Ret, class ... Args, class ID
-		> auto eval(library_id id, ID && method_name, Args && ... args) noexcept -> shared_library::result_type<Ret>
+		> auto eval(library_id id, ID && method_name, Args && ... args) noexcept -> library::result_type<Ret>
 		{
 			if (auto const lib{ this->find(id) })
 			{
@@ -171,7 +177,7 @@ namespace ml
 		}
 
 		template <class Ret, class ... Args, class ID
-		> auto eval(fs::path const & path, ID && method_name, Args && ... args) noexcept -> shared_library::result_type<Ret>
+		> auto eval(fs::path const & path, ID && method_name, Args && ... args) noexcept -> library::result_type<Ret>
 		{
 			return this->eval<Ret, Args...>((library_id)hashof(path.string()), ML_forward(method_name), ML_forward(args)...);
 		}

@@ -16,7 +16,7 @@ namespace ml
 		using enter_callback			= typename ds::method<void()>;
 		using exit_callback				= typename ds::method<void()>;
 		using idle_callback				= typename ds::method<void()>;
-		using subsystem					= typename ds::ref<loop_system>;
+		using subsystem					= typename ref<loop_system>;
 		using subsystem_list			= typename ds::list<subsystem>;
 		using iterator					= typename subsystem_list::iterator;
 		using const_iterator			= typename subsystem_list::const_iterator;
@@ -207,7 +207,7 @@ namespace ml
 		}
 
 		template <class Derived = loop_system, class ... Args
-		> auto new_subsystem(Args && ... args) noexcept -> ds::ref<Derived>
+		> auto new_subsystem(Args && ... args) noexcept -> ref<Derived>
 		{
 			static_assert(std::is_base_of_v<loop_system, Derived>);
 

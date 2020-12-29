@@ -70,7 +70,7 @@ namespace ml::gfx
 			return std::bind(&render_context::clear, std::placeholders::_1, value);
 		}
 
-		ML_NODISCARD static command draw(ds::ref<vertexarray> const & value) noexcept
+		ML_NODISCARD static command draw(ref<vertexarray> const & value) noexcept
 		{
 			return std::bind(&render_context::draw, std::placeholders::_1, value);
 		}
@@ -202,7 +202,5 @@ namespace ml::gfx
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
-
-
 
 #endif // !_ML_RENDER_COMMAND_HPP_

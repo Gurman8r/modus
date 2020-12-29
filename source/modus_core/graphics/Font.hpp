@@ -11,7 +11,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::ref<gfx::texture2d> graphic{};
+		ref<gfx::texture2d> graphic{};
 
 		float_rect bounds{};
 		

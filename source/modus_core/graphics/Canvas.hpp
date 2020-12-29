@@ -99,10 +99,10 @@ namespace ml
 	private:
 		metrics m_metrics; // 
 
-		ds::ref<gfx::vertexarray>	m_va; // 
-		ds::ref<gfx::vertexbuffer>	m_vb; // 
-		ds::ref<gfx::program>		m_shader; // 
-		ds::ref<gfx::texture2d>		m_texture; // 
+		ref<gfx::vertexarray>	m_va; // 
+		ref<gfx::vertexbuffer>	m_vb; // 
+		ref<gfx::program>		m_shader; // 
+		ref<gfx::texture2d>		m_texture; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

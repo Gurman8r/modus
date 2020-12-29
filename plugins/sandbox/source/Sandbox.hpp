@@ -3,6 +3,7 @@
 
 #include <modus_core/detail/FileUtility.hpp>
 #include <modus_core/detail/StreamSniper.hpp>
+#include <modus_core/embed/Python.hpp>
 #include <modus_core/graphics/Material.hpp>
 #include <modus_core/graphics/Mesh.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>

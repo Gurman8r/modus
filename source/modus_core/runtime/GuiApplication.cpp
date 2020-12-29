@@ -19,8 +19,8 @@ namespace ml
 		, m_active_scene	{}
 
 		, m_loop_timer		{}
-		, m_loop_delta		{}
-		, m_loop_index		{}
+		, m_delta_time		{}
+		, m_frame_index		{}
 		, m_fps_value		{}
 		, m_fps_accum		{}
 		, m_fps_index		{}
@@ -82,6 +82,7 @@ namespace ml
 		));
 		{
 			static event_bus * b{}; b = get_bus();
+
 			m_window.set_char_callback([](auto w, auto ... x) { b->fire<char_event>(x...); });
 			m_window.set_char_mods_callback([](auto w, auto ... x) { b->fire<char_mods_event>(x...); });
 			m_window.set_key_callback([](auto w, auto ... x) { b->fire<key_event>(x...); });
@@ -103,7 +104,7 @@ namespace ml
 		}
 
 		// setup graphics
-		context_settings cs{};
+		gfx::spec<gfx::render_context> cs{};
 		if (auto a{ attr("window", "graphics") }) { a->get_to(cs); }
 		set_render_device(gfx::render_device::create({ cs.api }));
 		set_render_context(get_render_device()->new_context(cs));
@@ -141,7 +142,7 @@ namespace ml
 	{
 		// update fps
 		m_loop_timer.restart();
-		float32 const dt{ m_loop_delta.count() };
+		float32 const dt{ m_delta_time.count() };
 		m_fps_accum += dt - m_fps_times[m_fps_index];
 		m_fps_times[m_fps_index] = dt;
 		m_fps_index = (m_fps_index + 1) % m_fps_times.size();
@@ -157,9 +158,8 @@ namespace ml
 		_ML ImGui_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
+		ImGui::PushID(this);
 		{
-			ImGuiExt_ScopeID(this);
-
 			m_dock_builder.SetWindowFlag(ImGuiWindowFlags_MenuBar, m_main_menu_bar.IsOpen);
 
 			m_dock_builder.Draw(m_imgui_context->Viewports[0], [&](ImGuiExt::Dockspace * d) noexcept
@@ -180,6 +180,7 @@ namespace ml
 
 			get_bus()->fire<imgui_event>(m_imgui_context);
 		}
+		ImGui::PopID();
 		ImGui::Render();
 
 		// clear screen
@@ -219,7 +220,7 @@ namespace ml
 
 		// end frame
 		get_bus()->fire<end_frame_event>(this);
-		m_loop_delta = m_loop_timer.elapsed();
+		m_delta_time = m_loop_timer.elapsed();
 	}
 
 	void gui_application::on_event(event const & value)

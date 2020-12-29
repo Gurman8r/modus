@@ -3,6 +3,7 @@
 #include <modus_core/events/WindowEvents.hpp>
 #include <modus_core/events/RuntimeEvents.hpp>
 #include <modus_core/events/ImGuiEvents.hpp>
+#include <modus_core/embed/Python.hpp>
 
 namespace ml
 {
@@ -25,7 +26,7 @@ namespace ml
 
 		if (!is_interpreter_initialized() && !library_paths().empty())
 		{
-			initialize_interpreter(app_file_name(), library_paths(0));
+			ML_verify(initialize_interpreter(app_file_name(), library_paths(0)));
 		}
 	}
 

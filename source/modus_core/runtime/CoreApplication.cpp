@@ -1,4 +1,5 @@
 #include <modus_core/runtime/CoreApplication.hpp>
+#include <modus_core/embed/Python.hpp>
 
 namespace ml
 {
@@ -15,6 +16,8 @@ namespace ml
 		, m_arguments		{ argv, argv + argc, alloc }
 		, m_library_paths	{ alloc }
 		, m_attributes		{ json{ argj } }
+
+		, m_main_timer		{ true }
 		, m_dispatcher		{ alloc }
 		, m_libraries		{ alloc }
 		, m_plugins			{ &m_dispatcher, alloc }
@@ -30,9 +33,9 @@ namespace ml
 
 	core_application::~core_application() noexcept
 	{
-		unsubscribe(); // manual unsubscribe required because we own the bus
+		if (is_interpreter_initialized()) { ML_verify(finalize_interpreter()); }
 
-		if (is_interpreter_initialized()) { finalize_interpreter(); }
+		unsubscribe(); // manual unsubscribe required because we own the bus
 
 		ML_verify(ML_end_global(core_application, this));
 	}

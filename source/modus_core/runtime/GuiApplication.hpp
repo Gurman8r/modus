@@ -27,23 +27,21 @@ namespace ml
 		virtual int32 exec() override
 		{
 			m_loop.loop();
-
 			return core_application::exec();
 		}
 
 		virtual void exit(int32 exit_code) override
 		{
 			m_loop.halt();
-
 			return core_application::exit(exit_code);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto delta_time() const noexcept -> duration { return m_loop_delta; }
+		ML_NODISCARD auto delta_time() const noexcept -> duration { return m_delta_time; }
 
-		ML_NODISCARD auto frame_index() const noexcept -> uint64 { return m_loop_index; }
+		ML_NODISCARD auto frame_index() const noexcept -> uint64 { return m_frame_index; }
 
 		ML_NODISCARD auto frame_rate() const noexcept -> float32 { return m_fps_value; }
 
@@ -59,11 +57,11 @@ namespace ml
 
 		ML_NODISCARD auto get_render_device() const noexcept -> gfx::render_device * { return m_render_device; }
 
-		ML_NODISCARD auto get_render_context() const noexcept -> ds::ref<gfx::render_context> const & { return m_render_device->get_context(); }
+		ML_NODISCARD auto get_render_context() const noexcept -> ref<gfx::render_context> const & { return m_render_device->get_context(); }
 
 		void set_render_device(gfx::render_device * value) noexcept { m_render_device = value; }
 
-		void set_render_context(ds::ref<gfx::render_context> const & value) noexcept { m_render_device->set_context(value); }
+		void set_render_context(ref<gfx::render_context> const & value) noexcept { m_render_device->set_context(value); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -77,9 +75,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_active_scene() const noexcept -> ds::ref<scene> const & { return m_active_scene; }
+		ML_NODISCARD auto get_active_scene() const noexcept -> ref<scene> const & { return m_active_scene; }
 
-		void set_active_scene(ds::ref<scene> const & value) noexcept { m_active_scene = value; }
+		void set_active_scene(ref<scene> const & value) noexcept { m_active_scene = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -101,11 +99,11 @@ namespace ml
 		ImGuiContext *			m_imgui_context	; // imgui context
 		ImGuiExt::Dockspace		m_dock_builder	; // dock builder
 		ImGuiExt::MainMenuBar	m_main_menu_bar	; // main menu bar
-		ds::ref<scene>			m_active_scene	; // active scene
+		ref<scene>				m_active_scene	; // active scene
 
 		timer					m_loop_timer	; // loop timer
-		duration				m_loop_delta	; // delta time
-		uint64					m_loop_index	; // frame index
+		duration				m_delta_time	; // delta time
+		uint64					m_frame_index	; // frame index
 		float32					m_fps_value		; // fps value
 		float32					m_fps_accum		; // fps accumulator
 		size_t					m_fps_index		; // fps index

@@ -51,16 +51,16 @@ namespace ml
 
 	inline void from_json(json const & j, window_hints_ & v)
 	{
-		ML_flag_write((int32 &)v, window_hints_auto_iconify	, j["auto_iconify"	].get<bool>());
+		ML_flag_write((int32 &)v, window_hints_auto_iconify		, j["auto_iconify"	].get<bool>());
 		ML_flag_write((int32 &)v, window_hints_center_cursor	, j["center_cursor"	].get<bool>());
 		ML_flag_write((int32 &)v, window_hints_decorated		, j["decorated"		].get<bool>());
-		ML_flag_write((int32 &)v, window_hints_doublebuffer	, j["doublebuffer"	].get<bool>());
-		ML_flag_write((int32 &)v, window_hints_floating		, j["floating"		].get<bool>());
+		ML_flag_write((int32 &)v, window_hints_doublebuffer		, j["doublebuffer"	].get<bool>());
+		ML_flag_write((int32 &)v, window_hints_floating			, j["floating"		].get<bool>());
 		ML_flag_write((int32 &)v, window_hints_focus_on_show	, j["focus_on_show"	].get<bool>());
-		ML_flag_write((int32 &)v, window_hints_focused		, j["focused"		].get<bool>());
+		ML_flag_write((int32 &)v, window_hints_focused			, j["focused"		].get<bool>());
 		ML_flag_write((int32 &)v, window_hints_maximized		, j["maximized"		].get<bool>());
 		ML_flag_write((int32 &)v, window_hints_resizable		, j["resizable"		].get<bool>());
-		ML_flag_write((int32 &)v, window_hints_visible		, j["visible"		].get<bool>());
+		ML_flag_write((int32 &)v, window_hints_visible			, j["visible"		].get<bool>());
 	}
 
 	inline void to_json(json & j, window_hints_ const & v)

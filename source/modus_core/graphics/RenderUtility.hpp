@@ -19,21 +19,6 @@ namespace ml::gfx
 	template <class ...> struct spec; // object specification
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	struct	render_device	; // 
-	struct	render_context	; // 
-	struct	vertexarray		; // 
-	struct	vertexbuffer	; // 
-	struct	indexbuffer		; // 
-	struct	texture			; // 
-	struct	texture2d		; // 
-	struct	texture3d		; // WIP
-	struct	texturecube		; // WIP
-	struct	framebuffer		; // 
-	struct	program			; // 
-	struct	shader			; // WIP
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 // enums

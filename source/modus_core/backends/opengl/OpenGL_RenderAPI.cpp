@@ -91,73 +91,73 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ds::ref<render_context> opengl_render_device::new_context(context_settings const & desc, allocator_type alloc) noexcept
+	ref<render_context> opengl_render_device::new_context(spec<render_context> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_render_context>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<render_context>>(sp);
+		m_objs.push_back<unown<render_context>>(sp);
 		return sp;
 	}
 
-	ds::ref<vertexarray> opengl_render_device::new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
+	ref<vertexarray> opengl_render_device::new_vertexarray(spec<vertexarray> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_vertexarray>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<vertexarray>>(sp);
+		m_objs.push_back<unown<vertexarray>>(sp);
 		return sp;
 	}
 
-	ds::ref<vertexbuffer> opengl_render_device::new_vertexbuffer(spec<vertexbuffer> const & desc, allocator_type alloc) noexcept
+	ref<vertexbuffer> opengl_render_device::new_vertexbuffer(spec<vertexbuffer> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_vertexbuffer>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<vertexbuffer>>(sp);
+		m_objs.push_back<unown<vertexbuffer>>(sp);
 		return sp;
 	}
 
-	ds::ref<indexbuffer> opengl_render_device::new_indexbuffer(spec<indexbuffer> const & desc, allocator_type alloc) noexcept
+	ref<indexbuffer> opengl_render_device::new_indexbuffer(spec<indexbuffer> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_indexbuffer>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<indexbuffer>>(sp);
+		m_objs.push_back<unown<indexbuffer>>(sp);
 		return sp;
 	}
 
-	ds::ref<texture2d> opengl_render_device::new_texture2d(spec<texture2d> const & desc, allocator_type alloc) noexcept
+	ref<texture2d> opengl_render_device::new_texture2d(spec<texture2d> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_texture2d>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<texture2d>>(sp);
+		m_objs.push_back<unown<texture2d>>(sp);
 		return sp;
 	}
 
-	ds::ref<texture3d> opengl_render_device::new_texture3d(spec<texture3d> const & desc, allocator_type alloc) noexcept
+	ref<texture3d> opengl_render_device::new_texture3d(spec<texture3d> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_texture3d>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<texture3d>>(sp);
+		m_objs.push_back<unown<texture3d>>(sp);
 		return sp;
 	}
 
-	ds::ref<texturecube> opengl_render_device::new_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
+	ref<texturecube> opengl_render_device::new_texturecube(spec<texturecube> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_texturecube>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<texturecube>>(sp);
+		m_objs.push_back<unown<texturecube>>(sp);
 		return sp;
 	}
 
-	ds::ref<framebuffer> opengl_render_device::new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
+	ref<framebuffer> opengl_render_device::new_framebuffer(spec<framebuffer> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_framebuffer>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<framebuffer>>(sp);
+		m_objs.push_back<unown<framebuffer>>(sp);
 		return sp;
 	}
 
-	ds::ref<program> opengl_render_device::new_program(spec<program> const & desc, allocator_type alloc) noexcept
+	ref<program> opengl_render_device::new_program(spec<program> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_program>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<program>>(sp);
+		m_objs.push_back<unown<program>>(sp);
 		return sp;
 	}
 
-	ds::ref<shader> opengl_render_device::new_shader(spec<shader> const & desc, allocator_type alloc) noexcept
+	ref<shader> opengl_render_device::new_shader(spec<shader> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_shader>(alloc, this, desc) };
-		m_objs.push_back<ds::unown<shader>>(sp);
+		m_objs.push_back<unown<shader>>(sp);
 		return sp;
 	}
 
@@ -412,7 +412,7 @@ namespace ml::gfx
 		ML_glCheck(glClear(temp));
 	}
 
-	void opengl_render_context::draw(ds::ref<vertexarray> const & value)
+	void opengl_render_context::draw(ref<vertexarray> const & value)
 	{
 		// could be moved into header file
 
@@ -595,7 +595,7 @@ namespace ml::gfx
 		return (bool)m_handle;
 	}
 
-	void opengl_vertexarray::add_vertices(ds::ref<vertexbuffer> const & value)
+	void opengl_vertexarray::add_vertices(ref<vertexbuffer> const & value)
 	{
 		if (!m_handle || !value) { return; }
 		
@@ -639,7 +639,7 @@ namespace ml::gfx
 		}
 	}
 
-	void opengl_vertexarray::set_indices(ds::ref<indexbuffer> const & value)
+	void opengl_vertexarray::set_indices(ref<indexbuffer> const & value)
 	{
 		bind();
 
@@ -1074,7 +1074,7 @@ namespace ml::gfx
 		return (bool)m_handle;
 	}
 
-	bool opengl_framebuffer::attach(ds::ref<texture2d> const & value)
+	bool opengl_framebuffer::attach(ref<texture2d> const & value)
 	{
 		static auto const max_color_attachments
 		{
@@ -1091,7 +1091,7 @@ namespace ml::gfx
 		return false;
 	}
 
-	bool opengl_framebuffer::detach(ds::ref<texture2d> const & value)
+	bool opengl_framebuffer::detach(ref<texture2d> const & value)
 	{
 		if (auto const it{ std::find(m_attachments.begin(), m_attachments.end(), value) }
 		; it != m_attachments.end())
@@ -1433,7 +1433,7 @@ namespace ml::gfx
 		ML_glCheck(glProgramUniformMatrix4fv(m_handle, ML_handle(int32, loc), 1, transpose, value));
 	}
 	
-	void opengl_shader::do_upload(uniform_id loc, ds::ref<texture> const & value, uint32 slot)
+	void opengl_shader::do_upload(uniform_id loc, ref<texture> const & value, uint32 slot)
 	{
 		get_context()->bind_texture(value.get(), slot);
 

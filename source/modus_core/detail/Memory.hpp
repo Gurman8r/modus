@@ -127,6 +127,8 @@ namespace ml
 // smart pointers
 namespace ml
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// no delete
 	struct no_delete final
 	{
@@ -146,48 +148,51 @@ namespace ml
 		}
 	};
 
-	namespace ds
-	{
-		// shared pointer
-		template <class T
-		> ML_alias ref = typename std::shared_ptr<T>;
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// weak pointer
-		template <class T
-		> ML_alias unown = typename std::weak_ptr<T>;
+	// shared pointer
+	template <class T
+	> ML_alias ref = typename std::shared_ptr<T>;
 
-		// unique pointer
-		template <class T
-		> ML_alias scope = typename std::unique_ptr<T, default_delete<T>>;
+	// weak pointer
+	template <class T
+	> ML_alias unown = typename std::weak_ptr<T>;
 
-		// non-deleting pointer
-		template <class T
-		> ML_alias scary = typename std::unique_ptr<T, no_delete>;
-	}
+	// unique pointer
+	template <class T
+	> ML_alias scope = typename std::unique_ptr<T, default_delete<T>>;
+
+	// non-deleting pointer
+	template <class T
+	> ML_alias scary = typename std::unique_ptr<T, no_delete>;
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class T, class Alloc = pmr::polymorphic_allocator<byte>, class ... Args
-	> ML_NODISCARD ds::ref<T> alloc_ref(Alloc alloc, Args && ... args)
+	> ML_NODISCARD ref<T> alloc_ref(Alloc alloc, Args && ... args)
 	{
 		return std::allocate_shared<T>(alloc, ML_forward(args)...);
 	}
 
 	template <class T, class ... Args
-	> ML_NODISCARD ds::ref<T> make_ref(Args && ... args)
+	> ML_NODISCARD ref<T> make_ref(Args && ... args)
 	{
 		return std::make_shared<T>(ML_forward(args)...);
 	}
 
 	template <class T, class ... Args
-	> ML_NODISCARD ds::scope<T> make_scope(Args && ... args)
+	> ML_NODISCARD scope<T> make_scope(Args && ... args)
 	{
 		return { ML_get_global(memory_manager)->new_object<T>(ML_forward(args)...), default_delete<T>{} };
 	}
 
 	template <class T, class ... Args
-	> ML_NODISCARD ds::scary<T> make_scary(Args && ... args)
+	> ML_NODISCARD scary<T> make_scary(Args && ... args)
 	{
 		return { ML_get_global(memory_manager)->new_object<T>(ML_forward(args)...), no_delete{} };
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 // memory record
@@ -387,17 +392,16 @@ namespace ml
 	private:
 		void * do_allocate(size_t count, size_t size) noexcept
 		{
-			auto const addr{ m_alloc.allocate(count * size) };
+			byte * const addr{ m_alloc.allocate(count * size) };
 
-			return std::get<id_addr>(m_records.push_back
-			(
-				addr, ++m_counter, count, size
-			));
+			m_records.push_back(addr, ++m_counter, count, size);
+
+			return addr;
 		}
 
 		void do_deallocate(void * addr) noexcept
 		{
-			if (auto const i{ m_records.lookup<id_addr>(addr) }; i != m_records.npos)
+			if (size_t const i{ m_records.lookup<id_addr>(addr) }; i != m_records.npos)
 			{
 				m_alloc.deallocate(
 					(byte *)addr,

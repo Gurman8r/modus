@@ -70,7 +70,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void add_vertices(ds::ref<gfx::vertexbuffer> const & value) noexcept
+		void add_vertices(ref<gfx::vertexbuffer> const & value) noexcept
 		{
 			m_vao->add_vertices(value);
 		}
@@ -98,7 +98,7 @@ namespace ml
 			m_vao->set_layout(value);
 		}
 
-		void set_indices(ds::ref<gfx::indexbuffer> const & value) noexcept
+		void set_indices(ref<gfx::indexbuffer> const & value) noexcept
 		{
 			m_vao->set_indices(value);
 		}
@@ -123,18 +123,18 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto get_vertexarray() const & noexcept -> ds::ref<gfx::vertexarray> const & { return m_vao; }
+		auto get_vertexarray() const & noexcept -> ref<gfx::vertexarray> const & { return m_vao; }
 
 		auto get_layout() const & noexcept -> gfx::buffer_layout const & { return m_vao->get_layout(); }
 
-		auto get_indices() const & noexcept -> ds::ref<gfx::indexbuffer> const & { return m_vao->get_indices(); }
+		auto get_indices() const & noexcept -> ref<gfx::indexbuffer> const & { return m_vao->get_indices(); }
 
-		auto get_vertices() const & noexcept -> ds::list<ds::ref<gfx::vertexbuffer>> const & { return m_vao->get_vertices(); }
+		auto get_vertices() const & noexcept -> ds::list<ref<gfx::vertexbuffer>> const & { return m_vao->get_vertices(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::ref<gfx::vertexarray> m_vao;
+		ref<gfx::vertexarray> m_vao;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -74,13 +74,13 @@ namespace ml
 		return Py_IsInitialized();
 	}
 
-	inline bool initialize_interpreter(fs::path const & name, fs::path const & home, pmr::memory_resource * mres = pmr::get_default_resource())
+	ML_NODISCARD inline bool initialize_interpreter(fs::path const & name, fs::path const & home)
 	{
 		ML_assert(!name.empty() && !home.empty());
 		if (Py_IsInitialized()) { return false; }
-		PyObject_SetArenaAllocator(std::invoke([mres, &al = PyObjectArenaAllocator{}]() noexcept
+		PyObject_SetArenaAllocator(std::invoke([&al = PyObjectArenaAllocator{}]() noexcept
 		{
-			al.ctx = mres ? mres : pmr::get_default_resource();
+			al.ctx = pmr::get_default_resource();
 			al.alloc = [](auto mres, size_t s) { return ((pmr::memory_resource *)mres)->allocate(s); };
 			al.free = [](auto mres, void * p, size_t s) { return ((pmr::memory_resource *)mres)->deallocate(p, s); };
 			return &al;
@@ -91,7 +91,7 @@ namespace ml
 		return Py_IsInitialized();
 	}
 
-	inline bool finalize_interpreter()
+	ML_NODISCARD inline bool finalize_interpreter()
 	{
 		return Py_IsInitialized() && (Py_FinalizeEx() == EXIT_SUCCESS);
 	}

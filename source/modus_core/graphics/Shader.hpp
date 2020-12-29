@@ -39,13 +39,14 @@ namespace ml
 
 		static bool parse(fs::path const & path, gfx::program_source & out) noexcept
 		{
-			std::ifstream f{ path }; ML_defer(&f) { f.close(); };
+			std::ifstream f{ path };
+			ML_defer(&f) { f.close(); };
 			return shader_parser::parse(f, out);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class In> static auto make_program(In && in) -> ds::ref<gfx::program>
+		template <class In> static auto make_program(In && in) -> ref<gfx::program>
 		{
 			if (gfx::program_source src{}
 			; !shader_parser::parse(ML_forward(in), src)) { return nullptr; }

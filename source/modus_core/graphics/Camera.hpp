@@ -292,10 +292,8 @@ namespace ml
 			}
 			else
 			{
-				float32 const ortho_height
-				{
-					m_fov[m_is_ortho] * m_resolution[1] / m_resolution[0]
-				};
+				float32 const ortho_height{ m_fov[m_is_ortho] * m_resolution[1] / m_resolution[0] };
+
 				util::orthographic(
 					-m_fov[m_is_ortho],
 					m_fov[m_is_ortho],

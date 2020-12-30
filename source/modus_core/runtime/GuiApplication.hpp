@@ -2,7 +2,7 @@
 #define _ML_GUI_APPLICATION_HPP_
 
 #include <modus_core/runtime/CoreApplication.hpp>
-#include <modus_core/graphics/Viewport.hpp>
+#include <modus_core/graphics/RenderTarget.hpp>
 #include <modus_core/imgui/ImGuiExt.hpp>
 #include <modus_core/scene/Scene.hpp>
 #include <modus_core/window/NativeWindow.hpp>
@@ -43,7 +43,11 @@ namespace ml
 
 		ML_NODISCARD auto frame_index() const noexcept -> uint64 { return m_frame_index; }
 
-		ML_NODISCARD auto frame_rate() const noexcept -> float32 { return m_fps_value; }
+		ML_NODISCARD auto fps_value() const noexcept -> float32 { return m_fps_value; }
+
+		ML_NODISCARD auto fps_index() const noexcept -> size_t { return m_fps_index; }
+
+		ML_NODISCARD auto fps_times() const noexcept -> ds::list<float32> const & { return m_fps_times; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -117,9 +121,9 @@ namespace ml
 // global gui_application
 namespace ml::globals
 {
-	ML_decl_global(gui_application) get() noexcept;
+	ML_decl_global(gui_application) get_global() noexcept;
 
-	ML_decl_global(gui_application) set(gui_application * value) noexcept;
+	ML_decl_global(gui_application) set_global(gui_application * value) noexcept;
 }
 
 #endif // !_ML_GUI_APPLICATION_HPP_

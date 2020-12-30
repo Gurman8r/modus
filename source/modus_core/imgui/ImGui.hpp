@@ -57,6 +57,21 @@ namespace
 	}
 }
 
+// Scope
+namespace ImGui
+{
+	struct ML_NODISCARD ImplScopeID final
+	{
+		template <class ... Args
+		> ImplScopeID(Args && ... args) noexcept { ImGui::PushID(ML_forward(args)...); }
+
+		~ImplScopeID() noexcept { ImGui::PopID(); }
+	};
+
+#define ImGui_Scope(...) \
+	auto ML_anon = ::ImGui::ImplScopeID{ ##__VA_ARGS__ }
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 namespace ml

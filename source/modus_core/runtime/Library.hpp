@@ -9,9 +9,9 @@
 
 namespace ml
 {
-	ML_decl_handle(library_handle); // library handle
-
 	ML_decl_handle(library_id); // library id
+
+	ML_decl_handle(library_handle); // library handle
 
 	// library context
 	struct ML_NODISCARD library_context final
@@ -60,6 +60,24 @@ namespace ml
 			: m_hash	{}
 			, m_path	{}
 			, m_context	{ native_context }
+			, m_handle	{}
+			, m_procs	{ alloc }
+		{
+		}
+
+		library(library_context const & context, allocator_type alloc = {})
+			: m_hash	{}
+			, m_path	{}
+			, m_context	{ context }
+			, m_handle	{}
+			, m_procs	{ alloc }
+		{
+		}
+
+		library(library_context && context, allocator_type alloc = {}) noexcept
+			: m_hash	{}
+			, m_path	{}
+			, m_context	{ std::move(context) }
 			, m_handle	{}
 			, m_procs	{ alloc }
 		{

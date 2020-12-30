@@ -100,12 +100,12 @@ namespace ml::globals
 {
 	static application * g_application{};
 
-	ML_impl_global(application) get() noexcept
+	ML_impl_global(application) get_global() noexcept
 	{
 		return g_application;
 	}
 
-	ML_impl_global(application) set(application * value) noexcept
+	ML_impl_global(application) set_global(application * value) noexcept
 	{
 		return g_application = value;
 	}

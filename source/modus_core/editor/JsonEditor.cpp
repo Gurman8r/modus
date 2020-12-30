@@ -2,8 +2,224 @@
 
 namespace ml
 {
-	bool show_json_editor_ex(json_editor_ex * ex)
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool show_json(json_editor *, std::string const &, json &);
+	bool show_object(json_editor *, std::string const &, json &);
+	bool show_array(json_editor *, std::string const &, json &);
+	bool show_string(json_editor *, std::string const &, json &);
+	bool show_number(json_editor *, std::string const &, json &);
+	bool show_number_float(json_editor *, std::string const &, json &);
+	bool show_number_integer(json_editor *, std::string const &, json &);
+	bool show_number_unsigned(json_editor *, std::string const &, json &);
+	bool show_null(json_editor *, std::string const &, json &);
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool show_json_editor(json_editor * editor)
 	{
-		return false;
+		if (!editor) { return false; }
+
+		ImGui_Scope(editor);
+
+		ML_defer(&) { ImGui::End(); };
+
+		ImGui::SetNextWindowSize({ 430, 450 }, ImGuiCond_FirstUseEver);
+
+		bool const is_open{ ImGui::Begin(
+			editor->title.data(),
+			&editor->open,
+			editor->window_flags
+		) };
+
+		if (is_open)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
+			ImGui::Columns(2);
+			ImGui::Separator();
+			show_json(editor, "root", *editor->context);
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
+		
+		return is_open;
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool show_json(json_editor * editor, std::string const & key, json & value)
+	{
+		if (value.is_object()) { return show_object(editor, key, value); }
+		else if (value.is_array()) { return show_array(editor, key, value); }
+		else if (value.is_string()) { return show_string(editor, key, value); }
+		else if (value.is_number()) { return show_number(editor, key, value); }
+		else if (value.is_null()) { return show_null(editor, key, value); }
+		else { return false; }
+	}
+
+	bool show_object(json_editor * editor, std::string const & key, json & value)
+	{
+		bool changed{};
+		ImGui::AlignTextToFramePadding();
+		bool node_open{ ImGui::TreeNode("object_field", "%.*s", key.size(), key.data()) };
+		ImGui::NextColumn();
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextDisabled("object");
+		ImGui::NextColumn();
+		if (node_open)
+		{
+			for (json::iterator it = value.begin(); it != value.end(); ++it)
+			{
+				ptrdiff_t const i{ std::distance(value.begin(), it) };
+				ImGui_Scope(i);
+				show_json(editor, it.key(), it.value());
+			}
+			ImGui::TreePop();
+		}
+		return changed;
+	}
+
+	bool show_array(json_editor * editor, std::string const & key, json & value)
+	{
+		bool changed{};
+		ImGui::AlignTextToFramePadding();
+		bool node_open{ ImGui::TreeNode("array_field", "%.*s", key.size(), key.data()) };
+		ImGui::NextColumn();
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextDisabled("array");
+		ImGui::NextColumn();
+		if (node_open)
+		{
+			for (json::iterator it = value.begin(); it != value.end(); ++it)
+			{
+				ptrdiff_t const i{ std::distance(value.begin(), it) };
+				ImGui_Scope(i);
+				show_json(editor, std::to_string(i), it.value());
+			}
+			ImGui::TreePop();
+		}
+		return changed;
+	}
+
+	bool show_string(json_editor * editor, std::string const & key, json & value)
+	{
+		bool changed{};
+		ImGui::AlignTextToFramePadding();
+		ImGuiTreeNodeFlags flags{ ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet };
+		ImGui::TreeNodeEx("string_field", flags, "%.*s", key.size(), key.data());
+		ImGui::NextColumn();
+		ImGui::SetNextItemWidth(-1);
+		{
+			ds::string temp{ value };
+			ImGui::Text("%.*s", temp.size(), temp.data());
+			if (changed) {
+				value = temp;
+			}
+		}
+		ImGui::NextColumn();
+		return changed;
+	}
+
+	bool show_number(json_editor * editor, std::string const & key, json & value)
+	{
+		return (value.is_number_float()
+			? show_number_float(editor, key, value)
+			: (value.is_number_integer()
+				? show_number_integer(editor, key, value)
+				: show_number_unsigned(editor, key, value)));
+	}
+
+	bool show_number_float(json_editor * editor, std::string const & key, json & value)
+	{
+		bool changed{};
+		ImGui::AlignTextToFramePadding();
+		ImGuiTreeNodeFlags flags{ ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet };
+		ImGui::TreeNodeEx("float_field", flags, "%.*s", key.size(), key.data());
+		ImGui::NextColumn();
+		ImGui::SetNextItemWidth(-1);
+		{
+			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
+			float32 temp{ value };
+			changed |= ImGui::DragScalar(
+				label,
+				ImGuiDataType_Float,
+				&temp,
+				1.f, 0, 0, "%f",
+				ImGuiSliderFlags_None);
+			if (changed) {
+				value = temp;
+			}
+		}
+		ImGui::NextColumn();
+		return changed;
+	}
+
+	bool show_number_integer(json_editor * editor, std::string const & key, json & value)
+	{
+		bool changed{};
+		ImGui::AlignTextToFramePadding();
+		ImGuiTreeNodeFlags flags{ ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet };
+		ImGui::TreeNodeEx("integer_field", flags, "%.*s", key.size(), key.data());
+		ImGui::NextColumn();
+		ImGui::SetNextItemWidth(-1);
+		{
+			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
+			int32 temp{ value };
+			changed |= ImGui::DragScalar(
+				label,
+				ImGuiDataType_S32,
+				&temp,
+				1.f, 0, 0, "%i",
+				ImGuiSliderFlags_None);
+			if (changed) {
+				value = temp;
+			}
+		}
+		ImGui::NextColumn();
+		return changed;
+	}
+
+	bool show_number_unsigned(json_editor * editor, std::string const & key, json & value)
+	{
+		bool changed{};
+		ImGui::AlignTextToFramePadding();
+		ImGuiTreeNodeFlags flags{ ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet };
+		ImGui::TreeNodeEx("unsigned_field", flags, "%.*s", key.size(), key.data());
+		ImGui::NextColumn();
+		ImGui::SetNextItemWidth(-1);
+		{
+			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
+			uint32 temp{ value };
+			changed |= ImGui::DragScalar(
+				label,
+				ImGuiDataType_U32,
+				&temp,
+				1.f, 0, 0, "%u",
+				ImGuiSliderFlags_None);
+			if (changed) {
+				value = temp;
+			}
+		}
+		ImGui::NextColumn();
+		return changed;
+	}
+
+	bool show_null(json_editor * editor, std::string const & key, json & value)
+	{
+		bool changed{};
+		ImGui::AlignTextToFramePadding();
+		ImGuiTreeNodeFlags flags{ ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet };
+		ImGui::TreeNodeEx("null_field", flags, "%.*s", key.size(), key.data());
+		ImGui::NextColumn();
+		ImGui::SetNextItemWidth(-1);
+		{
+			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
+			ImGui::TextDisabled("null");
+		}
+		ImGui::NextColumn();
+		return changed;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

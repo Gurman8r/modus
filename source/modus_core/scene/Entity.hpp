@@ -19,12 +19,12 @@ namespace ml
 		}
 
 		explicit entity(scene * parent) noexcept
-			: m_parent{ parent }
+			: m_parent{ ML_check(parent) }
 			, m_handle{ m_parent->m_registry.create() }
 		{
 		}
 
-		entity(scene * parent, entt::entity handle) noexcept
+		explicit entity(scene * parent, entt::entity handle) noexcept
 			: m_parent{ parent }
 			, m_handle{ handle }
 		{

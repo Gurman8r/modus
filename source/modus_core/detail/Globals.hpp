@@ -21,48 +21,48 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// get global
+#define ML_get_global(T)			(_ML_GLOBALS get_global<T>())
+
+// set global
+#define ML_set_global(T, value)		(_ML_GLOBALS set_global<T>(value))
+
+// begin global
+#define ML_begin_global(T, value)	(_ML_GLOBALS begin_global<T>(value))
+
+// end global
+#define ML_end_global(T, value)		(_ML_GLOBALS end_global<T>(value))
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 namespace ml::globals
 {
 	// get global
-	template <class T> ML_NODISCARD T * get() noexcept
+	template <class T> ML_NODISCARD T * get_global() noexcept
 	{
 		static_assert(0, "get global not implemented for type");
 		return nullptr;
 	}
 
 	// set global
-	template <class T> ML_NODISCARD T * set(T *) noexcept
+	template <class T> ML_NODISCARD T * set_global(T *) noexcept
 	{
 		static_assert(0, "set global not implemented for type");
 		return nullptr;
 	}
 
 	// begin global
-	template <class T> ML_NODISCARD bool begin(T * value) noexcept
+	template <class T> ML_NODISCARD bool begin_global(T * value) noexcept
 	{
-		return value && (_ML_GLOBALS get<T>() == nullptr) && _ML_GLOBALS set<T>(value);
+		return value && (ML_get_global(T) == nullptr) && ML_set_global(T, value);
 	}
 
 	// end global
-	template <class T> ML_NODISCARD bool end(T * value) noexcept
+	template <class T> ML_NODISCARD bool end_global(T * value) noexcept
 	{
-		return value && (_ML_GLOBALS get<T>() == value) && !_ML_GLOBALS set<T>(nullptr);
+		return value && (ML_get_global(T) == value) && !ML_set_global(T, nullptr);
 	}
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// get global macro
-#define ML_get_global(T)			(_ML_GLOBALS get<T>())
-
-// set global macro
-#define ML_set_global(T, value)		(_ML_GLOBALS set<T>(value))
-
-// begin global macro
-#define ML_begin_global(T, value)	(_ML_GLOBALS begin<T>(value))
-
-// end global macro
-#define ML_end_global(T, value)		(_ML_GLOBALS end<T>(value))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

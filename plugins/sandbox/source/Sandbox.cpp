@@ -150,15 +150,15 @@ namespace ml
 
 			// shaders
 			if (gfx::program_source src{}
-			; shader_parser::parse(path2("plugins/sandbox/resource/shaders/basic_3D.shader"), src))
+			; gfx::parse_source(path2("plugins/sandbox/resource/shaders/basic_3D.shader"), src))
 			{
 				if (src[0]) { m_shaders["vs"] = gfx::shader::create({ 0, { *src[0] } }); }
 				if (src[1]) { m_shaders["ps"] = gfx::shader::create({ 1, { *src[1] } }); }
 			}
 			
 			// programs
-			m_programs["2D"] = shader_parser::make_program(path2("plugins/sandbox/resource/shaders/basic_2D.shader"));
-			m_programs["3D"] = shader_parser::make_program(path2("plugins/sandbox/resource/shaders/basic_3D.shader"));
+			m_programs["2D"] = gfx::parse_program(path2("plugins/sandbox/resource/shaders/basic_2D.shader"));
+			m_programs["3D"] = gfx::parse_program(path2("plugins/sandbox/resource/shaders/basic_3D.shader"));
 
 			// meshes
 			m_meshes["sphere8x6"] = make_ref<mesh>(path2("assets/models/sphere8x6.obj"));
@@ -311,6 +311,21 @@ namespace ml
 			draw_terminal(ev);	// TERMINAL
 			draw_viewport(ev);	// VIEWPORT
 			draw_overlay(ev);	// OVERLAY
+
+			static json_editor jedit{
+				true,
+				"json editor",
+				ML_get_global(application)->attr(),
+				ImGuiWindowFlags_None,
+				json_editor_flags_none,
+				json_object_flags_none,
+				json_array_flags_none,
+				json_float_flags_none,
+				json_integer_flags_none,
+				json_unsigned_flags_none
+			};
+			if (show_json_editor(&jedit)) {
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -406,7 +421,7 @@ namespace ml
 						{
 							mrec.expand_all(i, [&](auto addr, auto index, auto count, auto size)
 							{
-								ImGuiExt_ScopeID(addr);
+								ImGui_Scope(addr);
 								ImGui::TextDisabled("%u", index); ImGui::NextColumn();
 								char buf[20] = ""; std::sprintf(buf, "%p", addr);
 								bool const pressed{ ImGui::Selectable(buf) }; ImGui::NextColumn();
@@ -453,16 +468,19 @@ namespace ml
 
 		void draw_overlay(imgui_event const & ev)
 		{
+			static auto const app{ ML_get_global(application) };
+			static auto const input{ app->get_input() };
+
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, 1 });
 			ML_defer(&) { ImGui::PopStyleVar(1); };
 			m_overlay.Draw(ev->Viewports[0], [&](ImGuiExt::Overlay * o) noexcept
 			{
 				ImGui::TextDisabled("debug");
 				{
-					float32 const fps{ ev->IO.Framerate };
+					float32 const fps{ app->fps_value() };
 					ImGui::Text("%.3f ms/frame ( %.1f fps )", 1000.f / fps, fps);
 
-					float32 const time{ ML_get_global(application)->time().count() };
+					float32 const time{ app->time().count() };
 					ImGui::Text("time: %.2f", time);
 
 					float_rect const & view_rect{ m_viewport.get_rect() };
@@ -474,19 +492,19 @@ namespace ml
 				ImGui::NewLine();
 				ImGui::TextDisabled("input");
 				{
-					vec2 const mouse_pos{ (vec2)ev->IO.MousePos };
+					vec2 const mouse_pos{ input->mouse_pos };
 					if (!ImGui::IsMousePosValid((ImVec2 *)&mouse_pos)) { ImGui::Text("mouse pos: <invalid>"); }
 					else { ImGui::Text("mouse pos: (%.1f,%.1f)", mouse_pos[0], mouse_pos[1]); }
 
-					vec2 const mouse_delta{ (vec2)ev->IO.MouseDelta };
+					vec2 const mouse_delta{ input->mouse_delta };
 					ImGui::Text("mouse delta: (%.1f,%.1f)", mouse_delta[0], mouse_delta[1]);
 
-					float32 const mouse_wheel{ ev->IO.MouseWheel };
+					float32 const mouse_wheel{ input->mouse_wheel };
 					ImGui::Text("mouse wheel: %.1f", mouse_wheel);
 
 					ImGui::Text("mouse: ");
 					for (size_t i = 0; i < mouse_button_MAX; ++i) {
-						if (ev->IO.MouseDown[i]) {
+						if (input->mouse_down[i]) {
 							ImGui::SameLine();
 							ImGui::Text("(b%i:%.2fs)", i, ev->IO.MouseDownDuration[i]);
 						}
@@ -494,17 +512,17 @@ namespace ml
 
 					ImGui::Text("keys: ");
 					for (size_t i = 0; i < keycode_MAX; ++i) {
-						if (ev->IO.KeysDown[i]) {
+						if (input->keys_down[i]) {
 							ImGui::SameLine();
 							ImGui::Text("(%i:%.2fs)", i, ev->IO.KeysDownDuration[i]);
 						}
 					}
 
 					ImGui::Text("mods: %s%s%s%s",
-						ev->IO.KeyShift	? "shift "	: "",
-						ev->IO.KeyCtrl	? "ctrl "	: "",
-						ev->IO.KeyAlt	? "alt "	: "",
-						ev->IO.KeySuper	? "super "	: "");
+						input->is_shift()	? "shift "	: "",
+						input->is_ctrl()	? "ctrl "	: "",
+						input->is_alt()		? "alt "	: "",
+						input->is_super()	? "super "	: "");
 				}
 
 				if (ImGui::BeginPopupContextWindow()) {
@@ -665,7 +683,7 @@ namespace ml
 						// camera editor
 						([](camera & value)
 						{
-							ImGuiExt_ScopeID(&value);
+							ImGui_Scope(&value);
 
 							// clear flags
 							auto cf{ value.get_clear_flags() };
@@ -734,7 +752,7 @@ namespace ml
 						// camera controller editor
 						([](camera_controller & value)
 						{
-							ImGuiExt_ScopeID(&value);
+							ImGui_Scope(&value);
 
 							// controller
 							ImGui::TextDisabled("controller");
@@ -791,7 +809,7 @@ namespace ml
 				// main image
 				ImRect const bb{ ev->CurrentWindow->InnerRect };
 				m_viewport.set_rect((vec4)bb.ToVec4());
-				Widgets::Image(m_framebuffers[0]->get_color_attachments()[0], bb);
+				widgets::show_image(m_framebuffers[0]->get_color_attachments()[0], bb);
 				m_drag_view = ImGui::IsItemHovered() && ImGui::IsMouseDragging(0);
 
 				// gizmos

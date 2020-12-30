@@ -7,78 +7,70 @@
 
 namespace ml::gfx
 {
-	// program source
-	ML_alias program_source = ds::array
-	<
-		std::optional<ds::string>, shader_type_MAX
-	>;
-}
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-namespace ml
-{
-	// shader parser (WIP)
-	class ML_CORE_API shader_parser final
+	// program source
+	ML_alias program_source = ds::array<std::optional<ds::string>, shader_type_MAX>;
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// parse program source
+	ML_CORE_API bool parse_source(std::istream & in, program_source & out);
+
+	template <size_t N
+	> bool parse_source(const char(&in)[N], program_source & out) noexcept
+	{
+		ds::stringstream s{ in };
+		return parse_source(s, out);
+	}
+
+	inline bool parse_source(ds::string const & in, program_source & out) noexcept
+	{
+		ds::stringstream s{ in };
+		return parse_source(s, out);
+	}
+
+	inline bool parse_source(fs::path const & path, program_source & out) noexcept
+	{
+		std::ifstream f{ path };
+		ML_defer(&f) { f.close(); };
+		return parse_source(f, out);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// parse program
+	template <class In> ref<program> parse_program(In && in)
+	{
+		if (program_source src{}; _ML gfx::parse_source(ML_forward(in), src))
+		{
+			ref<program> ptr{ program::create({}) };
+			
+			for (size_t i = 0; i < src.size(); ++i)
+			{
+				if (src[i]) { ptr->attach((uint32)i, *src[i]); }
+			}
+			
+			if (!ptr->link()) { debug::warning(ptr->get_info_log()); }
+			
+			return ptr;
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// shader builder
+	class ML_CORE_API shader_builder final
 	{
 	public:
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static bool parse(std::istream & in, gfx::program_source & out);
-
-		template <size_t N
-		> static bool parse(const char(&in)[N], gfx::program_source & out) noexcept
-		{
-			ds::stringstream s{ in };
-			return shader_parser::parse(s, out);
-		}
-
-		static bool parse(ds::string const & in, gfx::program_source & out) noexcept
-		{
-			ds::stringstream s{ in };
-			return shader_parser::parse(s, out);
-		}
-
-		static bool parse(fs::path const & path, gfx::program_source & out) noexcept
-		{
-			std::ifstream f{ path };
-			ML_defer(&f) { f.close(); };
-			return shader_parser::parse(f, out);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		template <class In> static auto make_program(In && in) -> ref<gfx::program>
-		{
-			if (gfx::program_source src{}
-			; !shader_parser::parse(ML_forward(in), src)) { return nullptr; }
-			else
-			{
-				auto temp{ gfx::program::create({}) };
-				for (size_t i = 0; i < src.size(); ++i)
-				{
-					if (src[i])
-					{
-						temp->attach((uint32)i, *src[i]);
-					}
-				}
-				if (!temp->link())
-				{
-					debug::warning(temp->get_info_log());
-				}
-				return temp;
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		static std::ostream & emit_source(std::ostream & out, json const & in);
 	};
-}
 
-namespace ml
-{
-	// shader library (WIP)
-	struct ML_CORE_API shader_library final
-	{
-		~shader_library() noexcept;
-	};
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_SHADER_HPP_

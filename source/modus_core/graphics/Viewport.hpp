@@ -3,7 +3,8 @@
 
 // WIP
 
-#include <modus_core/graphics/RenderCommand.hpp>
+#include <modus_core/detail/Rect.hpp>
+#include <modus_core/detail/Memory.hpp>
 
 namespace ml
 {
@@ -11,10 +12,10 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
-		using framebuffer_spec	= typename gfx::spec<gfx::framebuffer>;
-		using framebuffer_ref	= typename ref<gfx::framebuffer>;
-		using framebuffer_list	= typename ds::list<framebuffer_ref>;
+	public:
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		viewport(allocator_type alloc = {}) noexcept
 			: m_rect{}

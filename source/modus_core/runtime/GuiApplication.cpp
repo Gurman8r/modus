@@ -263,12 +263,12 @@ namespace ml::globals
 {
 	static gui_application * g_gui_application{};
 
-	ML_impl_global(gui_application) get() noexcept
+	ML_impl_global(gui_application) get_global() noexcept
 	{
 		return g_gui_application;
 	}
 
-	ML_impl_global(gui_application) set(gui_application * value) noexcept
+	ML_impl_global(gui_application) set_global(gui_application * value) noexcept
 	{
 		return g_gui_application = value;
 	}

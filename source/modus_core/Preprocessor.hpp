@@ -50,18 +50,20 @@
 #else
 #	define ML_anon_ex(expr)		ML_cat(_, ML_cat(expr, _))
 #endif
-#define ML_anon					ML_anon_ex(anonymous) // anonymous
+
+// anonymous
+#define ML_anon					ML_anon_ex(anon)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // handle format
-#ifndef ML_IMPL_HANDLE
-#define ML_IMPL_HANDLE(name)	ML_cat(_ml_, ML_cat(name, _))
+#ifndef ML_FMT_HANDLE
+#define ML_FMT_HANDLE(name)		ML_cat(name, __)
 #endif
 
 // declare handle
-#define ML_decl_handle(name)	struct ML_IMPL_HANDLE(name) { _ML int32 unused; }; \
-								ML_alias name = typename ML_IMPL_HANDLE(name) *
+#define ML_decl_handle(name)	struct ML_FMT_HANDLE(name) { int unused; }; \
+								ML_alias name = typename ML_FMT_HANDLE(name) *
 
 // handle cast
 #define ML_handle(type, value)	((type)(_ML intptr_t)(value))

@@ -4,6 +4,11 @@
 #include <modus_core/detail/BatchVector.hpp>
 #include <modus_core/detail/Globals.hpp>
 
+// cleanup memory leaks
+#ifndef ML_IMPL_CLEANUP
+#define ML_IMPL_CLEANUP 0
+#endif
+
 // passthrough resource
 namespace ml
 {
@@ -183,13 +188,17 @@ namespace ml
 	template <class T, class ... Args
 	> ML_NODISCARD scope<T> make_scope(Args && ... args)
 	{
-		return { ML_get_global(memory_manager)->new_object<T>(ML_forward(args)...), default_delete<T>{} };
+		static auto const g{ ML_get_global(memory_manager) };
+
+		return { g->new_object<T>(ML_forward(args)...), default_delete<T>{} };
 	}
 
 	template <class T, class ... Args
 	> ML_NODISCARD scary<T> make_scary(Args && ... args)
 	{
-		return { ML_get_global(memory_manager)->new_object<T>(ML_forward(args)...), no_delete{} };
+		static auto const g{ ML_get_global(memory_manager) };
+
+		return { g->new_object<T>(ML_forward(args)...), no_delete{} };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -427,9 +436,9 @@ namespace ml
 // global memory manager
 namespace ml::globals
 {
-	ML_decl_global(memory_manager) get() noexcept;
+	ML_decl_global(memory_manager) get_global() noexcept;
 
-	ML_decl_global(memory_manager) set(memory_manager * value) noexcept;
+	ML_decl_global(memory_manager) set_global(memory_manager * value) noexcept;
 }
 
 // c-like memory interface
@@ -466,11 +475,11 @@ namespace ml
 	}
 }
 
-#define ML_free(addr)							ML_get_global(_ML memory_manager)->deallocate(addr)
-#define ML_malloc(size)							ML_get_global(_ML memory_manager)->allocate(size)
-#define ML_calloc(count, size)					ML_get_global(_ML memory_manager)->allocate(count, size)
-#define ML_realloc(addr, size)					ML_get_global(_ML memory_manager)->reallocate(addr, size)
-#define ML_realloc_sized(addr, oldsz, newsz)	ML_get_global(_ML memory_manager)->reallocate(addr, oldsz, newsz)
+#define ML_free(addr)							(ML_get_global(_ML memory_manager)->deallocate(addr))
+#define ML_malloc(size)							(ML_get_global(_ML memory_manager)->allocate(size))
+#define ML_calloc(count, size)					(ML_get_global(_ML memory_manager)->allocate(count, size))
+#define ML_realloc(addr, size)					(ML_get_global(_ML memory_manager)->reallocate(addr, size))
+#define ML_realloc_sized(addr, oldsz, newsz)	(ML_get_global(_ML memory_manager)->reallocate(addr, oldsz, newsz))
 
 // trackable
 namespace ml

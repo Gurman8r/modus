@@ -63,19 +63,19 @@ namespace ml
 		template <class Arg0, class ... Args
 		> ML_NODISCARD auto attr(Arg0 && arg0, Args && ... args) noexcept -> json *
 		{
-			return util::json_find(&m_attributes, ML_forward(arg0), ML_forward(args)...);
+			return util::find_json(&m_attributes, ML_forward(arg0), ML_forward(args)...);
 		}
 
 		template <class Arg0, class ... Args
 		> ML_NODISCARD auto attr(Arg0 && arg0, Args && ... args) const noexcept -> json const *
 		{
-			return util::json_find(&m_attributes, ML_forward(arg0), ML_forward(args)...);
+			return util::find_json(&m_attributes, ML_forward(arg0), ML_forward(args)...);
 		}
 
 		template <class Arg0, class ... Args
 		> ML_NODISCARD bool has_attr(Arg0 && arg0, Args && ... args) const noexcept
 		{
-			return util::json_contains(m_attributes, ML_forward(arg0), ML_forward(args)...);
+			return util::has_json(m_attributes, ML_forward(arg0), ML_forward(args)...);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -144,9 +144,9 @@ namespace ml
 // global core_application
 namespace ml::globals
 {
-	ML_decl_global(core_application) get() noexcept;
+	ML_decl_global(core_application) get_global() noexcept;
 
-	ML_decl_global(core_application) set(core_application * value) noexcept;
+	ML_decl_global(core_application) set_global(core_application * value) noexcept;
 }
 
 #endif // !_ML_CORE_APPLICATION_HPP_

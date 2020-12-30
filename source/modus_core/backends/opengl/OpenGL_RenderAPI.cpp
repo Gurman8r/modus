@@ -91,6 +91,15 @@ namespace ml::gfx
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	void opengl_render_device::set_context(ref<render_context> const & value) noexcept
+	{
+		m_context = value;
+
+		ML_glCheck(glBindProgramPipeline(value ? ML_handle(uint32, value->get_handle()) : NULL));
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	ref<render_context> opengl_render_device::new_context(spec<render_context> const & desc, allocator_type alloc) noexcept
 	{
 		auto sp{ alloc_ref<opengl_render_context>(alloc, this, desc) };

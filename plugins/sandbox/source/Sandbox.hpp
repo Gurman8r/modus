@@ -10,16 +10,18 @@
 #include <modus_core/runtime/Application.hpp>
 #include <modus_core/scene/Components.hpp>
 
+#include <modus_core/editor/JsonEditor.hpp>
+
 #include <modus_core/events/RuntimeEvents.hpp>
 #include <modus_core/events/ImGuiEvents.hpp>
 #include <modus_core/events/InputEvents.hpp>
 #include <modus_core/events/SceneEvents.hpp>
 #include <modus_core/events/WindowEvents.hpp>
 
-namespace ml::Widgets
+namespace ml::widgets
 {
 	template <class ID = ImTextureID
-	> void Image(ID const & tex, ImRect const & bb, ImVec2 const & uv0 = { 0, 1 }, ImVec2 const & uv1 = { 1, 0 }, uint32 tint = 0xffffffff)
+	> void show_image(ID const & tex, ImRect const & bb, ImVec2 const & uv0 = { 0, 1 }, ImVec2 const & uv1 = { 1, 0 }, uint32 tint = 0xffffffff)
 	{
 		if constexpr (std::is_scalar_v<std::decay_t<decltype(tex)>>)
 		{
@@ -32,7 +34,7 @@ namespace ml::Widgets
 		}
 		else
 		{
-			Widgets::Image((ImTextureID)(tex ? tex->get_handle() : NULL), bb, uv0, uv1, tint);
+			widgets::show_image((ImTextureID)(tex ? tex->get_handle() : NULL), bb, uv0, uv1, tint);
 		}
 	}
 }

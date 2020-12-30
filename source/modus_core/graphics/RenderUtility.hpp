@@ -11,9 +11,11 @@ namespace ml::gfx
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	ML_decl_handle(object_id); // object handle
+
 	ML_decl_handle(uniform_id); // uniform location
 
 	ML_alias addr_t = typename void const *; // data address
+	
 	ML_alias buffer_t = typename ds::list<byte>; // byte buffer
 
 	template <class ...> struct spec; // object specification
@@ -308,9 +310,9 @@ namespace ml::gfx
 
 	constexpr cstring shader_type_NAMES[] =
 	{
-		"vertex shader",
-		"fragment shader",
-		"geometry shader",
+		"vertex",
+		"pixel",
+		"geometry",
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -329,10 +331,10 @@ namespace ml::gfx
 	// texture type names
 	constexpr cstring texture_type_NAMES[] =
 	{
-		"texture 1d",
-		"texture 2d",
-		"texture 3d",
-		"texture cube map",
+		"texture1d",
+		"texture2d",
+		"texture3d",
+		"texturecube",
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -503,30 +505,30 @@ namespace ml::gfx
 			>
 		};
 
-		cstring	name		{};
-		hash_t	type		{};
-		uint32	size		{};
-		bool	normalized	{};
-		uint32	offset		{};
+		ds::string	name		{};
+		hash_t		type		{};
+		uint32		size		{};
+		bool		normalized	{};
+		uint32		offset		{};
 
-		constexpr buffer_element(cstring name, hash_t type, uint32 size, bool normalized) noexcept
+		buffer_element(ds::string const & name, hash_t type, uint32 size, bool normalized) noexcept
 			: name{ name }, type{ type }, size{ size }, normalized{ normalized }, offset{}
 		{
 		}
 
 		template <class Elem
-		> constexpr buffer_element(Elem, cstring name, bool normalized = false) noexcept
+		> buffer_element(Elem, cstring name, bool normalized = false) noexcept
 			: buffer_element{ name, hashof_v<Elem>, sizeof(Elem), normalized }
 		{
 			static_assert(is_valid_type<Elem>);
 		}
 
-		constexpr hash_t get_base_type() const noexcept
+		ML_NODISCARD hash_t get_base_type() const noexcept
 		{
 			return _ML gfx::get_element_base_type(type);
 		}
 
-		constexpr uint32 get_component_count() const noexcept
+		ML_NODISCARD uint32 get_component_count() const noexcept
 		{
 			return _ML gfx::get_element_component_count(type);
 		}
@@ -542,13 +544,6 @@ namespace ml::gfx
 		using const_iterator			= typename storage_type::const_iterator;
 		using reverse_iterator			= typename storage_type::reverse_iterator;
 		using const_reverse_iterator	= typename storage_type::const_reverse_iterator;
-
-		static constexpr buffer_element default_3d[] =
-		{
-			{ vec3{}, "a_position"	},
-			{ vec3{}, "a_normal"	},
-			{ vec2{}, "a_texcoord"	},
-		};
 
 		template <class It
 		> buffer_layout(It first, It last) noexcept
@@ -574,7 +569,11 @@ namespace ml::gfx
 		{
 		}
 
-		buffer_layout() noexcept : buffer_layout{ default_3d }
+		buffer_layout() noexcept : buffer_layout{ {
+			{ vec3{}, "a_position"	},
+			{ vec3{}, "a_normal"	},
+			{ vec2{}, "a_texcoord"	},
+		} }
 		{
 		}
 

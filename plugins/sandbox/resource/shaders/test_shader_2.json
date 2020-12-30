@@ -1,0 +1,42 @@
+{
+    "name": "test",
+    "version": "latest",
+    "profile": "core",
+
+    "layout": {
+        "Position": { "type": "float", "count": 3 },
+        "Normal": { "type": "float", "count": 3 },
+        "Texcoord": { "type": "float", "count": 2 }
+    },
+
+    "properties": {
+        "ModelMatrix": { "type": "float", "count": 16 },
+        "ViewMatrix": { "type": "float", "count": 16 },
+        "ProjMatrix": { "type": "float", "count": 16 },
+        "Color": { "type": "float", "count": 4 },
+        "Texture0": { "type": "texture2d", "count": 1 }
+    },
+
+    "main": {
+        "vertex": {
+            "properties": {
+                "ModelMatrix": { "type": "float", "count": 16 },
+                "ViewMatrix": { "type": "float", "count": 16 },
+                "ProjMatrix": { "type": "float", "count": 16 },
+            },
+            "return": [
+                "(ProjMatrix * ViewMatrix * ModelMatrix) * vec4(Position, 1.0)"
+            ]
+        },
+
+        "pixel": {
+            "buffers": [
+                "MainColor",
+                "MainTexture"
+            ],
+            "return": [
+                "MainColor * texture(MainTexture, Texcoord)"
+            ]
+        }
+    }
+}

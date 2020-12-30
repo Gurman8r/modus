@@ -1,16 +1,26 @@
 #include <modus_core/graphics/Shader.hpp>
 
-namespace ml
+#ifdef ML_IMPL_RENDERER_OPENGL
+#include <modus_core/backends/opengl/OpenGL_Shader.hpp>
+using impl_builder	= _ML gfx::opengl_shader_builder;
+using impl_program	= _ML gfx::opengl_program;
+using impl_shader	= _ML gfx::opengl_shader;
+#else
+#error "shader is unavailable"
+#endif
+
+namespace ml::gfx
 {
-	bool shader_parser::parse(std::istream & in, gfx::program_source & out)
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	bool parse_source(std::istream & in, program_source & out)
 	{
 		if (!in) { return false; }
 
-		ds::array<ds::stringstream, gfx::shader_type_MAX> src{};
-
+		ds::array<ds::stringstream, shader_type_MAX> src{};
 		ds::stringstream * dst{ &src[0] };
-
 		ds::string line{};
+		
 		while (std::getline(in, line))
 		{
 			if (line.empty() || util::trim(line).empty()) { continue; }
@@ -18,13 +28,13 @@ namespace ml
 			{
 				auto const toks{ util::tokenize(line, "# ") };
 
-				if ((toks.size() == 3) && (toks[0] == "pragma") && (toks[1] == "shader"))
+				if ((3 == toks.size()) && (toks[0] == "pragma") && (toks[1] == "shader"))
 				{
 					switch (hashof(toks[2]))
 					{
-					case hashof("vertex")	: dst = &src[gfx::shader_type_vertex]; break;
-					case hashof("pixel")	: dst = &src[gfx::shader_type_pixel]; break;
-					case hashof("geometry")	: dst = &src[gfx::shader_type_geometry]; break;
+					case hashof("vertex")	: dst = &src[shader_type_vertex]; break;
+					case hashof("pixel")	: dst = &src[shader_type_pixel]; break;
+					case hashof("geometry")	: dst = &src[shader_type_geometry]; break;
 					}
 				}
 				else
@@ -48,9 +58,13 @@ namespace ml
 
 		return true;
 	}
-}
 
-namespace ml
-{
-	shader_library::~shader_library() noexcept {}
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	
+	std::ostream & shader_builder::emit_source(std::ostream & out, json const & in)
+	{
+		return impl_builder::emit_source(out, in);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

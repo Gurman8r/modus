@@ -3,7 +3,7 @@
 
 #include <modus_core/imgui/ImGui.hpp>
 
-namespace ml
+namespace ml::widgets
 {
 
 }

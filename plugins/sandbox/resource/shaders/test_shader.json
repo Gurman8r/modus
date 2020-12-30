@@ -1,16 +1,34 @@
 {
-    "layout": [
-        { "name": "Position", "type": "float", "count": 3 },
-        { "name": "Normal", "type": "float", "count": 3 },
-        { "name": "Texcoord", "type": "float", "count": 2 }
-    ],
-    "properties": [
-        { "name": "Model", "type": "float", "count": 16 },
-        { "name": "View", "type": "float", "count": 16 },
-        { "name": "Proj", "type": "float", "count": 16 }
-    ],
     "main_vertex": {
+        "shader": "vertex",
+        "layout": [
+            { "name": "Position", "type": "float", "count": 3 },
+            { "name": "Normal", "type": "float", "count": 3 },
+            { "name": "Texcoord", "type": "float", "count": 2 }
+        ],
+        "buffer": [
+            { "name": "Model", "type": "float", "count": 16 },
+            { "name": "View", "type": "float", "count": 16 },
+            { "name": "Proj", "type": "float", "count": 16 }
+        ],
+        "result": [
+            "(%u{Proj} * %u{View} * %u{Model}) * float4(%v{Position}, 1.0)"
+        ]
     },
+
     "main_pixel": {
+        "shader": 0,
+        "layout": [
+            { "name": "Position", "type": "float", "count": 3 },
+            { "name": "Normal", "type": "float", "count": 3 },
+            { "name": "Texcoord", "type": "float", "count": 2 }
+        ],
+        "buffer": [
+            { "name": "Color", "type": "float", "count": 4 },
+            { "name": "Texture0", "type": "texture2d", "count": 1 }
+        ],
+        "result": [
+            "%u{Color} * texture2d(%u{Texture0}, %v{Texcoord})"
+        ]
     }
 }

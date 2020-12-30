@@ -54,12 +54,12 @@ namespace ml::globals
 {
 	static core_application * g_core_application{};
 
-	ML_impl_global(core_application) get() noexcept
+	ML_impl_global(core_application) get_global() noexcept
 	{
 		return g_core_application;
 	}
 
-	ML_impl_global(core_application) set(core_application * value) noexcept
+	ML_impl_global(core_application) set_global(core_application * value) noexcept
 	{
 		return g_core_application = value;
 	}

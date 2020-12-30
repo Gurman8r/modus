@@ -26,13 +26,13 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Arg0, class ... Args
-		> ML_NODISCARD bool json_contains(json const & j, Arg0 && arg0, Args && ... args)
+		> ML_NODISCARD bool has_json(json const & j, Arg0 && arg0, Args && ... args)
 		{
 			if constexpr (0 < sizeof...(args))
 			{
 				json::const_iterator const it{ j.find(ML_forward(arg0)) };
 
-				return (it != j.end()) && util::json_contains(*it, ML_forward(args)...);
+				return (it != j.end()) && util::has_json(*it, ML_forward(args)...);
 			}
 			else
 			{
@@ -43,7 +43,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class JsonPtr, class Arg0, class ... Args
-		> ML_NODISCARD auto json_find(JsonPtr j, Arg0 && arg0, Args && ... args) -> JsonPtr
+		> ML_NODISCARD auto find_json(JsonPtr j, Arg0 && arg0, Args && ... args) -> JsonPtr
 		{
 			static_assert(std::is_pointer_v<decltype(j)>);
 			if (!j)
@@ -52,7 +52,7 @@ namespace ml
 			}
 			else if constexpr (0 < sizeof...(args))
 			{
-				return util::json_find(util::json_find(j, ML_forward(arg0)), ML_forward(args)...);
+				return util::find_json(util::find_json(j, ML_forward(arg0)), ML_forward(args)...);
 			}
 			else if (auto const it{ j->find(ML_forward(arg0)) }; it != j->end())
 			{

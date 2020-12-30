@@ -13,7 +13,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		mesh(uint32 mode = gfx::primitive_triangles) noexcept
-			: m_vao{ gfx::vertexarray::create({ mode }) }
+			: m_va{ gfx::vertexarray::create({ mode }) }
 		{
 		}
 
@@ -47,7 +47,7 @@ namespace ml
 		{
 		}
 
-		mesh(mesh && other) noexcept : m_vao{}
+		mesh(mesh && other) noexcept : m_va{}
 		{
 			swap(std::move(other));
 		}
@@ -64,7 +64,7 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				m_vao.swap(other.m_vao);
+				m_va.swap(other.m_va);
 			}
 		}
 
@@ -72,35 +72,35 @@ namespace ml
 
 		void add_vertices(ref<gfx::vertexbuffer> const & value) noexcept
 		{
-			m_vao->add_vertices(value);
+			m_va->add_vertices(value);
 		}
 
 		void add_vertices(ds::list<float32> const & value) noexcept
 		{
 			if (value.empty())
 			{
-				add_vertices(gfx::make_vertexbuffer(
+				add_vertices(gfx::vertexbuffer::create({
 					gfx::usage_dynamic,
 					0u,
-					nullptr));
+					nullptr }));
 			}
 			else
 			{
-				add_vertices(gfx::make_vertexbuffer(
+				add_vertices(gfx::vertexbuffer::create({
 					gfx::usage_static,
 					value.size(),
-					value.data()));
+					value.data() }));
 			}
 		}
 
 		void set_layout(gfx::buffer_layout const & value) noexcept
 		{
-			m_vao->set_layout(value);
+			m_va->set_layout(value);
 		}
 
 		void set_indices(ref<gfx::indexbuffer> const & value) noexcept
 		{
-			m_vao->set_indices(value);
+			m_va->set_indices(value);
 		}
 
 		void set_indices(ds::list<uint32> const & value) noexcept
@@ -108,10 +108,10 @@ namespace ml
 			if (value.empty()) { set_indices(nullptr); }
 			else
 			{
-				set_indices(gfx::make_indexbuffer(
+				set_indices(gfx::indexbuffer::create({
 					gfx::usage_static,
 					value.size(),
-					value.data()));
+					value.data() }));
 			}
 		}
 
@@ -123,18 +123,18 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto get_vertexarray() const & noexcept -> ref<gfx::vertexarray> const & { return m_vao; }
+		auto get_vertexarray() const & noexcept -> ref<gfx::vertexarray> const & { return m_va; }
 
-		auto get_layout() const & noexcept -> gfx::buffer_layout const & { return m_vao->get_layout(); }
+		auto get_layout() const & noexcept -> gfx::buffer_layout const & { return m_va->get_layout(); }
 
-		auto get_indices() const & noexcept -> ref<gfx::indexbuffer> const & { return m_vao->get_indices(); }
+		auto get_indices() const & noexcept -> ref<gfx::indexbuffer> const & { return m_va->get_indices(); }
 
-		auto get_vertices() const & noexcept -> ds::list<ref<gfx::vertexbuffer>> const & { return m_vao->get_vertices(); }
+		auto get_vertices() const & noexcept -> ds::list<ref<gfx::vertexbuffer>> const & { return m_va->get_vertices(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ref<gfx::vertexarray> m_vao;
+		ref<gfx::vertexarray> m_va;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

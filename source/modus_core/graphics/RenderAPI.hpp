@@ -139,14 +139,14 @@ namespace ml::gfx
 
 	// allocate device
 	template <class ... Args
-	> ML_NODISCARD auto alloc_device(render_device::allocator_type alloc, Args && ... args) noexcept
+	> ML_NODISCARD render_device * alloc_device(render_device::allocator_type alloc, Args && ... args) noexcept
 	{
 		return render_device::create(render_device::spec_type{ ML_forward(args)... }, alloc);
 	}
 
 	// make device
 	template <class ... Args
-	> ML_NODISCARD auto make_device(Args && ... args) noexcept
+	> ML_NODISCARD render_device * make_device(Args && ... args) noexcept
 	{
 		return render_device::create(render_device::spec_type{ ML_forward(args)... });
 	}
@@ -161,9 +161,9 @@ namespace ml::gfx
 // global render device
 namespace ml::globals
 {
-	ML_decl_global(gfx::render_device) get() noexcept;
+	ML_decl_global(gfx::render_device) get_global() noexcept;
 
-	ML_decl_global(gfx::render_device) set(gfx::render_device * value) noexcept;
+	ML_decl_global(gfx::render_device) set_global(gfx::render_device * value) noexcept;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -384,20 +384,6 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	// allocate context
-	template <class ... Args
-	> ML_NODISCARD auto alloc_context(render_context::allocator_type alloc, Args && ... args) noexcept
-	{
-		return render_context::create(render_context::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make context
-	template <class ... Args
-	> ML_NODISCARD auto make_context(Args && ... args) noexcept
-	{
-		return render_context::create(render_context::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -469,20 +455,6 @@ namespace ml::gfx
 			get_context()->bind_vertexarray(nullptr);
 		}
 	};
-
-	// allocate vertexarray
-	template <class ... Args
-	> ML_NODISCARD auto alloc_vertexarray(vertexarray::allocator_type alloc, Args && ... args) noexcept
-	{
-		return vertexarray::create(vertexarray::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make vertexarray
-	template <class ... Args
-	> ML_NODISCARD auto make_vertexarray(Args && ... args) noexcept
-	{
-		return vertexarray::create(vertexarray::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -554,20 +526,6 @@ namespace ml::gfx
 			get_context()->bind_vertexbuffer(nullptr);
 		}
 	};
-
-	// allocate vertexbuffer
-	template <class ... Args
-	> ML_NODISCARD auto alloc_vertexbuffer(vertexbuffer::allocator_type alloc, Args && ... args) noexcept
-	{
-		return vertexbuffer::create(vertexbuffer::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make vertexbuffer
-	template <class ... Args
-	> ML_NODISCARD auto make_vertexbuffer(Args && ... args) noexcept
-	{
-		return vertexbuffer::create(vertexbuffer::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -641,20 +599,6 @@ namespace ml::gfx
 			get_context()->bind_indexbuffer(nullptr);
 		}
 	};
-
-	// allocate indexbuffer
-	template <class ... Args
-	> ML_NODISCARD auto alloc_indexbuffer(indexbuffer::allocator_type alloc, Args && ... args) noexcept
-	{
-		return indexbuffer::create(indexbuffer::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make indexbuffer
-	template <class ... Args
-	> ML_NODISCARD auto make_indexbuffer(Args && ... args) noexcept
-	{
-		return indexbuffer::create(indexbuffer::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -851,20 +795,6 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 	};
-
-	// allocate texture2d
-	template <class ... Args
-	> ML_NODISCARD auto alloc_texture2d(texture2d::allocator_type alloc, Args && ... args) noexcept
-	{
-		return texture2d::create(texture2d::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make texture2d
-	template <class ... Args
-	> ML_NODISCARD auto make_texture2d(Args && ... args) noexcept
-	{
-		return texture2d::create(texture2d::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -934,20 +864,6 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 	};
-
-	// allocate texture3d
-	template <class ... Args
-	> ML_NODISCARD auto alloc_texture3d(texture3d::allocator_type alloc, Args && ... args) noexcept
-	{
-		return texture3d::create(texture3d::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make texture3d
-	template <class ... Args
-	> ML_NODISCARD auto make_texture3d(Args && ... args) noexcept
-	{
-		return texture3d::create(texture3d::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1015,20 +931,6 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 	};
-
-	// allocate texturecube
-	template <class ... Args
-	> ML_NODISCARD auto alloc_texturecube(texturecube::allocator_type alloc, Args && ... args) noexcept
-	{
-		return texturecube::create(texturecube::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make texturecube
-	template <class ... Args
-	> ML_NODISCARD auto make_texturecube(Args && ... args) noexcept
-	{
-		return texturecube::create(texturecube::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1143,20 +1045,6 @@ namespace ml::gfx
 			);
 		}
 	};
-
-	// allocate framebuffer
-	template <class ... Args
-	> ML_NODISCARD auto alloc_framebuffer(framebuffer::allocator_type alloc, Args && ... args) noexcept
-	{
-		return framebuffer::create(framebuffer::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make framebuffer
-	template <class ... Args
-	> ML_NODISCARD auto make_framebuffer(Args && ... args) noexcept
-	{
-		return framebuffer::create(framebuffer::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1270,20 +1158,6 @@ namespace ml::gfx
 	protected:
 		virtual void do_cache_texture(uniform_id loc, ref<texture> const & value) noexcept = 0;
 	};
-
-	// allocate program
-	template <class ... Args
-	> ML_NODISCARD auto alloc_program(program::allocator_type alloc, Args && ... args) noexcept
-	{
-		return program::create(program::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make program
-	template <class ... Args
-	> ML_NODISCARD auto make_program(Args && ... args) noexcept
-	{
-		return program::create(program::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1422,20 +1296,6 @@ namespace ml::gfx
 
 		virtual void do_upload(uniform_id loc, ref<texture> const & value, uint32 slot = 0) = 0;
 	};
-
-	// allocate shader
-	template <class ... Args
-	> ML_NODISCARD auto alloc_shader(shader::allocator_type alloc, Args && ... args) noexcept
-	{
-		return shader::create(shader::spec_type{ ML_forward(args)... }, alloc);
-	}
-
-	// make shader
-	template <class ... Args
-	> ML_NODISCARD auto make_shader(Args && ... args) noexcept
-	{
-		return shader::create(shader::spec_type{ ML_forward(args)... });
-	}
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

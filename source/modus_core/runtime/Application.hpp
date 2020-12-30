@@ -42,9 +42,9 @@ namespace ml
 // global application
 namespace ml::globals
 {
-	ML_decl_global(application) get() noexcept;
+	ML_decl_global(application) get_global() noexcept;
 
-	ML_decl_global(application) set(application * value) noexcept;
+	ML_decl_global(application) set_global(application * value) noexcept;
 }
 
 #endif // !_ML_APPLICATION_HPP_

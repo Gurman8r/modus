@@ -56,7 +56,7 @@ namespace ml::gfx
 
 		ref<render_context> const & get_context() const noexcept final { return m_context; }
 
-		void set_context(ref<render_context> const & value) noexcept final { m_context = value; }
+		void set_context(ref<render_context> const & value) noexcept final;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

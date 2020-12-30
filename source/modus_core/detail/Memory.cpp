@@ -1,9 +1,5 @@
 #include <modus_core/detail/Memory.hpp>
 
-#ifndef ML_CLEANUP_LEAKS
-#define ML_CLEANUP_LEAKS false
-#endif
-
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -19,11 +15,11 @@ namespace ml
 
 	memory_manager::~memory_manager() noexcept
 	{
-#if ML_CLEANUP_LEAKS
+#if ML_IMPL_CLEANUP
 		while (!m_records.empty()) { this->deallocate(m_records.back<id_addr>()); }
-#else
-		ML_verify("MEMORY LEAKS DETECTED" && m_records.empty());
 #endif
+		ML_verify("MEMORY LEAKS DETECTED" && m_records.empty());
+		
 		ML_verify(ML_end_global(memory_manager, this));
 	}
 
@@ -35,12 +31,12 @@ namespace ml::globals
 {
 	static memory_manager * g_memory_manager{};
 
-	ML_impl_global(memory_manager) get() noexcept
+	ML_impl_global(memory_manager) get_global() noexcept
 	{
 		return g_memory_manager;
 	}
 
-	ML_impl_global(memory_manager) set(memory_manager * value) noexcept
+	ML_impl_global(memory_manager) set_global(memory_manager * value) noexcept
 	{
 		return g_memory_manager = value;
 	}

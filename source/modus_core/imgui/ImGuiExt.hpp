@@ -1,27 +1,10 @@
 #ifndef _ML_IMGUI_EXT_HPP_
 #define _ML_IMGUI_EXT_HPP_
 
+// FIXME: system needs a rework
+
 #include <modus_core/detail/Method.hpp>
 #include <modus_core/imgui/ImGui.hpp>
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// SCOPE ID
-namespace ml::ImGuiExt::impl
-{
-	// scoped imgui id
-	struct ML_NODISCARD ImplScopeID final
-	{
-		template <class ... Args
-		> ImplScopeID(Args && ... args) noexcept { ImGui::PushID(ML_forward(args)...); }
-
-		~ImplScopeID() noexcept { ImGui::PopID(); }
-	};
-}
-
-// Scope ID
-#define ImGuiExt_ScopeID(...) \
-	auto ML_anon = _ML ImGuiExt::impl::ImplScopeID{ ##__VA_ARGS__ }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -245,7 +228,7 @@ namespace ml::ImGuiExt
 		> bool Draw(Fn && fn, Args && ... args) noexcept
 		{
 			if (!IsOpen) { return false; }
-			ImGuiExt_ScopeID(this);
+			ImGui_Scope(this);
 			return ImGuiExt::BeginEnd
 			(
 				std::bind(&ImGui::Begin, Title, &IsOpen, WindowFlags),
@@ -328,7 +311,7 @@ namespace ml::ImGuiExt
 		template <class Fn> bool Draw(ImGuiViewport * vp, Fn && fn) noexcept
 		{
 			if (!IsOpen) { return false; }
-			ImGuiExt_ScopeID(this);
+			ImGui_Scope(this);
 			return ImGuiExt::DrawSimpleOverlay
 			(
 				vp,
@@ -527,7 +510,7 @@ namespace ml::ImGuiExt
 
 			if (!vp) { ML_verify(vp = ImGui::GetMainViewport()); }
 
-			ImGuiExt_ScopeID(this);
+			ImGui_Scope(this);
 			ImGui::SetNextWindowPos(vp->Pos);
 			ImGui::SetNextWindowSize(vp->Size);
 			ImGui::SetNextWindowViewport(vp->ID);
@@ -809,7 +792,7 @@ namespace ml::ImGuiExt
 {
 	inline bool EditVec3(cstring label, float32 * value, float32 spd = 0.001f, float32 min = 0.f, float32 max = 0.f, cstring fmt = "%.3f", float32 reset_value = 0.f, float32 column_width = 100.f)
 	{
-		ImGuiExt_ScopeID(label);
+		ImGui_Scope(label);
 		bool dirty{};
 		ImGuiIO & io{ ImGui::GetIO() };
 
@@ -891,7 +874,7 @@ namespace ml::ImGuiExt
 
 		bool Manipulate(float32 const * view, float32 const * proj, float32 * value, float32 * delta = {})
 		{
-			ImGuiExt_ScopeID(this);
+			ImGui_Scope(this);
 			return ImGuizmo::Manipulate
 			(
 				view,
@@ -910,7 +893,7 @@ namespace ml::ImGuiExt
 
 		void ShowOperationControls()
 		{
-			ImGuiExt_ScopeID(this);
+			ImGui_Scope(this);
 			ImGui::BeginGroup();
 			if (ImGui::RadioButton("translate", Operation == ImGuizmo::TRANSLATE)) { Operation = ImGuizmo::TRANSLATE; }
 			ImGui::SameLine();
@@ -922,7 +905,7 @@ namespace ml::ImGuiExt
 
 		void ShowModeControls()
 		{
-			ImGuiExt_ScopeID(this);
+			ImGui_Scope(this);
 			bool const is_scale{ Operation == ImGuizmo::SCALE };
 			ImGui::BeginGroup();
 			if (ImGui::RadioButton("local", !is_scale && Mode == ImGuizmo::LOCAL)) { Mode = ImGuizmo::LOCAL; }
@@ -933,7 +916,7 @@ namespace ml::ImGuiExt
 
 		void ShowSnapControls(float32 speed = 0.01f)
 		{
-			ImGuiExt_ScopeID(this);
+			ImGui_Scope(this);
 			ImGui::BeginGroup();
 			ImGui::Checkbox("##usesnap", &UseSnap); ImGui::SameLine();
 			switch (Operation)
@@ -947,7 +930,7 @@ namespace ml::ImGuiExt
 
 		void ShowBoundsControls(float32 speed = 0.01f)
 		{
-			ImGuiExt_ScopeID(this);
+			ImGui_Scope(this);
 			ImGui::BeginGroup();
 			if (ImGui::Checkbox("bound sizing", &BoundSizing); BoundSizing)
 			{

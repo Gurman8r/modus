@@ -55,8 +55,10 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	// string view
 	ML_alias static_string = typename ML_STATIC_STRING_CLASS;
 	
+	// pretty function
 	namespace pretty_function
 	{
 		template <class T

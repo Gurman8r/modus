@@ -16,49 +16,45 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool show_json_editor(json_editor * editor)
+	bool show_json_editor(json_editor * p_editor)
 	{
-		if (!editor) { return false; }
+		if (!p_editor) { return false; }
+		ImGui_Scope(p_editor);
+		bool changed{};
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
+		ImGui::Columns(2);
+		ImGui::Separator();
+		changed |= show_json(p_editor, p_editor->label, *p_editor->context);
+		ImGui::Columns(1);
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+		return true;
+	}
 
-		ImGui_Scope(editor);
-
+	bool show_json_editor(cstring title, json_editor * p_editor, bool * p_open, ImGuiWindowFlags window_flags)
+	{
 		ML_defer(&) { ImGui::End(); };
 
-		ImGui::SetNextWindowSize({ 430, 450 }, ImGuiCond_FirstUseEver);
+		bool const is_open{ ImGui::Begin(title, p_open, window_flags) };
 
-		bool const is_open{ ImGui::Begin(
-			editor->title.data(),
-			&editor->open,
-			editor->window_flags
-		) };
+		if (is_open) { show_json_editor(p_editor); }
 
-		if (is_open)
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
-			ImGui::Columns(2);
-			ImGui::Separator();
-			show_json(editor, "root", *editor->context);
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-		}
-		
 		return is_open;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	bool show_json(json_editor * editor, std::string const & key, json & value)
+	bool show_json(json_editor * p_editor, std::string const & key, json & value)
 	{
-		if (value.is_object()) { return show_object(editor, key, value); }
-		else if (value.is_array()) { return show_array(editor, key, value); }
-		else if (value.is_string()) { return show_string(editor, key, value); }
-		else if (value.is_number()) { return show_number(editor, key, value); }
-		else if (value.is_null()) { return show_null(editor, key, value); }
+		if (value.is_object()) { return show_object(p_editor, key, value); }
+		else if (value.is_array()) { return show_array(p_editor, key, value); }
+		else if (value.is_string()) { return show_string(p_editor, key, value); }
+		else if (value.is_number()) { return show_number(p_editor, key, value); }
+		else if (value.is_null()) { return show_null(p_editor, key, value); }
 		else { return false; }
 	}
 
-	bool show_object(json_editor * editor, std::string const & key, json & value)
+	bool show_object(json_editor * p_editor, std::string const & key, json & value)
 	{
 		bool changed{};
 		ImGui::AlignTextToFramePadding();
@@ -73,14 +69,15 @@ namespace ml
 			{
 				ptrdiff_t const i{ std::distance(value.begin(), it) };
 				ImGui_Scope(i);
-				show_json(editor, it.key(), it.value());
+				char label[80]{}; std::sprintf(label, "%.*s", it.key().size(), it.key().data());
+				changed |= show_json(p_editor, label, it.value());
 			}
 			ImGui::TreePop();
 		}
 		return changed;
 	}
 
-	bool show_array(json_editor * editor, std::string const & key, json & value)
+	bool show_array(json_editor * p_editor, std::string const & key, json & value)
 	{
 		bool changed{};
 		ImGui::AlignTextToFramePadding();
@@ -95,14 +92,15 @@ namespace ml
 			{
 				ptrdiff_t const i{ std::distance(value.begin(), it) };
 				ImGui_Scope(i);
-				show_json(editor, std::to_string(i), it.value());
+				char label[8]{}; std::sprintf(label, "[%i]", i);
+				changed |= show_json(p_editor, label, it.value());
 			}
 			ImGui::TreePop();
 		}
 		return changed;
 	}
 
-	bool show_string(json_editor * editor, std::string const & key, json & value)
+	bool show_string(json_editor * p_editor, std::string const & key, json & value)
 	{
 		bool changed{};
 		ImGui::AlignTextToFramePadding();
@@ -112,7 +110,7 @@ namespace ml
 		ImGui::SetNextItemWidth(-1);
 		{
 			ds::string temp{ value };
-			ImGui::Text("%.*s", temp.size(), temp.data());
+			ImGui::Text("\"%.*s\"", temp.size(), temp.data());
 			if (changed) {
 				value = temp;
 			}
@@ -121,16 +119,16 @@ namespace ml
 		return changed;
 	}
 
-	bool show_number(json_editor * editor, std::string const & key, json & value)
+	bool show_number(json_editor * p_editor, std::string const & key, json & value)
 	{
 		return (value.is_number_float()
-			? show_number_float(editor, key, value)
+			? show_number_float(p_editor, key, value)
 			: (value.is_number_integer()
-				? show_number_integer(editor, key, value)
-				: show_number_unsigned(editor, key, value)));
+				? show_number_integer(p_editor, key, value)
+				: show_number_unsigned(p_editor, key, value)));
 	}
 
-	bool show_number_float(json_editor * editor, std::string const & key, json & value)
+	bool show_number_float(json_editor * p_editor, std::string const & key, json & value)
 	{
 		bool changed{};
 		ImGui::AlignTextToFramePadding();
@@ -139,8 +137,8 @@ namespace ml
 		ImGui::NextColumn();
 		ImGui::SetNextItemWidth(-1);
 		{
-			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
 			float32 temp{ value };
+			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
 			changed |= ImGui::DragScalar(
 				label,
 				ImGuiDataType_Float,
@@ -155,7 +153,7 @@ namespace ml
 		return changed;
 	}
 
-	bool show_number_integer(json_editor * editor, std::string const & key, json & value)
+	bool show_number_integer(json_editor * p_editor, std::string const & key, json & value)
 	{
 		bool changed{};
 		ImGui::AlignTextToFramePadding();
@@ -164,8 +162,8 @@ namespace ml
 		ImGui::NextColumn();
 		ImGui::SetNextItemWidth(-1);
 		{
-			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
 			int32 temp{ value };
+			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
 			changed |= ImGui::DragScalar(
 				label,
 				ImGuiDataType_S32,
@@ -180,7 +178,7 @@ namespace ml
 		return changed;
 	}
 
-	bool show_number_unsigned(json_editor * editor, std::string const & key, json & value)
+	bool show_number_unsigned(json_editor * p_editor, std::string const & key, json & value)
 	{
 		bool changed{};
 		ImGui::AlignTextToFramePadding();
@@ -189,8 +187,8 @@ namespace ml
 		ImGui::NextColumn();
 		ImGui::SetNextItemWidth(-1);
 		{
-			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
 			uint32 temp{ value };
+			char label[32]; std::sprintf(label, "##%.*s", key.size(), key.data());
 			changed |= ImGui::DragScalar(
 				label,
 				ImGuiDataType_U32,
@@ -205,7 +203,7 @@ namespace ml
 		return changed;
 	}
 
-	bool show_null(json_editor * editor, std::string const & key, json & value)
+	bool show_null(json_editor * p_editor, std::string const & key, json & value)
 	{
 		bool changed{};
 		ImGui::AlignTextToFramePadding();

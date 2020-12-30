@@ -312,20 +312,9 @@ namespace ml
 			draw_viewport(ev);	// VIEWPORT
 			draw_overlay(ev);	// OVERLAY
 
-			static json_editor jedit{
-				true,
-				"json editor",
-				ML_get_global(application)->attr(),
-				ImGuiWindowFlags_None,
-				json_editor_flags_none,
-				json_object_flags_none,
-				json_array_flags_none,
-				json_float_flags_none,
-				json_integer_flags_none,
-				json_unsigned_flags_none
-			};
-			if (show_json_editor(&jedit)) {
-			}
+			static json_editor jedit{ "attr", ML_get_global(application)->attr() };
+			ImGui::SetNextWindowSize({ 480, 480 }, ImGuiCond_Once);
+			show_json_editor("json editor", &jedit);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

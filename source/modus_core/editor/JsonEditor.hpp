@@ -41,19 +41,23 @@ namespace ml
 
 	struct ML_NODISCARD json_editor
 	{
-		bool				open			{ true };
-		std::string_view	title			{ "json editor" };
-		json *				context			{};
-		int32				window_flags	{ ImGuiWindowFlags_None };
-		int32				object_flags	{ json_object_flags_none };
-		int32				array_flags		{ json_array_flags_none };
-		int32				editor_flags	{ json_editor_flags_none };
-		int32				float_flags		{ json_float_flags_none };
-		int32				integer_flags	{ json_integer_flags_none };
-		int32				unsigned_flags	{ json_unsigned_flags_none };
+		cstring	label			{ "json" };
+		json *	context			{};
+		int32	object_flags	{ json_object_flags_none };
+		int32	array_flags		{ json_array_flags_none };
+		int32	editor_flags	{ json_editor_flags_none };
+		int32	float_flags		{ json_float_flags_none };
+		int32	integer_flags	{ json_integer_flags_none };
+		int32	unsigned_flags	{ json_unsigned_flags_none };
 	};
 
 	ML_CORE_API bool show_json_editor(json_editor * p_editor);
+
+	ML_CORE_API bool show_json_editor(
+		cstring				title,
+		json_editor *		p_editor,
+		bool *				p_open = NULL,
+		ImGuiWindowFlags	window_flags = ImGuiWindowFlags_None);
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

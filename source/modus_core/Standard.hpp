@@ -3,16 +3,24 @@
 
 #include <modus_core/Preprocessor.hpp>
 
-static_assert(ML_has_cxx14);
+#if !ML_has_cxx14
+#error "c++14 is required"
+#endif
 #include <cassert>
 #include <chrono>
+#include <cwchar>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <sstream>
+#include <unordered_map>
+#include <stdarg.h>
 #include <vector>
 
-static_assert(ML_has_cxx17);
+#if !ML_has_cxx17
+#error "c++17 is required"
+#endif
 #include <any>
 #include <filesystem>
 #include <memory_resource>

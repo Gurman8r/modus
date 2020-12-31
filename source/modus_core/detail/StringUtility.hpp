@@ -12,7 +12,7 @@ namespace ml::util
 
 	// is character
 	template <class Ch
-	> static constexpr bool is_char_v
+	> constexpr bool is_char_v
 	{
 		util::is_any_of_v<Ch, char, wchar_t, char16_t, char32_t>
 	};
@@ -22,9 +22,23 @@ namespace ml::util
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	template <class Ch
+	> constexpr bool is_narrow_v
+	{
+		std::is_same_v<Ch, char>
+	};
+
+	template <class Ch
+	> constexpr bool is_wide_v
+	{
+		std::is_same_v<Ch, wchar_t>
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// is character pointer
 	template <class T, class Ch = char
-	> static constexpr bool is_cstring_v
+	> constexpr bool is_cstring_v
 	{
 		util::is_char_v<Ch> &&
 		std::is_convertible_v<T const &, Ch const *>
@@ -37,7 +51,7 @@ namespace ml::util
 
 	// is string view
 	template <class T, class Ch = char, class Traits = std::char_traits<Ch>
-	> static constexpr bool is_string_view_v
+	> constexpr bool is_string_view_v
 	{
 		util::is_cstring_v<T, Ch> ||
 		std::is_convertible_v<T const &, std::basic_string_view<Ch, Traits>>
@@ -50,7 +64,7 @@ namespace ml::util
 
 	// is string
 	template <class T, class Ch = char
-	> static constexpr bool is_string_v
+	> constexpr bool is_string_v
 	{
 		util::is_any_of_v<T, std::basic_string<Ch>, pmr::basic_string<Ch>>
 	};
@@ -636,6 +650,32 @@ namespace ml::util
 			}
 		}
 		return str;
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	template <class Ch = char
+	> int32 textv(Ch * buf, size_t size, Ch const * fmt, va_list args)
+	{
+		int32 w;
+		if constexpr (_ML util::is_narrow_v<Ch>)
+		{
+			w = std::vsnprintf((char *)buf, size, (cstring)fmt, args);
+		}
+		else
+		{
+			w = std::vswprintf((wchar_t *)buf, size, (cwstring)fmt, args);
+		}
+		if (!buf) { return w; }
+		if (w == -1 || w >= (int32)size) { w = (int32)size - 1; }
+		buf[w] = 0;
+		return w;
+	}
+
+	template <class Ch, size_t N
+	> int32 textv(Ch(&buf)[N], Ch const * fmt, va_list args)
+	{
+		return _ML util::textv(buf, N, fmt, args);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -105,7 +105,7 @@ namespace ml
 
 		// setup graphics
 		gfx::spec<gfx::render_context> cs{};
-		if (auto a{ attr("window", "graphics") }) { a->get_to(cs); }
+		j_window["graphics"].get_to(cs);
 		set_render_device(gfx::render_device::create({ cs.api }));
 		set_render_context(get_render_device()->new_context(cs));
 		get_render_context()->execute([](gfx::render_context * ctx) noexcept
@@ -118,7 +118,6 @@ namespace ml
 		});
 
 		// setup imgui
-		ML_assert(has_attr("imgui"));
 		json & j_imgui{ *attr("imgui") };
 		ML_verify(_ML ImGui_Init(m_window.get_handle(), true));
 		if (j_imgui.contains("style")) {

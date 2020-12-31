@@ -97,7 +97,7 @@ int32 main(int32 argc, char * argv[])
 {
 	application app{ argc, argv, load_settings() };
 
-	if (json const * j{ app.attr("plugins") }; j && j->is_array()) {
+	if (json const * j{ app.attr("plugins") }) {
 		for (json const & elem : *j) {
 			if (auto const path{ elem.find("path") }
 			; path != elem.end() && path->is_string()) {
@@ -106,7 +106,7 @@ int32 main(int32 argc, char * argv[])
 		}
 	}
 
-	if (json const * j{ app.attr("scripts") }; j && j->is_array()) {
+	if (json const * j{ app.attr("scripts") }) {
 		for (json const & elem : *j) {
 			if (auto const path{ elem.find("path") }
 			; path != elem.end() && path->is_string()) {

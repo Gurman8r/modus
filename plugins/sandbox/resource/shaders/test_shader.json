@@ -17,7 +17,7 @@
     },
 
     "main_pixel": {
-        "shader": 0,
+        "shader": "pixel",
         "layout": [
             { "name": "Position", "type": "float", "count": 3 },
             { "name": "Normal", "type": "float", "count": 3 },

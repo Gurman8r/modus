@@ -312,9 +312,28 @@ namespace ml
 			draw_viewport(ev);	// VIEWPORT
 			draw_overlay(ev);	// OVERLAY
 
-			static json_editor jedit{ "attr", ML_get_global(application)->attr() };
+			static application * const app{ ML_get_global(application) };
+			static vec2 const winsize{ (vec2)app->get_window()->get_size() };
+			static json_editor jedit{ app->attr() };
+			static ML_block(&) {
+				jedit.on_item_selected = [](json_editor * jedit, cstring key, json * value) {
+				};
+				jedit.on_item_hovered = [](json_editor * jedit, cstring key, json * value) {
+				};
+				jedit.on_item_clicked = [](json_editor * jedit, cstring key, json * value, int32 button) {
+				};
+				jedit.on_item_context_menu = [](json_editor * jedit, cstring key, json * value) {
+					ImGui::Text("%s", jedit->get_type_name(value->type()));
+				};
+				jedit.on_item_value = [](json_editor * jedit, cstring key, json * value) {
+					jedit->draw_value(key, *value);
+				};
+			};
 			ImGui::SetNextWindowSize({ 480, 480 }, ImGuiCond_Once);
-			show_json_editor("json editor", &jedit);
+			ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { .5f, .5f });
+			ImGui::Begin("json editor");
+			jedit.draw_contents(true, ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Framed);
+			ImGui::End();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

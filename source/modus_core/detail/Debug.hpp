@@ -49,7 +49,7 @@
 #define ML_assert(expr)	ML_verify(expr)
 #define ML_check(expr)	(([](auto const & x) noexcept -> auto const & { ML_verify(x); return x; })(expr))
 #else
-#define ML_assert(expr)	((void)(expr))
+#define ML_assert(expr)	ML_verify(expr)
 #define ML_check(expr)	(expr)
 #endif
 
@@ -149,7 +149,7 @@ namespace ml::debug
 	{
 		return _ML_DEBUG success
 		(
-			util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
+			_ML util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
 		);
 	}
 
@@ -173,7 +173,7 @@ namespace ml::debug
 	{
 		return _ML_DEBUG failure
 		(
-			util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
+			_ML util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
 		);
 	}
 
@@ -197,7 +197,7 @@ namespace ml::debug
 	{
 		return _ML_DEBUG warning
 		(
-			util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
+			_ML util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
 		);
 	}
 

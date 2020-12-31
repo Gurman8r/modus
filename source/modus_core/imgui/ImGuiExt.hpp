@@ -489,7 +489,7 @@ namespace ml::ImGuiExt
 
 		template <class ID
 		> ImGuiID SplitNode(ID && id, ImGuiDir split_dir, float32 size_ratio_for_node_at_dir, ImGuiID * out_id_at_dir, ImGuiID * out_id_at_opposite_dir) noexcept {
-			ImGui::DockBuilderSplitNode(ImGuiExt::GetID(ML_forward(id)), split_dir, out_id_at_dir, out_id_at_opposite_dir);
+			return ImGui::DockBuilderSplitNode(ImGuiExt::GetID(ML_forward(id)), split_dir, size_ratio_for_node_at_dir, out_id_at_dir, out_id_at_opposite_dir);
 		}
 
 		template <class ID

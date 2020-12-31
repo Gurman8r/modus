@@ -32,7 +32,7 @@ namespace ml
 			{ "viewport", true, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar },
 		};
 
-		ImGuiExt::Overlay m_overlay{ "overlay", true, -1, { 32, 32 }, .35f };
+		ImGuiExt::Overlay m_overlay{ "overlay", false, -1, { 32, 32 }, .35f };
 
 		// terminal
 		stream_sniper m_cout{ &std::cout }; // stdout wrapper
@@ -255,7 +255,10 @@ namespace ml
 
 		void on_dock_builder(dock_builder_event const & ev)
 		{
-			ev->DockWindow(m_panels + viewport_panel, ev->GetID());
+			ImGuiID root{ ev->GetID() };
+			ImGuiID left{ ev->SplitNode(root, ImGuiDir_Left, .25f, NULL, &root) };
+			ev->DockWindow(m_panels + viewport_panel, root);
+			ev->DockWindow("json editor", left);
 		}
 
 		void on_main_menu_bar(main_menu_bar_event const & ev)
@@ -315,24 +318,21 @@ namespace ml
 			static application * const app{ ML_get_global(application) };
 			static vec2 const winsize{ (vec2)app->get_window()->get_size() };
 			static json_editor jedit{ app->attr() };
-			static ML_block(&) {
-				jedit.on_item_selected = [](json_editor * jedit, cstring key, json * value) {
-				};
-				jedit.on_item_hovered = [](json_editor * jedit, cstring key, json * value) {
-				};
-				jedit.on_item_clicked = [](json_editor * jedit, cstring key, json * value, int32 button) {
-				};
-				jedit.on_item_context_menu = [](json_editor * jedit, cstring key, json * value) {
-					ImGui::Text("%s", jedit->get_type_name(value->type()));
-				};
-				jedit.on_item_value = [](json_editor * jedit, cstring key, json * value) {
-					jedit->draw_value(key, *value);
-				};
-			};
-			ImGui::SetNextWindowSize({ 480, 480 }, ImGuiCond_Once);
-			ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { .5f, .5f });
-			ImGui::Begin("json editor");
-			jedit.draw_contents(true, ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Framed);
+			//ImGui::SetNextWindowSize({ 480, 480 }, ImGuiCond_Once);
+			//ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { .5f, .5f });
+			ImGui::Begin("json editor", NULL, ImGuiWindowFlags_MenuBar);
+			if (ImGui::BeginMenuBar()) {
+				ImGui::Separator();
+				ImGui::Checkbox("values", &jedit.m_show_values);
+				ImGui::Separator();
+				ImGui::EndMenuBar();
+			}
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
+			jedit.draw_contents(
+				ImGuiTreeNodeFlags_Framed |
+				ImGuiTreeNodeFlags_FramePadding |
+				ImGuiTreeNodeFlags_SpanAvailWidth);
+			ImGui::PopStyleVar();
 			ImGui::End();
 		}
 
@@ -514,7 +514,7 @@ namespace ml
 					for (size_t i = 0; i < mouse_button_MAX; ++i) {
 						if (input->mouse_down[i]) {
 							ImGui::SameLine();
-							ImGui::Text("(b%i:%.2fs)", i, ev->IO.MouseDownDuration[i]);
+							ImGui::Text("(b%i:%.2fs)", i, input->mouse_down_duration[i]);
 						}
 					}
 
@@ -522,7 +522,7 @@ namespace ml
 					for (size_t i = 0; i < keycode_MAX; ++i) {
 						if (input->keys_down[i]) {
 							ImGui::SameLine();
-							ImGui::Text("(%i:%.2fs)", i, ev->IO.KeysDownDuration[i]);
+							ImGui::Text("(%i:%.2fs)", i, input->keys_down_duration[i]);
 						}
 					}
 
@@ -665,17 +665,16 @@ namespace ml
 					// debug
 					if (ImGui::BeginMenu("debug"))
 					{
+						ImGui::TextDisabled("overlay"); ImGui::SameLine();
+						if (ImGui::RadioButton("##toggle_overlay", m_overlay.IsOpen)) { m_overlay.IsOpen = !m_overlay.IsOpen; } ImGui::SameLine();
 						ImGui::Separator();
 
-						ImGui::TextDisabled("grid");
-						ImGui::SameLine();
-						if (ImGui::RadioButton("##grid enabled", m_grid_enabled)) { m_grid_enabled = !m_grid_enabled; }
-						ImGui::SameLine();
+						ImGui::TextDisabled("grid"); ImGui::SameLine();
+						if (ImGui::RadioButton("##grid enabled", m_grid_enabled)) { m_grid_enabled = !m_grid_enabled; } ImGui::SameLine();
 						ImGui::DragFloat("##grid size", &m_grid_size, .1f, 1.f, 1000.f, "size: %.1f");
 						ImGui::Separator();
 
-						ImGui::TextDisabled("cubes");
-						ImGui::SameLine();
+						ImGui::TextDisabled("cubes"); ImGui::SameLine();
 						ImGui::SliderInt("##cube count", &m_object_count, 0, 4);
 						ImGui::Separator();
 

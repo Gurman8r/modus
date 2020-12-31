@@ -199,8 +199,8 @@ namespace ml
 			mouse_down[mouse_button_MAX]{},
 			keys_down[keycode_MAX]{};
 		float32
-			mouse_times[mouse_button_MAX],
-			key_times[keycode_MAX];
+			mouse_down_duration[mouse_button_MAX],
+			keys_down_duration[keycode_MAX];
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -8,36 +8,42 @@ namespace ml
 {
 	struct ML_NODISCARD ML_CORE_API json_editor final
 	{
+	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		json * m_context{}, * m_selected{};
-		fs::path m_path{};
-		ds::list<char> m_buffer{};
-
-		ds::method<void(json_editor *, cstring, json *)> on_item_selected{};
-		ds::method<void(json_editor *, cstring, json *)> on_item_hovered{};
-		ds::method<void(json_editor *, cstring, json *, int32)> on_item_clicked{};
-		ds::method<void(json_editor *, cstring, json *)> on_item_context_menu{};
-		ds::method<void(json_editor *, cstring, json *)> on_item_value{};
+		using value_t			= typename json::value_t;
+		using object_t			= typename json::object_t;
+		using array_t			= typename json::array_t;
+		using string_t			= typename json::string_t;
+		using boolean_t			= typename json::boolean_t;
+		using number_integer_t	= typename json::number_integer_t;
+		using number_unsigned_t	= typename json::number_unsigned_t;
+		using number_float_t	= typename json::number_float_t;
+		using binary_t			= typename json::binary_t;
+		using iterator			= typename json::iterator;
+		using const_iterator	= typename json::const_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class ... T
-		> static constexpr json::value_t get_type_index() { static_assert(0); return json::value_t{}; }
-		template <> static constexpr json::value_t get_type_index<void>() { return json::value_t::null; }
-		template <> static constexpr json::value_t get_type_index<std::nullptr_t>() { return json::value_t::null; }
-		template <> static constexpr json::value_t get_type_index<json::object_t>() { return json::value_t::object; }
-		template <> static constexpr json::value_t get_type_index<json::array_t>() { return json::value_t::array; }
-		template <> static constexpr json::value_t get_type_index<json::string_t>() { return json::value_t::string; }
-		template <> static constexpr json::value_t get_type_index<json::boolean_t>() { return json::value_t::boolean; }
-		template <> static constexpr json::value_t get_type_index<json::number_integer_t>() { return json::value_t::number_integer; }
-		template <> static constexpr json::value_t get_type_index<json::number_unsigned_t>() { return json::value_t::number_unsigned; }
-		template <> static constexpr json::value_t get_type_index<json::number_float_t>() { return json::value_t::number_float; }
-		template <> static constexpr json::value_t get_type_index<json::binary_t>() { return json::value_t::binary; }
+		> static constexpr value_t get_type() { static_assert(0); return value_t{}; }
+		template <> static constexpr value_t get_type<>() { return value_t::null; }
+		template <> static constexpr value_t get_type<void>() { return value_t::null; }
+		template <> static constexpr value_t get_type<std::nullptr_t>() { return value_t::null; }
+		template <> static constexpr value_t get_type<object_t>() { return value_t::object; }
+		template <> static constexpr value_t get_type<array_t>() { return value_t::array; }
+		template <> static constexpr value_t get_type<string_t>() { return value_t::string; }
+		template <> static constexpr value_t get_type<boolean_t>() { return value_t::boolean; }
+		template <> static constexpr value_t get_type<number_integer_t>() { return value_t::number_integer; }
+		template <> static constexpr value_t get_type<number_unsigned_t>() { return value_t::number_unsigned; }
+		template <> static constexpr value_t get_type<number_float_t>() { return value_t::number_float; }
+		template <> static constexpr value_t get_type<binary_t>() { return value_t::binary; }
 
-		template <class T = json::value_t> static constexpr cstring get_type_name(T type) noexcept
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static constexpr cstring get_type_name(value_t type) noexcept
 		{
-			constexpr cstring names[] =
+			constexpr cstring names[10] =
 			{
 				"null",
 				"object",
@@ -53,32 +59,64 @@ namespace ml
 			return names[static_cast<size_t>(type)];
 		}
 
-		template <class T = json::value_t> static constexpr cstring get_type_name() noexcept
+		static cstring get_type_name(json const & value) noexcept
 		{
-			return get_type_name(get_type_index<T>());
+			return get_type_name(value.type());
+		}
+
+		template <class T> static constexpr cstring get_type_name() noexcept
+		{
+			return get_type_name(get_type<T>());
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void draw_contents(bool show_values = true, ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_None);
+		json_editor(json * root = nullptr) noexcept : m_root{ root } {}
 
-		bool draw_field(cstring key, json & value, bool show_values = true, ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_None);
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool draw_value(cstring key, json & value);
+		json *			m_root{};
+		json *			m_selected{};
+		bool			m_show_values{ true };
+		ds::list<char>	m_temp_buffer{};
 
-		bool draw_null(cstring key, json & value);
+		ds::method<void(json_editor *, cstring, json *)>		on_item_selected		{};
+		ds::method<void(json_editor *, cstring, json *)>		on_item_hovered			{};
+		ds::method<void(json_editor *, cstring, json *, int32)>	on_item_clicked			{};
+		ds::method<void(json_editor *, cstring, json *)>		on_item_popup_context	{};
+		ds::method<void(json_editor *, cstring, json *)>		on_item_repr			{};
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void draw_contents(ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None);
 		
-		bool draw_string(cstring key, json & value);
+		void draw_elements(cstring key, json & value, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None);
+
+		void draw_field(cstring key, json & value, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		bool repr_auto(cstring key, json & value);
+
+		bool repr_null(cstring key, json & value);
 		
-		bool draw_boolean(cstring key, json & value);
+		bool repr_object(cstring key, json & value);
 		
-		bool draw_number_integer(cstring key, json & value);
+		bool repr_array(cstring key, json & value);
+
+		bool repr_string(cstring key, json & value);
 		
-		bool draw_number_unsigned(cstring key, json & value);
+		bool repr_boolean(cstring key, json & value);
 		
-		bool draw_number_float(cstring key, json & value);
+		bool repr_number_integer(cstring key, json & value);
 		
-		bool draw_binary(cstring key, json & value);
+		bool repr_number_unsigned(cstring key, json & value);
+		
+		bool repr_number_float(cstring key, json & value);
+		
+		bool repr_binary(cstring key, json & value);
+		
+		bool repr_discarded(cstring key, json & value);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

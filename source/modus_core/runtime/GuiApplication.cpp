@@ -211,10 +211,10 @@ namespace ml
 		m_input.last_mouse_pos = m_input.mouse_pos;
 		m_input.mouse_wheel = 0.f;
 		for (size_t i = 0; i < mouse_button_MAX; ++i) {
-			m_input.mouse_times[i] = (m_input.mouse_down[i] ? (m_input.mouse_times[i] < 0.f ? 0.f : m_input.mouse_times[i] + dt) : -1.f);
+			m_input.mouse_down_duration[i] = (m_input.mouse_down[i] ? (m_input.mouse_down_duration[i] < 0.f ? 0.f : m_input.mouse_down_duration[i] + dt) : -1.f);
 		}
 		for (size_t i = 0; i < keycode_MAX; ++i) {
-			m_input.key_times[i] = (m_input.keys_down[i] ? (m_input.key_times[i] < 0.f ? 0.f : m_input.key_times[i] + dt) : -1.f);
+			m_input.keys_down_duration[i] = (m_input.keys_down[i] ? (m_input.keys_down_duration[i] < 0.f ? 0.f : m_input.keys_down_duration[i] + dt) : -1.f);
 		}
 
 		// end frame

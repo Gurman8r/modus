@@ -1,8 +1,6 @@
 #ifndef _ML_METHOD_HPP_
 #define _ML_METHOD_HPP_
 
-// WIP / PLACEHOLDER
-
 #include <modus_core/detail/Utility.hpp>
 
 namespace ml::ds

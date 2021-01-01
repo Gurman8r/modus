@@ -2,7 +2,6 @@
 #include <modus_core/events/InputEvents.hpp>
 #include <modus_core/events/WindowEvents.hpp>
 #include <modus_core/events/RuntimeEvents.hpp>
-#include <modus_core/events/ImGuiEvents.hpp>
 #include <modus_core/embed/Python.hpp>
 
 namespace ml
@@ -15,13 +14,13 @@ namespace ml
 		ML_verify(ML_begin_global(application, this));
 
 		subscribe<
-			load_event, unload_event,
-
-			begin_frame_event, end_frame_event,
-
-			dock_builder_event, main_menu_bar_event, imgui_event,
-
-			char_event, key_event, mouse_button_event, mouse_pos_event, mouse_wheel_event
+			setup_event,
+			cleanup_event,
+			update_event,
+			late_update_event,
+			gizmos_event, dockspace_event,
+			gui_event,
+			end_frame_event
 		>();
 
 		if (!is_interpreter_initialized() && !library_paths().empty())
@@ -42,53 +41,22 @@ namespace ml
 		gui_application::on_event(value);
 		switch (value)
 		{
-		case load_event::ID: {
-			auto const & ev{ (load_event const &)value };
-		} break;
+		// main loop
+		case setup_event		::ID: { auto const & ev{ (setup_event const &)value }; } break;
+		case cleanup_event		::ID: { auto const & ev{ (cleanup_event const &)value }; } break;
+		case update_event		::ID: { auto const & ev{ (update_event const &)value }; } break;
+		case late_update_event	::ID: { auto const & ev{ (late_update_event const &)value }; } break;
+		case gizmos_event		::ID: { auto const & ev{ (dockspace_event const &)value }; } break;
+		case dockspace_event	::ID: { auto const & ev{ (dockspace_event const &)value }; } break;
+		case gui_event			::ID: { auto const & ev{ (gui_event const &)value }; } break;
+		case end_frame_event	::ID: { auto const & ev{ (end_frame_event const &)value }; } break;
 
-		case unload_event::ID: {
-			auto const & ev{ (unload_event const &)value };
-		} break;
-
-		case begin_frame_event::ID: {
-			auto const & ev{ (begin_frame_event const &)value };
-		} break;
-
-		case end_frame_event::ID: {
-			auto const & ev{ (end_frame_event const &)value };
-		} break;
-
-		case dock_builder_event::ID: {
-			auto const & ev{ (dock_builder_event const &)value };
-		} break;
-
-		case main_menu_bar_event::ID: {
-			auto const & ev{ (main_menu_bar_event const &)value };
-		} break;
-
-		case imgui_event::ID: {
-			auto const & ev{ (imgui_event const &)value };
-		} break;
-
-		case char_event::ID: {
-			auto const & ev{ (char_event const &)value };
-		} break;
-
-		case key_event::ID: {
-			auto const & ev{ (key_event const &)value };
-		} break;
-
-		case mouse_button_event::ID: {
-			auto const & ev{ (mouse_button_event const &)value };
-		} break;
-
-		case mouse_pos_event::ID: {
-			auto const & ev{ (mouse_pos_event const &)value };
-		} break;
-
-		case mouse_wheel_event::ID: {
-			auto const & ev{ (mouse_wheel_event const &)value };
-		} break;
+		// inputs
+		case char_event			::ID: { auto const & ev{ (char_event const &)value }; } break;
+		case key_event			::ID: { auto const & ev{ (key_event const &)value }; } break;
+		case mouse_button_event	::ID: { auto const & ev{ (mouse_button_event const &)value }; } break;
+		case mouse_pos_event	::ID: { auto const & ev{ (mouse_pos_event const &)value }; } break;
+		case mouse_wheel_event	::ID: { auto const & ev{ (mouse_wheel_event const &)value }; } break;
 		}
 	}
 

@@ -211,7 +211,6 @@ namespace ml
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using category			= typename ds::set<event_listener *, comparator>;
 		using categories		= typename ds::map<hash_t, category>;
-		using event_queue		= typename ds::list<scope<event>>;
 		using dummy_ref			= typename ref<dummy_listener>;
 		using dummy_list		= typename ds::list<dummy_ref>;
 
@@ -225,7 +224,6 @@ namespace ml
 		event_bus(allocator_type alloc = {}) noexcept
 			: m_counter	{}
 			, m_cats	{ alloc }
-			, m_queue	{ alloc }
 			, m_dummies	{ alloc }
 		{
 		}
@@ -234,7 +232,7 @@ namespace ml
 
 		ML_NODISCARD uint64 make_order() noexcept
 		{
-			return m_counter++;
+			return ++m_counter;
 		}
 
 		template <class Ev
@@ -301,31 +299,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_queue() const noexcept -> event_queue const &
-		{
-			return m_queue;
-		}
-
-		template <class Ev, class ... Args
-		> void post_event(Args && ... args) noexcept
-		{
-			static_assert(is_valid_event<Ev>, "invalid event type");
-
-			m_queue.emplace_back(new Ev{ ML_forward(args)... });
-		}
-
-		void process_events() noexcept
-		{
-			std::for_each(m_queue.begin(), m_queue.end(), [&
-			](scope<event> const & ev) noexcept
-			{
-				this->fire(*ev.get());
-			});
-			m_queue.clear();
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD auto get_dummies() const noexcept -> dummy_list const &
 		{
 			return m_dummies;
@@ -353,7 +326,6 @@ namespace ml
 	private:
 		uint64		m_counter	; // counter
 		categories	m_cats		; // listener storage
-		event_queue	m_queue		; // event queue
 		dummy_list	m_dummies	; // dummy listeners
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

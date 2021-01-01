@@ -4,7 +4,7 @@
 // FIXME: system needs a rework
 
 #include <modus_core/detail/Method.hpp>
-#include <modus_core/imgui/ImGui.hpp>
+#include <modus_core/gui/ImGui.hpp>
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -43,349 +43,13 @@ namespace ml::ImGuiExt
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// HELPERS
-namespace ml::ImGuiExt
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// BEGIN/END
-	template <class BeginFn, class EndFn, class Fn, class ... Args
-	> bool BeginEnd(BeginFn && begin_fn, EndFn && end_fn, Fn && fn, Args && ... args) noexcept
-	{
-		bool const is_open{ std::invoke(ML_forward(begin_fn)) };
-		
-		ML_defer(&) { std::invoke(ML_forward(end_fn)); };
-		
-		if (is_open) { std::invoke(ML_forward(fn), ML_forward(args)...); }
-		
-		return is_open;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// WINDOW
-	template <class Fn, class ... Args
-	> bool Window(cstring title, bool * open, int32 flags, Fn && fn, Args && ... args) noexcept
-	{
-		return ImGuiExt::BeginEnd(
-			std::bind(&ImGui::Begin, title, open, flags),
-			&ImGui::End,
-			ML_forward(fn), ML_forward(args)...);
-	}
-
-	// CHILD WINDOW EX
-	template <class Fn, class ... Args
-	> bool ChildWindowEx(cstring name, ImGuiID id, vec2 const & size, bool border, int32 flags, Fn && fn, Args && ... args) noexcept
-	{
-		return ImGuiExt::BeginEnd(
-			std::bind(&ImGui::BeginChildEx, name, id, size, border, flags),
-			&ImGui::EndChild,
-			ML_forward(fn), ML_forward(args)...);
-	}
-
-	// CHILD WINDOW
-	template <class Fn, class ... Args
-	> bool ChildWindow(cstring id, vec2 const & size, bool border, int32 flags, Fn && fn, Args && ... args) noexcept
-	{
-		return ImGuiExt::ChildWindowEx
-		(
-			id, ImGui::GetID(id), size, border, flags, ML_forward(fn), ML_forward(args)...
-		);
-	}
-
-	// CHILD WINDOW
-	template <class Fn, class ... Args
-	> bool ChildWindow(ImGuiID id, vec2 const & size, bool border, int32 flags, Fn && fn, Args && ... args) noexcept
-	{
-		return ImGuiExt::ChildWindowEx
-		(
-			nullptr, id, size, border, flags, ML_forward(fn), ML_forward(args)...
-		);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	template <class T
-	> ML_NODISCARD cstring GetName(ds::basic_string<T> const & value) noexcept
-	{
-		return value.c_str();
-	}
-
-	template <class T
-	> ML_NODISCARD constexpr cstring GetName(T const * value) noexcept
-	{
-		if constexpr (util::is_char_v<T>)
-		{
-			return value;
-		}
-		else
-		{
-			return value->Title;
-		}
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ML_NODISCARD constexpr ImGuiID GetID(ImGuiID value) noexcept
-	{
-		return value;
-	}
-
-	template <class T
-	> ML_NODISCARD ImGuiID GetID(ds::basic_string<T> const & value) noexcept
-	{
-		return ImGui::GetID(value.c_str());
-	}
-
-	template <class T
-	> ML_NODISCARD ImGuiID GetID(T const * value) noexcept
-	{
-		if constexpr (util::is_char_v<T>)
-		{
-			return ImGui::GetID(value);
-		}
-		else
-		{
-			return ImGui::GetID(value->Title);
-		}
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	template <class T
-	> ML_NODISCARD ImGuiWindow * FindWindowByName(T const * p)
-	{
-		return ImGui::FindWindowByName(p->Title);
-	}
-
-	template <class T
-	> bool MenuItem(T * p, cstring shortcut = {}, bool enabled = true)
-	{
-		return ImGui::MenuItem(p->Title, shortcut, &p->IsOpen, enabled);
-	}
-
-	template <class T
-	> bool Selectable(T * p, int32 flags = ImGuiSelectableFlags_None, vec2 const & size = {})
-	{
-		return ImGui::Selectable(p->Title, &p->IsOpen, flags, size);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// PANELS
-namespace ml::ImGuiExt
-{
-	// BASIC PANEL
-	template <class Derived> struct ML_NODISCARD BasicPanel
-	{
-		cstring		Title		; // title
-		bool		IsOpen		; // is open
-		int32		WindowFlags	; // window flags
-
-		BasicPanel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
-			: Title			{ ML_check(title) }
-			, IsOpen		{ open }
-			, WindowFlags	{ winflags }
-		{
-		}
-
-		BasicPanel(BasicPanel const & other) noexcept
-			: BasicPanel{ other.Title, other.IsOpen, other.WindowFlags }
-		{
-		}
-
-		ML_NODISCARD bool GetWindowFlag(ImGuiWindowFlags_ index) const noexcept {
-			return ML_flag_read(WindowFlags, (int32)index);
-		}
-
-		bool SetWindowFlag(ImGuiWindowFlags_ index, bool value) noexcept {
-			return ML_flag_write(WindowFlags, (int32)index, value);
-		}
-
-		ML_NODISCARD auto GetID() const noexcept -> ImGuiID {
-			return ImGui::GetID(Title);
-		}
-
-		ML_NODISCARD auto Get() const noexcept -> ImGuiWindow * {
-			return ImGui::FindWindowByName(Title);
-		}
-	};
-
-	// PANEL
-	struct ML_NODISCARD Panel : BasicPanel<Panel>
-	{
-		using BasicPanel<Panel>::BasicPanel;
-
-		Panel(cstring title, bool open = false, int32 winflags = ImGuiWindowFlags_None) noexcept
-			: BasicPanel{ title, open, winflags }
-		{
-		}
-
-		template <class Fn, class ... Args
-		> bool Draw(Fn && fn, Args && ... args) noexcept
-		{
-			if (!IsOpen) { return false; }
-			ImGui_Scope(this);
-			return ImGuiExt::BeginEnd
-			(
-				std::bind(&ImGui::Begin, Title, &IsOpen, WindowFlags),
-				&ImGui::End,
-				ML_forward(fn), this, ML_forward(args)...
-			);
-		}
-	};
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// OVERLAY
-namespace ml::ImGuiExt
-{
-	template <class Fn
-	> bool DrawSimpleOverlay(ImGuiViewport * vp, cstring title, bool * open = 0, int32 corner = 0, vec2 const & offset = { 10.f, 10.f }, float32 alpha = 0.35f, Fn fn = ([]() noexcept {}))
-	{
-		ImGuiWindowFlags window_flags{
-			ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_NoDocking |
-			ImGuiWindowFlags_AlwaysAutoResize |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_NoNav
-		};
-		if (corner != -1)
-		{
-			window_flags |= ImGuiWindowFlags_NoMove;
-			float_rect const bounds{
-				vp->GetWorkPos(),
-				vp->GetWorkSize()
-			};
-			vec2 const pos{
-				((corner & 1) ? (bounds[0] + bounds[2] - offset[0]) : (bounds[0] + offset[0])),
-				((corner & 2) ? (bounds[1] + bounds[3] - offset[1]) : (bounds[1] + offset[1]))
-			};
-			vec2 const piv{
-				((corner & 1) ? 1.f : 0.f),
-				((corner & 2) ? 1.f : 0.f)
-			};
-			ImGui::SetNextWindowPos(pos, ImGuiCond_Always, piv);
-			ImGui::SetNextWindowViewport(vp->ID);
-		}
-		ImGui::SetNextWindowBgAlpha(alpha);
-		return ImGuiExt::Window(title, open, window_flags, fn);
-	}
-
-	struct ML_NODISCARD Overlay : BasicPanel<Overlay>
-	{
-		int32	Corner	{ 0 };
-		vec2	Offset	{ 10.f, 10.f };
-		float32	Alpha	{ .35f };
-
-		static constexpr auto DefaultWindowFlags
-		{
-			ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_NoDocking |
-			ImGuiWindowFlags_AlwaysAutoResize |
-			ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_NoNav
-		};
-
-		using BasicPanel<Overlay>::BasicPanel;
-
-		Overlay(
-			cstring			title,
-			bool			open = false,
-			int32			corner = 0,
-			vec2 const &	offset = { 10.f, 10.f },
-			float32			alpha = .35f) noexcept
-			: BasicPanel	{ title, open, DefaultWindowFlags }
-			, Corner		{ corner }
-			, Offset		{ offset }
-			, Alpha			{ alpha }
-		{
-		}
-
-		template <class Fn> bool Draw(ImGuiViewport * vp, Fn && fn) noexcept
-		{
-			if (!IsOpen) { return false; }
-			ImGui_Scope(this);
-			return ImGuiExt::DrawSimpleOverlay
-			(
-				vp,
-				Title,
-				&IsOpen,
-				Corner,
-				Offset,
-				Alpha,
-				std::bind(ML_forward(fn), this)
-			);
-		}
-
-		template <class Fn> bool Draw(Fn && fn) noexcept
-		{
-			return this->Draw
-			(
-				ImGui::GetMainViewport(),
-				ML_forward(fn)
-			);
-		}
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// MAIN MENU BAR
-namespace ml::ImGuiExt
-{
-	// main menu bar (WIP)
-	struct ML_NODISCARD MainMenuBar final
-	{
-		static constexpr cstring Title{ "##MainMenuBar" };
-
-		bool IsOpen{ true };
-
-		ML_NODISCARD auto GetID() const noexcept -> ImGuiID {
-			return ImGui::GetID(Title);
-		}
-
-		ML_NODISCARD auto Get() const noexcept -> ImGuiWindow * {
-			return ImGui::FindWindowByName(Title);
-		}
-
-		template <class Fn, class ... Args
-		> bool Draw(Fn && fn, Args && ... args) noexcept
-		{
-			return IsOpen && ImGuiExt::BeginEnd
-			(
-				&ImGui::BeginMainMenuBar,
-				&ImGui::EndMainMenuBar,
-				ML_forward(fn), this, ML_forward(args)...
-			);
-		}
-	};
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 // DOCKSPACE
 namespace ml::ImGuiExt
 {
 	// dockspace
-	struct ML_NODISCARD Dockspace : BasicPanel<Dockspace>
+	struct ML_NODISCARD Dockspace
 	{
-		float32		Border			; // 
-		float32		Rounding		; // 
-		vec2		Padding			; // 
-		float32		Alpha			; // 
-		vec2		Size			; // 
-		int32		DockNodeFlags	; // 
-
-		static constexpr auto DefaultWindowFlags
+		static constexpr ImGuiWindowFlags DefaultWindowFlags
 		{
 			ImGuiWindowFlags_NoTitleBar |
 			ImGuiWindowFlags_NoCollapse |
@@ -397,111 +61,53 @@ namespace ml::ImGuiExt
 			ImGuiWindowFlags_NoBackground
 		};
 
-		Dockspace(
-			cstring			title		= "##MainDockspace",
-			bool			open		= true,
-			float32			border		= {},
-			float32			rounding	= {},
-			vec2 const &	padding		= {},
-			float32			alpha		= {},
-			vec2 const &	docksize	= {},
-			int32			winflags	= DefaultWindowFlags,
-			int32			dockflags	= ImGuiDockNodeFlags_AutoHideTabBar)
-			: BasicPanel	{ title, open, winflags }
-			, Border		{ border }
-			, Rounding		{ rounding }
-			, Padding		{ padding }
-			, Alpha			{ alpha }
-			, Size			{ docksize }
-			, DockNodeFlags	{ dockflags }
-		{}
-
-		Dockspace(Dockspace const & other) noexcept : Dockspace{
-			other.Title,
-			other.IsOpen,
-			other.Border,
-			other.Rounding,
-			other.Padding,
-			other.Alpha,
-			other.Size,
-			other.WindowFlags,
-			other.DockNodeFlags
-		}
-		{}
-
-		ML_NODISCARD static bool IsDockingEnabled(ImGuiIO & io = ImGui::GetIO()) noexcept {
-			return io.ConfigFlags & ImGuiConfigFlags_DockingEnable;
-		}
-
-		ML_NODISCARD bool GetDockNodeFlag(ImGuiDockNodeFlags_ index) const noexcept {
-			return ML_flag_read(DockNodeFlags, (int32)index);
-		}
-
-		auto SetDockNodeFlag(ImGuiDockNodeFlags_ index, bool value) noexcept {
-			return (ImGuiDockNodeFlags_)ML_flag_write(DockNodeFlags, (int32)index, value);
-		}
-
-		template <class T, class ID
-		> void DockWindow(T && name, ID && id) noexcept
+		static constexpr ImGuiDockNodeFlags DefaultDockNodeFlags
 		{
-			ImGui::DockBuilderDockWindow(
-				ImGuiExt::GetName(ML_forward(name)),
-				ImGuiExt::GetID(ML_forward(id)));
-		}
+			ImGuiDockNodeFlags_AutoHideTabBar
+		};
 
-		ML_NODISCARD ImGuiDockNode * GetNode() const noexcept {
-			return ImGui::DockBuilderGetNode(GetID());
-		}
+		cstring		Title			{ "##MainDockspace" }	; // title
+		bool		IsOpen			{ true }				; // is open
+		int32		WindowFlags		{ DefaultWindowFlags }	; // window flags
+		int32		DockNodeFlags	{ DefaultDockNodeFlags }; // dock node flags
+		float32		Border			{ 0.0f }				; // border
+		float32		Rounding		{ 0.0f }				; // rounding
+		vec2		Padding			{ 0.0f, 0.0f }			; // padding
+		float32		Alpha			{ 0.0f }				; // alpha
+		vec2		Size			{ 0.0f, 0.0f }			; // size
 
-		template <class ID
-		> ML_NODISCARD ImGuiDockNode * GetNode(ID && id) const noexcept {
-			return ImGui::DockBuilderGetNode(ImGuiExt::GetID(ML_forward(id)));
-		}
+		ML_NODISCARD static bool IsDockingEnabled() { return ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable; }
 
-		ML_NODISCARD ImGuiDockNode * GetCentralNode() const noexcept {
-			return ImGui::DockBuilderGetCentralNode(GetID());
-		}
+		ML_NODISCARD ImGuiID GetID() const { return ImGui::GetID(Title); }
 
-		template <class ID
-		> ML_NODISCARD ImGuiDockNode * GetCentralNode(ID && id) const noexcept {
-			return ImGui::DockBuilderGetCentralNode(ImGuiExt::GetID(ML_forward(id)));
-		}
+		ML_NODISCARD ImGuiWindow * GetWindow() const { return ImGui::FindWindowByName(Title); }
 
-		template <class ID
-		> ImGuiID AddNode(ID && id, ImGuiDockNodeFlags flags = 0) noexcept {
-			return ImGui::DockBuilderAddNode(ImGuiExt::GetID(ML_forward(id)), flags);
-		}
+		void DockWindow(cstring name, ImGuiID id) noexcept { ImGui::DockBuilderDockWindow(name, id); }
 
-		template <class ID
-		> void RemoveNode(ID && id) noexcept {
-			ImGui::DockBuilderRemoveNode(ImGuiExt::GetID(ML_forward(id)));
-		}
+		ML_NODISCARD ImGuiDockNode * GetNode() const noexcept { return ImGui::DockBuilderGetNode(GetID()); }
 
-		template <class ID
-		> void SetNodePos(ID && id, vec2 const & pos) const noexcept {
-			return ImGui::DockBuilderSetNodePos(ImGuiExt::GetID(ML_forward(id)), pos);
-		}
+		ML_NODISCARD ImGuiDockNode * GetNode(ImGuiID id) const noexcept { return ImGui::DockBuilderGetNode(id); }
 
-		template <class ID
-		> void SetNodeSize(ID && id, vec2 const & size) const noexcept {
-			return ImGui::DockBuilderSetNodeSize(ImGuiExt::GetID(ML_forward(id)), size);
-		}
+		ML_NODISCARD ImGuiDockNode * GetCentralNode() const noexcept { return ImGui::DockBuilderGetCentralNode(GetID()); }
 
-		template <class ID
-		> ImGuiID SplitNode(ID && id, ImGuiDir split_dir, float32 size_ratio_for_node_at_dir, ImGuiID * out_id_at_dir, ImGuiID * out_id_at_opposite_dir) noexcept {
-			return ImGui::DockBuilderSplitNode(ImGuiExt::GetID(ML_forward(id)), split_dir, size_ratio_for_node_at_dir, out_id_at_dir, out_id_at_opposite_dir);
-		}
+		ML_NODISCARD ImGuiDockNode * GetCentralNode(ImGuiID id) const noexcept { return ImGui::DockBuilderGetCentralNode(id); }
 
-		template <class ID
-		> void Finish(ID && id) noexcept
+		ImGuiID AddNode(ImGuiID id, ImGuiDockNodeFlags flags = ImGuiDockNodeFlags_None) noexcept { return ImGui::DockBuilderAddNode(id, flags); }
+
+		ImGuiID SplitNode(ImGuiID id, ImGuiDir dir, float32 ratio, ImGuiID * out_id_at_dir, ImGuiID * out_id_at_opposite_dir) noexcept
 		{
-			ImGui::DockBuilderFinish(ImGuiExt::GetID(ML_forward(id)));
+			return ImGui::DockBuilderSplitNode(id, dir, ratio, out_id_at_dir, out_id_at_opposite_dir);
 		}
 
-		void Finish() noexcept
-		{
-			ImGui::DockBuilderFinish(GetID());
-		}
+		void RemoveNode(ImGuiID id) noexcept { ImGui::DockBuilderRemoveNode(id); }
+
+		void RemoveNodeDockedWindows(ImGuiID id, bool clear_settings_refs = true) { ImGui::DockBuilderRemoveNodeDockedWindows(id, clear_settings_refs); }
+
+		void SetNodePos(ImGuiID id, vec2 const & pos) const noexcept { ImGui::DockBuilderSetNodePos(id, pos); }
+
+		void SetNodeSize(ImGuiID id, vec2 const & size) const noexcept { ImGui::DockBuilderSetNodeSize(id, size); }
+
+		void Finish(ImGuiID id) noexcept { ImGui::DockBuilderFinish(id); }
 
 		template <class Fn, class ... Args
 		> bool Draw(ImGuiViewport * vp, Fn && fn, Args && ... args) noexcept
@@ -518,9 +124,7 @@ namespace ml::ImGuiExt
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, Rounding);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, Border);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, Padding);
-			
 			bool const is_open{ ImGui::Begin(Title, &IsOpen, WindowFlags) };
-			ML_defer(&) { ImGui::End(); };
 			ImGui::PopStyleVar(3);
 			if (is_open)
 			{
@@ -532,6 +136,7 @@ namespace ml::ImGuiExt
 					ImGuiDockNodeFlags_PassthruCentralNode | DockNodeFlags,
 					nullptr);
 			}
+			ImGui::End();
 			return is_open;
 		}
 	};

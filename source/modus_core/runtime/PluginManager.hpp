@@ -23,14 +23,15 @@ namespace ml
 	private:
 		friend plugin_manager;
 
-		explicit plugin_context(ref<library> const & lib)
-			: hash_code	{ (plugin_id)lib->hash_code() }
-			, file_name	{ lib->path().stem().string() }
-			, file_path	{ lib->path().string() }
-			, extension	{ lib->path().extension().string() }
-			, allocate	{ lib->proc<plugin *, plugin_manager *, void *>("ml_plugin_create") }
-			, deallocate{ lib->proc<void, plugin_manager *, plugin *>("ml_plugin_destroy") }
+		explicit plugin_context(ref<library> const & lib) : plugin_context{}
 		{
+			ML_verify(lib && *lib);
+			hash_code	= (plugin_id)lib->hash_code() ;
+			file_name	= lib->path().stem().string() ;
+			file_path	= lib->path().string() ;
+			extension	= lib->path().extension().string() ;
+			allocate	= lib->proc<plugin *, plugin_manager *, void *>("ml_plugin_create") ;
+			deallocate	= lib->proc<void, plugin_manager *, plugin *>("ml_plugin_destroy") ;
 		}
 	};
 

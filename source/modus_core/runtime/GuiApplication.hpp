@@ -3,9 +3,10 @@
 
 #include <modus_core/runtime/CoreApplication.hpp>
 #include <modus_core/graphics/RenderTarget.hpp>
-#include <modus_core/imgui/ImGuiExt.hpp>
-#include <modus_core/scene/Scene.hpp>
+#include <modus_core/gui/PanelWindow.hpp>
 #include <modus_core/window/NativeWindow.hpp>
+#include <modus_core/gui/ImGuiExt.hpp>
+#include <modus_core/scene/Scene.hpp>
 
 namespace ml
 {
@@ -24,17 +25,9 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual int32 exec() override
-		{
-			m_loop.loop();
-			return core_application::exec();
-		}
+		virtual int32 exec() override;
 
-		virtual void exit(int32 exit_code) override
-		{
-			m_loop.halt();
-			return core_application::exit(exit_code);
-		}
+		virtual void exit(int32 exit_code) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -69,13 +62,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_dock_builder() const noexcept { return const_cast<ImGuiExt::Dockspace *>(&m_dock_builder); }
+		ML_NODISCARD auto get_dock_builder() const noexcept { return const_cast<ImGuiExt::Dockspace *>(&m_dockspace); }
 
-		ML_NODISCARD auto get_main_menu_bar() const noexcept { return const_cast<ImGuiExt::MainMenuBar *>(&m_main_menu_bar); }
+		ML_NODISCARD auto get_imgui_context() const noexcept -> ImGuiContext * { return m_imgui; }
 
-		ML_NODISCARD auto get_imgui_context() const noexcept -> ImGuiContext * { return m_imgui_context; }
-
-		void set_imgui_context(ImGuiContext * value) noexcept { m_imgui_context = value; }
+		void set_imgui_context(ImGuiContext * value) noexcept { m_imgui = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -100,10 +91,9 @@ namespace ml
 		loop_system				m_loop			; // main loop
 		native_window			m_window		; // main window
 		gfx::render_device *	m_render_device	; // render device
-		ImGuiContext *			m_imgui_context	; // imgui context
-		ImGuiExt::Dockspace		m_dock_builder	; // dock builder
-		ImGuiExt::MainMenuBar	m_main_menu_bar	; // main menu bar
 		ref<scene>				m_active_scene	; // active scene
+		ImGuiContext *			m_imgui			; // imgui context
+		ImGuiExt::Dockspace		m_dockspace		; // dockspace
 
 		timer					m_loop_timer	; // loop timer
 		duration				m_delta_time	; // delta time

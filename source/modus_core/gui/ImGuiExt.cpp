@@ -1,4 +1,4 @@
-#include <modus_core/imgui/ImGuiExt.hpp>
+#include <modus_core/gui/ImGuiExt.hpp>
 
 // TEXT LOG
 namespace ml::ImGuiExt

@@ -9,33 +9,67 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	struct gui_application;
+	
+	namespace ImGuiExt { struct Dockspace; }
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_event(load_event)
+	ML_event(setup_event)
 	{
 		gui_application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr load_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+		constexpr setup_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	ML_event(unload_event)
+	ML_event(cleanup_event)
 	{
 		gui_application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr unload_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+		constexpr cleanup_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_event(begin_frame_event)
+	ML_event(update_event)
 	{
 		gui_application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
-		constexpr begin_frame_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+		constexpr update_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+	};
+
+	ML_event(late_update_event)
+	{
+		gui_application * const ptr;
+		auto operator->() const noexcept { return ptr; }
+		auto & operator*() const noexcept { return *ptr; }
+		constexpr late_update_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+	};
+
+	ML_event(dockspace_event)
+	{
+		ImGuiExt::Dockspace * const ptr;
+		auto operator->() const noexcept { return ptr; }
+		auto & operator*() const noexcept { return *ptr; }
+		constexpr dockspace_event(ImGuiExt::Dockspace * ptr) noexcept : ptr{ ptr } {}
+	};
+
+	ML_event(gui_event)
+	{
+		gui_application * const ptr;
+		auto operator->() const noexcept { return ptr; }
+		auto & operator*() const noexcept { return *ptr; }
+		constexpr gui_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+	};
+
+	ML_event(gizmos_event)
+	{
+		gui_application * const ptr;
+		auto operator->() const noexcept { return ptr; }
+		auto & operator*() const noexcept { return *ptr; }
+		constexpr gizmos_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
 	ML_event(end_frame_event)

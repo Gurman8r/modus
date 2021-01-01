@@ -1,26 +1,15 @@
 #ifndef _ML_PYTHON_HPP_
 #define _ML_PYTHON_HPP_
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 #include <modus_core/detail/Matrix.hpp>
 #include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Timer.hpp>
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// PYTHON
 
 #ifndef HAVE_SNPRINTF
 #define HAVE_SNPRINTF 1
 #endif
 
 #include <Python.h>
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// PYBIND11
-
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
 #include <pybind11/chrono.h>
@@ -29,7 +18,9 @@
 
 namespace pybind11
 {
-	// casters
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// type casters
 	namespace detail
 	{
 		// array caster
@@ -43,6 +34,8 @@ namespace pybind11
 			: array_caster<_ML ds::matrix<T, W, H>, T, false, W * H> {};
 	}
 
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// to json
 	static void to_json(_ML json & j, handle const & v)
 	{
@@ -55,15 +48,17 @@ namespace pybind11
 		v = module::import("json").attr("loads")(j.dump());
 	}
 
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	// eval file
 	template <eval_mode Mode = eval_statements
 	> object eval_file(std::filesystem::path const & path, object global = globals(), object local = {})
 	{
 		return ::pybind11::eval_file<Mode>((str)path.string(), global, local);
 	}
-}
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
 
 namespace ml
 {

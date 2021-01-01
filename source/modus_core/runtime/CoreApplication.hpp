@@ -51,7 +51,7 @@ namespace ml
 
 		ML_NODISCARD auto path_to(fs::path const & value) const noexcept -> fs::path { return m_app_data_path.native() + value.native(); }
 		
-		ML_NODISCARD auto time() const noexcept -> duration { return m_main_timer.elapsed(); }
+		ML_NODISCARD auto uptime() const noexcept -> duration { return m_main_timer.elapsed(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

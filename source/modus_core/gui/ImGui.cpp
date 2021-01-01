@@ -1,4 +1,4 @@
-#include <modus_core/imgui/ImGui.hpp>
+#include <modus_core/gui/ImGui.hpp>
 #include <modus_core/detail/FileUtility.hpp>
 #include <modus_core/detail/ParserUtility.hpp>
 

@@ -12,7 +12,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	library_context const library::native_context
+	library_context const library::native_library
 	{
 		&impl_platform::load_library,
 		&impl_platform::free_library,

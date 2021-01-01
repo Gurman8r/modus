@@ -7,22 +7,27 @@
 #include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Method.hpp>
 
+// TYPES
 namespace ml
 {
 	ML_decl_handle(library_id); // library id
 
 	ML_decl_handle(library_handle); // library handle
+}
 
+// LIBRARY CONTEXT
+namespace ml
+{
 	// library context
 	struct ML_NODISCARD library_context final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ds::method<library_handle(fs::path const &)> load; // load library
-		
+
 		ds::method<bool(library_handle)> free; // free library
 
-		ds::method<void * (library_handle, ds::string const &)> proc; // get procedure
+		ds::method<void * (library_handle, ds::string const &)> proc; // get procedure address
 
 		void swap(library_context & other) noexcept
 		{
@@ -36,7 +41,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
+}
 
+// LIBRARY
+namespace ml
+{
 	// library
 	struct ML_CORE_API library final : non_copyable, trackable
 	{
@@ -52,14 +61,14 @@ namespace ml
 			std::is_same_v<Ret, void>, void, std::optional<Ret>
 		>;
 
-		static library_context const native_context; // native library bindings
+		static library_context const native_library; // native library bindings
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		library(allocator_type alloc = {}) noexcept
 			: m_hash	{}
 			, m_path	{}
-			, m_context	{ native_context }
+			, m_context	{ native_library }
 			, m_handle	{}
 			, m_procs	{ alloc }
 		{
@@ -86,7 +95,7 @@ namespace ml
 		library(fs::path const & path, allocator_type alloc = {}) noexcept
 			: m_hash	{ hashof(path.string()) }
 			, m_path	{ path }
-			, m_context	{ native_context }
+			, m_context	{ native_library }
 			, m_handle	{}
 			, m_procs	{ alloc }
 		{

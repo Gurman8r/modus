@@ -32,7 +32,7 @@ namespace ml::ImGuiExt
 
 		TextLog Output; // output
 
-		ds::list<CommandData> Data; // commands
+		ds::list<CommandData> Cmd; // commands
 
 		ds::list<ds::string> History; // history
 
@@ -57,7 +57,7 @@ namespace ml::ImGuiExt
 			, ModeName		{ alloc }
 			, Input			{}
 			, Output		{ alloc }
-			, Data			{ alloc }
+			, Cmd			{ alloc }
 			, History		{ alloc }
 			, HistoryPos	{ -1 }
 			, Colors		{}
@@ -207,9 +207,9 @@ namespace ml::ImGuiExt
 			}
 
 			// execute procedure
-			if (auto const it{ std::find_if(Data.begin(), Data.end(), [&](CommandData const & e) {
+			if (auto const it{ std::find_if(Cmd.begin(), Cmd.end(), [&](CommandData const & e) {
 				return name == e.name;
-			}) }; it != Data.end())
+			}) }; it != Cmd.end())
 			{
 				std::invoke(it->proc, std::move(line));
 
@@ -245,7 +245,7 @@ namespace ml::ImGuiExt
 
 				// build list of candidates
 				ds::list<cstring> candidates{};
-				for (auto const & e : this->Data)
+				for (auto const & e : this->Cmd)
 				{
 					cstring name{ e.name.c_str() };
 

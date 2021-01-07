@@ -83,6 +83,8 @@ namespace ml
 
 		ML_NODISCARD auto get_root() const noexcept -> tree_node * { return m_parent ? m_parent->get_root() : const_cast<tree_node *>(this); }
 
+		ML_NODISCARD auto get_sibling_count() const noexcept -> size_t { return m_parent ? m_parent->get_child_count() : 0; }
+
 		ML_NODISCARD auto get_sibling_index() const noexcept -> size_t { return m_parent ? (size_t)std::distance(m_parent->begin(), m_parent->find(this)) : static_cast<size_t>(-1); }
 
 		ML_NODISCARD bool is_root() const noexcept { return m_parent == nullptr; }
@@ -159,7 +161,7 @@ namespace ml
 
 		void set_sibling_index(size_t i)
 		{
-			if (m_parent && i < get_child_count())
+			if (m_parent && i < m_parent->get_child_count())
 			{
 				std::iter_swap(m_parent->find(this), m_parent->begin() + (ptrdiff_t)i);
 			}

@@ -186,11 +186,11 @@ namespace ml
 			m_terminal.HostName = "localhost";
 			m_terminal.PathName = "~";
 			m_terminal.ModeName = "";
-			m_terminal.Data.push_back({ "clear", {}, [&](auto line) { m_terminal.Output.Lines.clear(); } });
-			m_terminal.Data.push_back({ "exit", {}, [&](auto line) { ML_get_global(application)->quit(); } });
-			m_terminal.Data.push_back({ "help", {}, [&](auto line) { for (auto const & e : m_terminal.Data) { debug::puts("/{0}", e.name); } } });
-			m_terminal.Data.push_back({ "history", {}, [&](auto line) { for (auto const & e : m_terminal.History) { debug::puts(e); } } });
-			m_terminal.Data.push_back({ "python", {}, [&](auto line) {
+			m_terminal.Cmd.push_back({ "clear", {}, [&](auto line) { m_terminal.Output.Lines.clear(); } });
+			m_terminal.Cmd.push_back({ "exit", {}, [&](auto line) { ML_get_global(application)->quit(); } });
+			m_terminal.Cmd.push_back({ "help", {}, [&](auto line) { for (auto const & e : m_terminal.Cmd) { debug::puts("/{0}", e.name); } } });
+			m_terminal.Cmd.push_back({ "history", {}, [&](auto line) { for (auto const & e : m_terminal.History) { debug::puts(e); } } });
+			m_terminal.Cmd.push_back({ "python", {}, [&](auto line) {
 				if (m_terminal.ModeName.empty() && line.empty()) {
 					m_terminal.ModeName = "python"; return; // lock
 				}

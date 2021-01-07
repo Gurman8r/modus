@@ -32,9 +32,11 @@ namespace ml
 		ImGuiWindow *	window	{ g.CurrentWindow };
 		if (window->SkipItems) { return; }
 
-		cstring node_name{ value->get_name().c_str() };
-
 		bool const is_root{ value->is_root() }, is_leaf{ value->is_leaf() };
+		cstring node_name{ value->get_name().c_str() };
+		size_t const child_count{ value->get_child_count() };
+		size_t const sibling_count{ value->get_sibling_count() };
+		size_t const sibling_index{ value->get_sibling_index() };
 
 		ImGuiID const node_id{ window->GetID(value) };
 
@@ -47,8 +49,8 @@ namespace ml
 		// tree behavior
 		bool const node_open{ ImGui::TreeNodeBehavior(node_id, node_flags, node_label) };
 
-		bool const node_hovered{ ImGui::IsItemHovered() };
-		if (node_hovered) {
+		// tooltip
+		if (ImGui::IsItemHovered()) {
 			ImGui::BeginTooltip();
 			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.f);
 			ImGui::TextDisabled("%s", node_name);
@@ -56,22 +58,38 @@ namespace ml
 			ImGui::EndTooltip();
 		}
 
+		// context menu
 		if (ImGui::BeginPopupContextItem()) {
-			ImGui::TextDisabled("%s", node_name); ImGui::Separator();
+			if (ImGui::MenuItem("new child", "", false)) {
+				value->new_child("New Child");
+			}
+			if (!is_root) {
+				if (ImGui::MenuItem("detach children", "", false, !is_leaf)) {
+					value->detatch_children();
+				}
+				if (ImGui::MenuItem("move up", "", false, sibling_index > 0)) {
+					value->set_sibling_index(sibling_index - 1);
+				}
+				if (ImGui::MenuItem("move down", "", false, sibling_index < sibling_count - 1)) {
+					value->set_sibling_index(sibling_index + 1);
+				}
+			}
 			ImGui::EndPopup();
 		}
-		
+
+		// drag source
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
 			ImGui::SetDragDropPayload("DND_TREE_NODE", &value, sizeof(tree_node *));
-			ImGui::Text("holding: %s", node_name);
+			ImGui::Text("%s", node_name);
 			ImGui::EndDragDropSource();
 		}
 
+		// drop onto
 		if (ImGui::BeginDragDropTarget()) {
 			if (ImGuiPayload const * payload{ ImGui::AcceptDragDropPayload("DND_TREE_NODE") }) {
 				ML_assert(payload->DataSize == sizeof(tree_node *));
-				if (tree_node * holding{ *(tree_node **)payload->Data }
-				; holding && holding->set_parent(value)) {
+				if (tree_node * holding{ *(tree_node **)payload->Data }) {
+					holding->set_parent(value);
 					holding->set_as_last_sibling();
 				}
 			}
@@ -81,13 +99,14 @@ namespace ml
 		// node children
 		if (node_open && !is_leaf)
 		{
+			// drop before
 			if (g.DragDropActive) {
 				ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
 				if (ImGui::BeginDragDropTarget()) {
 					if (ImGuiPayload const * payload{ ImGui::AcceptDragDropPayload("DND_TREE_NODE") }) {
 						ML_assert(payload->DataSize == sizeof(tree_node *));
-						if (tree_node * holding{ *(tree_node **)payload->Data }
-						; holding && holding->set_parent(value)) {
+						if (tree_node * holding{ *(tree_node **)payload->Data }) {
+							holding->set_parent(value);
 							holding->set_as_first_sibling();
 						}
 					}
@@ -95,17 +114,20 @@ namespace ml
 				}
 			}
 
-			for (size_t i = 0, imax = value->get_child_count(); i < imax; ++i)
+			for (size_t i = 0; i < child_count; ++i)
 			{
-				edit_tree_node(value->get_child(i), flags);
+				tree_node * child{ value->get_child(i) };
 
-				if (g.DragDropActive && (i < imax - 1)) {
+				edit_tree_node(child, flags);
+
+				// drop after
+				if (g.DragDropActive && (i < child_count - 1)) {
 					ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
 					if (ImGui::BeginDragDropTarget()) {
 						if (ImGuiPayload const * payload{ ImGui::AcceptDragDropPayload("DND_TREE_NODE") }) {
 							ML_assert(payload->DataSize == sizeof(tree_node *));
-							if (tree_node * holding{ *(tree_node **)payload->Data }
-							; holding && holding->set_parent(value)) {
+							if (tree_node * holding{ *(tree_node **)payload->Data }) {
+								holding->set_parent(value);
 								holding->set_sibling_index(i + 1);
 							}
 						}

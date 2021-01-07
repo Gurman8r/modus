@@ -19,7 +19,7 @@ namespace ml
 		}
 
 		explicit entity(scene * parent) noexcept
-			: m_parent{ ML_check(parent) }
+			: m_parent{ parent }
 			, m_handle{ m_parent->m_registry.create() }
 		{
 		}
@@ -37,13 +37,10 @@ namespace ml
 		}
 
 		entity(entity && other) noexcept
-			: m_parent{}
-			, m_handle{}
+			: entity{}
 		{
 			this->swap(std::move(other));
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		entity & operator=(entity const & other)
 		{

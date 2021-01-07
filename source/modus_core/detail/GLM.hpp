@@ -15,7 +15,7 @@
 #ifndef ML_MATRIX_CLASS_EXTRA
 #define ML_MATRIX_CLASS_EXTRA \
 \
-template <glm::length_t L, class U, glm::qualifier Q = glm::defaultp							\
+template <glm::length_t L, class U, glm::qualifier Q = glm::defaultp					\
 > ML_NODISCARD operator glm::vec<L, U, Q>() const noexcept								\
 {																						\
 	using Other = glm::vec<L, U, Q>;													\
@@ -37,7 +37,7 @@ template <glm::length_t L, class U, glm::qualifier Q = glm::defaultp							\
 	}																					\
 }																						\
 																						\
-template <glm::length_t W, glm::length_t H, class U, glm::qualifier Q = glm::defaultp					\
+template <glm::length_t W, glm::length_t H, class U, glm::qualifier Q = glm::defaultp	\
 > ML_NODISCARD operator glm::mat<W, H, U, Q>() const noexcept							\
 {																						\
 	using Other = glm::mat<W, H, U, Q>;													\

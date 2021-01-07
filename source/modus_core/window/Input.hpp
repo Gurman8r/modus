@@ -4,6 +4,10 @@
 #include <modus_core/detail/Matrix.hpp>
 #include <modus_core/detail/Timer.hpp>
 
+#define ML_key_release	0
+#define ML_key_press	1
+#define ML_key_repeat	2
+
 // enums
 namespace ml
 {
@@ -168,16 +172,6 @@ namespace ml
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// actions
-	enum input_action_
-	{
-		input_action_release,
-		input_action_press,
-		input_action_repeat
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 // state
@@ -188,29 +182,24 @@ namespace ml
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		char
-			last_char{};
-		float32
-			mouse_wheel{};
-		vec2
-			mouse_pos{}, last_mouse_pos{},
-			mouse_delta{};
 		bool
-			mouse_down[mouse_button_MAX]{},
-			keys_down[keycode_MAX]{};
+			is_shift,
+			is_ctrl,
+			is_alt,
+			is_super;
+		char
+			last_char;
+		float32
+			mouse_wheel;
+		vec2
+			mouse_pos, last_mouse_pos,
+			mouse_delta;
+		bool
+			mouse_down[mouse_button_MAX],
+			keys_down[keycode_MAX];
 		float32
 			mouse_down_duration[mouse_button_MAX],
 			keys_down_duration[keycode_MAX];
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD bool is_shift() const noexcept { return keys_down[keycode_left_shift] || keys_down[keycode_right_shift]; }
-
-		ML_NODISCARD bool is_ctrl() const noexcept { return keys_down[keycode_left_ctrl] || keys_down[keycode_right_ctrl]; }
-
-		ML_NODISCARD bool is_alt() const noexcept { return keys_down[keycode_left_alt] || keys_down[keycode_right_alt]; }
-
-		ML_NODISCARD bool is_super() const noexcept { return keys_down[keycode_left_super] || keys_down[keycode_right_super]; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

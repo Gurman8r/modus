@@ -166,7 +166,7 @@
 #if defined(_MSC_VER)
 //                              Visual Studio
 #   define ML_cc_msvc           _MSC_VER
-#   define ML_cc_ver        ML_cc_msvc
+#   define ML_cc_ver            ML_cc_msvc
 #   if (ML_cc_ver >= 1920)
 #       define ML_cc_name       "Visual Studio 2019"
 #   elif (ML_cc_ver >= 1910)

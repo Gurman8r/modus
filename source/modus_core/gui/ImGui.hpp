@@ -49,6 +49,7 @@
 #include <imgui-node-editor/imgui_node_editor.h>
 #endif
 
+// operators
 namespace
 {
 	static inline ImVec2 operator-(const ImVec2 & lhs, const ImVec2 & rhs) noexcept
@@ -57,23 +58,54 @@ namespace
 	}
 }
 
-// Scope
+// scope
 namespace ImGui
 {
-	struct ML_NODISCARD ImplScopeID final
+	struct ImGuiScopeImpl final
 	{
 		template <class ... Args
-		> ImplScopeID(Args && ... args) noexcept { ImGui::PushID(ML_forward(args)...); }
+		> ImGuiScopeImpl(Args && ... args) noexcept { ImGui::PushID(ML_forward(args)...); }
 
-		~ImplScopeID() noexcept { ImGui::PopID(); }
+		~ImGuiScopeImpl() noexcept { ImGui::PopID(); }
 	};
 
 #define ImGui_Scope(...) \
-	auto ML_anon = ::ImGui::ImplScopeID{ ##__VA_ARGS__ }
+	auto ML_anon = ::ImGui::ImGuiScopeImpl{ ##__VA_ARGS__ }
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+// tooltips
+namespace ml::ImGuiExt
+{
+	// TOOLTIP-EX
+	template <class Fn, class ... Args
+	> void TooltipEx(Fn && fn, Args && ... args) noexcept
+	{
+		if (!ImGui::IsItemHovered()) { return; }
+		ImGui::BeginTooltip();
+		std::invoke(ML_forward(fn), ML_forward(args)...);
+		ImGui::EndTooltip();
+	}
 
+	// TOOLTIP
+	inline void Tooltip(cstring first, cstring last = NULL) noexcept
+	{
+		TooltipEx([first, last]() noexcept
+		{
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(first, last);
+			ImGui::PopTextWrapPos();
+		});
+	}
+
+	// HELP MARKER
+	inline void HelpMarker(cstring first, cstring last = NULL) noexcept
+	{
+		ImGui::TextDisabled("(?)");
+		Tooltip(first, last);
+	}
+}
+
+// backend
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -90,11 +122,7 @@ namespace ml
 
 	ML_CORE_API bool ImGui_LoadStyle(fs::path const & path, ImGuiStyle & ref = ImGui::GetStyle());
 	
-	ML_CORE_API bool ImGui_LoadStyle(json const & j, ImGuiStyle & ref = ImGui::GetStyle());
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #endif // !_ML_IMGUI_HPP_

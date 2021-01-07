@@ -52,6 +52,54 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// flags
+namespace ml::util
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	template <class V, class I
+	> constexpr auto & flag_set(V & value, I const index) noexcept
+	{
+		static_assert(std::is_scalar_v<V> && std::is_scalar_v<I>);
+		return value |= index;
+	}
+
+	template <class V, class I
+	> constexpr auto & flag_clear(V & value, I const index) noexcept
+	{
+		static_assert(std::is_scalar_v<V> && std::is_scalar_v<I>);
+		return value &= ~index;
+	}
+
+	template <class V, class I
+	> constexpr auto & flag_write(V & value, I const index, bool cond) noexcept
+	{
+		return cond ? _ML util::flag_set(value, index) : _ML util::flag_clear(value, index);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	template <class V, class I
+	> constexpr auto & bit_set(V & value, I const index) noexcept
+	{
+		return _ML util::flag_set(value, 1 << index);
+	}
+
+	template <class V, class I
+	> constexpr auto & bit_clear(V & value, I const index) noexcept
+	{
+		return _ML util::flag_clear(value, 1 << index);
+	}
+
+	template <class V, class I
+	> constexpr auto & bit_write(V & value, I const index, bool cond) noexcept
+	{
+		return _ML util::flag_write(value, 1 << index, cond);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
 // pi
 namespace ml::util
 {

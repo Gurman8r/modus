@@ -30,8 +30,6 @@ namespace ml
 		constexpr cleanup_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	ML_event(update_event)
 	{
 		gui_application * const ptr;
@@ -62,14 +60,6 @@ namespace ml
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ptr; }
 		constexpr gui_event(gui_application * ptr) noexcept : ptr{ ptr } {}
-	};
-
-	ML_event(gizmos_event)
-	{
-		gui_application * const ptr;
-		auto operator->() const noexcept { return ptr; }
-		auto & operator*() const noexcept { return *ptr; }
-		constexpr gizmos_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
 	ML_event(end_frame_event)

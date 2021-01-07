@@ -140,7 +140,7 @@ namespace ml
 		case value_t::number_unsigned	: return repr_number_unsigned(key, value);
 		case value_t::number_float		: return repr_number_float(key, value);
 		case value_t::binary			: return repr_binary(key, value);
-		case value_t::discarded			: return repr_binary(key, value);
+		case value_t::discarded			: return repr_discarded(key, value);
 		}
 	}
 	

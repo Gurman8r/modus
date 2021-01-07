@@ -501,8 +501,8 @@ namespace ml::gfx
 		int32							m_samples		{}; // 
 		bool							m_stereo		{}; // 
 		uint32							m_handle		{}; // handle
-		ds::list<ref<texture2d>>	m_attachments	{}; // color attachments
-		ref<texture2d>				m_depth			{}; // depth attachment
+		ds::list<ref<texture2d>>		m_attachments	{}; // color attachments
+		ref<texture2d>					m_depth			{}; // depth attachment
 
 		
 	public:
@@ -533,7 +533,7 @@ namespace ml::gfx
 
 		texture_flags_ get_flags() const noexcept { return m_flags; }
 
-		vec4i const & get_bits_per_pixel() const noexcept final { return m_bpp; }
+		vec4i const & get_bpp() const noexcept final { return m_bpp; }
 
 		int32 get_stencil_bits() const noexcept final { return m_stencil_bits; }
 

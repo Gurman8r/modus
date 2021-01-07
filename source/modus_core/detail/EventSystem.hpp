@@ -5,16 +5,17 @@
 #include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Method.hpp>
 
-// EVENT DECLARATOR
+// event helper
 #define ML_event(Ev) struct Ev : _ML impl::event_helper<Ev>
 
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// EVENT SYSTEM
+	// TYPES
 	struct event;
 	struct event_listener;
+	struct dummy_listener;
 	struct event_bus;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -22,7 +23,7 @@ namespace ml
 	// EVENT BASE
 	struct ML_NODISCARD event
 	{
-		ML_NODISCARD constexpr hash_t get_id() const noexcept { return m_id; }
+		ML_NODISCARD constexpr hash_t event_id() const noexcept { return m_id; }
 
 		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_id; }
 
@@ -68,9 +69,15 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit event_listener(event_bus * bus) noexcept
-			: m_bus{ ML_check(bus) }
-			, m_order{ make_order(bus) }
+		explicit event_listener(event_bus * bus, int64 order) noexcept
+			: m_bus{ bus }
+			, m_order{ order }
+		{
+		}
+
+		template <class Bus = event_bus
+		> event_listener(Bus * bus) noexcept
+			: event_listener{ bus, bus->next_id() }
 		{
 		}
 
@@ -78,7 +85,7 @@ namespace ml
 
 		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
 		
-		ML_NODISCARD auto get_bus_order() const noexcept -> uint64 { return m_order; }
+		ML_NODISCARD auto get_bus_order() const noexcept -> int64 { return m_order; }
 
 		ML_NODISCARD auto get_bus_order(event_listener const & other) const noexcept
 		{
@@ -92,13 +99,6 @@ namespace ml
 
 		// on event
 		virtual void on_event(event const &) = 0;
-
-		// order helper
-		template <class Bus = event_bus
-		> static uint64 make_order(Bus * bus) noexcept
-		{
-			return ML_check(bus)->make_order();
-		}
 
 		// subscribe
 		template <class ... Evs> void subscribe() noexcept
@@ -135,7 +135,7 @@ namespace ml
 
 	private:
 		event_bus *	const	m_bus		; // event bus
-		uint64 const		m_order		; // execution index
+		int64 const			m_order		; // execution index
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -143,7 +143,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// DUMMY LISTENER
-	struct ML_CORE_API dummy_listener final : trackable, event_listener
+	struct ML_CORE_API dummy_listener final : non_copyable, trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -230,7 +230,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD uint64 make_order() noexcept
+		ML_NODISCARD int64 next_id() noexcept
 		{
 			return ++m_counter;
 		}
@@ -324,7 +324,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		uint64		m_counter	; // counter
+		int64		m_counter	; // counter
 		categories	m_cats		; // listener storage
 		dummy_list	m_dummies	; // dummy listeners
 

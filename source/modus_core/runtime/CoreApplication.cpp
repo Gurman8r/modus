@@ -6,7 +6,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	core_application::core_application(int32 argc, char * argv[], json const & argj, allocator_type alloc)
-		: event_listener	{ &m_dispatcher }
+		: event_listener	{ &m_dispatcher, -1 }
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_app_data_path	{}
 		, m_app_file_name	{ argv[0] }

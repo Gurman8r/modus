@@ -4,7 +4,7 @@
 #include <modus_core/Preprocessor.hpp>
 
 #if !ML_has_cxx14
-#error "c++14 is required"
+#error "C++14 is required"
 #endif
 #include <cassert>
 #include <chrono>
@@ -19,7 +19,7 @@
 #include <vector>
 
 #if !ML_has_cxx17
-#error "c++17 is required"
+#error "C++17 is required"
 #endif
 #include <any>
 #include <filesystem>

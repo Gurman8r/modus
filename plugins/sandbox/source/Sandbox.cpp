@@ -7,7 +7,7 @@ namespace ml
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool // panels
+		bool // gui
 				m_show_imgui_demo			{ false },
 				m_show_imgui_metrics		{ false },
 				m_show_imgui_style_editor	{ false },
@@ -19,9 +19,15 @@ namespace ml
 		vec2	m_overlay_offset			{ 32, 32 };
 		float32	m_overlay_alpha				{ 0.35f };
 		
-		stream_sniper m_cout{ &std::cout };
-		ImGuiExt::Terminal m_term{};
-		ImGuiExt::TransformEditor m_xeditor{};
+		stream_sniper m_cout{ &std::cout }; // 
+		ImGuiExt::Terminal m_terminal{}; // 
+		ImGuiExt::TransformEditor m_xeditor{}; // 
+
+		bool	m_grid_enabled{ true }; // 
+		mat4	m_grid_matrix{ mat4::identity() }; // 
+		float32 m_grid_size{ 100.f }; // 
+
+		tree_node m_root{ "root" };
 
 		// resources
 		ds::list<ref<gfx::framebuffer>> m_framebuffers{}; // framebuffers
@@ -37,11 +43,6 @@ namespace ml
 		camera m_camera{}; // camera
 		camera_controller m_cc{ &m_camera }; // camera controller
 		bool m_dragging_view{}; // dragging view
-
-		// grid
-		bool	m_grid_enabled	{ true }; // 
-		mat4	m_grid_matrix	{ mat4::identity() }; // 
-		float32 m_grid_size		{ 100.f }; // 
 
 		// cubes
 		int32 m_object_count{ 1 }; // 
@@ -83,10 +84,10 @@ namespace ml
 			subscribe<
 				setup_event,
 				cleanup_event,
+
 				update_event,
 				late_update_event,
 				dockspace_event,
-				gizmos_event,
 				gui_event,
 				end_frame_event,
 
@@ -104,11 +105,11 @@ namespace ml
 			{
 			case setup_event		::ID: return on_setup((setup_event const &)value);
 			case cleanup_event		::ID: return on_cleanup((cleanup_event const &)value);
+
 			case update_event		::ID: return on_update((update_event const &)value);
 			case late_update_event	::ID: return on_late_update((late_update_event const &)value);
 			case dockspace_event	::ID: return on_dockspace((dockspace_event const &)value);
 			case gui_event			::ID: return on_gui((gui_event const &)value);
-			case gizmos_event		::ID: return on_gizmos((gizmos_event const &)value);
 			case end_frame_event	::ID: return on_end_frame((end_frame_event const &)value);
 
 			case char_event			::ID: return on_char((char_event const &)value);
@@ -172,35 +173,32 @@ namespace ml
 			ev->set_active_scene(scene0);
 			entity e{ scene0->new_entity() };
 
+			auto a = m_root.new_child("a");
+			auto b = m_root.new_child("b");
+			auto c = m_root.new_child("c");
+			a->set_sibling_index(1);
+			c->set_parent(a);
+			auto aa = a->new_child("aa");
+
+
 			// terminal
-			m_term.UserName = "root";
-			m_term.HostName = "localhost";
-			m_term.PathName = "~";
-			m_term.ModeName = "";
-			m_term.AddCommand("clear", {}, [&](auto line) { m_term.Output.Lines.clear(); });
-			m_term.AddCommand("exit", {}, [&](auto line) { ML_get_global(application)->quit(); });
-			m_term.AddCommand("help", {}, [&](auto line) {
-				for (auto const & name : m_term.CommandData.get<0>()) {
-					debug::puts("{0}", name);
+			m_terminal.UserName = "root";
+			m_terminal.HostName = "localhost";
+			m_terminal.PathName = "~";
+			m_terminal.ModeName = "";
+			m_terminal.Data.push_back({ "clear", {}, [&](auto line) { m_terminal.Output.Lines.clear(); } });
+			m_terminal.Data.push_back({ "exit", {}, [&](auto line) { ML_get_global(application)->quit(); } });
+			m_terminal.Data.push_back({ "help", {}, [&](auto line) { for (auto const & e : m_terminal.Data) { debug::puts("/{0}", e.name); } } });
+			m_terminal.Data.push_back({ "history", {}, [&](auto line) { for (auto const & e : m_terminal.History) { debug::puts(e); } } });
+			m_terminal.Data.push_back({ "python", {}, [&](auto line) {
+				if (m_terminal.ModeName.empty() && line.empty()) {
+					m_terminal.ModeName = "python"; return; // lock
 				}
-			});
-			m_term.AddCommand("history", {}, [&](auto line) {
-				for (auto const & str : m_term.History) {
-					debug::puts(str);
+				else if (m_terminal.ModeName == line && line == "python") {
+					m_terminal.ModeName.clear(); return; // unlock
 				}
-			});
-			m_term.AddCommand("python", {}, [&](auto line) {
-				// lock
-				if (m_term.ModeName.empty() && line.empty()) {
-					m_term.ModeName = "python"; return;
-				}
-				// unlock
-				else if (m_term.ModeName == line && line == "python") {
-					m_term.ModeName.clear(); return;
-				}
-				// execute
-				py::exec((std::string)line);
-			});
+				py::exec((std::string)line); // execute
+			} });
 		}
 
 		void on_cleanup(cleanup_event const & ev)
@@ -210,10 +208,12 @@ namespace ml
 			debug::success("goodbye!");
 		}
 
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		void on_update(update_event const & ev)
 		{
 			ds::string const str{ m_cout.str() };
-			m_term.Output.Print(str);
+			m_terminal.Output.Print(str);
 			m_cout.str({});
 
 			duration const dt{ ev->delta_time() };
@@ -272,26 +272,35 @@ namespace ml
 		
 		void on_dockspace(dockspace_event const & ev)
 		{
-			ImGuiID root{ ev->GetID() };
+			ImGuiID root{ ev->ID };
 			ImGuiID left{ ev->SplitNode(root, ImGuiDir_Left, 0.25f, nullptr, &root) };
 			ev->DockWindow("viewport", root);
-			ev->DockWindow("json editor", left);
+			ev->DockWindow("scene editor", left);
 		}
 
 		void on_gui(gui_event const & ev)
 		{
 			native_window * const	window			{ ev->get_window() };
 			vec2 const				winsize			{ (vec2)window->get_size() };
-			ImGuiContext * const	imgui			{ ev->get_imgui_context() };
-			input_state * const		input			{ ev->get_input() };
-			ImGuiViewport * const	main_viewport	{ imgui->Viewports[0] };
+			ImGuiContext * const	imgui			{ ev->get_imgui().get() };
+			ImGuiStyle &			style			{ imgui->Style };
 			float_rect const &		view_rect		{ m_viewport.get_rect() };
+			vec2 const				work_pos		{ view_rect.position() };
+			vec2 const				work_size		{ view_rect.size() };
+			float32 const			dt				{ ev->delta_time() };
 			float32 const			fps				{ ev->fps_value() };
 			float32 const			time			{ ev->uptime().count() };
+			input_state * const		input			{ ev->get_input() };
 			vec2 const &			mouse_pos		{ input->mouse_pos };
 			vec2 const &			mouse_delta		{ input->mouse_delta };
 			float32 const &			mouse_wheel		{ input->mouse_wheel };
+			mat4 const &			view_matrix		{ m_camera.get_view_matrix() };
+			mat4 const &			proj_matrix		{ m_camera.get_proj_matrix() };
+			
+			// GIZMOS
+			ImGuizmo::SetOrthographic(m_camera.is_orthographic());
 
+			// MAIN MENU BAR
 			if (ImGui::BeginMainMenuBar()) {
 				if (ImGui::BeginMenu("file")) {
 					if (ImGui::MenuItem("new", "ctrl+n")) {}
@@ -319,9 +328,9 @@ namespace ml
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("view")) {
-					if (ImGui::MenuItem("overlay", "", &m_show_overlay)) {}
-					if (ImGui::MenuItem("terminal", "", &m_show_terminal)) {}
-					if (ImGui::MenuItem("viewport", "", &m_show_viewport)) {}
+					if (ImGui::MenuItem("overlay", "ctrl+alt+o", &m_show_overlay)) {}
+					if (ImGui::MenuItem("terminal", "ctrl+alt+t", &m_show_terminal)) {}
+					if (ImGui::MenuItem("viewport", "ctrl+alt+v", &m_show_viewport)) {}
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("help")) {
@@ -334,12 +343,13 @@ namespace ml
 				ImGui::EndMainMenuBar();
 			}
 
+			// IMGUI DEMO
 			if (m_show_imgui_demo) { ImGui::ShowDemoWindow(&m_show_imgui_demo); }
 			if (m_show_imgui_metrics) { ImGui::ShowMetricsWindow(&m_show_imgui_metrics); }
 			if (m_show_imgui_style_editor) { ImGui::Begin("Dear ImGui Style Editor", &m_show_imgui_style_editor); ImGui::ShowStyleEditor(&imgui->Style); ImGui::End(); }
 			if (m_show_imgui_about) { ImGui::ShowAboutWindow(&m_show_imgui_about); }
 
-			// viewport
+			// VIEWPORT
 			if (m_show_viewport)
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
@@ -365,8 +375,8 @@ namespace ml
 						}
 						ImGui::Separator();
 						if (ImGui::BeginMenu("camera")) {
-							widgets::edit_camera(m_camera);
-							widgets::edit_camera_controller(m_cc);
+							edit_camera(m_camera);
+							edit_camera_controller(m_cc);
 							ImGui::EndMenu();
 						}
 						ImGui::Separator();
@@ -386,22 +396,41 @@ namespace ml
 						ImGui::Separator();
 						ImGui::EndMenuBar();
 					}
+					
 					// main image
 					ImRect const bb{ imgui->CurrentWindow->InnerRect };
-					ImGuizmo::SetDrawlist();
-					ImGuizmo::SetRect(bb.Min.x, bb.Min.y, bb.GetWidth(), bb.GetHeight());
 					m_viewport.set_rect((vec4)bb.ToVec4());
 					ImGui::ItemSize(bb);
-					if (!ImGui::ItemAdd(bb, 0)) { return; }
-					imgui->CurrentWindow->DrawList->AddImage(
-						m_framebuffers[0]->get_color_attachments()[0]->get_handle(),
-						bb.Min, bb.Max, { 0, 1 }, { 1, 0 }, 0xffffffff);
-					m_dragging_view = ImGui::IsItemHovered() && ImGui::IsMouseDragging(0);
+					if (ImGui::ItemAdd(bb, NULL)) {
+						imgui->CurrentWindow->DrawList->AddImage(
+							m_framebuffers[0]->get_color_attachments()[0]->get_handle(),
+							bb.Min, bb.Max, { 0, 1 }, { 1, 0 }, 0xffffffff);
+						m_dragging_view =
+							!ImGuizmo::IsUsing() &&
+							ImGui::IsItemHovered() &&
+							ImGui::IsMouseDragging(0);
+					}
+
+					// gizmos
+					ImGuizmo::SetDrawlist();
+					ImGuizmo::SetRect(bb.Min.x, bb.Min.y, bb.GetWidth(), bb.GetHeight());
+					if (m_grid_enabled) {
+						ImGuizmo::DrawGrid(view_matrix, proj_matrix, m_grid_matrix, m_grid_size);
+					}
+					if (0 && 0 < m_object_count) {
+						ImGuizmo::DrawCubes(view_matrix, proj_matrix, &m_object_matrix[0][0], m_object_count);
+					}
+					for (int32 i = 0; i < m_object_count; ++i) {
+						ImGuizmo::SetID(i);
+						if (m_xeditor.Manipulate(view_matrix, proj_matrix, m_object_matrix[i])) {
+							m_object_index = i;
+						}
+					}
 				}
 				ImGui::End();
 			}
 
-			// terminal
+			// TERMINAL
 			if (m_show_terminal)
 			{
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
@@ -418,49 +447,42 @@ namespace ml
 					// menubar
 					if (ImGui::BeginMenuBar()) {
 						ImGui::TextDisabled("filter"); ImGui::SameLine();
-						m_term.Output.Filter.Draw("##filter", 256);
+						m_terminal.Output.Filter.Draw("##filter", 256);
 						ImGui::Separator();
 						if (ImGui::BeginMenu("options")) {
-							ImGui::Checkbox("auto scroll", &m_term.Output.AutoScroll);
+							ImGui::Checkbox("auto scroll", &m_terminal.Output.AutoScroll);
 							ImGui::Separator();
-							m_term.DrawPrefixOptions();
+							m_terminal.DrawPrefixOptions();
 							ImGui::EndMenu();
 						}
 						ImGui::Separator();
-						if (ImGui::MenuItem("clear")) { m_term.Output.Lines.clear(); }
+						if (ImGui::MenuItem("clear")) { m_terminal.Output.Lines.clear(); }
 						ImGui::Separator();
 						ImGui::EndMenuBar();
 					}
 					// output
 					ImGui::BeginChild("##output", { 0, -ImGui::GetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_HorizontalScrollbar);
-					m_term.Output.Draw();
+					m_terminal.DrawOutput();
 					ImGui::EndChild();
 					// input
 					ImGui::BeginChild("##input", {}, false, ImGuiWindowFlags_NoScrollbar);
-					m_term.DrawPrefix(); ImGui::SameLine();
-					m_term.DrawInput();
+					m_terminal.DrawPrefix(); ImGui::SameLine();
+					m_terminal.DrawInput();
 					ImGui::EndChild();
 				}
 				ImGui::End();
 			}
 
-			// overlay
+			// OVERLAY
 			if (m_show_overlay)
 			{
-				ImGuiWindowFlags overlay_flags{
-					ImGuiWindowFlags_NoDecoration |
-					ImGuiWindowFlags_NoDocking |
-					ImGuiWindowFlags_AlwaysAutoResize |
-					ImGuiWindowFlags_NoSavedSettings |
-					ImGuiWindowFlags_NoFocusOnAppearing |
-					ImGuiWindowFlags_NoNav
-				};
-				if (m_overlay_corner != -1)
+				bool const no_move{ m_overlay_corner != -1 };
+				if (no_move)
 				{
-					overlay_flags |= ImGuiWindowFlags_NoMove;
+					auto const vp{ imgui->Viewports[0] };
 					float_rect const bounds{
-						imgui->Viewports[0]->GetWorkPos(),
-						imgui->Viewports[0]->GetWorkSize()
+						vp->GetWorkPos(),
+						vp->GetWorkSize()
 					};
 					vec2 const pos{
 						((m_overlay_corner & 1) ? (bounds[0] + bounds[2] - m_overlay_offset[0]) : (bounds[0] + m_overlay_offset[0])),
@@ -471,13 +493,19 @@ namespace ml
 						((m_overlay_corner & 2) ? 1.f : 0.f)
 					};
 					ImGui::SetNextWindowPos(pos, ImGuiCond_Always, piv);
-					ImGui::SetNextWindowViewport(imgui->Viewports[0]->ID);
+					ImGui::SetNextWindowViewport(vp->ID);
 				}
 				ImGui::SetNextWindowBgAlpha(m_overlay_alpha);
 				bool const is_open{ ImGui::Begin(
 					"overlay",
 					&m_show_overlay,
-					overlay_flags
+					ImGuiWindowFlags_NoDecoration |
+					ImGuiWindowFlags_NoDocking |
+					ImGuiWindowFlags_AlwaysAutoResize |
+					ImGuiWindowFlags_NoSavedSettings |
+					ImGuiWindowFlags_NoFocusOnAppearing |
+					ImGuiWindowFlags_NoNav |
+					(no_move ? ImGuiWindowFlags_NoMove : 0)
 				) };
 				if (is_open)
 				{
@@ -510,10 +538,10 @@ namespace ml
 						}
 					}
 					ImGui::Text("mods: %s%s%s%s",
-						input->is_shift() ? "shift " : "",
-						input->is_ctrl() ? "ctrl " : "",
-						input->is_alt() ? "alt " : "",
-						input->is_super() ? "super " : "");
+						input->is_shift ? "shift " : "",
+						input->is_ctrl ? "ctrl " : "",
+						input->is_alt ? "alt " : "",
+						input->is_super ? "super " : "");
 
 					if (ImGui::BeginPopupContextWindow()) {
 						if (ImGui::MenuItem("custom", 0, m_overlay_corner == -1)) { m_overlay_corner = -1; }
@@ -528,50 +556,23 @@ namespace ml
 				ImGui::End();
 			}
 
-			// json editor
-			static json_editor jedit{ ev->attr() };
-			if (ImGui::Begin("json editor", NULL, ImGuiWindowFlags_MenuBar)) {
+			// tree editor
+			if (ImGui::Begin("scene editor", NULL, ImGuiWindowFlags_MenuBar)) {
 				if (ImGui::BeginMenuBar()) {
-					ImGui::Separator();
-					ImGui::Checkbox("values", &jedit.m_show_values);
-					ImGui::Separator();
+					ImGui::TextDisabled("scene editor");
 					ImGui::EndMenuBar();
 				}
+
+				
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
-				jedit.draw(
+				edit_tree_node(&m_root,
+					ImGuiTreeNodeFlags_DefaultOpen |
 					ImGuiTreeNodeFlags_Framed |
 					ImGuiTreeNodeFlags_FramePadding |
 					ImGuiTreeNodeFlags_SpanAvailWidth);
 				ImGui::PopStyleVar();
 			}
 			ImGui::End();
-
-			
-		}
-
-		void on_gizmos(gizmos_event const & ev)
-		{
-			mat4 const
-				view_matrix{ m_camera.get_view_matrix() },
-				proj_matrix{ m_camera.get_proj_matrix() };
-
-			ImGuizmo::SetOrthographic(m_camera.is_orthographic());
-
-			if (m_grid_enabled) {
-				ImGuizmo::DrawGrid(view_matrix, proj_matrix, m_grid_matrix, m_grid_size);
-			}
-
-			if (0 && 0 < m_object_count) {
-				ImGuizmo::DrawCubes(view_matrix, proj_matrix, &m_object_matrix[0][0], m_object_count);
-			}
-
-			for (int32 i = 0; i < m_object_count; ++i) {
-				ImGuizmo::SetID(i);
-				if (m_xeditor.Manipulate(view_matrix, proj_matrix, m_object_matrix[i])) {
-					m_object_index = i;
-					m_dragging_view = false;
-				}
-			}
 		}
 
 		void on_end_frame(end_frame_event const & ev)

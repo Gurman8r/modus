@@ -5,7 +5,7 @@
 #include <modus_core/graphics/RenderTarget.hpp>
 #include <modus_core/gui/PanelWindow.hpp>
 #include <modus_core/window/NativeWindow.hpp>
-#include <modus_core/gui/ImGuiExt.hpp>
+#include <modus_core/gui/Dockspace.hpp>
 #include <modus_core/scene/Scene.hpp>
 
 namespace ml
@@ -27,11 +27,37 @@ namespace ml
 	public:
 		virtual int32 exec() override;
 
-		virtual void exit(int32 exit_code) override;
+		virtual void exit(int32 exit_code = EXIT_SUCCESS) override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		ML_NODISCARD auto get_window() const noexcept { return const_cast<native_window *>(&m_window); }
+
+		ML_NODISCARD auto get_render_device() const noexcept -> scary<gfx::render_device> const & { return m_render_device; }
+
+		ML_NODISCARD auto get_render_context() const noexcept -> ref<gfx::render_context> const & { return m_render_device->get_context(); }
+
+		void set_render_device(gfx::render_device * value) noexcept { m_render_device.reset(value); }
+
+		void set_render_context(ref<gfx::render_context> const & value) noexcept { m_render_device->set_context(value); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_imgui() const noexcept -> scary<ImGuiContext> const & { return m_imgui; }
+
+		ML_NODISCARD auto get_dockspace() const noexcept { return const_cast<ImGuiExt::Dockspace *>(&m_dockspace); }
+
+		void set_imgui(ImGuiContext * value) noexcept { m_imgui.reset(value); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_active_scene() const noexcept -> ref<scene> const & { return m_active_scene; }
+
+		void set_active_scene(ref<scene> const & value) noexcept { m_active_scene = value; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		ML_NODISCARD auto delta_time() const noexcept -> duration { return m_delta_time; }
 
 		ML_NODISCARD auto frame_index() const noexcept -> uint64 { return m_frame_index; }
@@ -42,37 +68,7 @@ namespace ml
 
 		ML_NODISCARD auto fps_times() const noexcept -> ds::list<float32> const & { return m_fps_times; }
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD auto get_input() const noexcept { return const_cast<input_state *>(&m_input); }
-
-		ML_NODISCARD auto get_loop() const noexcept { return const_cast<loop_system *>(&m_loop); }
-
-		ML_NODISCARD auto get_window() const noexcept { return const_cast<native_window *>(&m_window); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_render_device() const noexcept -> gfx::render_device * { return m_render_device; }
-
-		ML_NODISCARD auto get_render_context() const noexcept -> ref<gfx::render_context> const & { return m_render_device->get_context(); }
-
-		void set_render_device(gfx::render_device * value) noexcept { m_render_device = value; }
-
-		void set_render_context(ref<gfx::render_context> const & value) noexcept { m_render_device->set_context(value); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_dock_builder() const noexcept { return const_cast<ImGuiExt::Dockspace *>(&m_dockspace); }
-
-		ML_NODISCARD auto get_imgui_context() const noexcept -> ImGuiContext * { return m_imgui; }
-
-		void set_imgui_context(ImGuiContext * value) noexcept { m_imgui = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_active_scene() const noexcept -> ref<scene> const & { return m_active_scene; }
-
-		void set_active_scene(ref<scene> const & value) noexcept { m_active_scene = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -88,21 +84,20 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		loop_system				m_loop			; // main loop
-		native_window			m_window		; // main window
-		gfx::render_device *	m_render_device	; // render device
-		ref<scene>				m_active_scene	; // active scene
-		ImGuiContext *			m_imgui			; // imgui context
-		ImGuiExt::Dockspace		m_dockspace		; // dockspace
-
-		timer					m_loop_timer	; // loop timer
-		duration				m_delta_time	; // delta time
-		uint64					m_frame_index	; // frame index
-		float32					m_fps_value		; // fps value
-		float32					m_fps_accum		; // fps accumulator
-		size_t					m_fps_index		; // fps index
-		ds::list<float32>		m_fps_times		; // fps times
-		input_state				m_input			; // input
+		native_window				m_window		; // main window
+		scary<gfx::render_device>	m_render_device	; // render device
+		scary<ImGuiContext>			m_imgui			; // imgui context
+		ImGuiExt::Dockspace			m_dockspace		; // dockspace
+		ref<scene>					m_active_scene	; // active scene
+		
+		input_state			m_input			; // input state
+		timer				m_loop_timer	; // loop timer
+		duration			m_delta_time	; // delta time
+		uint64				m_frame_index	; // frame index
+		float32				m_fps_value		; // fps value
+		float32				m_fps_accum		; // fps accumulator
+		size_t				m_fps_index		; // fps index
+		ds::list<float32>	m_fps_times		; // fps times
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

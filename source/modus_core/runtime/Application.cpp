@@ -18,7 +18,7 @@ namespace ml
 			cleanup_event,
 			update_event,
 			late_update_event,
-			gizmos_event, dockspace_event,
+			dockspace_event,
 			gui_event,
 			end_frame_event
 		>();
@@ -46,9 +46,8 @@ namespace ml
 		case cleanup_event		::ID: { auto const & ev{ (cleanup_event const &)value }; } break;
 		case update_event		::ID: { auto const & ev{ (update_event const &)value }; } break;
 		case late_update_event	::ID: { auto const & ev{ (late_update_event const &)value }; } break;
-		case gizmos_event		::ID: { auto const & ev{ (dockspace_event const &)value }; } break;
 		case dockspace_event	::ID: { auto const & ev{ (dockspace_event const &)value }; } break;
-		case gui_event			::ID: { auto const & ev{ (gui_event const &)value }; } break;
+		case gui_event		::ID: { auto const & ev{ (gui_event const &)value }; } break;
 		case end_frame_event	::ID: { auto const & ev{ (end_frame_event const &)value }; } break;
 
 		// inputs

@@ -95,27 +95,27 @@ ML_NODISCARD json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
 
 int32 main(int32 argc, char * argv[])
 {
-	application app{ argc, argv, load_settings() };
+	auto app{ make_scope<application>(argc, argv, load_settings()) };
 
-	if (json const * j{ app.attr("plugins") }) {
+	if (json const * j{ app->attr("plugins") }) {
 		for (json const & elem : *j) {
 			if (auto const path{ elem.find("path") }
 			; path != elem.end() && path->is_string()) {
-				app.load_plugin(*path);
+				app->load_plugin(*path);
 			}
 		}
 	}
 
-	if (json const * j{ app.attr("scripts") }) {
+	if (json const * j{ app->attr("scripts") }) {
 		for (json const & elem : *j) {
 			if (auto const path{ elem.find("path") }
 			; path != elem.end() && path->is_string()) {
-				py::eval_file(app.path_to(*path));
+				py::eval_file(app->path_to(*path));
 			}
 		}
 	}
 
-	return app.exec();
+	return app->exec();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

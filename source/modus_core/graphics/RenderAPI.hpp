@@ -944,7 +944,7 @@ namespace ml::gfx
 		vec2i			size			{ 1280, 720 };
 		texture_format	format			{ format_rgba };
 		texture_flags_	flags			{ texture_flags_default };
-		vec4i			bits_per_pixel	{ 8, 8, 8, 8 };
+		vec4i			bpp				{ 8, 8, 8, 8 };
 		int32			stencil_bits	{ 24 },
 						depth_bits		{ 8 };
 		int32			samples			{};
@@ -956,7 +956,7 @@ namespace ml::gfx
 		j["size"			].get_to(v.size);
 		j["format"			].get_to(v.format);
 		j["flags"			].get_to(v.flags);
-		j["bits_per_pixel"	].get_to(v.bits_per_pixel);
+		j["bpp"				].get_to(v.bpp);
 		j["stencil_bits"	].get_to(v.stencil_bits);
 		j["depth_bits"		].get_to(v.depth_bits);
 		j["samples"			].get_to(v.samples);
@@ -968,7 +968,7 @@ namespace ml::gfx
 		j["size"			] = v.size;
 		j["format"			] = v.format;
 		j["flags"			] = v.flags;
-		j["bits_per_pixel"	] = v.bits_per_pixel;
+		j["bpp"	] = v.bpp;
 		j["stencil_bits"	] = v.stencil_bits;
 		j["depth_bits"		] = v.depth_bits;
 		j["samples"			] = v.samples;
@@ -1016,7 +1016,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
 
-		ML_NODISCARD virtual vec4i const & get_bits_per_pixel() const noexcept = 0;
+		ML_NODISCARD virtual vec4i const & get_bpp() const noexcept = 0;
 
 		ML_NODISCARD virtual int32 get_stencil_bits() const noexcept = 0;
 		

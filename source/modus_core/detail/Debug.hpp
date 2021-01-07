@@ -33,9 +33,13 @@
 #define ML_verify_ex(expr, msg, file, line) \
 	(void)((!!(expr)) || (ML_IMPL_VERIFY(ML_wide(msg), ML_wide(file), (unsigned)(line)), 0))
 
+// verify message
+#define ML_verify_msg(expr, msg) \
+	ML_verify_ex(expr, msg, __FILE__, __LINE__)
+
 // verify
 #define ML_verify(expr) \
-	ML_verify_ex(expr, ML_str(expr), __FILE__, __LINE__)
+	ML_verify_msg(expr, ML_str(expr))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

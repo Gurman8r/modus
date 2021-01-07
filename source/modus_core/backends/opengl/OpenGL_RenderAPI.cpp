@@ -1058,7 +1058,7 @@ namespace ml::gfx
 		, m_size		{ desc.size }
 		, m_format		{ desc.format }
 		, m_flags		{ desc.flags }
-		, m_bpp			{ desc.bits_per_pixel }
+		, m_bpp			{ desc.bpp }
 		, m_stencil_bits{ desc.stencil_bits }
 		, m_depth_bits	{ desc.depth_bits }
 		, m_samples		{ desc.samples }

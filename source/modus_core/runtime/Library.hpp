@@ -7,45 +7,29 @@
 #include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Method.hpp>
 
-// TYPES
 namespace ml
 {
 	ML_decl_handle(library_id); // library id
 
 	ML_decl_handle(library_handle); // library handle
-}
 
-// LIBRARY CONTEXT
-namespace ml
-{
 	// library context
 	struct ML_NODISCARD library_context final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::method<library_handle(fs::path const &)> load; // load library
+		ds::method<library_handle(fs::path const &)>			load; // load library
+		ds::method<bool(library_handle)>						free; // free library
+		ds::method<void * (library_handle, ds::string const &)>	proc; // get proc address
 
-		ds::method<bool(library_handle)> free; // free library
-
-		ds::method<void * (library_handle, ds::string const &)> proc; // get procedure address
-
-		void swap(library_context & other) noexcept
-		{
-			if (this != std::addressof(other))
-			{
-				this->load.swap(other.load);
-				this->free.swap(other.free);
-				this->proc.swap(other.proc);
-			}
-		}
+		constexpr library_context(library_context const &) = default;
+		constexpr library_context(library_context &&) noexcept = default;
+		constexpr library_context & operator=(library_context const &) = default;
+		constexpr library_context & operator=(library_context &&) noexcept = default;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-}
 
-// LIBRARY
-namespace ml
-{
 	// library
 	struct ML_CORE_API library final : non_copyable, trackable
 	{
@@ -131,7 +115,7 @@ namespace ml
 			{
 				std::swap(m_hash, other.m_hash);
 				m_path.swap(other.m_path);
-				m_context.swap(other.m_context);
+				std::swap(m_context, other.m_context);
 				std::swap(m_handle, other.m_handle);
 				m_procs.swap(other.m_procs);
 			}

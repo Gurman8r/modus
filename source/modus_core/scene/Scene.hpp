@@ -42,8 +42,8 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	private:
-		template <class T> void on_component_added(entity, T &) {}
+	protected:
+		template <class T> void on_component_added(entity, T &) { static_assert(!"on_component_added"); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

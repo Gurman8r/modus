@@ -92,21 +92,21 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD constexpr coord_type & min() noexcept { return *(coord_type *)&m_data[0]; }
+		ML_NODISCARD constexpr coord_type & min() & noexcept { return *(coord_type *)&m_data[0]; }
 
-		ML_NODISCARD constexpr coord_type const & min() const noexcept { return *(coord_type const *)&m_data[0]; }
+		ML_NODISCARD constexpr coord_type const & min() const & noexcept { return *(coord_type const *)&m_data[0]; }
 
 		template <class Value = coord_type
-		> coord_type & min(Value && value) noexcept { return min() = ML_forward(value); }
+		> coord_type & min(Value && value) & noexcept { return min() = ML_forward(value); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD constexpr coord_type & max() noexcept { return *(coord_type *)&m_data[2]; }
+		ML_NODISCARD constexpr coord_type & max() & noexcept { return *(coord_type *)&m_data[2]; }
 
-		ML_NODISCARD constexpr coord_type const & max() const noexcept { return *(coord_type const *)&m_data[2]; }
+		ML_NODISCARD constexpr coord_type const & max() const & noexcept { return *(coord_type const *)&m_data[2]; }
 
 		template <class Value = coord_type
-		> coord_type & max(Value && value) noexcept { return max() = ML_forward(value); }
+		> coord_type & max(Value && value) & noexcept { return max() = ML_forward(value); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

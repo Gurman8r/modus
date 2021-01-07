@@ -24,9 +24,9 @@ namespace ml
 	public:
 		virtual int32 exec() { return m_exit_code; }
 
-		virtual void exit(int32 value) { m_exit_code = value; }
+		virtual void exit(int32 value = EXIT_SUCCESS) { m_exit_code = value; }
 
-		void quit() noexcept { exit(EXIT_SUCCESS); }
+		void quit() noexcept { this->exit(EXIT_SUCCESS); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

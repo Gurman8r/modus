@@ -8,15 +8,14 @@
 namespace ml::impl
 {
     // invoke function in constructor
-    template <class Fn> struct ML_NODISCARD block_impl final
+    template <class Fn> struct block_impl final
     {
         block_impl(Fn && fn) noexcept { ML_forward(fn)(); }
     };
 
-    enum class ML_NODISCARD block_tag {};
+    enum class block_tag {};
 
-    template <class Fn
-    > ML_NODISCARD auto operator+(block_tag, Fn && fn) noexcept
+    template <class Fn> auto operator+(block_tag, Fn && fn) noexcept
     {
         return block_impl<Fn>{ ML_forward(fn) };
     }
@@ -35,7 +34,7 @@ namespace ml::impl
 namespace ml::impl
 {
     // invoke function in destructor
-    template <class Fn> struct ML_NODISCARD defer_impl final
+    template <class Fn> struct defer_impl final
     {
         defer_impl(Fn && fn) noexcept : m_fn{ ML_forward(fn) } {}
 
@@ -44,10 +43,9 @@ namespace ml::impl
     private: Fn const m_fn;
     };
 
-    enum class ML_NODISCARD defer_tag {};
+    enum class defer_tag {};
 
-    template <class Fn
-    > ML_NODISCARD auto operator+(defer_tag, Fn && fn) noexcept
+    template <class Fn> auto operator+(defer_tag, Fn && fn) noexcept
     {
         return defer_impl<Fn>{ ML_forward(fn) };
     }

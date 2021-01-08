@@ -1,0 +1,4 @@
+#ifndef _ML_NATIVE_SCRIPT_HPP_
+#define _ML_NATIVE_SCRIPT_HPP_
+
+#endif // !_ML_NATIVE_SCRIPT_HPP_

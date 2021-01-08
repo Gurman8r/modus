@@ -4,7 +4,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	scene_editor::scene_editor(ref<scene> const & context)
+	scene_editor::scene_editor(ref<scene_tree> const & context)
 		: m_context{ context }
 		, m_selected{ nullptr }
 	{

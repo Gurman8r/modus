@@ -7,44 +7,51 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	entity scene::new_entity(string const & name) noexcept
+	scene_tree::scene_tree(allocator_type alloc) noexcept
+		: m_registry{}
+		, m_root{ ML_new(entity, this, alloc) }
 	{
-		entity e{ this, m_registry.create() };
-		e.add_component<tag_component>(!name.empty() ? name : "New Entity");
-		e.add_component<transform_component>();
+	}
+
+	scene_tree::~scene_tree() noexcept
+	{
+		ML_delete(m_root);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	entity * scene_tree::new_entity(string const & name) noexcept
+	{
+		entity * e{ m_root->new_child() };
+		e->add_component<tag_component>(!name.empty() ? name : "New Entity");
+		e->add_component<transform_component>();
 		return e;
 	}
 
-	void scene::delete_entity(entity const & value) noexcept
+	void scene_tree::delete_entity(entity * value) noexcept
 	{
-		m_registry.destroy(value);
+		if (!value) { return; }
+
+		m_registry.destroy(*value);
+
+		if (value->m_parent) { value->m_parent->delete_child(value); }
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void scene::on_runtime_update()
+	template <> void scene_tree::on_component_added<tag_component>(entity & e, tag_component & c)
 	{
 	}
 
-	void scene::on_editor_update()
+	template <> void scene_tree::on_component_added<transform_component>(entity & e, transform_component & c)
 	{
 	}
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	template <> void scene::on_component_added(entity e, tag_component & c)
+	template <> void scene_tree::on_component_added<camera_component>(entity & e, camera_component & c)
 	{
 	}
 
-	template <> void scene::on_component_added(entity e, transform_component & c)
-	{
-	}
-
-	template <> void scene::on_component_added(entity e, camera_component & c)
-	{
-	}
-
-	template <> void scene::on_component_added(entity e, native_script_component & c)
+	template <> void scene_tree::on_component_added<native_script_component>(entity & e, native_script_component & c)
 	{
 	}
 

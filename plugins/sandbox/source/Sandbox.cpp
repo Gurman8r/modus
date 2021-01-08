@@ -35,7 +35,7 @@ namespace ml
 		// scenes
 		tree_node m_root{ "root" };
 		scene_editor m_scene_editor{};
-		hash_map<string, ref<scene>> m_scenes{};
+		hash_map<string, ref<scene_tree>> m_scenes{};
 
 		// resources
 		list<ref<gfx::framebuffer>> m_framebuffers{}; // framebuffers
@@ -89,15 +89,15 @@ namespace ml
 		sandbox(plugin_manager * manager, void * userptr) : plugin{ manager, userptr }
 		{
 			subscribe<
-				setup_event,
-				cleanup_event,
+				// main
+				runtime_startup_event,
+				runtime_shutdown_event,
+				runtime_update_event,
+				editor_dockspace_event,
+				runtime_imgui_event,
+				runtime_frame_end_event,
 
-				update_event,
-				late_update_event,
-				dockspace_event,
-				gui_event,
-				end_frame_event,
-
+				// input
 				char_event,
 				key_event,
 				mouse_button_event,
@@ -110,26 +110,24 @@ namespace ml
 		{
 			switch (value)
 			{
-			case setup_event		::ID: return on_setup((setup_event const &)value);
-			case cleanup_event		::ID: return on_cleanup((cleanup_event const &)value);
+			case runtime_startup_event	::ID: return on_runtime_startup((runtime_startup_event const &)value);
+			case runtime_shutdown_event	::ID: return on_runtime_shutdown((runtime_shutdown_event const &)value);
+			case runtime_update_event	::ID: return on_runtime_update((runtime_update_event const &)value);
+			case editor_dockspace_event	::ID: return on_editor_dockspace((editor_dockspace_event const &)value);
+			case runtime_imgui_event	::ID: return on_runtime_imgui((runtime_imgui_event const &)value);
+			case runtime_frame_end_event::ID: return on_runtime_frame_end((runtime_frame_end_event const &)value);
 
-			case update_event		::ID: return on_update((update_event const &)value);
-			case late_update_event	::ID: return on_late_update((late_update_event const &)value);
-			case dockspace_event	::ID: return on_dockspace((dockspace_event const &)value);
-			case gui_event			::ID: return on_gui((gui_event const &)value);
-			case end_frame_event	::ID: return on_end_frame((end_frame_event const &)value);
-
-			case char_event			::ID: return on_char((char_event const &)value);
-			case key_event			::ID: return on_key((key_event const &)value);
-			case mouse_button_event	::ID: return on_mouse_button((mouse_button_event const &)value);
-			case mouse_pos_event	::ID: return on_mouse_pos((mouse_pos_event const &)value);
-			case mouse_wheel_event	::ID: return on_mouse_wheel((mouse_wheel_event const &)value);
+			case char_event				::ID: return on_char((char_event const &)value);
+			case key_event				::ID: return on_key((key_event const &)value);
+			case mouse_button_event		::ID: return on_mouse_button((mouse_button_event const &)value);
+			case mouse_pos_event		::ID: return on_mouse_pos((mouse_pos_event const &)value);
+			case mouse_wheel_event		::ID: return on_mouse_wheel((mouse_wheel_event const &)value);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_setup(setup_event const & ev)
+		void on_runtime_startup(runtime_startup_event const & ev)
 		{
 			// path to
 			auto path2 = std::bind(&core_application::path_to, ev.ptr, std::placeholders::_1);
@@ -176,10 +174,12 @@ namespace ml
 			m_cc.set_pitch(-25.f);
 
 			// scene
-			auto & scene0 = m_scenes["0"] = make_ref<scene>();
+			auto & scene0 = m_scenes["0"] = make_ref<scene_tree>();
 			m_scene_editor.set_context(scene0);
 			ev->set_active_scene(scene0);
-			entity e{ scene0->new_entity() };
+			entity * e{ scene0->new_entity() };
+			e->add_component<camera_component>();
+			e->add_component<native_script_component>();
 
 			auto a = m_root.new_child("a");
 			auto b = m_root.new_child("b");
@@ -209,16 +209,14 @@ namespace ml
 			} });
 		}
 
-		void on_cleanup(cleanup_event const & ev)
+		void on_runtime_shutdown(runtime_shutdown_event const & ev)
 		{
 			ev->set_active_scene(nullptr);
 
 			debug::good("goodbye!");
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void on_update(update_event const & ev)
+		void on_runtime_update(runtime_update_event const & ev)
 		{
 			string const str{ m_cout.str() };
 			m_terminal.Output.Print(str);
@@ -273,12 +271,8 @@ namespace ml
 				gfx::command::bind_framebuffer(0)
 			);
 		}
-
-		void on_late_update(late_update_event const & ev)
-		{
-		}
 		
-		void on_dockspace(dockspace_event const & ev)
+		void on_editor_dockspace(editor_dockspace_event const & ev)
 		{
 			ImGuiID root{ ev->ID };
 			ImGuiID left{ ev->SplitNode(root, ImGuiDir_Left, 0.25f, nullptr, &root) };
@@ -286,7 +280,7 @@ namespace ml
 			ev->DockWindow("scene editor", left);
 		}
 
-		void on_gui(gui_event const & ev)
+		void on_runtime_imgui(runtime_imgui_event const & ev)
 		{
 			native_window * const	window			{ ev->get_window() };
 			vec2 const				winsize			{ (vec2)window->get_size() };
@@ -548,7 +542,7 @@ namespace ml
 			ImGui::End();
 		}
 
-		void on_end_frame(end_frame_event const & ev)
+		void on_runtime_frame_end(runtime_frame_end_event const & ev)
 		{
 		}
 

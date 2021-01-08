@@ -11,7 +11,7 @@ namespace ml
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		scene_editor(ref<scene> const & context = nullptr);
+		scene_editor(ref<scene_tree> const & context = nullptr);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -21,14 +21,14 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_context() const noexcept -> ref<scene> const & { return m_context; }
+		ML_NODISCARD auto get_context() const noexcept -> ref<scene_tree> const & { return m_context; }
 
-		void set_context(ref<scene> const & value) noexcept { m_context = value; }
+		void set_context(ref<scene_tree> const & value) noexcept { m_context = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	private:
-		ref<scene>	m_context	; // 
-		ref<scene>	m_selected	; // 
+		ref<scene_tree>	m_context	; // 
+		ref<scene_tree>	m_selected	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -1,8 +1,8 @@
 #ifndef _ML_PLUGIN_MANAGER_HPP_
 #define _ML_PLUGIN_MANAGER_HPP_
 
+#include <modus_core/embed/NativeLibrary.hpp>
 #include <modus_core/runtime/Plugin.hpp>
-#include <modus_core/system/Library.hpp>
 
 namespace ml
 {
@@ -26,15 +26,15 @@ namespace ml
 	private:
 		friend plugin_manager;
 
-		explicit plugin_context(ref<library> const & lib) : plugin_context{}
+		explicit plugin_context(ref<native_library> const & lib) : plugin_context{}
 		{
 			ML_verify(lib && *lib);
-			hash_code	= (plugin_id)lib->hash_code() ;
-			file_name	= lib->path().stem().string() ;
-			file_path	= lib->path().string() ;
-			extension	= lib->path().extension().string() ;
-			allocate	= lib->proc<plugin *, plugin_manager *, void *>("ml_plugin_create") ;
-			deallocate	= lib->proc<void, plugin_manager *, plugin *>("ml_plugin_destroy") ;
+			hash_code	= (plugin_id)lib->hash_code();
+			file_name	= lib->path().stem().string();
+			file_path	= lib->path().string();
+			extension	= lib->path().extension().string();
+			allocate	= lib->proc<plugin *, plugin_manager *, void *>("ml_plugin_create");
+			deallocate	= lib->proc<void, plugin_manager *, plugin *>("ml_plugin_destroy");
 		}
 	};
 
@@ -50,7 +50,7 @@ namespace ml
 		<
 			plugin_id,
 			plugin_context,
-			unown<library>,
+			unown<native_library>,
 			scary<plugin>
 		>;
 
@@ -93,7 +93,7 @@ namespace ml
 
 		ML_NODISCARD bool contains(fs::path const & path) const noexcept { return this->contains((plugin_id)hashof(path.string())); }
 
-		ML_NODISCARD bool contains(ref<library> const & value) const noexcept { return value && this->contains((plugin_id)value->hash_code()); }
+		ML_NODISCARD bool contains(ref<native_library> const & value) const noexcept { return value && this->contains((plugin_id)value->hash_code()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -116,11 +116,11 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		plugin_id load_plugin(ref<library> const & lib, void * userptr = nullptr)
+		plugin_id load_plugin(ref<native_library> const & lib, void * userptr = nullptr)
 		{
 			if (!lib || !*lib) { return nullptr; }
 			
-			if (size_t const i{ m_data.lookup_if<unown<library>>([&
+			if (size_t const i{ m_data.lookup_if<unown<native_library>>([&
 			](auto const & e) { return !e.expired() && e.lock()->hash_code() == lib->hash_code(); }) }
 			; i != m_data.npos)
 			{

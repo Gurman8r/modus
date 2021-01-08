@@ -1,8 +1,9 @@
 #ifndef _ML_LOOP_SYSTEM_HPP_
 #define _ML_LOOP_SYSTEM_HPP_
 
+#include <modus_core/detail/Duration.hpp>
+#include <modus_core/detail/Method.hpp>
 #include <modus_core/system/Memory.hpp>
-#include <modus_core/detail/Timer.hpp>
 
 namespace ml
 {

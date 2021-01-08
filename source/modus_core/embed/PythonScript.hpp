@@ -1,0 +1,4 @@
+#ifndef _ML_PYTHON_SCRIPT_HPP_
+#define _ML_PYTHON_SCRIPT_HPP_
+
+#endif // !_ML_PYTHON_SCRIPT_HPP_

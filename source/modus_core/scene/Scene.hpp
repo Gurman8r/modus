@@ -9,44 +9,63 @@ namespace ml
 {
 	struct entity;
 
-	struct ML_CORE_API scene : non_copyable, trackable
+	ML_alias entity_handle = typename entt::entity;
+
+	struct ML_CORE_API scene_tree : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual ~scene() noexcept override = default;
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		scene() noexcept : m_registry{} {}
+		scene_tree(allocator_type alloc = {}) noexcept;
 
-		scene(scene && other) noexcept : m_registry{ std::move(other.m_registry) } {}
+		virtual ~scene_tree() noexcept override;
+
+		scene_tree(scene_tree && other, allocator_type alloc = {}) noexcept : scene_tree{ alloc }
+		{
+			this->swap(std::move(other));
+		}
+
+		scene_tree & operator=(scene_tree && other) noexcept
+		{
+			this->swap(std::move(other));
+			return (*this);
+		}
+
+		void swap(scene_tree & other) noexcept
+		{
+			if (this != std::addressof(other))
+			{
+				std::swap(m_registry, other.m_registry);
+				std::swap(m_root, other.m_root);
+			}
+		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD entity new_entity(string const & name = {}) noexcept;
+		ML_NODISCARD entity * new_entity(string const & name = {}) noexcept;
 
-		void delete_entity(entity const & value) noexcept;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void on_runtime_update();
-
-		void on_editor_update();
+		void delete_entity(entity * value) noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_registry() const noexcept { return const_cast<entt::registry *>(&m_registry); }
+		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return m_registry; }
+
+		ML_NODISCARD auto get_registry() const noexcept -> entt::registry const & { return m_registry; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		template <class T> void on_component_added(entity, T &) { static_assert(!"on_component_added"); }
+		template <class T> void on_component_added(entity &, T &) {}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		friend entity;
 
-		entt::registry m_registry; // registry
+		entt::registry	m_registry	; // registry
+		entity *		m_root		; // root
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -54,9 +73,9 @@ namespace ml
 
 namespace ml
 {
-	inline void from_json(json const & j, scene & v) noexcept {}
+	inline void from_json(json const & j, scene_tree & v) noexcept {}
 
-	inline void to_json(json & j, scene const & v) noexcept {}
+	inline void to_json(json & j, scene_tree const & v) noexcept {}
 }
 
 #endif // !_ML_SCENE_HPP_

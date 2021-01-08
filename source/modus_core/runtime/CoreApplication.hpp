@@ -2,7 +2,7 @@
 #define _ML_CORE_APPLICATION_HPP_
 
 #include <modus_core/detail/Timer.hpp>
-#include <modus_core/runtime/LibraryManager.hpp>
+#include <modus_core/embed/LibraryManager.hpp>
 #include <modus_core/runtime/PluginManager.hpp>
 
 namespace ml
@@ -80,13 +80,13 @@ namespace ml
 
 		template <class ID> ML_NODISCARD bool has_library(ID && id) const noexcept { return m_libraries.contains(ML_forward(id)); }
 
-		auto load_library(fs::path const & path) noexcept -> ref<library> { return m_libraries.load_library(path); }
+		auto load_library(fs::path const & path) noexcept -> ref<native_library> { return m_libraries.load_library(path); }
 
 		bool free_library(library_id id) noexcept { free_plugin((plugin_id)id); return m_libraries.free_library(id); }
 
 		bool free_library(fs::path const & path) noexcept { return free_library((library_id)hashof(path.string())); }
 
-		bool free_library(ref<library> const & lib) noexcept { return lib && free_library((library_id)lib->hash_code()); }
+		bool free_library(ref<native_library> const & lib) noexcept { return lib && free_library((library_id)lib->hash_code()); }
 
 		void free_all_libraries() { free_all_plugins(); m_libraries.free_all_libraries(); }
 
@@ -97,7 +97,7 @@ namespace ml
 
 		template <class ID> ML_NODISCARD bool has_plugin(ID && id) const noexcept { return m_plugins.contains(ML_forward(id)); }
 
-		auto load_plugin(ref<library> const & lib, void * userptr = nullptr) noexcept -> plugin_id { return m_plugins.load_plugin(lib, userptr); }
+		auto load_plugin(ref<native_library> const & lib, void * userptr = nullptr) noexcept -> plugin_id { return m_plugins.load_plugin(lib, userptr); }
 
 		auto load_plugin(fs::path const & path, void * userptr = nullptr) noexcept -> plugin_id { return load_plugin(load_library(path), userptr); }
 
@@ -105,7 +105,7 @@ namespace ml
 
 		bool free_plugin(fs::path const & path) noexcept { return free_plugin((plugin_id)hashof(path.string())); }
 
-		bool free_plugin(ref<library> const & lib) noexcept { return lib && free_plugin((plugin_id)lib->hash_code()); }
+		bool free_plugin(ref<native_library> const & lib) noexcept { return lib && free_plugin((plugin_id)lib->hash_code()); }
 
 		void free_all_plugins() { m_plugins.free_all_plugins(); }
 
@@ -125,10 +125,10 @@ namespace ml
 		string			m_app_name		; // app name
 		string			m_app_version	; // app version
 		list<string>	m_arguments		; // arguments
-		list<fs::path>	m_library_paths	; // library paths
+		list<fs::path>	m_library_paths	; // native_library paths
 		json			m_attributes	; // attributes
 		event_bus		m_event_bus		; // event bus
-		library_manager	m_libraries		; // library manager
+		library_manager	m_libraries		; // native_library manager
 		plugin_manager	m_plugins		; // plugin manager
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

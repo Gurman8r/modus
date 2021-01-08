@@ -5,7 +5,22 @@
 
 namespace ml
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	namespace ImGuiExt { struct Dockspace; }
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// not sure where to put this
+	ML_event(editor_dockspace_event)
+	{
+		ImGuiExt::Dockspace * const ptr;
+		auto operator->() const noexcept { return ptr; }
+		auto & operator*() const noexcept { return *ML_check(ptr); }
+		constexpr editor_dockspace_event(ImGuiExt::Dockspace * ptr) noexcept : ptr{ ptr } {}
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_EDITOR_EVENTS_HPP_

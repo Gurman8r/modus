@@ -2,6 +2,7 @@
 #include <modus_core/events/InputEvents.hpp>
 #include <modus_core/events/WindowEvents.hpp>
 #include <modus_core/events/RuntimeEvents.hpp>
+#include <modus_core/events/EditorEvents.hpp>
 
 namespace ml
 {
@@ -140,21 +141,21 @@ namespace ml
 			}
 		}
 
-		get_bus()->broadcast<setup_event>(this);
+		get_bus()->broadcast<runtime_startup_event>(this);
 	}
 
 	void gui_application::on_exit()
 	{
 		m_loop_timer.stop();
 
-		get_bus()->broadcast<cleanup_event>(this);
+		get_bus()->broadcast<runtime_shutdown_event>(this);
 	}
 
 	void gui_application::on_idle()
 	{
 		// update timers
-		ML_defer(&) { m_delta_time = m_loop_timer.elapsed(); };
 		m_loop_timer.restart();
+		ML_defer(&) { m_delta_time = m_loop_timer.elapsed(); };
 		float32 const dt{ m_delta_time.count() };
 		m_fps_accum += dt - m_fps_times[m_fps_index];
 		m_fps_times[m_fps_index] = dt;
@@ -184,10 +185,7 @@ namespace ml
 		}
 
 		// update event
-		get_bus()->broadcast<update_event>(this);
-
-		// late update event
-		get_bus()->broadcast<late_update_event>(this);
+		get_bus()->broadcast<runtime_update_event>(this);
 
 		// begin gui frame
 		_ML ImGui_NewFrame();
@@ -201,14 +199,14 @@ namespace ml
 				if (d->BeginBuilder())
 				{
 					// dockspace event
-					get_bus()->broadcast<dockspace_event>(d);
+					get_bus()->broadcast<editor_dockspace_event>(d);
 
 					d->Finish();
 				}
 			});
 
 			// gui event
-			get_bus()->broadcast<gui_event>(this);
+			get_bus()->broadcast<runtime_imgui_event>(this);
 		}
 		// end gui frame
 		ImGui::Render();
@@ -238,7 +236,7 @@ namespace ml
 		}
 
 		// end frame event
-		get_bus()->broadcast<end_frame_event>(this);
+		get_bus()->broadcast<runtime_frame_end_event>(this);
 	}
 
 	void gui_application::on_event(event const & value)

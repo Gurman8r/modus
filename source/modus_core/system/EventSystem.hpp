@@ -17,10 +17,10 @@ namespace ml
 	struct event_listener;
 	
 	struct dummy_listener;
+
+	template <class> struct event_delegate;
 	
 	struct event_bus;
-
-	template <class ...> struct event_delegate;
 
 	ML_alias event_callback = method<void(event const &)>;
 
@@ -199,7 +199,7 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	// base delegate
-	template <> struct event_delegate<> : event_listener
+	template <> struct event_delegate<void> : event_listener
 	{
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
@@ -214,12 +214,12 @@ namespace ml
 
 	// event delegate
 	template <class Ev
-	> struct event_delegate<Ev> final : event_delegate<>
+	> struct event_delegate final : event_delegate<void>
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using base_type					= typename event_delegate<>;
+		using base_type					= typename event_delegate<void>;
 		using self_type					= typename event_delegate<Ev>;
 		using method_type				= typename method<void(Ev const &)>;
 		using storage_type				= typename list<method_type>;
@@ -239,7 +239,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void on_event(event const & value) final { for (method_type const & e : m_data) { ML_check(e)((Ev const &)value); } }
+		template <class Ev> void dispatch(Ev && value) noexcept { this->on_event(ML_forward(value)); }
 
 		template <class Ev> void operator()(Ev && value) noexcept { this->on_event(ML_forward(value)); }
 
@@ -297,6 +297,14 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
+		void on_event(event const & value) final
+		{
+			for (method_type const & fn : m_data)
+			{
+				ML_check(fn)((Ev const &)value);
+			}
+		}
+
 		storage_type m_data;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -323,7 +331,7 @@ namespace ml
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using listener_set		= typename flat_set<event_listener *, comparator>;
 		using listener_map		= typename flat_map<hash_t, listener_set>;
-		using delegate_map		= typename flat_map<hash_t, event_delegate<> *>;
+		using delegate_map		= typename flat_map<hash_t, event_delegate<void> *>;
 		using dummy_ref			= typename ref<dummy_listener>;
 		using dummy_list		= typename list<dummy_ref>;
 
@@ -335,8 +343,8 @@ namespace ml
 		event_bus(allocator_type alloc = {}) noexcept
 			: m_next_id		{}
 			, m_listeners	{ alloc }
-			, m_dummies		{ alloc }
 			, m_delegates	{ alloc }
+			, m_dummies		{ alloc }
 		{
 		}
 
@@ -443,7 +451,7 @@ namespace ml
 			}
 			else
 			{
-				m_delegates.for_each([&](auto, event_delegate<> * value) noexcept
+				m_delegates.for_each([&](auto, event_delegate<void> * value) noexcept
 				{
 					ML_delete(value);
 				});

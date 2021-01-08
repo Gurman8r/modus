@@ -76,7 +76,7 @@ namespace ml
 
 	struct ML_NODISCARD native_script_component final
 	{
-		scriptable_entity *								instance	; // 
+		scriptable_entity *							instance	; // 
 		method<void()>								allocate	; // 
 		method<void()>								deallocate	; // 
 		method<void(scriptable_entity *)>			on_create	; // 

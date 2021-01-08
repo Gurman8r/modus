@@ -7,10 +7,10 @@
 #define ML_PLUGIN_API ML_API_EXPORT
 #endif
 
+namespace ml { struct plugin_manager; } // plugin manager
+
 namespace ml
 {
-	struct plugin_manager; // plugin manager
-
 	// plugin
 	struct ML_CORE_API plugin : non_copyable, trackable, event_listener
 	{

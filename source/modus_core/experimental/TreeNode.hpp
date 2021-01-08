@@ -12,10 +12,10 @@ namespace ml
 
 		using self_type					= typename tree_node;
 		using allocator_type			= typename pmr::polymorphic_allocator<byte>;
-		using iterator					= typename list<tree_node *>::iterator;
-		using const_iterator			= typename list<tree_node *>::const_iterator;
-		using reverse_iterator			= typename list<tree_node *>::reverse_iterator;
-		using const_reverse_iterator	= typename list<tree_node *>::const_reverse_iterator;
+		using iterator					= typename list<self_type *>::iterator;
+		using const_iterator			= typename list<self_type *>::const_iterator;
+		using reverse_iterator			= typename list<self_type *>::reverse_iterator;
+		using const_reverse_iterator	= typename list<self_type *>::const_reverse_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -325,7 +325,7 @@ namespace ml
 
 	private:
 		string				m_name		; // name
-		self_type *				m_parent	; // parent
+		self_type *			m_parent	; // parent
 		list<self_type *>	m_children	; // children
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

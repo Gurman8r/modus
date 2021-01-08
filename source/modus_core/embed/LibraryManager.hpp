@@ -2,14 +2,14 @@
 #define _ML_LIBRARY_MANAGER_HPP_
 
 #include <modus_core/detail/BatchVector.hpp>
-#include <modus_core/system/Library.hpp>
+#include <modus_core/embed/NativeLibrary.hpp>
 
 namespace ml
 {
-	// library id
+	// native_library id
 	ML_decl_handle(library_id);
 
-	// library manager
+	// native_library manager
 	struct library_manager final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -20,7 +20,7 @@ namespace ml
 		<
 			library_id,		// id
 			fs::path,		// path
-			ref<library>	// library
+			ref<native_library>	// native_library
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -54,19 +54,19 @@ namespace ml
 
 		ML_NODISCARD bool contains(fs::path const & path) const noexcept { return this->contains((library_id)hashof(path.string())); }
 
-		ML_NODISCARD bool contains(ref<library> const & value) const noexcept { return value && this->contains((library_id)value->hash_code()); }
+		ML_NODISCARD bool contains(ref<native_library> const & value) const noexcept { return value && this->contains((library_id)value->hash_code()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto load_library(fs::path const & path) -> ref<library>
+		auto load_library(fs::path const & path) -> ref<native_library>
 		{
-			if (ref<library> lib{ this->find(path) })
+			if (ref<native_library> lib{ this->find(path) })
 			{
 				return lib;
 			}
 			else
 			{
-				lib = make_ref<library>(path);
+				lib = make_ref<native_library>(path);
 
 				m_data.push_back((library_id)lib->hash_code(), lib->path(), lib);
 
@@ -86,7 +86,7 @@ namespace ml
 			return this->free_library((library_id)hashof(path.string()));
 		}
 
-		bool free_library(ref<library> const & lib) noexcept
+		bool free_library(ref<native_library> const & lib) noexcept
 		{
 			return lib && this->free_library((library_id)lib->hash_code());
 		}
@@ -98,26 +98,26 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto find(library_id id) -> ref<library>
+		ML_NODISCARD auto find(library_id id) -> ref<native_library>
 		{
 			if (size_t const i{ m_data.lookup<library_id>(id) }
 			; i == m_data.npos) { return nullptr; }
-			else { return m_data.at<ref<library>>(i); }
+			else { return m_data.at<ref<native_library>>(i); }
 		}
 
-		ML_NODISCARD auto find(library_id id) const -> ref<library>
+		ML_NODISCARD auto find(library_id id) const -> ref<native_library>
 		{
 			if (size_t const i{ m_data.lookup<library_id>(id) }
 			; i == m_data.npos) { return nullptr; }
-			else { return m_data.at<ref<library>>(i); }
+			else { return m_data.at<ref<native_library>>(i); }
 		}
 
-		ML_NODISCARD auto find(fs::path const & path) noexcept -> ref<library>
+		ML_NODISCARD auto find(fs::path const & path) noexcept -> ref<native_library>
 		{
 			return this->find((library_id)hashof(path.string()));
 		}
 
-		ML_NODISCARD auto find(fs::path const & path) const noexcept -> ref<library>
+		ML_NODISCARD auto find(fs::path const & path) const noexcept -> ref<native_library>
 		{
 			return this->find((library_id)hashof(path.string()));
 		}
@@ -165,7 +165,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Ret, class ... Args, class ID
-		> auto eval(library_id id, ID && method_name, Args && ... args) noexcept -> library::result_type<Ret>
+		> auto eval(library_id id, ID && method_name, Args && ... args) noexcept -> native_library::result_type<Ret>
 		{
 			if (auto const lib{ this->find(id) })
 			{
@@ -178,7 +178,7 @@ namespace ml
 		}
 
 		template <class Ret, class ... Args, class ID
-		> auto eval(fs::path const & path, ID && method_name, Args && ... args) noexcept -> library::result_type<Ret>
+		> auto eval(fs::path const & path, ID && method_name, Args && ... args) noexcept -> native_library::result_type<Ret>
 		{
 			return this->eval<Ret, Args...>((library_id)hashof(path.string()), ML_forward(method_name), ML_forward(args)...);
 		}

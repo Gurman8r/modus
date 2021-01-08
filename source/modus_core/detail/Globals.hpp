@@ -36,10 +36,10 @@
 // end global
 #define ML_end_global(T, value)		(_ML_GLOBALS end_global<T>(value))
 
-// global object constructor
+// place in global object constructor
 #define ML_ctor_global(T)			ML_verify(ML_begin_global(T, this))
 
-// global object destructor
+// place in global object destructor
 #define ML_dtor_global(T)			ML_verify(ML_is_global(T, this)); \
 									ML_defer(&) { ML_verify(ML_end_global(T, this)); }
 

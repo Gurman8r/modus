@@ -1,5 +1,5 @@
-#ifndef _ML_LIBRARY_HPP_
-#define _ML_LIBRARY_HPP_
+#ifndef _ML_NATIVE_LIBRARY_HPP_
+#define _ML_NATIVE_LIBRARY_HPP_
 
 #include <modus_core/system/Platform.hpp>
 #include <modus_core/detail/Hashmap.hpp>
@@ -7,8 +7,8 @@
 
 namespace ml
 {
-	// library
-	struct ML_CORE_API library final : non_copyable, trackable
+	// native library
+	struct ML_CORE_API native_library final : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -24,7 +24,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		library(allocator_type alloc = {}) noexcept
+		native_library(allocator_type alloc = {}) noexcept
 			: m_hash	{}
 			, m_path	{}
 			, m_handle	{}
@@ -32,7 +32,7 @@ namespace ml
 		{
 		}
 
-		library(fs::path const & path, allocator_type alloc = {}) noexcept
+		native_library(fs::path const & path, allocator_type alloc = {}) noexcept
 			: m_hash	{ hashof(path.string()) }
 			, m_path	{ path }
 			, m_handle	{}
@@ -41,7 +41,7 @@ namespace ml
 			this->open(path);
 		}
 
-		library(library && other, allocator_type alloc = {}) noexcept
+		native_library(native_library && other, allocator_type alloc = {}) noexcept
 			: m_hash	{}
 			, m_path	{}
 			, m_handle	{}
@@ -50,20 +50,20 @@ namespace ml
 			this->swap(std::move(other));
 		}
 
-		~library() noexcept
+		~native_library() noexcept
 		{
 			this->close();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		library & operator=(library && other) noexcept
+		native_library & operator=(native_library && other) noexcept
 		{
 			this->swap(std::move(other));
 			return (*this);
 		}
 
-		void swap(library & other) noexcept
+		void swap(native_library & other) noexcept
 		{
 			if (this != std::addressof(other))
 			{
@@ -160,4 +160,4 @@ namespace ml
 	};
 }
 
-#endif // !_ML_LIBRARY_HPP_
+#endif // !_ML_NATIVE_LIBRARY_HPP_

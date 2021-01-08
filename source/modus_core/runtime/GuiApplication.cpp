@@ -97,23 +97,23 @@ namespace ml
 		// install callbacks
 		{
 			static event_bus * bus{}; bus = get_bus();
-			m_window.set_char_callback([](auto w, auto ... x) { bus->fire<char_event>(x...); });
-			m_window.set_char_mods_callback([](auto w, auto ... x) { bus->fire<char_mods_event>(x...); });
-			m_window.set_key_callback([](auto w, auto ... x) { bus->fire<key_event>(x...); });
-			m_window.set_mouse_button_callback([](auto w, auto ... x) { bus->fire<mouse_button_event>(x...); });
-			m_window.set_mouse_enter_callback([](auto w, auto ... x) { bus->fire<mouse_enter_event>(x...); });
-			m_window.set_mouse_pos_callback([](auto w, auto ... x) { bus->fire<mouse_pos_event>(x...); });
-			m_window.set_scroll_callback([](auto w, auto ... x) { bus->fire<mouse_wheel_event>(x...); });
-			m_window.set_close_callback([](auto w, auto ... x) { bus->fire<window_close_event>(x...); });
-			m_window.set_content_scale_callback([](auto w, auto ... x) { bus->fire<window_content_scale_event>(x...); });
-			m_window.set_drop_callback([](auto w, auto ... x) { bus->fire<window_drop_event>(x...); });
-			m_window.set_focus_callback([](auto w, auto ... x) { bus->fire<window_focus_event>(x...); });
-			m_window.set_framebuffer_resize_callback([](auto w, auto ... x) { bus->fire<window_framebuffer_resize_event>(x...); });
-			m_window.set_iconify_callback([](auto w, auto ... x) { bus->fire<window_iconify_event>(x...); });
-			m_window.set_maximize_callback([](auto w, auto ... x) { bus->fire<window_maximize_event>(x...); });
-			m_window.set_position_callback([](auto w, auto ... x) { bus->fire<window_position_event>(x...); });
-			m_window.set_refresh_callback([](auto w, auto ... x) { bus->fire<window_refresh_event>(x...); });
-			m_window.set_resize_callback([](auto w, auto ... x) { bus->fire<window_resize_event>(x...); });
+			m_window.set_char_callback([](auto w, auto ... x) { bus->broadcast<char_event>(x...); });
+			m_window.set_char_mods_callback([](auto w, auto ... x) { bus->broadcast<char_mods_event>(x...); });
+			m_window.set_key_callback([](auto w, auto ... x) { bus->broadcast<key_event>(x...); });
+			m_window.set_mouse_button_callback([](auto w, auto ... x) { bus->broadcast<mouse_button_event>(x...); });
+			m_window.set_mouse_enter_callback([](auto w, auto ... x) { bus->broadcast<mouse_enter_event>(x...); });
+			m_window.set_mouse_pos_callback([](auto w, auto ... x) { bus->broadcast<mouse_pos_event>(x...); });
+			m_window.set_scroll_callback([](auto w, auto ... x) { bus->broadcast<mouse_wheel_event>(x...); });
+			m_window.set_close_callback([](auto w, auto ... x) { bus->broadcast<window_close_event>(x...); });
+			m_window.set_content_scale_callback([](auto w, auto ... x) { bus->broadcast<window_content_scale_event>(x...); });
+			m_window.set_drop_callback([](auto w, auto ... x) { bus->broadcast<window_drop_event>(x...); });
+			m_window.set_focus_callback([](auto w, auto ... x) { bus->broadcast<window_focus_event>(x...); });
+			m_window.set_framebuffer_resize_callback([](auto w, auto ... x) { bus->broadcast<window_framebuffer_resize_event>(x...); });
+			m_window.set_iconify_callback([](auto w, auto ... x) { bus->broadcast<window_iconify_event>(x...); });
+			m_window.set_maximize_callback([](auto w, auto ... x) { bus->broadcast<window_maximize_event>(x...); });
+			m_window.set_position_callback([](auto w, auto ... x) { bus->broadcast<window_position_event>(x...); });
+			m_window.set_refresh_callback([](auto w, auto ... x) { bus->broadcast<window_refresh_event>(x...); });
+			m_window.set_resize_callback([](auto w, auto ... x) { bus->broadcast<window_resize_event>(x...); });
 		}
 
 		// setup graphics
@@ -140,14 +140,14 @@ namespace ml
 			}
 		}
 
-		get_bus()->fire<setup_event>(this);
+		get_bus()->broadcast<setup_event>(this);
 	}
 
 	void gui_application::on_exit()
 	{
 		m_loop_timer.stop();
 
-		get_bus()->fire<cleanup_event>(this);
+		get_bus()->broadcast<cleanup_event>(this);
 	}
 
 	void gui_application::on_idle()
@@ -184,10 +184,10 @@ namespace ml
 		}
 
 		// update event
-		get_bus()->fire<update_event>(this);
+		get_bus()->broadcast<update_event>(this);
 
 		// late update event
-		get_bus()->fire<late_update_event>(this);
+		get_bus()->broadcast<late_update_event>(this);
 
 		// begin gui frame
 		_ML ImGui_NewFrame();
@@ -201,14 +201,14 @@ namespace ml
 				if (d->BeginBuilder())
 				{
 					// dockspace event
-					get_bus()->fire<dockspace_event>(d);
+					get_bus()->broadcast<dockspace_event>(d);
 
 					d->Finish();
 				}
 			});
 
 			// gui event
-			get_bus()->fire<gui_event>(this);
+			get_bus()->broadcast<gui_event>(this);
 		}
 		// end gui frame
 		ImGui::Render();
@@ -238,7 +238,7 @@ namespace ml
 		}
 
 		// end frame event
-		get_bus()->fire<end_frame_event>(this);
+		get_bus()->broadcast<end_frame_event>(this);
 	}
 
 	void gui_application::on_event(event const & value)

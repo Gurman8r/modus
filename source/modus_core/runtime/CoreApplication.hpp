@@ -127,7 +127,7 @@ namespace ml
 		list<string>	m_arguments		; // arguments
 		list<fs::path>	m_library_paths	; // library paths
 		json			m_attributes	; // attributes
-		event_bus		m_dispatcher	; // event bus
+		event_bus		m_event_bus		; // event bus
 		library_manager	m_libraries		; // library manager
 		plugin_manager	m_plugins		; // plugin manager
 

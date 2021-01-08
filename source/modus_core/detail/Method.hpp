@@ -6,34 +6,18 @@
 namespace ml
 {
 	// method
-	template <class Signature
-	> struct method : public std::function<Signature>
+	template <class Sig> struct method : public std::function<Sig>
 	{
-		using std::function<Signature>::function;
-	};
+	public:
+		using std::function<Sig>::function;
 
-	// delegate
-	template <class Signature
-	> struct delegate : public list<method<Signature>>
-	{
-		using list<method<Signature>>::list;
+		using self_type = typename method<Sig>;
 
-		template <class ... Args
-		> void operator()(Args && ... args) const noexcept
-		{
-			for (auto const & e : *this)
-			{
-				ML_check(e)(ML_forward(args)...);
-			}
-		}
-
-		template <class Fn
-		> auto & operator+=(Fn && value) noexcept
-		{
-			this->emplace_back(ML_forward(value));
-
-			return (*this);
-		}
+		method() noexcept = default;
+		method(self_type const &) = default;
+		method(self_type &&) noexcept = default;
+		self_type & operator=(self_type const &) = default;
+		self_type & operator=(self_type &&) noexcept = default;
 	};
 }
 

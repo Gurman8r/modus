@@ -12,15 +12,21 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// TYPES
 	struct event;
+	
 	struct event_listener;
+	
 	struct dummy_listener;
+	
 	struct event_bus;
+
+	ML_alias event_callback = method<void(event const &)>;
+
+	template <class Ev> constexpr bool is_event_v{ std::is_base_of_v<event, Ev> && !std::is_same_v<event, Ev> };
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
-	// EVENT BASE
+	// base event
 	struct ML_NODISCARD event
 	{
 		ML_NODISCARD constexpr hash_t event_id() const noexcept { return m_id; }
@@ -45,9 +51,9 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// EVENT HELPER
 	namespace impl
 	{
+		// event helper
 		template <class Derived
 		> struct event_helper : event
 		{
@@ -64,38 +70,39 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// EVENT LISTENER
+	// event listener
 	struct ML_CORE_API event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		explicit event_listener(event_bus * bus, int64 order) noexcept
-			: m_bus{ bus }
-			, m_order{ order }
-		{
-		}
-
-		template <class Bus = event_bus
-		> event_listener(Bus * bus) noexcept
-			: event_listener{ bus, bus->next_id() }
-		{
-		}
 
 		virtual ~event_listener() noexcept { this->unsubscribe(); }
 
 		ML_NODISCARD auto get_bus() const noexcept -> event_bus * { return m_bus; }
 		
-		ML_NODISCARD auto get_bus_order() const noexcept -> int64 { return m_order; }
+		ML_NODISCARD auto get_bus_index() const noexcept -> int64 { return m_index; }
 
-		ML_NODISCARD auto get_bus_order(event_listener const & other) const noexcept
+		ML_NODISCARD auto get_bus_order(event_listener const & other) const noexcept -> int32
 		{
-			return ML_compare(m_order, other.m_order);
+			if (this == std::addressof(other)) { return 0; }
+			else if (int32 const cmp{ ML_compare(m_index, other.m_index) }; cmp != 0) { return cmp; }
+			else { return ML_compare(this, std::addressof(other)); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
 		friend event_bus;
+
+		explicit event_listener(event_bus * bus, int64 index) noexcept
+			: m_bus{ bus }
+			, m_index{ index }
+		{
+		}
+
+		template <class Bus = event_bus> event_listener(Bus * bus) noexcept
+			: event_listener{ bus, bus->next_id() }
+		{
+		}
 
 		// on event
 		virtual void on_event(event const &) = 0;
@@ -134,24 +141,20 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		event_bus *	const	m_bus		; // event bus
-		int64 const			m_order		; // execution index
+		event_bus *	const	m_bus	; // event bus
+		int64 const			m_index		; // execution index
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// DUMMY LISTENER
+	// dummy listener
 	struct ML_CORE_API dummy_listener final : non_copyable, trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using event_callback = typename method< void(event const &) >;
-
-		explicit dummy_listener(event_bus * bus) noexcept : event_listener{ bus }
-		{
-		}
+		explicit dummy_listener(event_bus * bus) noexcept : event_listener{ bus } {}
 
 		template <class Fn, class ... Args
 		> dummy_listener(event_bus * bus, Fn && fn, Args && ... args) noexcept : dummy_listener{ bus }
@@ -172,10 +175,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const &
-		{
-			return m_on_event;
-		}
+		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const & { return m_on_event; }
 
 		template <class Fn, class ... Args
 		> auto set_event_callback(Fn && fn, Args && ... args) noexcept -> event_callback
@@ -192,12 +192,120 @@ namespace ml
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	
+	// base delegate
+	template <class ...> struct event_delegate;
+	template <> struct event_delegate<> : event_listener
+	{
+	public:
+		using allocator_type = typename pmr::polymorphic_allocator<byte>;
+
+		explicit event_delegate(event_bus * bus) noexcept : event_listener{ bus } {}
+
+		virtual ~event_delegate() noexcept override = default;
+
+	protected:
+		virtual void on_event(event const &) override = 0;
+	};
+
+	// event delegate
+	template <class Ev
+	> struct event_delegate<Ev> final : event_delegate<>
+	{
+	public:
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		using base_type					= typename event_delegate<>;
+		using self_type					= typename event_delegate<Ev>;
+		using method_type				= typename method<void(Ev const &)>;
+		using storage_type				= typename list<method_type>;
+		using iterator					= typename storage_type::iterator;
+		using const_iterator			= typename storage_type::const_iterator;
+		using reverse_iterator			= typename storage_type::reverse_iterator;
+		using const_reverse_iterator	= typename storage_type::const_reverse_iterator;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		event_delegate(event_bus * bus, allocator_type alloc = {}) noexcept : base_type{ bus }, m_data{ alloc }
+		{
+			this->subscribe<Ev>();
+		}
+
+		~event_delegate() noexcept final { this->clear(); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void on_event(event const & value) final { for (method_type const & e : m_data) { ML_check(e)((Ev const &)value); } }
+
+		template <class Ev> void operator()(Ev && value) noexcept { this->on_event(ML_forward(value)); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void clear() noexcept { while (!m_data.empty()) { m_data.pop_back(); } }
+
+		void erase(size_t i, size_t n = 1) noexcept { m_data.erase(begin() + i, begin() + i + n); }
+
+		void reserve(size_t count) noexcept { m_data.reserve(count); }
+
+		ML_NODISCARD auto at(size_t i) noexcept -> method_type & { return m_data[i]; }
+
+		ML_NODISCARD auto at(size_t i) const noexcept -> method_type const & { return m_data[i]; }
+
+		ML_NODISCARD auto operator[](size_t i) noexcept -> method_type & { return m_data[i]; }
+
+		ML_NODISCARD auto operator[](size_t i) const noexcept -> method_type const & { return m_data[i]; }
+
+		template <class ... Args
+		> auto emplace(size_t i, Args && ... args) noexcept -> method_type & { return m_data.emplace(begin() + i, ML_forward(args)...); }
+
+		template <class ... Args
+		> auto emplace_back(Args && ... args) noexcept -> method_type & { return m_data.emplace_back(ML_forward(args)...); }
+
+		template <class Fn
+		> auto operator+=(Fn && fn) noexcept -> self_type & { this->emplace_back(ML_forward(fn)); return (*this); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto begin() noexcept -> iterator { return m_data.begin(); }
+
+		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_data.begin(); }
+
+		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return m_data.cbegin(); }
+
+		ML_NODISCARD auto end() noexcept -> iterator { return m_data.end(); }
+
+		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_data.end(); }
+
+		ML_NODISCARD auto cend() const noexcept -> const_iterator { return m_data.cend(); }
+
+		ML_NODISCARD auto rbegin() noexcept -> reverse_iterator { return m_data.rbegin(); }
+
+		ML_NODISCARD auto rbegin() const noexcept -> const_reverse_iterator { return m_data.rbegin(); }
+
+		ML_NODISCARD auto crbegin() const noexcept -> const_reverse_iterator { return m_data.crbegin(); }
+
+		ML_NODISCARD auto rend() noexcept -> reverse_iterator { return m_data.rend(); }
+
+		ML_NODISCARD auto rend() const noexcept -> const_reverse_iterator { return m_data.rend(); }
+
+		ML_NODISCARD auto crend() const noexcept -> const_reverse_iterator { return m_data.crend(); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	private:
+		storage_type m_data;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// EVENT BUS
 	struct ML_CORE_API event_bus : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		struct comparator final
 		{
 			comparator() noexcept = default;
@@ -209,50 +317,74 @@ namespace ml
 		};
 
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
-		using category			= typename flat_set<event_listener *, comparator>;
-		using categories		= typename flat_map<hash_t, category>;
+		using listener_set		= typename flat_set<event_listener *, comparator>;
+		using listener_map		= typename flat_map<hash_t, listener_set>;
+		using delegate_map		= typename flat_map<hash_t, event_delegate<> *>;
 		using dummy_ref			= typename ref<dummy_listener>;
 		using dummy_list		= typename list<dummy_ref>;
 
-		template <class Ev> static constexpr bool is_valid_event
-		{
-			std::is_base_of_v<event, Ev> && !std::is_same_v<event, Ev>
-		};
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		event_bus(allocator_type alloc = {}) noexcept
-			: m_counter	{}
-			, m_cats	{ alloc }
-			, m_dummies	{ alloc }
+			: m_next_id		{}
+			, m_categories	{ alloc }
+			, m_dummies		{ alloc }
+			, m_delegates	{ alloc }
 		{
+		}
+
+		~event_bus() noexcept
+		{
+			this->remove_delegates();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD int64 next_id() noexcept
+	public:
+		template <class Ev = event
+		> void broadcast(Ev && value) noexcept
 		{
-			return ++m_counter;
+			if (auto const cat{ m_categories.find(value) })
+			{
+				for (event_listener * const listener : (*cat->second))
+				{
+					ML_check(listener)->on_event(ML_forward(value));
+				}
+			}
 		}
+
+		template <class Ev, class ... Args
+		> void broadcast(Args && ... args) noexcept
+		{
+			static_assert(_ML is_event_v<Ev>, "invalid event type");
+
+			this->broadcast(Ev{ ML_forward(args)... });
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
+		ML_NODISCARD auto next_id() noexcept -> int64 { return ++m_next_id; }
 
 		template <class Ev
 		> bool add_listener(event_listener * value) noexcept
 		{
-			static_assert(is_valid_event<Ev>, "invalid event type");
+			static_assert(_ML is_event_v<Ev>, "invalid event type");
 
 			return value
 				&& this == value->get_bus()
-				&& m_cats[Ev::ID].insert(value).second;
+				&& m_categories[Ev::ID].insert(value).second;
 		}
 
 		template <class Ev
 		> void remove_listener(event_listener * value) noexcept
 		{
-			static_assert(is_valid_event<Ev>, "invalid event type");
+			static_assert(_ML is_event_v<Ev>, "invalid event type");
 
 			if (!value || (this != value->get_bus())) { return; }
 			
-			if (auto const cat{ m_cats.find(Ev::ID) })
+			if (auto const cat{ m_categories.find(Ev::ID) })
 			{
 				if (auto const listener{ cat->second->find(value) }
 				; listener != cat->second->end())
@@ -266,7 +398,7 @@ namespace ml
 		{
 			if (!value || (this != value->get_bus())) { return; }
 
-			m_cats.for_each([&](auto, category & cat) noexcept
+			m_categories.for_each([&](auto, listener_set & cat) noexcept
 			{
 				if (auto const listener{ cat.find(value) }; listener != cat.end())
 				{
@@ -277,32 +409,51 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Ev = event
-		> void fire(Ev && value) noexcept
+	public:
+		template <class Ev
+		> ML_NODISCARD auto get_delegate(allocator_type alloc = {}) noexcept -> event_delegate<Ev> &
 		{
-			if (auto const cat{ m_cats.find(value) })
+			static_assert(_ML is_event_v<Ev>, "invalid event type");
+
+			return *(event_delegate<Ev> *)(m_delegates.find_or_add_fn(hashof_v<Ev>, [&]() noexcept
 			{
-				for (auto const listener : (*cat->second))
-				{
-					ML_check(listener)->on_event(ML_forward(value));
-				}
-			}
+				return ML_new(event_delegate<Ev>, this, alloc);
+			}));
 		}
 
-		template <class Ev, class ... Args
-		> void fire(Args && ... args) noexcept
+		template <class ... Evs
+		> void remove_delegates() noexcept
 		{
-			static_assert(is_valid_event<Ev>, "invalid event type");
+			if constexpr (0 < sizeof...(Evs))
+			{
+				meta::for_types<Evs...>([&](auto tag) noexcept
+				{
+					using T = typename decltype(tag)::type;
 
-			this->fire(Ev{ ML_forward(args)... });
+					static_assert(std::is_base_of_v<event, T>, "invalid event type");
+
+					if (auto const it{ m_delegates.find(hashof_v<T>) })
+					{
+						ML_delete((event_delegate<T> *)(*it->second));
+
+						m_delegates.erase(it->first);
+					}
+				});
+			}
+			else
+			{
+				m_delegates.for_each([&](auto, event_delegate<> * value) noexcept
+				{
+					ML_delete(value);
+				});
+				m_delegates.clear();
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_dummies() const noexcept -> dummy_list const &
-		{
-			return m_dummies;
-		}
+	public:
+		ML_NODISCARD auto get_dummies() const noexcept -> dummy_list const & { return m_dummies; }
 
 		template <class ... Evs, class ... Args
 		> auto new_dummy(Args && ... args) noexcept -> dummy_ref &
@@ -314,19 +465,22 @@ namespace ml
 			return m_dummies.emplace_back(std::move(temp));
 		}
 
-		auto delete_dummy(dummy_ref const & value) noexcept
+		auto remove_dummy(dummy_ref const & value) noexcept
 		{
 			if (auto it{ std::find(m_dummies.begin(), m_dummies.end(), value) }
 			; it == m_dummies.end()) { return it; }
 			else { return m_dummies.erase(it); }
 		}
 
+		void remove_all_dummies() noexcept { while (!m_dummies.empty()) { m_dummies.pop_back(); } }
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		int64		m_counter	; // counter
-		categories	m_cats		; // listener storage
-		dummy_list	m_dummies	; // dummy listeners
+		int64			m_next_id		; // counter
+		listener_map	m_categories	; // listeners
+		delegate_map	m_delegates		; // delegates
+		dummy_list		m_dummies		; // dummies
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

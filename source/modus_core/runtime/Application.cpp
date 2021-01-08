@@ -23,6 +23,8 @@ namespace ml
 			end_frame_event
 		>();
 
+		get_bus()->get_delegate<update_event>() += [](update_event const & ev) { debug::puts("HERE!!"); };
+		
 		if (!is_interpreter_initialized() && !library_paths().empty())
 		{
 			ML_verify(initialize_interpreter(app_file_name(), library_paths(0)));

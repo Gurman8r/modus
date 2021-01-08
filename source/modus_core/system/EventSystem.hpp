@@ -6,7 +6,7 @@
 #include <modus_core/detail/Method.hpp>
 
 // event helper
-#define ML_event(Ev) struct Ev : _ML impl::event_helper<Ev>
+#define ML_event(Ev) struct Ev : _ML event_helper<Ev>
 
 namespace ml
 {
@@ -19,6 +19,8 @@ namespace ml
 	struct dummy_listener;
 	
 	struct event_bus;
+
+	template <class ...> struct event_delegate;
 
 	ML_alias event_callback = method<void(event const &)>;
 
@@ -51,22 +53,19 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	namespace impl
+	// event helper
+	template <class Derived
+	> struct event_helper : event
 	{
-		// event helper
-		template <class Derived
-		> struct event_helper : event
-		{
-			enum : hash_t { ID = hashof_v<Derived> };
+		enum : hash_t { ID = hashof_v<Derived> };
 
-			constexpr event_helper() noexcept : event{ ID } {}
+		constexpr event_helper() noexcept : event{ ID } {}
 
-			constexpr event_helper(event_helper const &) = default;
-			constexpr event_helper(event_helper &&) noexcept = default;
-			constexpr event_helper & operator=(event_helper const &) = default;
-			constexpr event_helper & operator=(event_helper &&) noexcept = default;
-		};
-	}
+		constexpr event_helper(event_helper const &) = default;
+		constexpr event_helper(event_helper &&) noexcept = default;
+		constexpr event_helper & operator=(event_helper const &) = default;
+		constexpr event_helper & operator=(event_helper &&) noexcept = default;
+	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -83,9 +82,18 @@ namespace ml
 
 		ML_NODISCARD auto get_bus_order(event_listener const & other) const noexcept -> int32
 		{
-			if (this == std::addressof(other)) { return 0; }
-			else if (int32 const cmp{ ML_compare(m_index, other.m_index) }; cmp != 0) { return cmp; }
-			else { return ML_compare(this, std::addressof(other)); }
+			if (this == std::addressof(other))
+			{
+				return 0;
+			}
+			else if (int32 const cmp{ ML_compare(m_index, other.m_index) }; cmp != 0)
+			{
+				return cmp;
+			}
+			else
+			{
+				return ML_compare(this, std::addressof(other));
+			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -142,7 +150,7 @@ namespace ml
 
 	private:
 		event_bus *	const	m_bus	; // event bus
-		int64 const			m_index		; // execution index
+		int64 const			m_index	; // bus index
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -154,12 +162,12 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		explicit dummy_listener(event_bus * bus) noexcept : event_listener{ bus } {}
+		~dummy_listener() noexcept final { event_callback{}.swap(m_callback); }
 
-		template <class Fn, class ... Args
-		> dummy_listener(event_bus * bus, Fn && fn, Args && ... args) noexcept : dummy_listener{ bus }
+		template <class ... Args
+		> dummy_listener(event_bus * bus, Args && ... args) noexcept : event_listener{ bus }
 		{
-			this->set_event_callback(ML_forward(fn), ML_forward(args)...);
+			if constexpr (0 < sizeof...(args)) { this->set_callback(ML_forward(args)...); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -168,25 +176,22 @@ namespace ml
 
 		using event_listener::unsubscribe;
 
-		void on_event(event const & value) noexcept final
-		{
-			if (m_on_event) { m_on_event(value); }
-		}
+		void on_event(event const & value) noexcept final { ML_check(m_callback)(value); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_event_callback() const noexcept -> event_callback const & { return m_on_event; }
+		ML_NODISCARD auto get_callback() const noexcept -> event_callback const & { return m_callback; }
 
 		template <class Fn, class ... Args
-		> auto set_event_callback(Fn && fn, Args && ... args) noexcept -> event_callback
+		> auto set_callback(Fn && fn, Args && ... args) noexcept -> event_callback
 		{
-			return util::chain(m_on_event, ML_forward(fn), std::placeholders::_1, ML_forward(args)...);
+			return m_callback = std::bind(ML_forward(fn), std::placeholders::_1, ML_forward(args)...)
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		event_callback m_on_event;
+		event_callback m_callback;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -194,15 +199,14 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	
 	// base delegate
-	template <class ...> struct event_delegate;
 	template <> struct event_delegate<> : event_listener
 	{
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		explicit event_delegate(event_bus * bus) noexcept : event_listener{ bus } {}
-
 		virtual ~event_delegate() noexcept override = default;
+
+		explicit event_delegate(event_bus * bus) noexcept : event_listener{ bus } {}
 
 	protected:
 		virtual void on_event(event const &) override = 0;
@@ -226,12 +230,12 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		~event_delegate() noexcept final { this->clear(); }
+
 		event_delegate(event_bus * bus, allocator_type alloc = {}) noexcept : base_type{ bus }, m_data{ alloc }
 		{
 			this->subscribe<Ev>();
 		}
-
-		~event_delegate() noexcept final { this->clear(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -326,17 +330,14 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		~event_bus() noexcept { this->remove_delegates(); }
+
 		event_bus(allocator_type alloc = {}) noexcept
 			: m_next_id		{}
-			, m_categories	{ alloc }
+			, m_listeners	{ alloc }
 			, m_dummies		{ alloc }
 			, m_delegates	{ alloc }
 		{
-		}
-
-		~event_bus() noexcept
-		{
-			this->remove_delegates();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -345,7 +346,7 @@ namespace ml
 		template <class Ev = event
 		> void broadcast(Ev && value) noexcept
 		{
-			if (auto const cat{ m_categories.find(value) })
+			if (auto const cat{ m_listeners.find(value) })
 			{
 				for (event_listener * const listener : (*cat->second))
 				{
@@ -374,7 +375,7 @@ namespace ml
 
 			return value
 				&& this == value->get_bus()
-				&& m_categories[Ev::ID].insert(value).second;
+				&& m_listeners[Ev::ID].insert(value).second;
 		}
 
 		template <class Ev
@@ -384,7 +385,7 @@ namespace ml
 
 			if (!value || (this != value->get_bus())) { return; }
 			
-			if (auto const cat{ m_categories.find(Ev::ID) })
+			if (auto const cat{ m_listeners.find(Ev::ID) })
 			{
 				if (auto const listener{ cat->second->find(value) }
 				; listener != cat->second->end())
@@ -398,7 +399,7 @@ namespace ml
 		{
 			if (!value || (this != value->get_bus())) { return; }
 
-			m_categories.for_each([&](auto, listener_set & cat) noexcept
+			m_listeners.for_each([&](auto, listener_set & cat) noexcept
 			{
 				if (auto const listener{ cat.find(value) }; listener != cat.end())
 				{
@@ -477,10 +478,10 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		int64			m_next_id		; // counter
-		listener_map	m_categories	; // listeners
-		delegate_map	m_delegates		; // delegates
-		dummy_list		m_dummies		; // dummies
+		int64			m_next_id	; // counter
+		listener_map	m_listeners	; // listeners
+		delegate_map	m_delegates	; // delegates
+		dummy_list		m_dummies	; // dummies
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

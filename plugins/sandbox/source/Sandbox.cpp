@@ -15,7 +15,7 @@ namespace ml
 
 		bool // main panels
 				m_show_viewport				{ true },
-				m_show_terminal				{ true },
+				m_show_terminal				{ false },
 				m_show_scene_editor			{ true };
 		
 		// debug overlay

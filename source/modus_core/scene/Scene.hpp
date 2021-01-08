@@ -9,8 +9,6 @@ namespace ml
 {
 	struct entity;
 
-	ML_alias entity_handle = typename entt::entity;
-
 	struct ML_CORE_API scene_tree : non_copyable, trackable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -37,22 +35,28 @@ namespace ml
 		{
 			if (this != std::addressof(other))
 			{
-				std::swap(m_registry, other.m_registry);
+				std::swap(m_reg, other.m_reg);
 				std::swap(m_root, other.m_root);
 			}
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD entity * new_entity(string const & name = {}) noexcept;
+		ML_NODISCARD entity * new_entity(string const & name = "New Entity") noexcept;
 
 		void delete_entity(entity * value) noexcept;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return m_registry; }
+		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return m_reg; }
 
-		ML_NODISCARD auto get_registry() const noexcept -> entt::registry const & { return m_registry; }
+		ML_NODISCARD auto get_registry() const noexcept -> entt::registry const & { return m_reg; }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD auto get_root() const noexcept { return const_cast<entity *>(m_root); }
+
+		void set_root(entity * value) noexcept { if (m_root != value) { m_root = value; } }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -64,8 +68,8 @@ namespace ml
 	private:
 		friend entity;
 
-		entt::registry	m_registry	; // registry
-		entity *		m_root		; // root
+		entt::registry	m_reg	; // registry
+		entity *		m_root	; // root node
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

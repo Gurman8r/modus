@@ -8,8 +8,8 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	scene_tree::scene_tree(allocator_type alloc) noexcept
-		: m_registry{}
-		, m_root{ ML_new(entity, this, alloc) }
+		: m_reg	{}
+		, m_root{ ML_new(entity, this, "root", nullptr, alloc) }
 	{
 	}
 
@@ -22,7 +22,7 @@ namespace ml
 
 	entity * scene_tree::new_entity(string const & name) noexcept
 	{
-		entity * e{ m_root->new_child() };
+		entity * e{ m_root->new_child(name) };
 		e->add_component<tag_component>(!name.empty() ? name : "New Entity");
 		e->add_component<transform_component>();
 		return e;
@@ -32,7 +32,7 @@ namespace ml
 	{
 		if (!value) { return; }
 
-		m_registry.destroy(*value);
+		m_reg.destroy(*value);
 
 		if (value->m_parent) { value->m_parent->delete_child(value); }
 	}

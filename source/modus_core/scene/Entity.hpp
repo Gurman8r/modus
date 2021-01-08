@@ -17,14 +17,18 @@ namespace ml
 		using reference					= typename self_type &;
 		using const_reference			= typename self_type const &;
 
-		using value_type				= typename pointer;
-		using list_type					= typename list<value_type>;
-		using size_type					= typename list_type::size_type;
-		using difference_type			= typename list_type::difference_type;
-		using iterator					= typename list_type::iterator;
-		using const_iterator			= typename list_type::const_iterator;
-		using reverse_iterator			= typename list_type::reverse_iterator;
-		using const_reverse_iterator	= typename list_type::const_reverse_iterator;
+		using child_type				= typename pointer;
+		using child_list				= typename list<child_type>;
+		using size_type					= typename child_list::size_type;
+		using difference_type			= typename child_list::difference_type;
+		using iterator					= typename child_list::iterator;
+		using const_iterator			= typename child_list::const_iterator;
+		using reverse_iterator			= typename child_list::reverse_iterator;
+		using const_reverse_iterator	= typename child_list::const_reverse_iterator;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static constexpr cstring default_name{ "New Entity" };
 
 		static constexpr size_type npos{ static_cast<size_type>(-1) };
 
@@ -33,24 +37,27 @@ namespace ml
 	public:
 		virtual ~entity() noexcept override { clear_children(); }
 
-		entity(allocator_type alloc = {}) noexcept
-			: m_scene	{}
-			, m_handle	{}
-			, m_parent	{}
-			, m_children{ alloc }
-		{
-		}
-
-		entity(scene_tree * scene, pointer parent = nullptr, allocator_type alloc = {})
-			: m_scene	{ scene }
+		entity(scene_tree * scene, string const & name = default_name, pointer parent = nullptr, allocator_type alloc = {})
+			: m_name	{ name.empty() ? default_name : name, alloc }
+			, m_scene	{ scene }
 			, m_handle	{ get_registry().create() }
 			, m_parent	{ parent }
 			, m_children{ alloc }
 		{
 		}
 
+		entity(string const & name = default_name, allocator_type alloc = {}) noexcept
+			: m_name	{ name.empty() ? default_name : name, alloc }
+			, m_scene	{}
+			, m_handle	{}
+			, m_parent	{}
+			, m_children{ alloc }
+		{
+		}
+
 		entity(self_type && other, allocator_type alloc = {}) noexcept
-			: m_scene	{}
+			: m_name	{ alloc }
+			, m_scene	{}
 			, m_handle	{}
 			, m_parent	{}
 			, m_children{ alloc }
@@ -68,12 +75,28 @@ namespace ml
 		{
 			if (std::addressof(a) != std::addressof(b))
 			{
+				std::swap(a.m_name, b.m_name);
 				std::swap(a.m_scene, b.m_scene);
 				std::swap(a.m_handle, b.m_handle);
 				std::swap(a.m_parent, b.m_parent);
 				std::swap(a.m_children, b.m_children);
 			}
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
+		ML_NODISCARD operator entt::entity() const noexcept { return m_handle; }
+
+		ML_NODISCARD auto get_handle() const noexcept -> entt::entity { return m_handle; }
+		
+		ML_NODISCARD auto get_name() const noexcept -> string const & { return m_name; }
+
+		ML_NODISCARD auto get_scene() const noexcept -> scene_tree * { return m_scene; }
+
+		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return ML_check(m_scene)->get_registry(); }
+
+		ML_NODISCARD auto get_registry() const noexcept -> entt::registry const & { return ML_check(m_scene)->get_registry(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -90,31 +113,24 @@ namespace ml
 
 		template <class ... T> void remove_component() noexcept { get_registry().remove<T...>(m_handle); }
 
+		ML_NODISCARD bool is_valid() const noexcept { return get_registry().valid(m_handle); }
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD operator entity_handle() const noexcept { return m_handle; }
+	public:
+		ML_NODISCARD auto operator[](size_t i) noexcept -> pointer { return m_children[i]; }
+
+		ML_NODISCARD auto operator[](size_t i) const noexcept -> self_type const * { return m_children[i]; }
 
 		ML_NODISCARD auto get_child(size_t i) noexcept -> pointer { return m_children[i]; }
 
 		ML_NODISCARD auto get_child(size_t i) const noexcept -> self_type const * { return m_children[i]; }
 
-		ML_NODISCARD auto get_children() noexcept -> list_type & { return m_children; }
-
-		ML_NODISCARD auto get_children() const noexcept -> list_type const & { return m_children; }
-
 		ML_NODISCARD auto get_child_count() const noexcept -> size_t { return m_children.size(); }
-
-		ML_NODISCARD auto get_handle() const noexcept -> entity_handle { return m_handle; }
 
 		ML_NODISCARD auto get_parent() const noexcept -> pointer { return m_parent; }
 
-		ML_NODISCARD auto get_registry() noexcept -> entt::registry & { return ML_check(m_scene)->get_registry(); }
-
-		ML_NODISCARD auto get_registry() const noexcept -> entt::registry const & { return ML_check(m_scene)->get_registry(); }
-
 		ML_NODISCARD auto get_root() const noexcept -> pointer { return m_parent ? m_parent->get_root() : const_cast<pointer>(this); }
-
-		ML_NODISCARD auto get_scene() const noexcept -> scene_tree * { return m_scene; }
 
 		ML_NODISCARD auto get_sibling_index() const noexcept -> size_t
 		{
@@ -125,16 +141,14 @@ namespace ml
 
 		ML_NODISCARD bool is_child_of(self_type const * other) const noexcept { return self_type::is_child_of_recursive(this, other); }
 
-		ML_NODISCARD bool is_valid() const noexcept { return get_registry().valid(m_handle); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Derived = self_type, class ... Args
-		> auto new_child(Args && ... args) -> Derived *
+		> auto new_child(string const & name, Args && ... args) -> Derived *
 		{
 			return static_cast<Derived *>(m_children.emplace_back
 			(
-				ML_new(Derived, m_scene, this, ML_forward(args)...)
+				ML_new(Derived, m_scene, name, this, ML_forward(args)...)
 			));
 		}
 
@@ -183,6 +197,14 @@ namespace ml
 			m_children.clear();
 		}
 
+		void set_name(string const & value) noexcept
+		{
+			if (m_name != value)
+			{
+				m_name = value;
+			}
+		}
+
 		bool set_parent(pointer value)
 		{
 			if (this == value || (value && value->is_child_of(this))) { return false; }
@@ -210,13 +232,10 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool contains(const_pointer value) const noexcept { return this->find(value) != end(); }
-
+	public:
 		ML_NODISCARD auto find(const_pointer value) noexcept -> iterator { return std::find(begin(), end(), value); }
 
 		ML_NODISCARD auto find(const_pointer value) const noexcept -> const_iterator { return std::find(begin(), end(), value); }
-
-		template <class Pr> ML_NODISCARD bool contains_if(Pr && pr) const noexcept { return this->find_if(ML_forward(pr)) != end(); }
 
 		template <class Pr> ML_NODISCARD auto find_if(Pr && pr) noexcept -> iterator { return std::find_if(begin(), end(), ML_forward(pr)); }
 
@@ -298,10 +317,11 @@ namespace ml
 	private:
 		friend scene_tree;
 
-		scene_tree *		m_scene		; // scene
-		entity_handle		m_handle	; // handle
-		pointer				m_parent	; // parent
-		list_type			m_children	; // children
+		string			m_name		; // name
+		scene_tree *	m_scene		; // scene
+		entt::entity	m_handle	; // handle
+		pointer			m_parent	; // parent
+		child_list		m_children	; // children
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

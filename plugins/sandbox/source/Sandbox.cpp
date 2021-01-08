@@ -33,7 +33,6 @@ namespace ml
 		float32 m_grid_size{ 100.f }; // 
 
 		// scenes
-		tree_node m_root{ "root" };
 		scene_editor m_scene_editor{};
 		hash_map<string, ref<scene_tree>> m_scenes{};
 
@@ -177,16 +176,9 @@ namespace ml
 			auto & scene0 = m_scenes["0"] = make_ref<scene_tree>();
 			m_scene_editor.set_context(scene0);
 			ev->set_active_scene(scene0);
-			entity * e{ scene0->new_entity() };
+			entity * e{ scene0->new_entity("entity 0") };
 			e->add_component<camera_component>();
 			e->add_component<native_script_component>();
-
-			auto a = m_root.new_child("a");
-			auto b = m_root.new_child("b");
-			auto c = m_root.new_child("c");
-			a->set_sibling_index(1);
-			c->set_parent(a);
-			auto aa = a->new_child("aa");
 
 
 			// terminal
@@ -532,7 +524,7 @@ namespace ml
 
 				
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
-				edit_tree_node(&m_root,
+				edit_entity(ev->get_active_scene()->get_root(),
 					ImGuiTreeNodeFlags_DefaultOpen |
 					ImGuiTreeNodeFlags_Framed |
 					ImGuiTreeNodeFlags_FramePadding |

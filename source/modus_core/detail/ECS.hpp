@@ -95,7 +95,7 @@ namespace ml::ecs::detail
 
 		using type_list = typename meta::list<Components...>;
 
-		using storage_type = typename ds::batch_vector<Components...>;
+		using storage_type = typename batch_vector<Components...>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -412,11 +412,11 @@ namespace ml::ecs
 
 		struct handle;
 
-		using handle_storage = typename ds::list<handle>;
+		using handle_storage = typename list<handle>;
 
 		enum : size_t { id_alive, id_index, id_handle, id_bitset };
 
-		using entity_storage = typename ds::batch_vector
+		using entity_storage = typename batch_vector
 		<
 			bool,		// state of entity ( alive / dead )
 			size_t,		// component index

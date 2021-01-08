@@ -14,10 +14,10 @@
 	class Ch = char,								\
 	class Tr = _ML std::char_traits<Ch>,			\
 	class Al = _ML pmr::polymorphic_allocator<Ch>,	\
-	class Str = _ML ds::basic_string<Ch, Tr, Al>
+	class Str = _ML basic_string<Ch, Tr, Al>
 
 // STRING
-namespace ml::ds
+namespace ml
 {
 	template <ML_STRING_TEMPLATE(Ch, Tr, Al)
 	> ML_alias basic_string = typename std::basic_string // basic_string
@@ -35,7 +35,7 @@ namespace ml::ds
 }
 
 // STRINGSTREAM
-namespace ml::ds
+namespace ml
 {
 	template <ML_STRING_TEMPLATE(Ch, Tr, Al)
 	> ML_alias basic_stringstream = typename std::basic_stringstream // basic_stringstream

@@ -3,7 +3,7 @@
 
 // WIP
 
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/detail/List.hpp>
 
 namespace ml
 {
@@ -26,7 +26,7 @@ namespace ml
 		void * get(void * value) const noexcept { return (void *)((byte *)value + offset); }
 	};
 
-	struct vstack final : trackable
+	struct vstack final
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -10,10 +10,8 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	video_mode const & video_mode::get_desktop_mode()
+	video_mode video_mode::desktop_mode = std::invoke([&temp = video_mode{}]()
 	{
-		static video_mode temp{};
-
 #ifdef ML_os_windows
 		DEVMODE dm; dm.dmSize = sizeof(dm);
 		::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &dm);
@@ -27,14 +25,10 @@ namespace ml
 #	error ""
 #endif
 		return temp;
-	}
+	});
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ds::list<video_mode> const & video_mode::get_fullscreen_modes()
+	list<video_mode> video_mode::fullscreen_modes = std::invoke([&temp = list<video_mode>{}]()
 	{
-		static ds::list<video_mode> temp{};
-
 #ifdef ML_os_windows
 		DEVMODE dm; dm.dmSize = sizeof(dm);
 		for (int32 i = 0; ::EnumDisplaySettingsW(nullptr, i, &dm); ++i)
@@ -50,7 +44,7 @@ namespace ml
 #	error ""
 #endif
 		return temp;
-	}
+	});
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

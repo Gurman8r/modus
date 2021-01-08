@@ -5,7 +5,7 @@
 
 // Source: https://github.com/CedricGuillemet/ImGuizmo/blob/master/example/main.cpp
 
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/system/Memory.hpp>
 #include <modus_core/detail/Matrix.hpp>
 #include <modus_core/detail/Color.hpp>
 
@@ -227,55 +227,25 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_proj_matrix() const noexcept -> mat4 const &
-		{
-			return m_proj;
-		}
+		ML_NODISCARD auto get_proj_matrix() const noexcept -> mat4 const & { return m_proj; }
 
-		ML_NODISCARD bool is_orthographic() const noexcept
-		{
-			return m_is_ortho;
-		}
+		ML_NODISCARD bool is_orthographic() const noexcept { return m_is_ortho; }
 
-		ML_NODISCARD auto get_fov() const noexcept -> float32
-		{
-			return m_fov[m_is_ortho];
-		}
+		ML_NODISCARD auto get_fov() const noexcept -> float32 { return m_fov[m_is_ortho]; }
 
-		ML_NODISCARD auto get_clip() const noexcept -> vec2 const &
-		{
-			return m_clip[m_is_ortho];
-		}
+		ML_NODISCARD auto get_clip() const noexcept -> vec2 const & { return m_clip[m_is_ortho]; }
 
-		ML_NODISCARD auto get_resolution() const noexcept -> vec2 const &
-		{
-			return m_resolution;
-		}
+		ML_NODISCARD auto get_resolution() const noexcept -> vec2 const & { return m_resolution; }
 
-		void set_proj_matrix(mat4 const & value) noexcept
-		{
-			m_proj = value;
-		}
+		void set_proj_matrix(mat4 const & value) noexcept { m_proj = value; }
 
-		void set_orthographic(bool value) noexcept
-		{
-			m_is_ortho = value;
-		}
+		void set_orthographic(bool value) noexcept { m_is_ortho = value; }
 
-		void set_fov(float32 value) noexcept
-		{
-			m_fov[m_is_ortho] = value;
-		}
+		void set_fov(float32 value) noexcept { m_fov[m_is_ortho] = value; }
 
-		void set_clip(vec2 const & value) noexcept
-		{
-			m_clip[m_is_ortho] = value;
-		}
+		void set_clip(vec2 const & value) noexcept { m_clip[m_is_ortho] = value; }
 
-		void set_resolution(vec2 const & value) noexcept
-		{
-			m_resolution = value;
-		}
+		void set_resolution(vec2 const & value) noexcept { m_resolution = value; }
 
 		void recalculate_proj() noexcept
 		{
@@ -293,7 +263,6 @@ namespace ml
 			else
 			{
 				float32 const ortho_height{ m_fov[m_is_ortho] * m_resolution[1] / m_resolution[0] };
-
 				util::orthographic(
 					-m_fov[m_is_ortho],
 					m_fov[m_is_ortho],
@@ -307,45 +276,21 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_view_matrix() const noexcept -> mat4 const &
-		{
-			return m_view;
-		}
+		ML_NODISCARD auto get_view_matrix() const noexcept -> mat4 const & { return m_view; }
 
-		ML_NODISCARD auto get_eye() const noexcept -> vec3 const &
-		{
-			return m_eye;
-		}
+		ML_NODISCARD auto get_eye() const noexcept -> vec3 const & { return m_eye; }
 
-		ML_NODISCARD auto get_target() const noexcept -> vec3 const &
-		{
-			return m_target;
-		}
+		ML_NODISCARD auto get_target() const noexcept -> vec3 const & { return m_target; }
 
-		ML_NODISCARD auto get_up() const noexcept -> vec3 const &
-		{
-			return m_up;
-		}
+		ML_NODISCARD auto get_up() const noexcept -> vec3 const & { return m_up; }
 
-		void set_view_matrix(mat4 const & value) noexcept
-		{
-			m_view = value;
-		}
+		void set_view_matrix(mat4 const & value) noexcept { m_view = value; }
 
-		void set_eye(vec3 const & value) noexcept
-		{
-			m_eye = value;
-		}
+		void set_eye(vec3 const & value) noexcept { m_eye = value; }
 
-		void set_target(vec3 const & value) noexcept
-		{
-			m_target = value;
-		}
+		void set_target(vec3 const & value) noexcept { m_target = value; }
 
-		void set_up(vec3 const & value) noexcept
-		{
-			m_up = value;
-		}
+		void set_up(vec3 const & value) noexcept { m_up = value; }
 
 		void recalculate_view() noexcept
 		{
@@ -371,8 +316,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

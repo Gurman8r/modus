@@ -16,15 +16,15 @@ namespace ml::ImGuiExt
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using PrinterSignature = typename void(ds::list<ds::string> const &, size_t);
+		using PrinterSignature = typename void(list<string> const &, size_t);
 
 		// printer
-		struct ML_NODISCARD Printer final : ds::method< PrinterSignature >
+		struct ML_NODISCARD Printer final : method< PrinterSignature >
 		{
-			using ds::method< PrinterSignature >::method;
+			using method< PrinterSignature >::method;
 
 			Printer() noexcept : Printer{ [
-			](ds::list<pmr::string> const & lines, size_t i) noexcept
+			](list<pmr::string> const & lines, size_t i) noexcept
 			{
 				auto check_prefix = [&lines, i](cstring str) noexcept -> bool
 				{
@@ -59,7 +59,7 @@ namespace ml::ImGuiExt
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ImGuiTextFilter			Filter			; // filter
-		ds::list<ds::string>	Lines			; // lines
+		list<string>	Lines			; // lines
 		bool					AutoScroll		; // auto scroll
 		bool					ScrollToBottom	; // scroll to bottom
 
@@ -101,7 +101,7 @@ namespace ml::ImGuiExt
 			return (*this);
 		}
 
-		TextLog & Print(ds::string const & value = "\n") noexcept {
+		TextLog & Print(string const & value = "\n") noexcept {
 			for (char c : value) {
 				this->Write(c);
 			}
@@ -116,7 +116,7 @@ namespace ml::ImGuiExt
 		}
 
 		template <class ... Args
-		> TextLog & Printf(ds::string const & str, Args && ... args) noexcept {
+		> TextLog & Printf(string const & str, Args && ... args) noexcept {
 			return this->Printf(str.c_str(), ML_forward(args)...);
 		}
 
@@ -124,33 +124,34 @@ namespace ml::ImGuiExt
 
 		TextLog & operator<<(cstring value) noexcept { return this->Print(value); }
 
-		TextLog & operator<<(ds::string const & value) noexcept { return this->Print(value); }
+		TextLog & operator<<(string const & value) noexcept { return this->Print(value); }
 
 		template <class T
 		> TextLog & operator<<(T && value) noexcept
 		{
-			ds::stringstream ss{};
+			stringstream ss{};
 			ss << ML_forward(value);
 			return this->Dump(ss);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void Draw(Printer const & print = {})
+		void Draw(Printer const & printer = {})
 		{
 			// print lines
-			ImGui::BeginGroup(); {
-				for (size_t i = 0, imax = Lines.size(); i < imax; ++i)
+			ImGui::BeginGroup();
+			for (size_t i = 0, imax = Lines.size(); i < imax; ++i)
+			{
+				if (Filter.PassFilter(Lines[i].c_str()))
 				{
-					if (Filter.PassFilter(Lines[i].c_str()))
-					{
-						print(Lines, i);
-					}
+					printer(Lines, i);
 				}
-			} ImGui::EndGroup();
+			}
+			ImGui::EndGroup();
 
 			// scroll to bottom
-			if (ScrollToBottom || (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())) {
+			if (ScrollToBottom || (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
+			{
 				ImGui::SetScrollHereY(1.0f);
 			}
 			ScrollToBottom = false;

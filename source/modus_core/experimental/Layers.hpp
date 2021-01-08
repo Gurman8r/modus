@@ -1,7 +1,7 @@
 #ifndef _ML_LAYERS_HPP_
 #define _ML_LAYERS_HPP_
 
-#include <modus_core/detail/EventSystem.hpp>
+#include <modus_core/system/EventSystem.hpp>
 #include <modus_core/detail/Duration.hpp>
 
 // LAYER
@@ -38,7 +38,7 @@ namespace ml
 		using size_type					= typename size_t;
 		
 		using value_type				= typename layer *;
-		using storage_type				= typename ds::list<value_type>;
+		using storage_type				= typename list<value_type>;
 		using pointer					= typename storage_type::pointer;
 		using const_pointer				= typename storage_type::const_pointer;
 		using reference					= typename storage_type::reference;
@@ -255,7 +255,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::list<layer *>	m_data	; // 
+		list<layer *>	m_data	; // 
 		size_t				m_index	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

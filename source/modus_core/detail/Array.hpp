@@ -6,7 +6,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // FIXED SIZE ARRAY
-namespace ml::ds
+namespace ml
 {
 	template <class _T, size_t _Size
 	> struct ML_NODISCARD array
@@ -14,7 +14,7 @@ namespace ml::ds
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using value_type				= typename _T;
-		using self_type					= typename _ML ds::array<value_type, _Size>;
+		using self_type					= typename _ML array<value_type, _Size>;
 		using storage_type				= typename value_type[_Size];
 		using size_type					= typename size_t;
 		using difference_type			= typename ptrdiff_t;
@@ -128,7 +128,7 @@ namespace ml::ds
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // ZERO SIZE ARRAY
-namespace ml::ds
+namespace ml
 {
 	template <class _T
 	> struct ML_NODISCARD array<_T, 0>
@@ -136,7 +136,7 @@ namespace ml::ds
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
 		using value_type				= typename _T;
-		using self_type					= typename _ML ds::array<value_type, 0>;
+		using self_type					= typename _ML array<value_type, 0>;
 		using storage_type				= typename value_type[1];
 		using size_type					= typename size_t;
 		using difference_type			= typename ptrdiff_t;
@@ -251,7 +251,7 @@ namespace ml::ds
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // ARRAY OPERATORS
-namespace ml::ds
+namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -302,21 +302,21 @@ namespace std
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <size_t I, class T, size_t N
-	> ML_NODISCARD constexpr T & get(_ML ds::array<T, N> & value) noexcept
+	> ML_NODISCARD constexpr T & get(_ML array<T, N> & value) noexcept
 	{
 		static_assert(I < N, "array index out of bounds");
 		return value.at(I);
 	}
 
 	template <size_t I, class T, size_t N
-	> ML_NODISCARD constexpr T const & get(_ML ds::array<T, N> const & value) noexcept
+	> ML_NODISCARD constexpr T const & get(_ML array<T, N> const & value) noexcept
 	{
 		static_assert(I < N, "array index out of bounds");
 		return value.at(I);
 	}
 
 	template <size_t I, class T, size_t N
-	> ML_NODISCARD constexpr T && get(_ML ds::array<T, N> && value) noexcept
+	> ML_NODISCARD constexpr T && get(_ML array<T, N> && value) noexcept
 	{
 		static_assert(I < N, "array index out of bounds");
 		return std::move(value.at(I));
@@ -328,16 +328,16 @@ namespace std
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // JSON INTERFACE
-namespace ml::ds
+namespace ml
 {
 	template <class T, size_t N
-	> void from_json(json const & j, _ML ds::array<T, N> & value)
+	> void from_json(json const & j, _ML array<T, N> & value)
 	{
 		j.get_to(reinterpret_cast<std::array<T, N> &>(value));
 	}
 
 	template <class T, size_t N
-	> void to_json(json & j, _ML ds::array<T, N> const & value)
+	> void to_json(json & j, _ML array<T, N> const & value)
 	{
 		j = reinterpret_cast<std::array<T, N> const &>(value);
 	}

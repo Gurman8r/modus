@@ -54,8 +54,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
-		using page				= typename ds::map<uint32, glyph>;
-		using page_table		= typename ds::map<uint32, page>;
+		using page				= typename flat_map<uint32, glyph>;
+		using page_table		= typename flat_map<uint32, page>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -132,7 +132,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto family() const noexcept -> ds::string const & { return m_family; }
+		ML_NODISCARD auto family() const noexcept -> string const & { return m_family; }
 
 		ML_NODISCARD auto pages() const noexcept -> page_table const & { return m_pages; }
 
@@ -142,7 +142,7 @@ namespace ml
 		font_library	m_library;
 		font_face		m_face;
 		font_stroker	m_stroker;
-		ds::string		m_family;
+		string		m_family;
 		page_table		m_pages;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -32,9 +32,9 @@ namespace ml::gfx
 	struct ML_NODISCARD device_info final
 	{
 		// version
-		ds::string renderer, vendor, version;
+		string renderer, vendor, version;
 		int32 major_version, minor_version;
-		ds::list<ds::string> extensions;
+		list<string> extensions;
 
 		// textures
 		bool texture_edge_clamp_available;
@@ -47,7 +47,7 @@ namespace ml::gfx
 		// shaders
 		bool shaders_available;
 		bool geometry_shaders_available;
-		ds::string shading_language_version;
+		string shading_language_version;
 	};
 
 	// render device specification
@@ -114,25 +114,25 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual ds::list<unown<render_context>> const & all_contexts() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<render_context>> const & all_contexts() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<unown<vertexarray>> const & all_vertexarrays() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<vertexarray>> const & all_vertexarrays() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<unown<vertexbuffer>> const & all_vertexbuffers() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<vertexbuffer>> const & all_vertexbuffers() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<unown<indexbuffer>> const & all_indexbuffers() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<indexbuffer>> const & all_indexbuffers() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<unown<texture2d>> const & all_texture2ds() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<texture2d>> const & all_texture2ds() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<unown<texture3d>> const & all_texture3ds() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<texture3d>> const & all_texture3ds() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<unown<texturecube>> const & all_texturecubes() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<texturecube>> const & all_texturecubes() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<unown<framebuffer>> const & all_framebuffers() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<framebuffer>> const & all_framebuffers() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<unown<program>> const & all_programs() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<program>> const & all_programs() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<unown<shader>> const & all_shaders() const noexcept = 0;
+		ML_NODISCARD virtual list<unown<shader>> const & all_shaders() const noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -161,9 +161,9 @@ namespace ml::gfx
 // global render device
 namespace ml::globals
 {
-	ML_decl_global(gfx::render_device) get_global() noexcept;
+	ML_decl_global(gfx::render_device) get_global();
 
-	ML_decl_global(gfx::render_device) set_global(gfx::render_device * value) noexcept;
+	ML_decl_global(gfx::render_device) set_global(gfx::render_device *);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -442,7 +442,7 @@ namespace ml::gfx
 
 		ML_NODISCARD virtual uint32 get_mode() const noexcept = 0;
 		
-		ML_NODISCARD virtual ds::list<ref<vertexbuffer>> const & get_vertices() const noexcept = 0;
+		ML_NODISCARD virtual list<ref<vertexbuffer>> const & get_vertices() const noexcept = 0;
 
 	public:
 		inline void bind() const noexcept
@@ -944,35 +944,20 @@ namespace ml::gfx
 		vec2i			size			{ 1280, 720 };
 		texture_format	format			{ format_rgba };
 		texture_flags_	flags			{ texture_flags_default };
-		vec4i			bpp				{ 8, 8, 8, 8 };
-		int32			stencil_bits	{ 24 },
-						depth_bits		{ 8 };
-		int32			samples			{};
-		bool			stereo			{};
 	};
 
 	static void from_json(json const & j, spec<framebuffer> & v)
 	{
-		j["size"			].get_to(v.size);
-		j["format"			].get_to(v.format);
-		j["flags"			].get_to(v.flags);
-		j["bpp"				].get_to(v.bpp);
-		j["stencil_bits"	].get_to(v.stencil_bits);
-		j["depth_bits"		].get_to(v.depth_bits);
-		j["samples"			].get_to(v.samples);
-		j["stereo"			].get_to(v.stereo);
+		j["size"	].get_to(v.size);
+		j["format"	].get_to(v.format);
+		j["flags"	].get_to(v.flags);
 	}
 
 	static void to_json(json & j, spec<framebuffer> const & v)
 	{
-		j["size"			] = v.size;
-		j["format"			] = v.format;
-		j["flags"			] = v.flags;
-		j["bpp"	] = v.bpp;
-		j["stencil_bits"	] = v.stencil_bits;
-		j["depth_bits"		] = v.depth_bits;
-		j["samples"			] = v.samples;
-		j["stereo"			] = v.stereo;
+		j["size"	] = v.size;
+		j["format"	] = v.format;
+		j["flags"	] = v.flags;
 	}
 
 
@@ -1006,7 +991,7 @@ namespace ml::gfx
 
 		virtual void resize(vec2i const & value) = 0;
 
-		ML_NODISCARD virtual ds::list<ref<texture2d>> const & get_color_attachments() const noexcept = 0;
+		ML_NODISCARD virtual list<ref<texture2d>> const & get_color_attachments() const noexcept = 0;
 		
 		ML_NODISCARD virtual ref<texture2d> const & get_depth_attachment() const noexcept = 0;
 
@@ -1015,16 +1000,6 @@ namespace ml::gfx
 		ML_NODISCARD virtual texture_format const & get_format() const noexcept = 0;
 
 		ML_NODISCARD virtual texture_flags_ get_flags() const noexcept = 0;
-
-		ML_NODISCARD virtual vec4i const & get_bpp() const noexcept = 0;
-
-		ML_NODISCARD virtual int32 get_stencil_bits() const noexcept = 0;
-		
-		ML_NODISCARD virtual int32 get_depth_bits() const noexcept = 0;
-		
-		ML_NODISCARD virtual int32 get_sample_count() const noexcept = 0;
-		
-		ML_NODISCARD virtual bool is_stereo() const noexcept = 0;
 
 	public:
 		inline void bind() const noexcept
@@ -1083,14 +1058,14 @@ namespace ml::gfx
 	public:
 		virtual bool attach(uint32 type, size_t count, cstring * str, int32 const * len = nullptr) = 0;
 
-		inline bool attach(uint32 type, ds::string const & str) noexcept
+		inline bool attach(uint32 type, string const & str) noexcept
 		{
 			if (str.empty()) { return false; }
 			cstring temp{ str.c_str() };
 			return attach(type, 1, &temp, nullptr);
 		}
 
-		inline bool attach(uint32 type, ds::list<ds::string> const & str) noexcept
+		inline bool attach(uint32 type, list<string> const & str) noexcept
 		{
 			if (str.empty()) { return false; }
 			cstring temp{ str.front().c_str() };
@@ -1101,19 +1076,19 @@ namespace ml::gfx
 
 		virtual bool link() = 0;
 
-		virtual bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) = 0;
+		virtual bool bind_uniform(cstring name, method<void(uniform_id)> const & fn) = 0;
 
 		ML_NODISCARD virtual uniform_id get_uniform_location(cstring name) noexcept = 0;
 
-		ML_NODISCARD virtual ds::string const & get_info_log() const noexcept = 0;
+		ML_NODISCARD virtual string const & get_info_log() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::array<object_id, shader_type_MAX> const & get_shaders() const noexcept = 0;
+		ML_NODISCARD virtual array<object_id, shader_type_MAX> const & get_shaders() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::map<uint32, ds::list<ds::string>> const & get_source() const noexcept = 0;
+		ML_NODISCARD virtual flat_map<uint32, list<string>> const & get_source() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::map<uniform_id, ref<texture>> const & get_textures() const noexcept = 0;
+		ML_NODISCARD virtual flat_map<uniform_id, ref<texture>> const & get_textures() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::map<hash_t, uniform_id> const & get_uniforms() const noexcept = 0;
+		ML_NODISCARD virtual flat_map<hash_t, uniform_id> const & get_uniforms() const noexcept = 0;
 
 		ML_NODISCARD virtual uint32 get_mask() const noexcept = 0;
 
@@ -1182,7 +1157,7 @@ namespace ml::gfx
 	template <> struct ML_NODISCARD spec<shader> final
 	{
 		uint32					type	{ shader_type_vertex };
-		ds::list<ds::string>	code	{};
+		list<string>	code	{};
 	};
 
 	static void from_json(json const & j, spec<shader> & v)
@@ -1222,13 +1197,13 @@ namespace ml::gfx
 	public:
 		virtual bool compile(uint32 type, size_t count, cstring * str, int32 const * len = {}) = 0;
 
-		virtual bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) = 0;
+		virtual bool bind_uniform(cstring name, method<void(uniform_id)> const & fn) = 0;
 
-		ML_NODISCARD virtual ds::string const & get_info_log() const noexcept = 0;
+		ML_NODISCARD virtual string const & get_info_log() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::list<ds::string> const & get_source() const noexcept = 0;
+		ML_NODISCARD virtual list<string> const & get_source() const noexcept = 0;
 
-		ML_NODISCARD virtual ds::map<uniform_id, ref<texture>> const & get_textures() const noexcept = 0;
+		ML_NODISCARD virtual flat_map<uniform_id, ref<texture>> const & get_textures() const noexcept = 0;
 
 		ML_NODISCARD virtual uint32 get_type() const noexcept = 0;
 

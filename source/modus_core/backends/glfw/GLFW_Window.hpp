@@ -6,75 +6,17 @@
 struct GLFWwindow;
 struct GLFWmonitor;
 
-// GLFW MONITOR
-namespace ml
-{
-	class glfw_monitor final
-	{
-	public:
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static monitor const & get_primary();
 
-		ML_NODISCARD static ds::list<monitor> const & get_monitors();
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-}
-
-// GLFW CURSOR
-namespace ml
-{
-	class glfw_cursor final
-	{
-	public:
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static cursor create_custom(size_t w, size_t h, byte const * p, int32 x, int32 y);
-
-		static cursor create_standard(cursor_shape_ shape);
-
-		static void destroy(cursor const & value);
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-}
-
-// GLFW PLATFORM
-namespace ml
-{
-	class glfw_platform final
-	{
-	public:
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		static bool initialize();
-
-		static bool finalize();
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD static window_handle get_context_current();
-
-		static void make_context_current(window_handle value);
-
-		static void poll_events();
-
-		static void swap_buffers(window_handle value);
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-}
-
-// GLFW WINDOW
+// WINDOW
 namespace ml
 {
 	// glfw window
-	struct glfw_window final : backend_window
+	struct glfw_window final : base_window
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using backend_window::allocator_type;
+		using base_window::allocator_type;
 
 		glfw_window(allocator_type alloc = {}) noexcept;
 
@@ -83,7 +25,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		bool open(
-			ds::string			const & title,
+			string			const & title,
 			video_mode			const & vm		= {},
 			context_settings	const & cs		= {},
 			window_hints_				hints	= window_hints_default
@@ -107,7 +49,7 @@ namespace ml
 
 		window_callbacks const & get_callbacks() const final;
 
-		ds::string get_clipboard() const final;
+		string get_clipboard() const final;
 
 		vec2 get_content_scale() const final;
 
@@ -133,7 +75,7 @@ namespace ml
 
 		vec2i get_size() const final;
 
-		ds::string const & get_title() const final;
+		string const & get_title() const final;
 
 		void * get_user_pointer() const final;
 
@@ -169,7 +111,7 @@ namespace ml
 
 		void set_auto_iconify(bool value) final;
 
-		void set_clipboard(ds::string const & value) final;
+		void set_clipboard(string const & value) final;
 		
 		void set_cursor(cursor_handle value) final;
 		
@@ -199,7 +141,7 @@ namespace ml
 
 		void set_size(vec2i const & value) final;
 		
-		void set_title(ds::string const & value) final;
+		void set_title(string const & value) final;
 
 		void set_user_pointer(void * value) final;
 
@@ -278,7 +220,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		ds::string			m_title		; // 
+		string			m_title		; // 
 		GLFWwindow	*		m_window	; // 
 		GLFWmonitor	*		m_monitor	; // 
 		window_hints_		m_hints		; // 

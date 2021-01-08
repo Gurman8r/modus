@@ -22,7 +22,7 @@ namespace ml::gfx
 		if (j_shader->is_number()) { j_shader->get_to((uint32 &)type); }
 		else if (j_shader->is_string())
 		{
-			ds::string str; j_shader->get_to(str);
+			string str; j_shader->get_to(str);
 			switch (hashof(util::to_lower(str))) {
 			default					: return out;
 			case hashof("vertex")	: type = shader_type_vertex; break;

@@ -1,9 +1,9 @@
 #ifndef _ML_VIDEO_MODE_HPP_
 #define _ML_VIDEO_MODE_HPP_
 
+#include <modus_core/system/Platform.hpp>
 #include <modus_core/detail/Rect.hpp>
-#include <modus_core/detail/Set.hpp>
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/detail/FlatSet.hpp>
 
 namespace ml
 {
@@ -20,9 +20,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD static video_mode const & get_desktop_mode();
+		static video_mode desktop_mode;
 
-		ML_NODISCARD static ds::list<video_mode> const & get_fullscreen_modes();
+		static list<video_mode> fullscreen_modes;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

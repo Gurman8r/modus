@@ -2,7 +2,7 @@
 #define _ML_DATABASE_HPP_
 
 #include <modus_core/detail/HashMap.hpp>
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/system/Memory.hpp>
 
 namespace ml
 {
@@ -13,9 +13,9 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		using category_type = typename ds::hashmap<ds::string, ref<std::any>>;
+		using category_type = typename hash_map<string, ref<std::any>>;
 
-		using categories_type = typename ds::hashmap<typeof_t<>, category_type>;
+		using categories_type = typename hash_map<typeof_t<>, category_type>;
 
 		using iterator = typename categories_type::iterator;
 
@@ -43,7 +43,7 @@ namespace ml
 		}
 
 		// get element
-		template <class Type, class Key = ds::string
+		template <class Type, class Key = string
 		> ML_NODISCARD ref<std::any> & element(Key && key) noexcept
 		{
 			category_type & cat{ this->category<Type>() };
@@ -60,19 +60,19 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Type, class Key = ds::string
+		template <class Type, class Key = string
 		> ML_NODISCARD Type & get(Key && key) noexcept
 		{
 			return *std::any_cast<Type>(this->element<Type>(ML_forward(key)).get());
 		}
 
-		template <class Type, class Key = ds::string, class ... Args
+		template <class Type, class Key = string, class ... Args
 		> Type & emplace(Key && key, Args && ... args) noexcept
 		{
 			return this->element<Type>(ML_forward(key))->emplace<Type>(ML_forward(args)...);
 		}
 
-		template <class Type, class Key = ds::string
+		template <class Type, class Key = string
 		> category_type::iterator erase(Key && key) noexcept
 		{
 			category_type & cat{ this->category<Type>() };
@@ -132,7 +132,7 @@ namespace ml
 		}
 
 		template <class ... Args
-		> db_var(simple_database * const db, ds::string const & name, Args && ... args)
+		> db_var(simple_database * const db, string const & name, Args && ... args)
 			: m_db	{ ML_check(db) }
 			, m_name{ name }
 			, m_ptr	{ m_db->element<T>(m_name) }
@@ -184,7 +184,7 @@ namespace ml
 
 		ML_NODISCARD auto type() const noexcept -> typeof_t<> { return typeof_v<value_type>; }
 
-		ML_NODISCARD auto name() const noexcept -> ds::string const & { return m_name; }
+		ML_NODISCARD auto name() const noexcept -> string const & { return m_name; }
 
 		ML_NODISCARD auto database() const noexcept -> simple_database * { return m_db; }
 
@@ -242,7 +242,7 @@ namespace ml
 
 	private:
 		simple_database *	m_db	; // 
-		ds::string			m_name	; // 
+		string			m_name	; // 
 		unown<std::any>	m_ptr	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

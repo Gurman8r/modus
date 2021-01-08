@@ -659,7 +659,7 @@ namespace ml::gfx
 	}
 
 	// get program info log
-	inline void gl_get_program_info_log(uint32 obj, ds::string & buf) noexcept
+	inline void gl_get_program_info_log(uint32 obj, string & buf) noexcept
 	{
 		int32 max_len{};
 		ML_glCheck(glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &max_len));

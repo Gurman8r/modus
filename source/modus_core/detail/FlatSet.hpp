@@ -1,5 +1,5 @@
-#ifndef _ML_SET_HPP_
-#define _ML_SET_HPP_
+#ifndef _ML_FLAT_SET_HPP_
+#define _ML_FLAT_SET_HPP_
 
 #include <modus_core/detail/Utility.hpp>
 #include <modus_core/detail/List.hpp>
@@ -8,16 +8,17 @@ namespace ml::ds
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// FLAT SET TRAITS
+	// BASIC FLAT SET
 	template <
 		class	_Ty,	// value type
 		class	_Pr,	// comparator predicate type
 		bool	_Mt,	// true if multiple equivalent values are permitted
 		size_t	_Th		// search heuristic
-	> struct flat_set_traits final
+	> struct basic_flat_set
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		using self_type			= typename basic_flat_set<_Ty, _Pr, _Mt, _Th>;
 		using value_type		= typename _Ty;
 		using compare_type		= typename _Pr;
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
@@ -28,40 +29,20 @@ namespace ml::ds
 
 		static constexpr size_type thresh{ _Th };
 
-		template <class T = value_type
-		> using storage_type = typename ds::list<T>;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// BASIC FLAT SET
-	template <class _Traits
-	> struct basic_flat_set
-	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using traits_type					= typename _Traits;
-		using self_type						= typename basic_flat_set<traits_type>;
-		using value_type					= typename traits_type::value_type;
-		using compare_type					= typename traits_type::compare_type;
-		using allocator_type				= typename traits_type::allocator_type;
-		using difference_type				= typename traits_type::difference_type;
-		using size_type						= typename traits_type::size_type;
-		using storage_type					= typename traits_type::template storage_type<>;
-
-		using init_type						= typename std::initializer_list<value_type>;
-		using pointer						= typename storage_type::pointer;
-		using const_pointer					= typename storage_type::const_pointer;
-		using reference						= typename storage_type::reference;
-		using const_reference				= typename storage_type::const_reference;
-		using rvalue						= typename value_type &&;
-		
-		using iterator						= typename storage_type::iterator;
-		using const_iterator				= typename storage_type::const_iterator;
-		using reverse_iterator				= typename storage_type::reverse_iterator;
-		using const_reverse_iterator		= typename storage_type::const_reverse_iterator;
+		using storage_type				= typename list<value_type>;
+		using init_type					= typename std::initializer_list<value_type>;
+		using pointer					= typename storage_type::pointer;
+		using const_pointer				= typename storage_type::const_pointer;
+		using reference					= typename storage_type::reference;
+		using const_reference			= typename storage_type::const_reference;
+		using rvalue					= typename value_type &&;
+	
+		using iterator					= typename storage_type::iterator;
+		using const_iterator			= typename storage_type::const_iterator;
+		using reverse_iterator			= typename storage_type::reverse_iterator;
+		using const_reverse_iterator	= typename storage_type::const_reverse_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -298,7 +279,7 @@ namespace ml::ds
 			{
 				return (*it);
 			}
-			else if constexpr (traits_type::multi)
+			else if constexpr (multi)
 			{
 				return *this->insert(ML_forward(value));
 			}
@@ -414,11 +395,11 @@ namespace ml::ds
 			auto binary = [&
 			]() noexcept { return std::binary_search(first, last, ML_forward(value), compare_type{}); };
 
-			if constexpr (traits_type::thresh == 0)
+			if constexpr (thresh == 0)
 			{
 				return linear(); // always linear
 			}
-			else if ((size_t)std::distance(first, last) < traits_type::thresh)
+			else if ((size_t)std::distance(first, last) < thresh)
 			{
 				return linear(); // linear
 			}
@@ -440,11 +421,11 @@ namespace ml::ds
 			auto binary = [&, it = std::equal_range(first, last, ML_forward(value), compare_type{})
 			]() noexcept { return (it.first != it.second) ? it.first : last; };
 
-			if constexpr (traits_type::thresh == 0)
+			if constexpr (thresh == 0)
 			{
 				return linear(); // always linear
 			}
-			else if ((size_t)std::distance(first, last) < traits_type::thresh)
+			else if ((size_t)std::distance(first, last) < thresh)
 			{
 				return linear(); // linear
 			}
@@ -463,13 +444,13 @@ namespace ml::ds
 			if (this->empty()) { return; }
 
 			// sort
-			if constexpr (0 < traits_type::thresh)
+			if constexpr (0 < thresh)
 			{
 				std::sort(begin(), end(), compare_type{});
 			}
 
 			// remove duplicates
-			if constexpr (!traits_type::multi)
+			if constexpr (!multi)
 			{
 				this->erase(std::unique(begin(), end()), end());
 			}
@@ -479,12 +460,12 @@ namespace ml::ds
 
 		// insert implementation
 		template <class Value
-		> auto impl_insert(Value && value) noexcept -> std::conditional_t<traits_type::multi,
+		> auto impl_insert(Value && value) noexcept -> std::conditional_t<multi,
 			iterator,
 			std::pair<iterator, bool>
 		>
 		{
-			if constexpr (traits_type::multi)
+			if constexpr (multi)
 			{
 				// insert multi
 				return m_data.emplace(
@@ -516,42 +497,14 @@ namespace ml::ds
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// FLAT SET | sorted vector of unique elements
-	template <
-		class	_Ty,					// value type
-		class	_Pr = std::less<_Ty>,	// comparator predicate type
-		size_t	_Th = 42				// search heuristic
-	> ML_alias set = typename basic_flat_set
-	<
-		flat_set_traits<_Ty, _Pr, false, _Th>
-	>;
-
-	// FLAT MULTISET | sorted vector of elements
-	template <
-		class	_Ty,					// value type
-		class	_Pr = std::less<_Ty>,	// comparator predicate type
-		size_t	_Th = 42				// search heuristic
-	> ML_alias multiset = typename basic_flat_set
-	<
-		flat_set_traits<_Ty, _Pr, true, _Th>
-	>;
-	
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-// JSON INTERFACE
-namespace ml::ds
-{
 	template <
 		class	Ty,
 		class	Pr = std::less<Ty>,
 		bool	Mt = false,
 		size_t	Th = 42
-	> void to_json(json & j, basic_flat_set<flat_set_traits<Ty, Pr, Mt, Th>> const & value)
+	> void to_json(json & j, basic_flat_set<Ty, Pr, Mt, Th> const & value)
 	{
-		using storage_type = typename basic_flat_set<
-			flat_set_traits<Ty, Pr, Mt, Th>
-		>::storage_type;
+		using storage_type = typename basic_flat_set<Ty, Pr, Mt, Th>::storage_type;
 		j = *reinterpret_cast<storage_type const *>(&value);
 	}
 
@@ -560,11 +513,9 @@ namespace ml::ds
 		class	Pr = std::less<Ty>,
 		bool	Mt = false,
 		size_t	Th = 42
-	> void from_json(json const & j, basic_flat_set<flat_set_traits<Ty, Pr, Mt, Th>> & value)
+	> void from_json(json const & j, basic_flat_set<Ty, Pr, Mt, Th> & value)
 	{
-		using storage_type = typename basic_flat_set<
-			flat_set_traits<Ty, Pr, Mt, Th>
-		>::storage_type;
+		using storage_type = typename basic_flat_set<Ty, Pr, Mt, Th>::storage_type;
 		if (j.is_array())
 		{
 			storage_type temp{};
@@ -572,6 +523,36 @@ namespace ml::ds
 			value = temp;
 		}
 	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-#endif // !_ML_SET_HPP_
+// JSON INTERFACE
+namespace ml
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// FLAT SET | sorted vector of unique elements
+	template <
+		class	_Ty,					// value type
+		class	_Pr = std::less<_Ty>,	// comparator predicate type
+		size_t	_Th = 42				// search heuristic
+	> ML_alias flat_set = typename ds::basic_flat_set
+	<
+		_Ty, _Pr, false, _Th
+	>;
+
+	// FLAT MULTISET | sorted vector of elements
+	template <
+		class	_Ty,					// value type
+		class	_Pr = std::less<_Ty>,	// comparator predicate type
+		size_t	_Th = 42				// search heuristic
+	> ML_alias flat_multiset = typename ds::basic_flat_set
+	<
+		_Ty, _Pr, true, _Th
+	>;
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+#endif // !_ML_FLAT_SET_HPP_

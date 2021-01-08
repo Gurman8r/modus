@@ -3,6 +3,7 @@
 
 // WIP
 
+#include <modus_core/detail/Timer.hpp>
 #include <modus_core/scene/ScriptableEntity.hpp>
 #include <modus_core/graphics/Camera.hpp>
 
@@ -12,8 +13,18 @@ namespace ml
 
 	struct ML_NODISCARD tag_component final
 	{
-		ds::string tag	; // 
+		string tag	; // 
 	};
+
+	inline void from_json(json const & j, tag_component & v)
+	{
+		j["tag"].get_to(v.tag);
+	}
+
+	inline void to_json(json & j, tag_component const & v)
+	{
+		j["tag"] = v.tag;
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -32,6 +43,20 @@ namespace ml
 		}
 	};
 
+	inline void from_json(json const & j, transform_component & v)
+	{
+		j["position"].get_to(v.position);
+		j["rotation"].get_to(v.rotation);
+		j["scale"	].get_to(v.scale);
+	}
+
+	inline void to_json(json & j, transform_component const & v)
+	{
+		j["position"] = v.position;
+		j["rotation"] = v.rotation;
+		j["scale"	] = v.scale;
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	struct ML_NODISCARD camera_component final
@@ -39,26 +64,42 @@ namespace ml
 		camera instance;
 	};
 
+	inline void from_json(json const & j, camera_component & v)
+	{
+	}
+
+	inline void to_json(json & j, camera_component const & v)
+	{
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	struct ML_NODISCARD native_script_component final
 	{
 		scriptable_entity *								instance	; // 
-		ds::method<void()>								allocate	; // 
-		ds::method<void()>								deallocate	; // 
-		ds::method<void(scriptable_entity *)>			on_create	; // 
-		ds::method<void(scriptable_entity *)>			on_destroy	; // 
-		ds::method<void(scriptable_entity *, duration)>	on_update	; // 
+		method<void()>								allocate	; // 
+		method<void()>								deallocate	; // 
+		method<void(scriptable_entity *)>			on_create	; // 
+		method<void(scriptable_entity *)>			on_destroy	; // 
+		method<void(scriptable_entity *, duration)>	on_update	; // 
 
 		template <class T> void bind()
 		{
-			allocate	= [&instance]() { instance = ML_get_global(memory_manager)->new_object<T>(); };
-			deallocate	= [&instance]() { ML_get_global(memory_manager)->delete_object((T *)instance); };
+			allocate	= [&instance]() { instance = ML_new(T); };
+			deallocate	= [&instance]() { ML_delete((T *)instance); };
 			on_create	= [](scriptable_entity * instance) { ((T *)instance)->on_create(); };
 			on_destroy	= [](scriptable_entity * instance) { ((T *)instance)->on_destroy(); };
 			on_update	= [](scriptable_entity * instance, duration dt) { ((T *)instance)->on_update(std::move(dt)); };
 		}
 	};
+
+	inline void from_json(json const & j, native_script_component & v)
+	{
+	}
+
+	inline void to_json(json & j, native_script_component const & v)
+	{
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }

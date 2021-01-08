@@ -8,20 +8,15 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	template <class _Clock = chrono::high_resolution_clock
-	> struct basic_timer final : non_copyable
+	ML_alias high_resolution_clock = typename chrono::high_resolution_clock;
+
+	ML_alias time_point = typename high_resolution_clock::time_point;
+
+	struct timer final : non_copyable
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using clock_type = typename _Clock;
-
-		using self_type = typename basic_timer<clock_type>;
-
-		using time_point = typename clock_type::time_point;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		basic_timer() noexcept
+		timer() noexcept
 			: m_running		{}
 			, m_start_time	{}
 			, m_stop_time	{}
@@ -29,26 +24,26 @@ namespace ml
 		{
 		}
 
-		basic_timer(bool running) noexcept
+		timer(bool running) noexcept
 			: m_running		{ running }
-			, m_start_time	{ clock_type::now() }
+			, m_start_time	{ high_resolution_clock::now() }
 			, m_stop_time	{ m_start_time }
 			, m_elapsed		{}
 		{
 		}
 
-		basic_timer(self_type && other) noexcept : basic_timer{}
+		timer(timer && other) noexcept : timer{}
 		{
 			this->swap(std::move(other));
 		}
 
-		self_type & operator=(self_type && other) noexcept
+		timer & operator=(timer && other) noexcept
 		{
 			this->swap(std::move(other));
 			return (*this);
 		}
 
-		void swap(self_type & other) noexcept
+		void swap(timer & other) noexcept
 		{
 			if (this != std::addressof(other))
 			{
@@ -70,7 +65,7 @@ namespace ml
 		{
 			if (m_running)
 			{
-				return clock_type::now() - m_start_time;
+				return high_resolution_clock::now() - m_start_time;
 			}
 			else
 			{
@@ -80,29 +75,29 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		self_type & start() noexcept
+		timer & start() noexcept
 		{
 			return m_running ? (*this) : this->restart();
 		}
 
-		self_type & restart() noexcept
+		timer & restart() noexcept
 		{
 			m_running = true;
 			
-			m_start_time = m_stop_time = clock_type::now();
+			m_start_time = m_stop_time = high_resolution_clock::now();
 			
 			m_elapsed = {};
 			
 			return (*this);
 		}
 
-		self_type & stop() noexcept
+		timer & stop() noexcept
 		{
 			if (!m_running) { return (*this); }
 
 			m_running = false;
 
-			m_elapsed = ((m_stop_time = clock_type::now()) - m_start_time);
+			m_elapsed = ((m_stop_time = high_resolution_clock::now()) - m_start_time);
 
 			return (*this);
 		}
@@ -117,12 +112,6 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	ML_alias timer = typename basic_timer<>;
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_TIMER_HPP_

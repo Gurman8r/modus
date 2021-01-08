@@ -66,7 +66,7 @@ namespace ml::util
 	template <class T, class Ch = char
 	> constexpr bool is_string_v
 	{
-		util::is_any_of_v<T, std::basic_string<Ch>, pmr::basic_string<Ch>>
+		util::is_any_of_v<T, std::basic_string<Ch>, basic_string<Ch>>
 	};
 
 	template <class T, class Ch = char
@@ -127,7 +127,7 @@ namespace ml::util
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class Ch, class T
-	> ML_NODISCARD pmr::basic_string<Ch> integral_to_string(T const value) noexcept
+	> ML_NODISCARD basic_string<Ch> integral_to_string(T const value) noexcept
 	{
 		// from <string>
 
@@ -178,13 +178,13 @@ namespace ml::util
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class Ch, class T
-	> ML_NODISCARD pmr::basic_string<Ch> floating_point_to_string(T const value) noexcept
+	> ML_NODISCARD basic_string<Ch> floating_point_to_string(T const value) noexcept
 	{
 		// from <string>
 
 		static_assert(std::is_floating_point_v<T>);
 		auto const len{ static_cast<size_t>(::_scprintf("%f", value)) };
-		pmr::basic_string<Ch> str{ len, 0, pmr::polymorphic_allocator<byte>{} };
+		basic_string<Ch> str{ len, 0, pmr::polymorphic_allocator<byte>{} };
 		::sprintf_s(str.data(), len + 1, "%f", value);
 		return str;
 	}
@@ -204,7 +204,7 @@ namespace ml::util
 	template <ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)
 	> ML_NODISCARD auto narrow(Str const & value) noexcept
 	{
-		ds::string temp{};
+		string temp{};
 		temp.reserve(value.size());
 		for (auto const c : value)
 			temp.push_back(static_cast<char>(c));
@@ -213,9 +213,9 @@ namespace ml::util
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_NODISCARD inline ds::list<ds::string> tokenize(ds::string value, ds::string const & delim) noexcept
+	ML_NODISCARD inline list<string> tokenize(string value, string const & delim) noexcept
 	{
-		ds::list<ds::string> temp{};
+		list<string> temp{};
 		auto tok{ std::strtok(value.data(), delim.c_str()) };
 		while (tok) {
 			temp.push_back(tok);
@@ -224,9 +224,9 @@ namespace ml::util
 		return temp;
 	}
 
-	ML_NODISCARD inline ds::string detokenize(ds::list<ds::string> const & value, ds::string const & delim = " ")
+	ML_NODISCARD inline string detokenize(list<string> const & value, string const & delim = " ")
 	{
-		ds::stringstream ss{};
+		stringstream ss{};
 		for (auto const & str : value) {
 			ss << str << delim;
 		}
@@ -608,21 +608,21 @@ namespace ml::util
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <class Arg0, class ... Args
-	> ML_NODISCARD ds::string format(ds::string const & str, Arg0 const & arg0, Args && ... args) noexcept
+	> ML_NODISCARD string format(string const & str, Arg0 const & arg0, Args && ... args) noexcept
 	{
-		ds::stringstream ss{};
+		stringstream ss{};
 		ss << ML_forward(arg0) << '\n';
 		int32 sink[] = { 0, ((void)(ss << args << '\n'), 0)... }; (void)sink;
 		return format(str, ss);
 	}
 
-	ML_NODISCARD inline ds::string format(ds::string str, ds::stringstream & ss) noexcept
+	ML_NODISCARD inline string format(string str, stringstream & ss) noexcept
 	{
 		for (size_t i = 0; ss.good(); ++i)
 		{
-			if (ds::string line; std::getline(ss, line))
+			if (string line; std::getline(ss, line))
 			{
-				ds::string const fmt{ "{" + to_string(i) + "}" };
+				string const fmt{ "{" + to_string(i) + "}" };
 
 				for (size_t j = 0; (j = str.find(fmt, j)) != str.npos;)
 				{
@@ -636,11 +636,11 @@ namespace ml::util
 	}
 
 	template <class Str
-	> ML_NODISCARD ds::string format(ds::string str, ds::list<Str> const & values) noexcept
+	> ML_NODISCARD string format(string str, list<Str> const & values) noexcept
 	{
 		for (size_t i = 0; i < values.size(); ++i)
 		{
-			ds::string const fmt{ "{" + to_string(i) + "}" };
+			string const fmt{ "{" + to_string(i) + "}" };
 
 			for (size_t j = 0; (j = str.find(fmt, j)) != str.npos;)
 			{

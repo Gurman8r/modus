@@ -1,7 +1,7 @@
 #ifndef _ML_RUNTIME_EVENTS_HPP_
 #define _ML_RUNTIME_EVENTS_HPP_
 
-#include <modus_core/detail/EventSystem.hpp>
+#include <modus_core/system/EventSystem.hpp>
 #include <modus_core/detail/Duration.hpp>
 
 namespace ml

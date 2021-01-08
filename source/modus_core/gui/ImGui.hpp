@@ -61,16 +61,16 @@ namespace
 // scope
 namespace ImGui
 {
-	struct ImGuiScopeImpl final
+	struct ImGuiScopeID final
 	{
 		template <class ... Args
-		> ImGuiScopeImpl(Args && ... args) noexcept { ImGui::PushID(ML_forward(args)...); }
+		> ImGuiScopeID(Args && ... args) noexcept { ImGui::PushID(ML_forward(args)...); }
 
-		~ImGuiScopeImpl() noexcept { ImGui::PopID(); }
+		~ImGuiScopeID() noexcept { ImGui::PopID(); }
 	};
 
 #define ImGui_Scope(...) \
-	auto ML_anon = ::ImGui::ImGuiScopeImpl{ ##__VA_ARGS__ }
+	auto ML_anon = ::ImGui::ImGuiScopeID{ ##__VA_ARGS__ }
 }
 
 // tooltips

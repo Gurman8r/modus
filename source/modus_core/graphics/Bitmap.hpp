@@ -2,7 +2,7 @@
 #define _ML_BITMAP_HPP_
 
 #include <modus_core/Export.hpp>
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/system/Memory.hpp>
 #include <modus_core/detail/Color.hpp>
 #include <modus_core/detail/Rect.hpp>
 
@@ -13,7 +13,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type			= typename pmr::polymorphic_allocator<byte>;
-		using pixels					= typename ds::list<byte>;
+		using pixels					= typename list<byte>;
 		using iterator					= typename pixels::iterator;
 		using const_iterator			= typename pixels::const_iterator;
 		using reverse_iterator			= typename pixels::reverse_iterator;

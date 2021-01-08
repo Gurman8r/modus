@@ -11,7 +11,7 @@ namespace ml
 	application::application(int32 argc, char * argv[], json const & argj, allocator_type alloc)
 		: gui_application{ argc, argv, argj, alloc }
 	{
-		ML_verify(ML_begin_global(application, this));
+		ML_ctor_global(application);
 
 		subscribe<
 			setup_event,
@@ -31,7 +31,7 @@ namespace ml
 
 	application::~application() noexcept
 	{
-		ML_verify(ML_end_global(application, this));
+		ML_dtor_global(application);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -47,7 +47,7 @@ namespace ml
 		case update_event		::ID: { auto const & ev{ (update_event const &)value }; } break;
 		case late_update_event	::ID: { auto const & ev{ (late_update_event const &)value }; } break;
 		case dockspace_event	::ID: { auto const & ev{ (dockspace_event const &)value }; } break;
-		case gui_event		::ID: { auto const & ev{ (gui_event const &)value }; } break;
+		case gui_event			::ID: { auto const & ev{ (gui_event const &)value }; } break;
 		case end_frame_event	::ID: { auto const & ev{ (end_frame_event const &)value }; } break;
 
 		// inputs
@@ -67,13 +67,7 @@ namespace ml::globals
 {
 	static application * g_application{};
 
-	ML_impl_global(application) get_global() noexcept
-	{
-		return g_application;
-	}
+	ML_impl_global(application) get_global() { return g_application; }
 
-	ML_impl_global(application) set_global(application * value) noexcept
-	{
-		return g_application = value;
-	}
+	ML_impl_global(application) set_global(application * value) { return g_application = value; }
 }

@@ -2,17 +2,20 @@
 #define _ML_PLUGIN_MANAGER_HPP_
 
 #include <modus_core/runtime/Plugin.hpp>
-#include <modus_core/runtime/Library.hpp>
+#include <modus_core/system/Library.hpp>
 
 namespace ml
 {
+	// plugin id
+	ML_decl_handle(plugin_id);
+
 	// plugin context
 	struct ML_NODISCARD plugin_context final
 	{
 		plugin_id hash_code;
-		ds::string file_name, file_path, extension;
-		ds::method<plugin * (plugin_manager *, void *)> allocate;
-		ds::method<void(plugin_manager *, plugin *)> deallocate;
+		string file_name, file_path, extension;
+		method<plugin * (plugin_manager *, void *)> allocate;
+		method<void(plugin_manager *, plugin *)> deallocate;
 
 		plugin_context() noexcept = default;
 		plugin_context(plugin_context const &) = default;
@@ -43,7 +46,7 @@ namespace ml
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		using storage_type = typename ds::batch_vector
+		using storage_type = typename batch_vector
 		<
 			plugin_id,
 			plugin_context,
@@ -75,7 +78,7 @@ namespace ml
 		ML_NODISCARD auto get_data() const noexcept -> storage_type const & { return m_data; }
 
 		template <class T
-		> ML_NODISCARD auto get_data() const noexcept -> ds::list<T> const & { return m_data.get<T>(); }
+		> ML_NODISCARD auto get_data() const noexcept -> list<T> const & { return m_data.get<T>(); }
 
 		template <class T
 		> ML_NODISCARD auto get_data(size_t i) const noexcept -> T const & { return m_data.at<T>(i); }

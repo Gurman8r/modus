@@ -1,7 +1,7 @@
 #ifndef _ML_LOOP_SYSTEM_HPP_
 #define _ML_LOOP_SYSTEM_HPP_
 
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/system/Memory.hpp>
 #include <modus_core/detail/Timer.hpp>
 
 namespace ml
@@ -12,12 +12,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using allocator_type			= typename pmr::polymorphic_allocator<byte>;
-		using loop_condition			= typename ds::method<bool()>;
-		using enter_callback			= typename ds::method<void()>;
-		using exit_callback				= typename ds::method<void()>;
-		using idle_callback				= typename ds::method<void()>;
+		using loop_condition			= typename method<bool()>;
+		using enter_callback			= typename method<void()>;
+		using exit_callback				= typename method<void()>;
+		using idle_callback				= typename method<void()>;
 		using subsystem					= typename ref<loop_system>;
-		using subsystem_list			= typename ds::list<subsystem>;
+		using subsystem_list			= typename list<subsystem>;
 		using iterator					= typename subsystem_list::iterator;
 		using const_iterator			= typename subsystem_list::const_iterator;
 		using reverse_iterator			= typename subsystem_list::reverse_iterator;

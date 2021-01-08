@@ -14,7 +14,7 @@ static class memcfg final : public singleton<memcfg>
 {
 	friend singleton;
 
-	ds::array<byte, RESERVE_MEMORY>		data{};
+	array<byte, RESERVE_MEMORY>			data{};
 	pmr::monotonic_buffer_resource		mono{ data.data(), data.size() };
 	pmr::unsynchronized_pool_resource	pool{ &mono };
 	passthrough_resource				view{ &pool, data.data(), data.size() };
@@ -84,38 +84,31 @@ static json const default_settings{ R"(
 }
 )"_json };
 
-ML_NODISCARD json load_settings(fs::path const & path = SETTINGS_PATH) noexcept
-{
-	std::ifstream f{ path };
-	ML_defer(&f) { f.close(); };
-	return f ? json::parse(f) : default_settings;
-}
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+static ML_block(&) { ML_verify(platform::initialize()); };
+
+static ML_defer(&) { ML_verify(platform::finalize()); };
 
 int32 main(int32 argc, char * argv[])
 {
-	auto app{ make_scope<application>(argc, argv, load_settings()) };
+	application app{ argc, argv, std::invoke([]() {
+		std::ifstream f{ SETTINGS_PATH };
+		ML_defer(&f) { f.close(); };
+		return f ? json::parse(f) : default_settings;
+	}) };
 
-	if (json const * j{ app->attr("plugins") }) {
-		for (json const & elem : *j) {
-			if (auto const path{ elem.find("path") }
-			; path != elem.end() && path->is_string()) {
-				app->load_plugin(*path);
-			}
-		}
+	for (json const & j : app.attr("plugins"))
+	{
+		if (j.contains("path")) { app.load_plugin(j["path"]); }
 	}
 
-	if (json const * j{ app->attr("scripts") }) {
-		for (json const & elem : *j) {
-			if (auto const path{ elem.find("path") }
-			; path != elem.end() && path->is_string()) {
-				py::eval_file(app->path_to(*path));
-			}
-		}
+	for (json const & j : app.attr("scripts"))
+	{
+		if (j.contains("path")) { py::eval_file(app.path_to(j["path"])); }
 	}
 
-	return app->exec();
+	return app.exec();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

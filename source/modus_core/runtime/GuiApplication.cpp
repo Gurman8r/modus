@@ -24,7 +24,7 @@ namespace ml
 		, m_fps_times		{ 120, 0.f, alloc }
 		, m_input			{}
 	{
-		ML_verify(ML_begin_global(gui_application, this));
+		ML_ctor_global(gui_application);
 
 		subscribe<
 			char_event,
@@ -37,7 +37,7 @@ namespace ml
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, auto u) { return ((memory_manager *)u)->allocate(s); },
 			[](void * p, auto u) { return ((memory_manager *)u)->deallocate(p); },
-			ML_get_global(memory_manager));
+			ML_memory_manager());
 		m_imgui.reset(ImGui::CreateContext());
 		m_imgui->IO.LogFilename = NULL;
 		m_imgui->IO.IniFilename = NULL;
@@ -48,6 +48,8 @@ namespace ml
 
 	gui_application::~gui_application() noexcept
 	{
+		ML_dtor_global(gui_application);
+
 		if (m_active_scene) { m_active_scene = nullptr; }
 
 		_ML ImGui_Shutdown();
@@ -55,8 +57,6 @@ namespace ml
 		ImGui::DestroyContext(m_imgui.release());
 
 		gfx::destroy_device(m_render_device.release());
-
-		ML_verify(ML_end_global(gui_application, this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -85,7 +85,7 @@ namespace ml
 	{
 		// setup window
 		ML_assert(has_attr("window"));
-		json & j_window{ *attr("window") };
+		json & j_window{ attr("window") };
 		ML_verify(m_window.open
 		(
 			j_window.contains("title") ? j_window["title"] : app_name(),
@@ -131,7 +131,7 @@ namespace ml
 		});
 
 		// setup imgui
-		json & j_imgui{ *attr("imgui") };
+		json & j_imgui{ attr("imgui") };
 		ML_verify(_ML ImGui_Init(m_window.get_handle(), true));
 		if (j_imgui.contains("style")) {
 			json & j_style{ j_imgui["style"] };
@@ -162,7 +162,7 @@ namespace ml
 		m_fps_value = (0.f < m_fps_accum) ? (1.f / (m_fps_accum / (float32)m_fps_times.size())) : FLT_MAX;
 
 		// poll events
-		native_window::poll_events();
+		platform::poll_events();
 
 		// update inputs
 		ML_defer(&) { m_input.mouse_wheel = 0.f; };
@@ -226,15 +226,15 @@ namespace ml
 
 		// update platform windows
 		if (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-			window_handle const backup{ native_window::get_context_current() };
+			window_handle const backup{ platform::get_active_window() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			native_window::make_context_current(backup);
+			platform::set_active_window(backup);
 		}
 
 		// swap buffers
 		if (m_window.has_hints(window_hints_doublebuffer)) {
-			native_window::swap_buffers(m_window.get_handle());
+			platform::swap_buffers(m_window.get_handle());
 		}
 
 		// end frame event
@@ -285,13 +285,7 @@ namespace ml::globals
 {
 	static gui_application * g_gui_application{};
 
-	ML_impl_global(gui_application) get_global() noexcept
-	{
-		return g_gui_application;
-	}
+	ML_impl_global(gui_application) get_global() { return g_gui_application; }
 
-	ML_impl_global(gui_application) set_global(gui_application * value) noexcept
-	{
-		return g_gui_application = value;
-	}
+	ML_impl_global(gui_application) set_global(gui_application * value) { return g_gui_application = value; }
 }

@@ -3,18 +3,18 @@
 
 #include <modus_core/detail/List.hpp>
 
-namespace ml::ds
+namespace ml
 {
 	// tuple<vector<Ts>...>
 	template <class ... _Ts> struct batch_vector
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using self_type			= typename _ML ds::batch_vector<_Ts...>;
+		using self_type			= typename _ML batch_vector<_Ts...>;
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using value_types		= typename meta::list<_Ts...>;
 		using value_tuple		= typename meta::tuple<value_types>;
-		using vector_types		= typename meta::remap<ds::list, value_types>;
+		using vector_types		= typename meta::remap<list, value_types>;
 		using vector_tuple		= typename meta::tuple<vector_types>;
 		using init_type			= typename std::initializer_list<value_tuple>;
 
@@ -40,11 +40,11 @@ namespace ml::ds
 		template <size_t I>	using value_i			= typename meta::nth<I, value_types>;
 		template <class  T> using value_t			= typename T;
 		template <size_t I>	using vector_i			= typename meta::nth<I, vector_types>;
-		template <class  T> using vector_t			= typename ds::list<T>;
+		template <class  T> using vector_t			= typename list<T>;
 		template <size_t I>	using iterator_i		= typename vector_i<I>::iterator;
-		template <class  T>	using iterator_t		= typename ds::list<T>::iterator;
+		template <class  T>	using iterator_t		= typename list<T>::iterator;
 		template <size_t I>	using const_iterator_i	= typename vector_i<I>::const_iterator;
-		template <class  T>	using const_iterator_t	= typename ds::list<T>::const_iterator;
+		template <class  T>	using const_iterator_t	= typename list<T>::const_iterator;
 
 		using iterator_types		= typename meta::remap<iterator_t, value_types>;
 		using iterator_tuple		= typename meta::tuple<iterator_types>;
@@ -159,17 +159,17 @@ namespace ml::ds
 
 		template <class T> ML_NODISCARD decltype(auto) get() & noexcept
 		{
-			return std::get<ds::list<T>>(m_data);
+			return std::get<list<T>>(m_data);
 		}
 
 		template <class T> ML_NODISCARD decltype(auto) get() const & noexcept
 		{
-			return std::get<ds::list<T>>(m_data);
+			return std::get<list<T>>(m_data);
 		}
 
 		template <class T> ML_NODISCARD decltype(auto) get() && noexcept
 		{
-			return std::move(std::get<ds::list<T>>(m_data));
+			return std::move(std::get<list<T>>(m_data));
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

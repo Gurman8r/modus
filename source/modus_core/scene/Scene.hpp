@@ -1,8 +1,7 @@
 #ifndef _ML_SCENE_HPP_
 #define _ML_SCENE_HPP_
 
-#include <modus_core/detail/EventSystem.hpp>
-#include <modus_core/detail/LoopSystem.hpp>
+#include <modus_core/system/EventSystem.hpp>
 #include <modus_core/detail/Matrix.hpp>
 #include <entt/entt.hpp>
 
@@ -23,7 +22,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD entity new_entity(ds::string const & name = {}) noexcept;
+		ML_NODISCARD entity new_entity(string const & name = {}) noexcept;
 
 		void delete_entity(entity const & value) noexcept;
 
@@ -35,10 +34,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_registry() const noexcept -> entt::registry *
-		{
-			return const_cast<entt::registry *>(&m_registry);
-		}
+		ML_NODISCARD auto get_registry() const noexcept { return const_cast<entt::registry *>(&m_registry); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

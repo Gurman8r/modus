@@ -7,19 +7,19 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// success message
+// good message
 #ifndef ML_DEBUG_MSG_SUCCESS
 #define ML_DEBUG_MSG_SUCCESS "[info] "
 #endif
 
-// failure message
+// fail message
 #ifndef ML_DEBUG_MSG_FAILURE
 #define ML_DEBUG_MSG_FAILURE "[error] "
 #endif
 
-// warning message
+// warn message
 #ifndef ML_DEBUG_MSG_WARNING
-#define ML_DEBUG_MSG_WARNING "[warning] "
+#define ML_DEBUG_MSG_WARNING "[warn] "
 #endif
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -135,23 +135,23 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// return 1
-	ML_NODISCARD constexpr int32 success() noexcept { return 1; }
+	// SUCCESS | return 1
+	ML_NODISCARD constexpr int32 good() noexcept { return 1; }
 
-	// return 1
+	// SUCCESS | return 1
 	template <class Str
-	> int32 success(Str && str) noexcept
+	> int32 good(Str && str) noexcept
 	{
 		io.out.get() << ML_DEBUG_MSG_SUCCESS << ML_forward(str) << "\n";
 
-		return _ML_DEBUG success();
+		return _ML_DEBUG good();
 	}
 
-	// return 1
+	// SUCCESS | return 1
 	template <class Fmt, class Arg0, class ... Args
-	> int32 success(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> int32 good(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
-		return _ML_DEBUG success
+		return _ML_DEBUG good
 		(
 			_ML util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
 		);
@@ -159,23 +159,23 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// return 0
-	ML_NODISCARD constexpr int32 failure() noexcept { return 0; }
+	// FAILURE | return 0
+	ML_NODISCARD constexpr int32 fail() noexcept { return 0; }
 
-	// return 0
+	// FAILURE | return 0
 	template <class Str
-	> int32 failure(Str && str) noexcept
+	> int32 fail(Str && str) noexcept
 	{
 		io.out.get() << ML_DEBUG_MSG_FAILURE << ML_forward(str) << "\n";
 
-		return _ML_DEBUG failure();
+		return _ML_DEBUG fail();
 	}
 
-	// return 0
+	// FAILURE | return 0
 	template <class Fmt, class Arg0, class ... Args
-	> int32 failure(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> int32 fail(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
-		return _ML_DEBUG failure
+		return _ML_DEBUG fail
 		(
 			_ML util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
 		);
@@ -183,23 +183,23 @@ namespace ml::debug
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// return -1
-	ML_NODISCARD constexpr int32 warning() noexcept { return -1; }
+	// WARNING | return -1
+	ML_NODISCARD constexpr int32 warn() noexcept { return -1; }
 
-	// return -1
+	// WARNING | return -1
 	template <class Str
-	> int32 warning(Str && str) noexcept
+	> int32 warn(Str && str) noexcept
 	{
 		io.out.get() << ML_DEBUG_MSG_WARNING << ML_forward(str) << "\n";
 
-		return _ML_DEBUG warning();
+		return _ML_DEBUG warn();
 	}
 
-	// return -1
+	// WARNING | return -1
 	template <class Fmt, class Arg0, class ... Args
-	> int32 warning(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
+	> int32 warn(Fmt && fmt, Arg0 && arg0, Args && ... args) noexcept
 	{
-		return _ML_DEBUG warning
+		return _ML_DEBUG warn
 		(
 			_ML util::format(ML_forward(fmt), ML_forward(arg0), ML_forward(args)...)
 		);

@@ -1,35 +1,12 @@
 #ifndef _ML_LIBRARY_HPP_
 #define _ML_LIBRARY_HPP_
 
-// WIP
-
+#include <modus_core/system/Platform.hpp>
 #include <modus_core/detail/Hashmap.hpp>
-#include <modus_core/detail/Memory.hpp>
 #include <modus_core/detail/Method.hpp>
 
 namespace ml
 {
-	ML_decl_handle(library_id); // library id
-
-	ML_decl_handle(library_handle); // library handle
-
-	// library context
-	struct ML_NODISCARD library_context final
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ds::method<library_handle(fs::path const &)>			load; // load library
-		ds::method<bool(library_handle)>						free; // free library
-		ds::method<void * (library_handle, ds::string const &)>	proc; // get proc address
-
-		constexpr library_context(library_context const &) = default;
-		constexpr library_context(library_context &&) noexcept = default;
-		constexpr library_context & operator=(library_context const &) = default;
-		constexpr library_context & operator=(library_context &&) noexcept = default;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-
 	// library
 	struct ML_CORE_API library final : non_copyable, trackable
 	{
@@ -38,39 +15,18 @@ namespace ml
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 		
-		using proc_table = typename ds::hashmap<ds::string, void *>;
+		using proc_table = typename hash_map<string, void *>;
 
 		template <class Ret> using result_type = typename std::conditional_t
 		<
 			std::is_same_v<Ret, void>, void, std::optional<Ret>
 		>;
 
-		static library_context const native_library; // native library bindings
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		library(allocator_type alloc = {}) noexcept
 			: m_hash	{}
 			, m_path	{}
-			, m_context	{ native_library }
-			, m_handle	{}
-			, m_procs	{ alloc }
-		{
-		}
-
-		library(library_context const & context, allocator_type alloc = {})
-			: m_hash	{}
-			, m_path	{}
-			, m_context	{ context }
-			, m_handle	{}
-			, m_procs	{ alloc }
-		{
-		}
-
-		library(library_context && context, allocator_type alloc = {}) noexcept
-			: m_hash	{}
-			, m_path	{}
-			, m_context	{ std::move(context) }
 			, m_handle	{}
 			, m_procs	{ alloc }
 		{
@@ -79,7 +35,6 @@ namespace ml
 		library(fs::path const & path, allocator_type alloc = {}) noexcept
 			: m_hash	{ hashof(path.string()) }
 			, m_path	{ path }
-			, m_context	{ native_library }
 			, m_handle	{}
 			, m_procs	{ alloc }
 		{
@@ -89,7 +44,6 @@ namespace ml
 		library(library && other, allocator_type alloc = {}) noexcept
 			: m_hash	{}
 			, m_path	{}
-			, m_context	{}
 			, m_handle	{}
 			, m_procs	{ alloc }
 		{
@@ -115,18 +69,10 @@ namespace ml
 			{
 				std::swap(m_hash, other.m_hash);
 				m_path.swap(other.m_path);
-				std::swap(m_context, other.m_context);
 				std::swap(m_handle, other.m_handle);
 				m_procs.swap(other.m_procs);
 			}
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_library_context() const noexcept -> library_context const & { return m_context; }
-
-		template <class Value = library_context
-		> void set_library_context(Value && value) noexcept { m_context = ML_forward(value); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -137,7 +83,7 @@ namespace ml
 			{
 				m_path = path;
 				m_hash = hashof(path.string());
-				m_handle = m_context.load(path);
+				m_handle = platform::load_library(path);
 				return m_handle;
 			}
 		}
@@ -150,11 +96,11 @@ namespace ml
 				m_path.clear();
 				m_procs.clear();
 				m_hash = 0;
-				return m_context.free(m_handle);
+				return platform::free_library(m_handle);
 			}
 		}
 
-		void * proc(ds::string const & method_name)
+		void * proc(string const & method_name)
 		{
 			if (!m_handle) { return nullptr; }
 			else if (auto const it{ m_procs.find(method_name) }; it != m_procs.end())
@@ -165,7 +111,7 @@ namespace ml
 			{
 				return m_procs.insert({
 					method_name,
-					m_context.proc(m_handle, method_name)
+					platform::get_proc_address(m_handle, method_name)
 				}).first->second;
 			}
 		}
@@ -207,7 +153,6 @@ namespace ml
 	private:
 		hash_t				m_hash		; // hash code
 		fs::path			m_path		; // file path
-		library_context		m_context	; // context
 		library_handle		m_handle	; // handle
 		proc_table			m_procs		; // procedures
 

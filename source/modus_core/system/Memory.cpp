@@ -1,4 +1,4 @@
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/system/Memory.hpp>
 
 namespace ml
 {
@@ -10,17 +10,16 @@ namespace ml
 		, m_records	{ m_alloc }
 		, m_counter	{}
 	{
-		ML_verify(ML_begin_global(memory_manager, this));
+		ML_ctor_global(memory_manager);
 	}
 
 	memory_manager::~memory_manager() noexcept
 	{
-#if ML_IMPL_CLEANUP
+		ML_dtor_global(memory_manager);
+#if 0
 		while (!m_records.empty()) { this->deallocate(m_records.back<id_addr>()); }
 #endif
 		ML_verify("MEMORY LEAKS DETECTED" && m_records.empty());
-		
-		ML_verify(ML_end_global(memory_manager, this));
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -31,13 +30,7 @@ namespace ml::globals
 {
 	static memory_manager * g_memory_manager{};
 
-	ML_impl_global(memory_manager) get_global() noexcept
-	{
-		return g_memory_manager;
-	}
+	ML_impl_global(memory_manager) get_global() { return g_memory_manager; }
 
-	ML_impl_global(memory_manager) set_global(memory_manager * value) noexcept
-	{
-		return g_memory_manager = value;
-	}
+	ML_impl_global(memory_manager) set_global(memory_manager * value) { return g_memory_manager = value; }
 }

@@ -5,7 +5,7 @@
 
 #include <modus_core/detail/Utility.hpp>
 
-namespace ml::ds
+namespace ml
 {
 	// list
 	template <
@@ -20,7 +20,7 @@ namespace ml::ds
 namespace ml::util
 {
 	template <class T, class V = T
-	> auto & find_or_add(ds::list<T> & l, V && value) noexcept
+	> auto & find_or_add(list<T> & l, V && value) noexcept
 	{
 		if (auto const it{ std::find(l.begin(), l.end(), ML_forward(value)) }
 		; it != l.end())
@@ -34,7 +34,7 @@ namespace ml::util
 	}
 
 	template <class T, class Pr = std::less<T>, class V = T
-	> auto find_or_insert(ds::list<T> & l, V && value) noexcept
+	> auto find_or_insert(list<T> & l, V && value) noexcept
 	{
 		if (auto const it{ std::equal_range(l.begin(), l.end(), ML_forward(value), Pr{}) }
 		; it.first != it.second)

@@ -3,10 +3,10 @@
 
 #include <modus_core/runtime/CoreApplication.hpp>
 #include <modus_core/graphics/RenderTarget.hpp>
-#include <modus_core/gui/PanelWindow.hpp>
-#include <modus_core/window/NativeWindow.hpp>
 #include <modus_core/gui/Dockspace.hpp>
+#include <modus_core/gui/PanelWindow.hpp>
 #include <modus_core/scene/Scene.hpp>
+#include <modus_core/window/NativeWindow.hpp>
 
 namespace ml
 {
@@ -33,6 +33,8 @@ namespace ml
 
 	public:
 		ML_NODISCARD auto get_window() const noexcept { return const_cast<native_window *>(&m_window); }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_render_device() const noexcept -> scary<gfx::render_device> const & { return m_render_device; }
 
@@ -66,7 +68,7 @@ namespace ml
 
 		ML_NODISCARD auto fps_index() const noexcept -> size_t { return m_fps_index; }
 
-		ML_NODISCARD auto fps_times() const noexcept -> ds::list<float32> const & { return m_fps_times; }
+		ML_NODISCARD auto fps_times() const noexcept -> list<float32> const & { return m_fps_times; }
 
 		ML_NODISCARD auto get_input() const noexcept { return const_cast<input_state *>(&m_input); }
 
@@ -97,7 +99,7 @@ namespace ml
 		float32				m_fps_value		; // fps value
 		float32				m_fps_accum		; // fps accumulator
 		size_t				m_fps_index		; // fps index
-		ds::list<float32>	m_fps_times		; // fps times
+		list<float32>		m_fps_times		; // fps times
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -106,9 +108,9 @@ namespace ml
 // global gui_application
 namespace ml::globals
 {
-	ML_decl_global(gui_application) get_global() noexcept;
+	ML_decl_global(gui_application) get_global();
 
-	ML_decl_global(gui_application) set_global(gui_application * value) noexcept;
+	ML_decl_global(gui_application) set_global(gui_application *);
 }
 
 #endif // !_ML_GUI_APPLICATION_HPP_

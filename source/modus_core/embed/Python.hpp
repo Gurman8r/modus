@@ -2,7 +2,7 @@
 #define _ML_PYTHON_HPP_
 
 #include <modus_core/detail/Matrix.hpp>
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/system/Memory.hpp>
 #include <modus_core/detail/Timer.hpp>
 
 #ifndef HAVE_SNPRINTF
@@ -25,13 +25,13 @@ namespace pybind11
 	{
 		// array caster
 		template <class T, size_t N
-		> struct type_caster<_ML ds::array<T, N>>
-			: array_caster<_ML ds::array<T, N>, T, false, N> {};
+		> struct type_caster<_ML array<T, N>>
+			: array_caster<_ML array<T, N>, T, false, N> {};
 
 		// matrix caster
 		template <class T, size_t W, size_t H
-		> struct type_caster<_ML ds::matrix<T, W, H>>
-			: array_caster<_ML ds::matrix<T, W, H>, T, false, W * H> {};
+		> struct type_caster<_ML matrix<T, W, H>>
+			: array_caster<_ML matrix<T, W, H>, T, false, W * H> {};
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -64,11 +64,13 @@ namespace ml
 {
 	namespace py = pybind11;
 
+	// is initialized
 	ML_NODISCARD inline bool is_interpreter_initialized()
 	{
 		return Py_IsInitialized();
 	}
 
+	// initialize
 	ML_NODISCARD inline bool initialize_interpreter(fs::path const & name, fs::path const & home)
 	{
 		ML_assert(!name.empty() && !home.empty());
@@ -86,6 +88,7 @@ namespace ml
 		return Py_IsInitialized();
 	}
 
+	// finalize
 	ML_NODISCARD inline bool finalize_interpreter()
 	{
 		return Py_IsInitialized() && (Py_FinalizeEx() == EXIT_SUCCESS);

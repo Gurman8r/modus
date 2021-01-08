@@ -4,7 +4,7 @@
 // WIP
 
 #include <modus_core/detail/Rect.hpp>
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/system/Memory.hpp>
 
 namespace ml
 {

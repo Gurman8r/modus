@@ -1,17 +1,11 @@
 #ifndef _ML_CURSOR_HPP_
 #define _ML_CURSOR_HPP_
 
+#include <modus_core/system/Platform.hpp>
 #include <modus_core/detail/Matrix.hpp>
 
 namespace ml
 {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// cursor handle
-	ML_decl_handle(cursor_handle);
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	// cursor mode
 	enum cursor_mode_ : int32
 	{
@@ -19,8 +13,6 @@ namespace ml
 		cursor_mode_hidden		, // hidden
 		cursor_mode_disabled	, // disabled
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// cursor shape
 	enum cursor_shape_ : int32
@@ -39,28 +31,6 @@ namespace ml
 		cursor_shape_vresize		, // vresize
 		cursor_shape_hand			, // hand
 	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// cursor (WIP)
-	struct ML_CORE_API cursor final
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		cursor_handle ID;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD static cursor create_custom(size_t w, size_t h, byte const * p, int32 x = 0, int32 y = 0) noexcept;
-
-		ML_NODISCARD static cursor create_standard(cursor_shape_ shape) noexcept;
-
-		static void destroy(cursor const & value) noexcept;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
 #endif // !_ML_CURSOR_HPP_

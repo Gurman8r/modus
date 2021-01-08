@@ -4,7 +4,19 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void scene_editor::draw()
+	scene_editor::scene_editor(ref<scene> const & context)
+		: m_context{ context }
+		, m_selected{ nullptr }
+	{
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void scene_editor::draw_hierarchy()
+	{
+	}
+
+	void scene_editor::draw_inspector()
 	{
 	}
 

@@ -1,5 +1,5 @@
-#ifndef _ML_WIDGETS_HPP_
-#define _ML_WIDGETS_HPP_
+#ifndef _ML_TRANSFORM_EDITOR_HPP_
+#define _ML_TRANSFORM_EDITOR_HPP_
 
 #include <modus_core/gui/ImGui.hpp>
 
@@ -159,4 +159,4 @@ namespace ml::ImGuiExt
 	};
 }
 
-#endif // !_ML_WIDGETS_HPP_
+#endif // !_ML_TRANSFORM_EDITOR_HPP_

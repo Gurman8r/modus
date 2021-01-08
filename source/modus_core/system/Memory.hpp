@@ -4,10 +4,15 @@
 #include <modus_core/detail/BatchVector.hpp>
 #include <modus_core/detail/Globals.hpp>
 
-// cleanup memory leaks
-#ifndef ML_IMPL_CLEANUP
-#define ML_IMPL_CLEANUP 0
-#endif
+// simplified interface
+#define ML_memory_manager()						ML_get_global(_ML memory_manager)
+#define ML_free(addr)							ML_memory_manager()->deallocate(addr)
+#define ML_malloc(size)							ML_memory_manager()->allocate(size)
+#define ML_calloc(count, size)					ML_memory_manager()->allocate(count, size)
+#define ML_realloc(addr, size)					ML_memory_manager()->reallocate(addr, size)
+#define ML_realloc_sized(addr, oldsz, newsz)	ML_memory_manager()->reallocate(addr, oldsz, newsz)
+#define ML_new(T, ...)							ML_memory_manager()->new_object<T>(##__VA_ARGS__)
+#define ML_delete(addr)							ML_memory_manager()->delete_object(addr)
 
 // passthrough resource
 namespace ml
@@ -129,7 +134,7 @@ namespace ml
 	};
 }
 
-// smart pointers
+// deleters
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -153,6 +158,12 @@ namespace ml
 		}
 	};
 
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+// smart pointers
+namespace ml
+{
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// shared pointer
@@ -188,17 +199,13 @@ namespace ml
 	template <class T, class ... Args
 	> ML_NODISCARD scope<T> make_scope(Args && ... args)
 	{
-		static auto const g{ ML_get_global(memory_manager) };
-
-		return { g->new_object<T>(ML_forward(args)...), default_delete<T>{} };
+		return { ML_new(T, ML_forward(args)...), default_delete<T>{} };
 	}
 
 	template <class T, class ... Args
 	> ML_NODISCARD scary<T> make_scary(Args && ... args)
 	{
-		static auto const g{ ML_get_global(memory_manager) };
-
-		return { g->new_object<T>(ML_forward(args)...), no_delete{} };
+		return { ML_new(T, ML_forward(args)...), no_delete{} };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -210,11 +217,24 @@ namespace ml
 	// memory record
 	struct ML_NODISCARD memory_record final
 	{
-		byte * addr; size_t index; size_t count; size_t size;
+		byte * addr		; // address
+		size_t index	; // index
+		size_t count	; // count
+		size_t size		; // size
 
-		constexpr operator bool() const noexcept
+		ML_NODISCARD constexpr operator bool() const noexcept
 		{
-			return addr && index && count && size;
+			return addr && count && size;
+		}
+
+		ML_NODISCARD constexpr bool operator==(memory_record const & other) const noexcept
+		{
+			return addr == other.addr && index == other.index && count == other.count && size == other.size;
+		}
+
+		ML_NODISCARD constexpr bool operator!=(memory_record const & other) const noexcept
+		{
+			return !(*this == other);
 		}
 	};
 
@@ -247,7 +267,7 @@ namespace ml
 
 		enum : size_t { id_addr, id_index, id_count, id_size };
 
-		using record_storage = typename ds::batch_vector
+		using record_storage = typename batch_vector
 		<
 			byte *	,	// address
 			size_t	,	// index
@@ -436,50 +456,10 @@ namespace ml
 // global memory manager
 namespace ml::globals
 {
-	ML_decl_global(memory_manager) get_global() noexcept;
+	ML_decl_global(memory_manager) get_global();
 
-	ML_decl_global(memory_manager) set_global(memory_manager * value) noexcept;
+	ML_decl_global(memory_manager) set_global(memory_manager *);
 }
-
-// c-like memory interface
-namespace ml
-{
-	// malloc
-	inline void * ml_malloc(size_t size) noexcept
-	{
-		return ML_get_global(memory_manager)->allocate(size);
-	}
-
-	// calloc
-	inline void * ml_calloc(size_t count, size_t size) noexcept
-	{
-		return ML_get_global(memory_manager)->allocate(count, size);
-	}
-
-	// realloc
-	inline void * ml_realloc(void * addr, size_t size) noexcept
-	{
-		return ML_get_global(memory_manager)->reallocate(addr, size);
-	}
-
-	// realloc (sized)
-	inline void * ml_realloc(void * addr, size_t oldsz, size_t newsz) noexcept
-	{
-		return ML_get_global(memory_manager)->reallocate(addr, oldsz, newsz);
-	}
-
-	// free
-	inline void ml_free(void * addr) noexcept
-	{
-		ML_get_global(memory_manager)->deallocate(addr);
-	}
-}
-
-#define ML_free(addr)							(ML_get_global(_ML memory_manager)->deallocate(addr))
-#define ML_malloc(size)							(ML_get_global(_ML memory_manager)->allocate(size))
-#define ML_calloc(count, size)					(ML_get_global(_ML memory_manager)->allocate(count, size))
-#define ML_realloc(addr, size)					(ML_get_global(_ML memory_manager)->reallocate(addr, size))
-#define ML_realloc_sized(addr, oldsz, newsz)	(ML_get_global(_ML memory_manager)->reallocate(addr, oldsz, newsz))
 
 // trackable
 namespace ml

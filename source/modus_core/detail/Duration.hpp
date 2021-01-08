@@ -23,48 +23,34 @@ namespace ml
 
 		using chrono::duration<float32>::duration;
 
-		template <class T = float32
-		> ML_NODISCARD constexpr operator T () const noexcept
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD constexpr operator float32() const noexcept
+		{
+			return count();
+		}
+
+		template <class T
+		> ML_NODISCARD constexpr operator T() const noexcept
 		{
 			return static_cast<T>(count());
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD constexpr auto nanoseconds() const noexcept -> nanoseconds_t
-		{
-			return chrono::duration_cast<nanoseconds_t>(*this);
-		}
+		ML_NODISCARD constexpr auto nanoseconds() const noexcept { return chrono::duration_cast<nanoseconds_t>(*this); }
 
-		ML_NODISCARD constexpr auto microseconds() const noexcept -> microseconds_t
-		{
-			return chrono::duration_cast<microseconds_t>(*this);
-		}
+		ML_NODISCARD constexpr auto microseconds() const noexcept { return chrono::duration_cast<microseconds_t>(*this); }
 
-		ML_NODISCARD constexpr auto milliseconds() const noexcept -> milliseconds_t
-		{
-			return chrono::duration_cast<milliseconds_t>(*this);
-		}
+		ML_NODISCARD constexpr auto milliseconds() const noexcept { return chrono::duration_cast<milliseconds_t>(*this); }
 
-		ML_NODISCARD constexpr auto seconds() const noexcept -> seconds_t
-		{
-			return chrono::duration_cast<seconds_t>(*this);
-		}
+		ML_NODISCARD constexpr auto seconds() const noexcept { return chrono::duration_cast<seconds_t>(*this); }
 
-		ML_NODISCARD constexpr auto minutes() const noexcept -> minutes_t
-		{
-			return chrono::duration_cast<minutes_t>(*this);
-		}
+		ML_NODISCARD constexpr auto minutes() const noexcept { return chrono::duration_cast<minutes_t>(*this); }
 
-		ML_NODISCARD constexpr auto hours() const noexcept -> hours_t
-		{
-			return chrono::duration_cast<hours_t>(*this);
-		}
+		ML_NODISCARD constexpr auto hours() const noexcept { return chrono::duration_cast<hours_t>(*this); }
 
-		ML_NODISCARD constexpr auto days() const noexcept -> days_t
-		{
-			return chrono::duration_cast<days_t>(*this);
-		}
+		ML_NODISCARD constexpr auto days() const noexcept { return chrono::duration_cast<days_t>(*this); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

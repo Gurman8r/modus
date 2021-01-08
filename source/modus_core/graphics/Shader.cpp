@@ -17,9 +17,9 @@ namespace ml::gfx
 	{
 		if (!in) { return false; }
 
-		ds::array<ds::stringstream, shader_type_MAX> src{};
-		ds::stringstream * dst{ &src[0] };
-		ds::string line{};
+		array<stringstream, shader_type_MAX> src{};
+		stringstream * dst{ &src[0] };
+		string line{};
 		
 		while (std::getline(in, line))
 		{
@@ -50,7 +50,7 @@ namespace ml::gfx
 
 		for (size_t i = 0; i < src.size(); ++i)
 		{
-			if (ds::string str{ src[i].str() }; !str.empty())
+			if (string str{ src[i].str() }; !str.empty())
 			{
 				out[i] = str;
 			}

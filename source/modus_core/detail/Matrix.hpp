@@ -5,7 +5,7 @@
 #include <modus_core/detail/GLM.hpp>
 
 // MATRIX
-namespace ml::ds
+namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -24,11 +24,11 @@ namespace ml::ds
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		using value_type				= typename _T;
-		using self_type					= typename _ML ds::matrix<value_type, _Width, _Height>;
-		using storage_type				= typename _ML ds::array<value_type, _Width * _Height>;
+		using self_type					= typename _ML matrix<value_type, _Width, _Height>;
+		using storage_type				= typename _ML array<value_type, _Width * _Height>;
 		using size_type					= typename storage_type::size_type;
 		using difference_type			= typename storage_type::difference_type;
-		using coord_type				= typename _ML ds::array<size_type, 2>;
+		using coord_type				= typename _ML array<size_type, 2>;
 		using pointer					= typename storage_type::pointer;
 		using reference					= typename storage_type::reference;
 		using const_pointer				= typename storage_type::const_pointer;
@@ -266,21 +266,21 @@ namespace ml::ds
 namespace ml::util
 {
 	template <size_t L, class T, glm::qualifier Q = glm::defaultp
-	> ML_NODISCARD ds::matrix<T, L, 1> glm_cast(glm::vec<L, T, Q> const & value)
+	> ML_NODISCARD matrix<T, L, 1> glm_cast(glm::vec<L, T, Q> const & value)
 	{
-		return *((ds::matrix<T, L, 1> *)(glm::vec<L, T, Q> *)(&value));
+		return *((matrix<T, L, 1> *)(glm::vec<L, T, Q> *)(&value));
 	}
 
 	template <size_t W, size_t H, class T, glm::qualifier Q = glm::defaultp
-	> ML_NODISCARD ds::matrix<T, W, H> glm_cast(glm::mat<W, H, T, Q> const & value)
+	> ML_NODISCARD matrix<T, W, H> glm_cast(glm::mat<W, H, T, Q> const & value)
 	{
-		return *((ds::matrix<T, W, H> *)(glm::mat<W, H, T, Q> *)(&value));
+		return *((matrix<T, W, H> *)(glm::mat<W, H, T, Q> *)(&value));
 	}
 
 	template <class T, glm::qualifier Q = glm::defaultp
-	> ML_NODISCARD ds::matrix<T, 4, 1> glm_cast(glm::qua<T, Q> const & value)
+	> ML_NODISCARD matrix<T, 4, 1> glm_cast(glm::qua<T, Q> const & value)
 	{
-		return *((ds::matrix<T, 4, 1> *)(glm::qua<T, Q> *)(&value));
+		return *((matrix<T, 4, 1> *)(glm::qua<T, Q> *)(&value));
 	}
 }
 
@@ -293,11 +293,11 @@ namespace ml
 
 	// matrix<T, N, N>
 	template <class T, size_t N
-	> ML_alias tmatnxn = ds::matrix<T, N, N>;
+	> ML_alias tmatnxn = matrix<T, N, N>;
 
 	// matrix<T, N, 1>
 	template <class T, size_t N
-	> ML_alias tvector = ds::matrix<T, N, 1>;
+	> ML_alias tvector = matrix<T, N, 1>;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -381,7 +381,7 @@ namespace ml
 }
 
 // MATRIX OPERATORS
-namespace ml::ds
+namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -594,21 +594,21 @@ namespace std
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <size_t I, class T, size_t W, size_t H
-	> ML_NODISCARD constexpr T & get(_ML ds::matrix<T, W, H> & value) noexcept
+	> ML_NODISCARD constexpr T & get(_ML matrix<T, W, H> & value) noexcept
 	{
 		static_assert(I < W * H, "matrix index out of bounds");
 		return value.at(I);
 	}
 
 	template <size_t I, class T, size_t W, size_t H
-	> ML_NODISCARD constexpr T const & get(_ML ds::matrix<T, W, H> const & value) noexcept
+	> ML_NODISCARD constexpr T const & get(_ML matrix<T, W, H> const & value) noexcept
 	{
 		static_assert(I < W * H, "matrix index out of bounds");
 		return value.at(I);
 	}
 
 	template <size_t I, class T, size_t W, size_t H
-	> ML_NODISCARD constexpr T && get(_ML ds::matrix<T, W, H> && value) noexcept
+	> ML_NODISCARD constexpr T && get(_ML matrix<T, W, H> && value) noexcept
 	{
 		static_assert(I < W * H, "matrix index out of bounds");
 		return std::move(value.at(I));
@@ -617,21 +617,21 @@ namespace std
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	template <size_t X, size_t Y, class T, size_t W, size_t H
-	> ML_NODISCARD constexpr T & get(_ML ds::matrix<T, W, H> & value) noexcept
+	> ML_NODISCARD constexpr T & get(_ML matrix<T, W, H> & value) noexcept
 	{
 		static_assert(X * Y < W * H, "matrix index out of bounds");
 		return value.at(X, Y);
 	}
 
 	template <size_t X, size_t Y, class T, size_t W, size_t H
-	> ML_NODISCARD constexpr T const & get(_ML ds::matrix<T, W, H> const & value) noexcept
+	> ML_NODISCARD constexpr T const & get(_ML matrix<T, W, H> const & value) noexcept
 	{
 		static_assert(X * Y < W * H, "matrix index out of bounds");
 		return value.at(X, Y);
 	}
 
 	template <size_t X, size_t Y, class T, size_t W, size_t H
-	> ML_NODISCARD constexpr T && get(_ML ds::matrix<T, W, H> && value) noexcept
+	> ML_NODISCARD constexpr T && get(_ML matrix<T, W, H> && value) noexcept
 	{
 		static_assert(X * Y < W * H, "matrix index out of bounds");
 		return std::move(value.at(X, Y));
@@ -641,7 +641,7 @@ namespace std
 }
 
 // JSON INTERFACE
-namespace ml::ds
+namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -663,7 +663,7 @@ namespace ml::ds
 }
 
 // STREAM INTERFACE
-namespace ml::ds
+namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

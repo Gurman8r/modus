@@ -1,131 +1,6 @@
 #include "./GLFW.hpp"
 #include "./GLFW_Window.hpp"
 
-// GLFW MONITOR
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	inline monitor make_monitor(GLFWmonitor * m)
-	{
-		monitor temp{};
-
-		ds::string name{ glfwGetMonitorName(m) };
-
-		int32 width, height;
-		glfwGetMonitorPhysicalSize(m, &width, &height);
-
-		void * userptr{ glfwGetMonitorUserPointer(m) };
-
-		return temp;
-	}
-
-	monitor const & glfw_monitor::get_primary()
-	{
-		static monitor temp{ make_monitor(glfwGetPrimaryMonitor()) };
-		return temp;
-	}
-
-	ds::list<monitor> const & glfw_monitor::get_monitors()
-	{
-		static ds::list<monitor> temp{};
-		if (int32 count; GLFWmonitor ** m{ glfwGetMonitors(&count) })
-		{
-
-		}
-		return temp;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-// GLFW CURSOR
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	cursor glfw_cursor::create_custom(size_t w, size_t h, byte const * p, int32 x, int32 y)
-	{
-		GLFWimage temp{ (int32)w, (int32)h, (byte *)p };
-
-		return { (cursor_handle)glfwCreateCursor(&temp, x, y) };
-	}
-
-	cursor glfw_cursor::create_standard(cursor_shape_ shape)
-	{
-		return { (cursor_handle)glfwCreateStandardCursor(std::invoke([shape]() noexcept
-		{
-			switch (shape)
-			{
-			default: return 0;
-			case cursor_shape_arrow			: return GLFW_ARROW_CURSOR;
-			case cursor_shape_ibeam			: return GLFW_IBEAM_CURSOR;
-			case cursor_shape_crosshair		: return GLFW_CROSSHAIR_CURSOR;
-			case cursor_shape_pointing_hand	: return GLFW_POINTING_HAND_CURSOR;
-			case cursor_shape_ew			: return GLFW_RESIZE_EW_CURSOR;
-			case cursor_shape_ns			: return GLFW_RESIZE_NS_CURSOR;
-			case cursor_shape_nesw			: return GLFW_RESIZE_NESW_CURSOR;
-			case cursor_shape_nwse			: return GLFW_RESIZE_NWSE_CURSOR;
-			case cursor_shape_resize_all	: return GLFW_RESIZE_ALL_CURSOR;
-			case cursor_shape_not_allowed	: return GLFW_NOT_ALLOWED_CURSOR;
-
-			// glfw doesn't have these
-			case cursor_shape_hresize		: return GLFW_HRESIZE_CURSOR;
-			case cursor_shape_vresize		: return GLFW_VRESIZE_CURSOR;
-			case cursor_shape_hand			: return GLFW_HAND_CURSOR;
-			}
-		})) };
-	}
-
-	void glfw_cursor::destroy(cursor const & value)
-	{
-		glfwDestroyCursor((GLFWcursor *)value.ID);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-// GLFW CONTEXT
-namespace ml
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	bool glfw_platform::initialize()
-	{
-		return glfwInit();
-	}
-
-	bool glfw_platform::finalize()
-	{
-		glfwTerminate();
-		return true;
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	window_handle glfw_platform::get_context_current()
-	{
-		return (window_handle)glfwGetCurrentContext();
-	}
-
-	void glfw_platform::make_context_current(window_handle value)
-	{
-		glfwMakeContextCurrent((GLFWwindow *)value);
-	}
-
-	void glfw_platform::poll_events()
-	{
-		glfwPollEvents();
-	}
-
-	void glfw_platform::swap_buffers(window_handle value)
-	{
-		glfwSwapBuffers((GLFWwindow *)value);
-	}
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
 // GLFW WINDOW
 namespace ml
 {
@@ -137,27 +12,24 @@ namespace ml
 		, m_monitor	{}
 		, m_hints	{}
 	{
-		static ML_block(&) { ML_verify(glfw_platform::initialize()); };
 	}
 
 	glfw_window::~glfw_window()
 	{
 		glfwDestroyWindow(m_window);
-
-		static ML_defer(&) { ML_verify(glfw_platform::finalize()); };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	bool glfw_window::open(
-		ds::string			const & title,
+		string			const & title,
 		video_mode			const & vm,
 		context_settings	const & cs,
 		window_hints_				hints
 	)
 	{
 		// check already open
-		if (is_open()) { return debug::failure("window is already open"); }
+		if (is_open()) { return debug::fail("window is already open"); }
 
 		// title
 		if ((m_title = title).empty()) { m_title = "GLFW"; }
@@ -224,7 +96,7 @@ namespace ml
 			nullptr // share
 		)))
 		{
-			return debug::failure("failed opening glfw_window");
+			return debug::fail("failed opening glfw_window");
 		}
 		
 		// info
@@ -270,7 +142,7 @@ namespace ml
 		return m_clbk;
 	}
 
-	ds::string glfw_window::get_clipboard() const
+	string glfw_window::get_clipboard() const
 	{
 		return glfwGetClipboardString(m_window);
 	}
@@ -349,7 +221,7 @@ namespace ml
 		return temp;
 	}
 
-	ds::string const & glfw_window::get_title() const
+	string const & glfw_window::get_title() const
 	{
 		return m_title;
 	}
@@ -435,7 +307,7 @@ namespace ml
 		glfwSetWindowAttrib(m_window, GLFW_AUTO_ICONIFY, value);
 	}
 
-	void glfw_window::set_clipboard(ds::string const & value)
+	void glfw_window::set_clipboard(string const & value)
 	{
 		glfwSetClipboardString(m_window, value.c_str());
 	}
@@ -542,7 +414,7 @@ namespace ml
 		glfwSetWindowSize(m_window, value[0], value[1]);
 	}
 
-	void glfw_window::set_title(ds::string const & value)
+	void glfw_window::set_title(string const & value)
 	{
 		glfwSetWindowTitle(m_window, (m_title = value).c_str());
 	}

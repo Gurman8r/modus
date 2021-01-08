@@ -2,10 +2,13 @@
 #define _ML_LIBRARY_MANAGER_HPP_
 
 #include <modus_core/detail/BatchVector.hpp>
-#include <modus_core/runtime/Library.hpp>
+#include <modus_core/system/Library.hpp>
 
 namespace ml
 {
+	// library id
+	ML_decl_handle(library_id);
+
 	// library manager
 	struct library_manager final : non_copyable, trackable
 	{
@@ -13,7 +16,7 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		using storage_type = typename ds::batch_vector
+		using storage_type = typename batch_vector
 		<
 			library_id,		// id
 			fs::path,		// path
@@ -40,7 +43,7 @@ namespace ml
 		ML_NODISCARD auto get_data() const noexcept -> storage_type const & { return m_data; }
 
 		template <class T
-		> ML_NODISCARD auto get_data() const noexcept -> ds::list<T> const & { return m_data.get<T>(); }
+		> ML_NODISCARD auto get_data() const noexcept -> list<T> const & { return m_data.get<T>(); }
 
 		template <class T
 		> ML_NODISCARD auto get_data(size_t i) const noexcept -> T const & { return m_data.at<T>(i); }
@@ -90,9 +93,7 @@ namespace ml
 
 		void free_all_libraries()
 		{
-			auto & ids{ m_data.get<library_id>() };
-
-			while (!ids.empty()) { m_data.pop_back(); }
+			while (!m_data.empty()) { m_data.pop_back(); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

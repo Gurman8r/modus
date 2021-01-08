@@ -14,7 +14,7 @@ namespace ml::gfx
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
 		using framebuffer_spec	= typename spec<framebuffer>;
 		using framebuffer_ref	= typename ref<framebuffer>;
-		using framebuffer_list	= typename ds::list<framebuffer_ref>;
+		using framebuffer_list	= typename list<framebuffer_ref>;
 	};
 }
 

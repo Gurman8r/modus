@@ -9,7 +9,7 @@ namespace ml
 {
 	struct uniform_buffer
 	{
-		using storage_type = ds::list<byte>;
+		using storage_type = list<byte>;
 
 		storage_type m_data;
 

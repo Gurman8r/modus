@@ -37,46 +37,41 @@ namespace ml
 
 		ML_NODISCARD auto app_file_path() const noexcept -> fs::path const & { return m_app_file_path; }
 
-		ML_NODISCARD auto app_name() noexcept -> ds::string const & { return m_app_name; }
+		ML_NODISCARD auto app_name() noexcept -> string const & { return m_app_name; }
 
-		ML_NODISCARD auto app_version() noexcept -> ds::string const & { return m_app_version; }
+		ML_NODISCARD auto app_version() noexcept -> string const & { return m_app_version; }
 
-		ML_NODISCARD auto arguments() const noexcept -> ds::list<ds::string> const & { return m_arguments; }
+		ML_NODISCARD auto arguments() noexcept -> list<string> & { return m_arguments; }
 
-		ML_NODISCARD auto arguments(size_t i) const noexcept -> ds::string const & { return m_arguments[i]; }
+		ML_NODISCARD auto arguments() const noexcept -> list<string> const & { return m_arguments; }
 
-		ML_NODISCARD auto library_paths() const noexcept -> ds::list<fs::path> const & { return m_library_paths; }
+		ML_NODISCARD auto arguments(size_t i) noexcept -> string & { return m_arguments[i]; }
+
+		ML_NODISCARD auto arguments(size_t i) const noexcept -> string const & { return m_arguments[i]; }
+
+		ML_NODISCARD auto library_paths() noexcept -> list<fs::path> & { return m_library_paths; }
+
+		ML_NODISCARD auto library_paths() const noexcept -> list<fs::path> const & { return m_library_paths; }
+
+		ML_NODISCARD auto library_paths(size_t i) noexcept -> fs::path & { return m_library_paths[i]; }
 
 		ML_NODISCARD auto library_paths(size_t i) const noexcept -> fs::path const & { return m_library_paths[i]; }
 
 		ML_NODISCARD auto path_to(fs::path const & value) const noexcept -> fs::path { return m_app_data_path.native() + value.native(); }
-		
+
 		ML_NODISCARD auto uptime() const noexcept -> duration { return m_main_timer.elapsed(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		ML_NODISCARD auto attr() noexcept -> json * { return &m_attributes; }
+		ML_NODISCARD auto attr() noexcept -> json & { return m_attributes; }
 
-		ML_NODISCARD auto attr() const noexcept -> json const * { return &m_attributes; }
+		ML_NODISCARD auto attr() const noexcept -> json const & { return m_attributes; }
 
-		template <class Arg0, class ... Args
-		> ML_NODISCARD auto attr(Arg0 && arg0, Args && ... args) noexcept -> json *
-		{
-			return util::find_json(&m_attributes, ML_forward(arg0), ML_forward(args)...);
-		}
+		template <class I> ML_NODISCARD auto attr(I && i) noexcept -> json & { return m_attributes[ML_forward(i)]; }
 
-		template <class Arg0, class ... Args
-		> ML_NODISCARD auto attr(Arg0 && arg0, Args && ... args) const noexcept -> json const *
-		{
-			return util::find_json(&m_attributes, ML_forward(arg0), ML_forward(args)...);
-		}
+		template <class I> ML_NODISCARD auto attr(I && i) const noexcept -> json const & { return m_attributes[ML_forward(i)]; }
 
-		template <class Arg0, class ... Args
-		> ML_NODISCARD bool has_attr(Arg0 && arg0, Args && ... args) const noexcept
-		{
-			return util::has_json(m_attributes, ML_forward(arg0), ML_forward(args)...);
-		}
+		template <class I> ML_NODISCARD bool has_attr(I && i) const noexcept { return m_attributes.contains(ML_forward(i)); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -122,20 +117,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		int32					m_exit_code		; // exit code
-		fs::path				m_app_data_path	; // app data path
-		fs::path				m_app_file_name	; // app file name
-		fs::path				m_app_file_path	; // app file path
-		ds::string				m_app_name		; // app name
-		ds::string				m_app_version	; // app version
-		ds::list<ds::string>	m_arguments		; // arguments
-		ds::list<fs::path>		m_library_paths	; // library paths
-		json					m_attributes	; // attributes
-
-		timer					m_main_timer	; // main timer
-		event_bus				m_dispatcher	; // event bus
-		library_manager			m_libraries		; // library manager
-		plugin_manager			m_plugins		; // plugin manager
+		timer			m_main_timer	; // main timer
+		int32			m_exit_code		; // exit code
+		fs::path		m_app_data_path	; // app data path
+		fs::path		m_app_file_name	; // app file name
+		fs::path		m_app_file_path	; // app file path
+		string			m_app_name		; // app name
+		string			m_app_version	; // app version
+		list<string>	m_arguments		; // arguments
+		list<fs::path>	m_library_paths	; // library paths
+		json			m_attributes	; // attributes
+		event_bus		m_dispatcher	; // event bus
+		library_manager	m_libraries		; // library manager
+		plugin_manager	m_plugins		; // plugin manager
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -144,9 +138,9 @@ namespace ml
 // global core_application
 namespace ml::globals
 {
-	ML_decl_global(core_application) get_global() noexcept;
+	ML_decl_global(core_application) get_global();
 
-	ML_decl_global(core_application) set_global(core_application * value) noexcept;
+	ML_decl_global(core_application) set_global(core_application *);
 }
 
 #endif // !_ML_CORE_APPLICATION_HPP_

@@ -3,7 +3,71 @@
 
 #include <modus_core/Standard.hpp>
 
-namespace ml::util
+namespace ml
+{
+	struct FNV1A final
+	{
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		constexpr FNV1A() noexcept = default;
+
+		static constexpr hash_t basis{ static_cast<hash_t>(14695981039346656037ULL) };
+
+		static constexpr hash_t prime{ static_cast<hash_t>(1099511628211ULL) };
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class T
+		> ML_NODISCARD constexpr hash_t operator()(T const * arr, hash_t size, hash_t seed) const noexcept
+		{
+			return size
+				? FNV1A{}(arr + 1, size - 1, (seed ^ static_cast<hash_t>(*arr)) * prime)
+				: seed;
+		}
+
+		template <class T
+		> ML_NODISCARD constexpr hash_t operator()(T const * arr, hash_t size) const noexcept
+		{
+			return FNV1A{}(arr, size, basis);
+		}
+
+		template <class T, hash_t N
+		> ML_NODISCARD constexpr hash_t operator()(T const(&value)[N]) const noexcept
+		{
+			return FNV1A{}(value, N - 1);
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class T, class = std::enable_if_t<std::is_scalar_v<T> && !std::is_pointer_v<T>>
+		> ML_NODISCARD constexpr hash_t operator()(T const value) const noexcept
+		{
+			return (basis ^ static_cast<hash_t>(value)) * prime;
+		}
+
+		template <class Arr, class = std::enable_if_t<std::is_object_v<Arr>>
+		> ML_NODISCARD constexpr hash_t operator()(Arr const & value) const noexcept
+		{
+			return FNV1A{}(value.data(), static_cast<hash_t>(value.size()));
+		}
+
+		template <template <class, hash_t...> class Arr, class T, hash_t ... N
+		> ML_NODISCARD constexpr hash_t operator()(Arr<T, N...> const & value) const noexcept
+		{
+			return FNV1A{}(value.data(), static_cast<hash_t>(value.size()));
+		}
+
+		template <template <class...> class Arr, class ... Ts
+		> ML_NODISCARD constexpr hash_t operator()(Arr<Ts...> const & value) const noexcept
+		{
+			return FNV1A{}(value.data(), static_cast<hash_t>(value.size()));
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
+}
+
+namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -62,25 +126,7 @@ namespace ml
 	template <class Arg0, class ... Args
 	> ML_NODISCARD constexpr hash_t hashof(Arg0 && arg0, Args && ... args)
 	{
-		using namespace _ML util;
-
-		if constexpr (0 == sizeof...(args))
-		{
-			using T = std::decay_t<decltype(arg0)>;
-
-			if constexpr (std::is_scalar_v<T> && !std::is_pointer_v<T>)
-			{
-				return (fnv1a_basis ^ static_cast<hash_t>(arg0)) * fnv1a_prime;
-			}
-			else
-			{
-				return fnv1a_hash(ML_forward(arg0));
-			}
-		}
-		else
-		{
-			return fnv1a_hash(ML_forward(arg0), ML_forward(args)...);
-		}
+		return FNV1A{}(ML_forward(arg0), ML_forward(args)...);
 	}
 }
 

@@ -7,13 +7,18 @@ namespace ml
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool // gui
+		bool // imgui panels
 				m_show_imgui_demo			{ false },
 				m_show_imgui_metrics		{ false },
 				m_show_imgui_style_editor	{ false },
 				m_show_imgui_about			{ false };
-		bool	m_show_viewport				{ true };
-		bool	m_show_terminal				{ false };
+
+		bool // main panels
+				m_show_viewport				{ true },
+				m_show_terminal				{ false },
+				m_show_scene_editor			{ true };
+		
+		// debug overlay
 		bool	m_show_overlay				{ true };
 		int32	m_overlay_corner			{ 1 };
 		vec2	m_overlay_offset			{ 32, 32 };
@@ -27,15 +32,17 @@ namespace ml
 		mat4	m_grid_matrix{ mat4::identity() }; // 
 		float32 m_grid_size{ 100.f }; // 
 
+		// scenes
 		tree_node m_root{ "root" };
+		scene_editor m_scene_editor{};
+		hash_map<string, ref<scene>> m_scenes{};
 
 		// resources
-		ds::list<ref<gfx::framebuffer>> m_framebuffers{}; // framebuffers
-		ds::hashmap<ds::string, ref<gfx::texture>> m_textures{}; // textures
-		ds::hashmap<ds::string, ref<gfx::program>> m_programs{}; // programs
-		ds::hashmap<ds::string, ref<gfx::shader>> m_shaders{}; // shaders
-		ds::hashmap<ds::string, ref<mesh>> m_meshes{}; // meshes
-		ds::hashmap<ds::string, ref<scene>> m_scenes{}; // scenes
+		list<ref<gfx::framebuffer>> m_framebuffers{}; // framebuffers
+		hash_map<string, ref<gfx::texture>> m_textures{}; // textures
+		hash_map<string, ref<gfx::program>> m_programs{}; // programs
+		hash_map<string, ref<gfx::shader>> m_shaders{}; // shaders
+		hash_map<string, ref<mesh>> m_meshes{}; // meshes
 
 		// rendering
 		bool m_shift_bg_hue{ true }; // cycle background
@@ -170,6 +177,7 @@ namespace ml
 
 			// scene
 			auto & scene0 = m_scenes["0"] = make_ref<scene>();
+			m_scene_editor.set_context(scene0);
 			ev->set_active_scene(scene0);
 			entity e{ scene0->new_entity() };
 
@@ -205,14 +213,14 @@ namespace ml
 		{
 			ev->set_active_scene(nullptr);
 
-			debug::success("goodbye!");
+			debug::good("goodbye!");
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		void on_update(update_event const & ev)
 		{
-			ds::string const str{ m_cout.str() };
+			string const str{ m_cout.str() };
 			m_terminal.Output.Print(str);
 			m_cout.str({});
 
@@ -435,42 +443,7 @@ namespace ml
 			{
 				ImGui::SetNextWindowSize(winsize / 2, ImGuiCond_Once);
 				ImGui::SetNextWindowPos(winsize / 2, ImGuiCond_Once, { 0.5f, 0.5f });
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4, 4 });
-				bool const is_open{ ImGui::Begin(
-					"terminal",
-					&m_show_terminal,
-					ImGuiWindowFlags_MenuBar
-				) };
-				ImGui::PopStyleVar(1);
-				if (is_open)
-				{
-					// menubar
-					if (ImGui::BeginMenuBar()) {
-						ImGui::TextDisabled("filter"); ImGui::SameLine();
-						m_terminal.Output.Filter.Draw("##filter", 256);
-						ImGui::Separator();
-						if (ImGui::BeginMenu("options")) {
-							ImGui::Checkbox("auto scroll", &m_terminal.Output.AutoScroll);
-							ImGui::Separator();
-							m_terminal.DrawPrefixOptions();
-							ImGui::EndMenu();
-						}
-						ImGui::Separator();
-						if (ImGui::MenuItem("clear")) { m_terminal.Output.Lines.clear(); }
-						ImGui::Separator();
-						ImGui::EndMenuBar();
-					}
-					// output
-					ImGui::BeginChild("##output", { 0, -ImGui::GetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_HorizontalScrollbar);
-					m_terminal.DrawOutput();
-					ImGui::EndChild();
-					// input
-					ImGui::BeginChild("##input", {}, false, ImGuiWindowFlags_NoScrollbar);
-					m_terminal.DrawPrefix(); ImGui::SameLine();
-					m_terminal.DrawInput();
-					ImGui::EndChild();
-				}
-				ImGui::End();
+				m_terminal.Draw("terminal", &m_show_terminal, ImGuiWindowFlags_MenuBar);
 			}
 
 			// OVERLAY

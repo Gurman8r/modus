@@ -21,6 +21,9 @@
 // static string string
 #define ML_STATIC_STRING_STRING ML_xstr(ML_STATIC_STRING_CLASS)
 
+// string view
+namespace ml { ML_alias static_string = typename ML_STATIC_STRING_CLASS; }
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // pretty function
@@ -49,36 +52,25 @@
 #	error Type information is not available.
 #endif
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-namespace ml
+	// pretty function
+namespace ml::pretty_function
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// string view
-	ML_alias static_string = typename ML_STATIC_STRING_CLASS;
-	
-	// pretty function
-	namespace pretty_function
+	template <class T
+	> ML_NODISCARD static constexpr static_string type()
 	{
-		template <class T
-		> ML_NODISCARD static constexpr static_string type()
-		{
-			return { ML_PRETTY_FUNCTION };
-		}
+		return { ML_PRETTY_FUNCTION };
+	}
 
-		template <class T, T Value
-		> ML_NODISCARD static constexpr static_string value()
-		{
-			return { ML_PRETTY_FUNCTION };
-		}
+	template <class T, T Value
+	> ML_NODISCARD static constexpr static_string value()
+	{
+		return { ML_PRETTY_FUNCTION };
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 namespace ml
 {
@@ -230,8 +222,6 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 namespace ml
 {

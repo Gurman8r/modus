@@ -22,7 +22,7 @@ namespace ml::gfx
 
 		ref<render_context> m_context{}; // active context
 
-		ds::batch_vector // all objects
+		batch_vector // all objects
 		<
 			unown<render_context>,
 			unown<vertexarray>,
@@ -82,25 +82,25 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::list<unown<render_context>> const & all_contexts() const noexcept final { return m_objs.get<unown<render_context>>(); }
+		list<unown<render_context>> const & all_contexts() const noexcept final { return m_objs.get<unown<render_context>>(); }
 
-		ds::list<unown<vertexarray>> const & all_vertexarrays() const noexcept { return m_objs.get<unown<vertexarray>>(); }
+		list<unown<vertexarray>> const & all_vertexarrays() const noexcept { return m_objs.get<unown<vertexarray>>(); }
 
-		ds::list<unown<vertexbuffer>> const & all_vertexbuffers() const noexcept { return m_objs.get<unown<vertexbuffer>>(); }
+		list<unown<vertexbuffer>> const & all_vertexbuffers() const noexcept { return m_objs.get<unown<vertexbuffer>>(); }
 
-		ds::list<unown<indexbuffer>> const & all_indexbuffers() const noexcept { return m_objs.get<unown<indexbuffer>>(); }
+		list<unown<indexbuffer>> const & all_indexbuffers() const noexcept { return m_objs.get<unown<indexbuffer>>(); }
 
-		ds::list<unown<texture2d>> const & all_texture2ds() const noexcept { return m_objs.get<unown<texture2d>>(); }
+		list<unown<texture2d>> const & all_texture2ds() const noexcept { return m_objs.get<unown<texture2d>>(); }
 
-		ds::list<unown<texture3d>> const & all_texture3ds() const noexcept { return m_objs.get<unown<texture3d>>(); }
+		list<unown<texture3d>> const & all_texture3ds() const noexcept { return m_objs.get<unown<texture3d>>(); }
 
-		ds::list<unown<texturecube>> const & all_texturecubes() const noexcept { return m_objs.get<unown<texturecube>>(); }
+		list<unown<texturecube>> const & all_texturecubes() const noexcept { return m_objs.get<unown<texturecube>>(); }
 
-		ds::list<unown<framebuffer>> const & all_framebuffers() const noexcept { return m_objs.get<unown<framebuffer>>(); }
+		list<unown<framebuffer>> const & all_framebuffers() const noexcept { return m_objs.get<unown<framebuffer>>(); }
 
-		ds::list<unown<program>> const & all_programs() const noexcept { return m_objs.get<unown<program>>(); }
+		list<unown<program>> const & all_programs() const noexcept { return m_objs.get<unown<program>>(); }
 
-		ds::list<unown<shader>> const & all_shaders() const noexcept { return m_objs.get<unown<shader>>(); }
+		list<unown<shader>> const & all_shaders() const noexcept { return m_objs.get<unown<shader>>(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
@@ -238,7 +238,7 @@ namespace ml::gfx
 		buffer_layout					m_layout	{}; // buffer layout
 		uint32 const					m_mode		{}; // prim type
 		ref<indexbuffer>			m_indices	{}; // index buffer
-		ds::list<ref<vertexbuffer>>	m_vertices	{}; // vertex buffers
+		list<ref<vertexbuffer>>	m_vertices	{}; // vertex buffers
 
 	public:
 		opengl_vertexarray(render_device * parent, spec_type const & desc, allocator_type alloc);
@@ -264,7 +264,7 @@ namespace ml::gfx
 
 		uint32 get_mode() const noexcept final { return m_mode; }
 
-		ds::list<ref<vertexbuffer>> const & get_vertices() const noexcept final { return m_vertices; }
+		list<ref<vertexbuffer>> const & get_vertices() const noexcept final { return m_vertices; }
 	};
 }
 
@@ -492,17 +492,12 @@ namespace ml::gfx
 	private:
 		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_framebuffer> };
 
-		vec2i							m_size			{}; // 
-		texture_format					m_format		{}; // 
-		texture_flags_					m_flags			{}; // 
-		vec4i							m_bpp			{}; // 
-		int32							m_stencil_bits	{}; // 
-		int32							m_depth_bits	{}; // 
-		int32							m_samples		{}; // 
-		bool							m_stereo		{}; // 
-		uint32							m_handle		{}; // handle
-		ds::list<ref<texture2d>>		m_attachments	{}; // color attachments
-		ref<texture2d>					m_depth			{}; // depth attachment
+		vec2i						m_size			{}; // texture size
+		texture_format				m_format		{}; // texture format
+		texture_flags_				m_flags			{}; // texture flags
+		uint32						m_handle		{}; // handle
+		list<ref<texture2d>>	m_attachments	{}; // color attachments
+		ref<texture2d>				m_depth			{}; // depth attachment
 
 		
 	public:
@@ -523,7 +518,7 @@ namespace ml::gfx
 
 		void resize(vec2i const & value) final;
 
-		ds::list<ref<texture2d>> const & get_color_attachments() const noexcept final { return m_attachments; }
+		list<ref<texture2d>> const & get_color_attachments() const noexcept final { return m_attachments; }
 
 		ref<texture2d> const & get_depth_attachment() const noexcept final { return m_depth; }
 
@@ -532,16 +527,6 @@ namespace ml::gfx
 		texture_format const & get_format() const noexcept { return m_format; }
 
 		texture_flags_ get_flags() const noexcept { return m_flags; }
-
-		vec4i const & get_bpp() const noexcept final { return m_bpp; }
-
-		int32 get_stencil_bits() const noexcept final { return m_stencil_bits; }
-
-		int32 get_depth_bits() const noexcept final { return m_depth_bits; }
-
-		int32 get_sample_count() const noexcept final { return m_samples; }
-
-		bool is_stereo() const noexcept final { return m_stereo; }
 	};
 }
 
@@ -557,11 +542,11 @@ namespace ml::gfx
 		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_program> };
 
 		uint32									m_handle		{}; // handle
-		ds::string								m_error_log		{}; // error log
-		ds::array<object_id, shader_type_MAX>	m_shaders		{}; // shader cache
-		ds::map<uint32, ds::list<ds::string>>	m_source		{}; // source cache
-		ds::map<uniform_id, ref<texture>>	m_textures		{}; // texture cache
-		ds::map<hash_t, uniform_id>				m_uniforms		{}; // uniform cache
+		string								m_error_log		{}; // error log
+		array<object_id, shader_type_MAX>	m_shaders		{}; // shader cache
+		flat_map<uint32, list<string>>	m_source		{}; // source cache
+		flat_map<uniform_id, ref<texture>>	m_textures		{}; // texture cache
+		flat_map<hash_t, uniform_id>				m_uniforms		{}; // uniform cache
 
 		// uniform binder
 		struct ML_NODISCARD program_uniform_binder final
@@ -595,7 +580,7 @@ namespace ml::gfx
 
 		bool link() final;
 
-		bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) final
+		bool bind_uniform(cstring name, method<void(uniform_id)> const & fn) final
 		{
 			program_uniform_binder u{ *this, name };
 			if (u) { std::invoke(fn, u.location); }
@@ -604,15 +589,15 @@ namespace ml::gfx
 
 		uniform_id get_uniform_location(cstring name) noexcept final;
 
-		ds::string const & get_info_log() const noexcept final { return m_error_log; }
+		string const & get_info_log() const noexcept final { return m_error_log; }
 
-		ds::array<object_id, shader_type_MAX> const & get_shaders() const noexcept final { return m_shaders; }
+		array<object_id, shader_type_MAX> const & get_shaders() const noexcept final { return m_shaders; }
 
-		ds::map<uint32, ds::list<ds::string>> const & get_source() const noexcept final { return m_source; }
+		flat_map<uint32, list<string>> const & get_source() const noexcept final { return m_source; }
 
-		ds::map<uniform_id, ref<texture>> const & get_textures() const noexcept final { return m_textures; }
+		flat_map<uniform_id, ref<texture>> const & get_textures() const noexcept final { return m_textures; }
 
-		ds::map<hash_t, uniform_id> const & get_uniforms() const noexcept final { return m_uniforms; }
+		flat_map<hash_t, uniform_id> const & get_uniforms() const noexcept final { return m_uniforms; }
 
 		uint32 get_mask() const noexcept final
 		{
@@ -655,13 +640,13 @@ namespace ml::gfx
 		static constexpr typeof_t<> s_self_type{ typeof_v<opengl_shader> };
 
 		uint32									m_type		{}; // type
-		ds::list<ds::string>					m_code		{}; // code
+		list<string>					m_code		{}; // code
 		uint32									m_handle	{}; // handle
-		ds::string								m_log		{}; // error log
-		ds::list<ds::string>					m_source	{}; // source
-		ds::map<hash_t, uniform_id>				m_attribs	{}; // attributes
-		ds::map<hash_t, uniform_id>				m_uniforms	{}; // uniforms
-		ds::map<uniform_id, ref<texture>>	m_textures	{}; // textures
+		string								m_log		{}; // error log
+		list<string>					m_source	{}; // source
+		flat_map<hash_t, uniform_id>				m_attribs	{}; // attributes
+		flat_map<hash_t, uniform_id>				m_uniforms	{}; // uniforms
+		flat_map<uniform_id, ref<texture>>	m_textures	{}; // textures
 
 		struct ML_NODISCARD shader_uniform_binder final
 		{
@@ -688,18 +673,18 @@ namespace ml::gfx
 	public:
 		bool compile(uint32 type, size_t count, cstring * str, int32 const * len = {}) final;
 
-		bool bind_uniform(cstring name, ds::method<void(uniform_id)> const & fn) final
+		bool bind_uniform(cstring name, method<void(uniform_id)> const & fn) final
 		{
 			shader_uniform_binder u{ *this, name };
 			if (u) { std::invoke(fn, u.loc); }
 			return u;
 		}
 
-		ds::string const & get_info_log() const noexcept final { return m_log; }
+		string const & get_info_log() const noexcept final { return m_log; }
 
-		ds::list<ds::string> const & get_source() const noexcept final { return m_source; }
+		list<string> const & get_source() const noexcept final { return m_source; }
 
-		ds::map<uniform_id, ref<texture>> const & get_textures() const noexcept final { return m_textures; }
+		flat_map<uniform_id, ref<texture>> const & get_textures() const noexcept final { return m_textures; }
 
 		uint32 get_type() const noexcept final { return m_type; }
 

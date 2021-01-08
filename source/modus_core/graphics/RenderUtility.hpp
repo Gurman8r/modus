@@ -1,7 +1,7 @@
 #ifndef _ML_RENDER_ENUM_HPP_
 #define _ML_RENDER_ENUM_HPP_
 
-#include <modus_core/detail/Map.hpp>
+#include <modus_core/detail/FlatMap.hpp>
 #include <modus_core/detail/Method.hpp>
 #include <modus_core/graphics/Bitmap.hpp>
 
@@ -16,7 +16,7 @@ namespace ml::gfx
 
 	ML_alias addr_t = typename void const *; // data address
 	
-	ML_alias buffer_t = typename ds::list<byte>; // byte buffer
+	ML_alias buffer_t = typename list<byte>; // byte buffer
 
 	template <class ...> struct spec; // object specification
 
@@ -505,13 +505,13 @@ namespace ml::gfx
 			>
 		};
 
-		ds::string	name		{};
+		string	name		{};
 		hash_t		type		{};
 		uint32		size		{};
 		bool		normalized	{};
 		uint32		offset		{};
 
-		buffer_element(ds::string const & name, hash_t type, uint32 size, bool normalized) noexcept
+		buffer_element(string const & name, hash_t type, uint32 size, bool normalized) noexcept
 			: name{ name }, type{ type }, size{ size }, normalized{ normalized }, offset{}
 		{
 		}
@@ -539,7 +539,7 @@ namespace ml::gfx
 	// buffer layout
 	struct ML_NODISCARD buffer_layout final
 	{
-		using storage_type				= typename ds::list<buffer_element>;
+		using storage_type				= typename list<buffer_element>;
 		using iterator					= typename storage_type::iterator;
 		using const_iterator			= typename storage_type::const_iterator;
 		using reverse_iterator			= typename storage_type::reverse_iterator;

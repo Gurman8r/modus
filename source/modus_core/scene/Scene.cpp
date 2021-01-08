@@ -7,7 +7,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	entity scene::new_entity(ds::string const & name) noexcept
+	entity scene::new_entity(string const & name) noexcept
 	{
 		entity e{ this, m_registry.create() };
 		e.add_component<tag_component>(!name.empty() ? name : "New Entity");

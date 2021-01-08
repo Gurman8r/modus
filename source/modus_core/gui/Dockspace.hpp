@@ -6,7 +6,7 @@
 namespace ml::ImGuiExt
 {
 	// dockspace callback
-	using DockspaceCallback = ds::method<void(struct Dockspace *)>;
+	using DockspaceCallback = method<void(struct Dockspace *)>;
 
 	// dockspace
 	struct ML_NODISCARD Dockspace

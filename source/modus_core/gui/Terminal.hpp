@@ -17,24 +17,26 @@ namespace ml::ImGuiExt
 
 		struct ML_NODISCARD CommandData final
 		{
-			ds::string name;
+			string name;
 			
-			ds::list<ds::string> info;
+			list<string> info;
 			
-			ds::method<void(ds::string &&)> proc;
+			method<void(string &&)> proc;
 		};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ds::string UserName, HostName, PathName, ModeName; // info
+		string UserName, HostName, PathName, ModeName; // info
 
-		ds::array<char, 256> Input; // input
+		array<char, 256> Input; // input
 
 		TextLog Output; // output
 
-		ds::list<CommandData> Cmd; // commands
+		TextLog::Printer Printer;
 
-		ds::list<ds::string> History; // history
+		list<CommandData> Cmd; // commands
+
+		list<string> History; // history
 
 		int32 HistoryPos; // history pos
 
@@ -51,16 +53,17 @@ namespace ml::ImGuiExt
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		Terminal(allocator_type alloc = {}) noexcept
-			: UserName		{ alloc }
-			, HostName		{ alloc }
-			, PathName		{ alloc }
-			, ModeName		{ alloc }
-			, Input			{}
-			, Output		{ alloc }
-			, Cmd			{ alloc }
-			, History		{ alloc }
-			, HistoryPos	{ -1 }
-			, Colors		{}
+			: UserName	{ alloc }
+			, HostName	{ alloc }
+			, PathName	{ alloc }
+			, ModeName	{ alloc }
+			, Input		{}
+			, Output	{ alloc }
+			, Printer	{}
+			, Cmd		{ alloc }
+			, History	{ alloc }
+			, HistoryPos{ -1 }
+			, Colors	{}
 		{
 		}
 
@@ -173,12 +176,53 @@ namespace ml::ImGuiExt
 			Output.Draw(printer);
 		}
 
-		int32 Execute(ds::string line)
+		bool Draw(cstring title, bool * p_open = NULL, ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 4, 4 });
+			bool const is_open{ ImGui::Begin(title, p_open, flags) };
+			ImGui::PopStyleVar(1);
+			if (is_open)
+			{
+				// menubar
+				if (ImGui::BeginMenuBar()) {
+					ImGui::TextDisabled("filter"); ImGui::SameLine();
+					Output.Filter.Draw("##filter", 256);
+					ImGui::Separator();
+					if (ImGui::BeginMenu("options")) {
+						ImGui::Checkbox("auto scroll", &Output.AutoScroll);
+						ImGui::Separator();
+						DrawPrefixOptions();
+						ImGui::EndMenu();
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("clear")) { Output.Lines.clear(); }
+					ImGui::Separator();
+					ImGui::EndMenuBar();
+				}
+
+				// output
+				if (ImGui::BeginChild("##output", { 0, -ImGui::GetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_HorizontalScrollbar)) {
+					DrawOutput(Printer);
+				}
+				ImGui::EndChild();
+				
+				// input
+				if (ImGui::BeginChild("##input", {}, false, ImGuiWindowFlags_NoScrollbar)) {
+					DrawPrefix(); ImGui::SameLine();
+					DrawInput();
+				}
+				ImGui::EndChild();
+			}
+			ImGui::End();
+			return is_open;
+		}
+
+		int32 Execute(string line)
 		{
 			// empty check
-			if (util::trim(line).empty()) { return debug::failure(); }
+			if (util::trim(line).empty()) { return debug::fail(); }
 		
-			// append line
+			// add to history
 			Output.Printf("# %s\n", line.c_str());
 			HistoryPos = -1;
 			if (auto const it{ std::find(History.begin(), History.end(), line) }
@@ -186,14 +230,14 @@ namespace ml::ImGuiExt
 				History.erase(it);
 			} History.push_back(line);
 
-			// validate line
+			// validate format
 			if ((line.front() != '/' && ModeName.empty()) || util::trim_front(line, [
 			](char c) { return c == '/' || util::is_whitespace(c); }).empty()) {
-				return debug::failure();
+				return debug::fail();
 			}
 
 			// process command
-			ds::string name;
+			string name;
 			if (!ModeName.empty()) {
 				name = ModeName;
 			}
@@ -217,7 +261,7 @@ namespace ml::ImGuiExt
 			}
 			else
 			{
-				return debug::failure("unknown command: {0} {1}", name, line);
+				return debug::fail("unknown command: {0} {1}", name, line);
 			}
 		}
 
@@ -244,7 +288,7 @@ namespace ml::ImGuiExt
 				}
 
 				// build list of candidates
-				ds::list<cstring> candidates{};
+				list<cstring> candidates{};
 				for (auto const & e : this->Cmd)
 				{
 					cstring name{ e.name.c_str() };

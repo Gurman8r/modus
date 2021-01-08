@@ -48,7 +48,7 @@ namespace ml::gfx
 			std::stringstream ss{};
 			ML_glCheck(ss.str((cstring)glGetString(GL_EXTENSIONS)));
 
-			ds::string line{};
+			string line{};
 			while (std::getline(ss, line, ' '))
 			{
 				m_info.extensions.push_back(line);
@@ -188,11 +188,11 @@ namespace ml::gfx
 		ML_verify("invalid render context api" && desc.api == context_api_opengl);
 
 		if (auto const major{ parent->get_info().major_version }; major != desc.major) {
-			debug::warning("opengl major version mismatch: {0}!={1}", major, desc.major);
+			debug::warn("opengl major version mismatch: {0}!={1}", major, desc.major);
 		}
 
 		if (auto const minor{ parent->get_info().minor_version }; minor != desc.minor) {
-			debug::warning("opengl minor version mismatch: {0}!={1}", minor, desc.minor);
+			debug::warn("opengl minor version mismatch: {0}!={1}", minor, desc.minor);
 		}
 
 		ML_glCheck(ML_glEnable(GL_MULTISAMPLE, desc.multisample));
@@ -795,7 +795,7 @@ namespace ml::gfx
 
 	bool opengl_texture2d::revalue()
 	{
-		if (!m_locked) { return debug::failure("texture2d is not locked"); }
+		if (!m_locked) { return debug::fail("texture2d is not locked"); }
 
 		if (m_handle) { ML_glCheck(glDeleteTextures(1, &m_handle)); }
 		
@@ -808,19 +808,19 @@ namespace ml::gfx
 	{
 		m_locked = true;
 
-		debug::warning("texture lock/unlock NYI");
+		debug::warn("texture lock/unlock NYI");
 	}
 
 	void opengl_texture2d::unlock()
 	{
 		m_locked = false;
 
-		debug::warning("texture lock/unlock NYI");
+		debug::warn("texture lock/unlock NYI");
 	}
 
 	void opengl_texture2d::update(vec2i const & size, addr_t data)
 	{
-		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::fail("texture2d is not locked"); }
 
 		if (m_handle && (m_size == size)) { return; }
 		else { m_size = size; }
@@ -845,7 +845,7 @@ namespace ml::gfx
 
 	void opengl_texture2d::update(vec2i const & pos, vec2i const & size, addr_t data)
 	{
-		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::fail("texture2d is not locked"); }
 
 		if (m_handle && (m_size == size)) { return; }
 		else { m_size = size; }
@@ -870,7 +870,7 @@ namespace ml::gfx
 
 	void opengl_texture2d::set_mipmapped(bool value)
 	{
-		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::fail("texture2d is not locked"); }
 
 		ML_flag_write(m_flags, texture_flags_mipmap, value);
 
@@ -887,7 +887,7 @@ namespace ml::gfx
 
 	void opengl_texture2d::set_repeated(bool value)
 	{
-		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::fail("texture2d is not locked"); }
 
 		ML_flag_write(m_flags, texture_flags_repeat, value);
 
@@ -911,7 +911,7 @@ namespace ml::gfx
 
 	void opengl_texture2d::set_smooth(bool value)
 	{
-		if (!m_locked) { return (void)debug::failure("texture2d is not locked"); }
+		if (!m_locked) { return (void)debug::fail("texture2d is not locked"); }
 
 		ML_flag_write(m_flags, texture_flags_smooth, value);
 
@@ -928,7 +928,7 @@ namespace ml::gfx
 
 	bitmap opengl_texture2d::copy_to_image() const
 	{
-		if (!m_locked) { debug::failure("texture2d is not locked"); return bitmap{}; }
+		if (!m_locked) { debug::fail("texture2d is not locked"); return bitmap{}; }
 
 		bitmap temp{ m_size, calc_bits_per_pixel(m_format.color) };
 		if (m_handle)
@@ -971,7 +971,7 @@ namespace ml::gfx
 
 	bool opengl_texture3d::revalue()
 	{
-		if (!m_locked) { return debug::failure("texture3d is not locked"); }
+		if (!m_locked) { return debug::fail("texture3d is not locked"); }
 
 		if (m_handle) { ML_glCheck(glDeleteTextures(1, &m_handle)); }
 		
@@ -984,14 +984,14 @@ namespace ml::gfx
 	{
 		m_locked = true;
 
-		debug::warning("texture lock/unlock NYI");
+		debug::warn("texture lock/unlock NYI");
 	}
 
 	void opengl_texture3d::unlock()
 	{
 		m_locked = false;
 
-		debug::warning("texture lock/unlock NYI");
+		debug::warn("texture lock/unlock NYI");
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1020,7 +1020,7 @@ namespace ml::gfx
 
 	bool opengl_texturecube::revalue()
 	{
-		if (!m_locked) { return debug::failure("texturecube is not locked"); }
+		if (!m_locked) { return debug::fail("texturecube is not locked"); }
 
 		if (m_handle) { ML_glCheck(glDeleteTextures(1, &m_handle)); }
 		
@@ -1033,14 +1033,14 @@ namespace ml::gfx
 	{
 		m_locked = true;
 
-		debug::warning("texture lock/unlock NYI");
+		debug::warn("texture lock/unlock NYI");
 	}
 
 	void opengl_texturecube::unlock()
 	{
 		m_locked = false;
 
-		debug::warning("texture lock/unlock NYI");
+		debug::warn("texture lock/unlock NYI");
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1058,11 +1058,6 @@ namespace ml::gfx
 		, m_size		{ desc.size }
 		, m_format		{ desc.format }
 		, m_flags		{ desc.flags }
-		, m_bpp			{ desc.bpp }
-		, m_stencil_bits{ desc.stencil_bits }
-		, m_depth_bits	{ desc.depth_bits }
-		, m_samples		{ desc.samples }
-		, m_stereo		{ desc.stereo }
 	{
 		resize(m_size);
 	}
@@ -1163,7 +1158,7 @@ namespace ml::gfx
 		// check status
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		{
-			debug::failure("framebuffer is not complete");
+			debug::fail("framebuffer is not complete");
 		}
 	}
 

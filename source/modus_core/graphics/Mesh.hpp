@@ -17,14 +17,14 @@ namespace ml
 		{
 		}
 
-		mesh(ds::list<float32> const & v, gfx::buffer_layout const & l = {})
+		mesh(list<float32> const & v, gfx::buffer_layout const & l = {})
 			: mesh{}
 		{
 			set_layout(l);
 			add_vertices(v);
 		}
 
-		mesh(ds::list<float32> const & v, ds::list<uint32> const & i, gfx::buffer_layout const & l = {})
+		mesh(list<float32> const & v, list<uint32> const & i, gfx::buffer_layout const & l = {})
 			: mesh{}
 		{
 			set_layout(l);
@@ -32,12 +32,12 @@ namespace ml
 			set_indices(i);
 		}
 
-		mesh(ds::list<vertex> const & verts, gfx::buffer_layout const & l = {})
+		mesh(list<vertex> const & verts, gfx::buffer_layout const & l = {})
 			: mesh{ util::contiguous(verts), l }
 		{
 		}
 
-		mesh(ds::list<vertex> const & v, ds::list<uint32> const & i, gfx::buffer_layout const & l = {})
+		mesh(list<vertex> const & v, list<uint32> const & i, gfx::buffer_layout const & l = {})
 			: mesh{ util::contiguous(v), i, l }
 		{
 		}
@@ -75,7 +75,7 @@ namespace ml
 			m_va->add_vertices(value);
 		}
 
-		void add_vertices(ds::list<float32> const & value) noexcept
+		void add_vertices(list<float32> const & value) noexcept
 		{
 			if (value.empty())
 			{
@@ -103,7 +103,7 @@ namespace ml
 			m_va->set_indices(value);
 		}
 
-		void set_indices(ds::list<uint32> const & value) noexcept
+		void set_indices(list<uint32> const & value) noexcept
 		{
 			if (value.empty()) { set_indices(nullptr); }
 			else
@@ -117,9 +117,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		static ds::list<vertex> load_from_file(fs::path const & path);
+		static list<vertex> load_from_file(fs::path const & path);
 
-		static ds::list<vertex> load_from_file(fs::path const & path, int32 flags);
+		static list<vertex> load_from_file(fs::path const & path, int32 flags);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -129,7 +129,7 @@ namespace ml
 
 		auto get_indices() const & noexcept -> ref<gfx::indexbuffer> const & { return m_va->get_indices(); }
 
-		auto get_vertices() const & noexcept -> ds::list<ref<gfx::vertexbuffer>> const & { return m_va->get_vertices(); }
+		auto get_vertices() const & noexcept -> list<ref<gfx::vertexbuffer>> const & { return m_va->get_vertices(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

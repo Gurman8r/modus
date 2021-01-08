@@ -10,7 +10,7 @@ namespace ml::gfx
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// program source
-	ML_alias program_source = ds::array<std::optional<ds::string>, shader_type_MAX>;
+	ML_alias program_source = array<std::optional<string>, shader_type_MAX>;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -20,13 +20,13 @@ namespace ml::gfx
 	template <size_t N
 	> bool parse_source(const char(&in)[N], program_source & out) noexcept
 	{
-		ds::stringstream s{ in };
+		stringstream s{ in };
 		return parse_source(s, out);
 	}
 
-	inline bool parse_source(ds::string const & in, program_source & out) noexcept
+	inline bool parse_source(string const & in, program_source & out) noexcept
 	{
-		ds::stringstream s{ in };
+		stringstream s{ in };
 		return parse_source(s, out);
 	}
 
@@ -51,7 +51,7 @@ namespace ml::gfx
 				if (src[i]) { ptr->attach((uint32)i, *src[i]); }
 			}
 			
-			if (!ptr->link()) { debug::warning(ptr->get_info_log()); }
+			if (!ptr->link()) { debug::warn(ptr->get_info_log()); }
 			
 			return ptr;
 		}

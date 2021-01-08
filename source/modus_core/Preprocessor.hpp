@@ -56,17 +56,12 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// handle format
-#ifndef ML_FMT_HANDLE
-#define ML_FMT_HANDLE(name)		ML_cat(name, __)
-#endif
+// handle declarator
+#define ML_decl_handle(name)	struct ML_cat(name, __) { int unused; }; \
+								ML_alias name = typename ML_cat(name, __) *
 
-// declare handle
-#define ML_decl_handle(name)	struct ML_FMT_HANDLE(name) { int unused; }; \
-								ML_alias name = typename ML_FMT_HANDLE(name) *
-
-// handle cast
-#define ML_handle(type, value)	((type)(_ML intptr_t)(value))
+// handle caster
+#define ML_handle(type, value)	((type)(intptr_t)(value))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

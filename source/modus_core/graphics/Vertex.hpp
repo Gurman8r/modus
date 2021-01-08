@@ -13,7 +13,7 @@ namespace ml
 
 		static constexpr size_t size{ 8 };
 
-		using storage_type = typename ds::array<float32, size>;
+		using storage_type = typename array<float32, size>;
 
 		explicit vertex(vec3 const & p, vec3 const & n, vec2 const & t) : m_data{
 			p[0], p[1], p[2], n[0], n[1], n[2], t[0], t[1]
@@ -129,9 +129,9 @@ namespace ml::util
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	ML_NODISCARD inline auto contiguous(ds::list<vertex> const & v) noexcept
+	ML_NODISCARD inline auto contiguous(list<vertex> const & v) noexcept
 	{
-		ds::list<float32> temp{};
+		list<float32> temp{};
 		if (size_t const imax{ v.size() * vertex::size })
 		{
 			temp.reserve(imax);

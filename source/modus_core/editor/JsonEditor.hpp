@@ -53,13 +53,13 @@ namespace ml
 		json *			m_root{};
 		json *			m_selected{};
 		bool			m_show_values{ true };
-		ds::list<char>	m_temp_buffer{};
+		list<char>	m_temp_buffer{};
 
-		ds::method<void(json_editor *, cstring, json *)>		on_item_selected		{};
-		ds::method<void(json_editor *, cstring, json *)>		on_item_hovered			{};
-		ds::method<void(json_editor *, cstring, json *, int32)>	on_item_clicked			{};
-		ds::method<void(json_editor *, cstring, json *)>		on_item_popup_context	{};
-		ds::method<void(json_editor *, cstring, json *)>		on_item_repr			{};
+		method<void(json_editor *, cstring, json *)>		on_item_selected		{};
+		method<void(json_editor *, cstring, json *)>		on_item_hovered			{};
+		method<void(json_editor *, cstring, json *, int32)>	on_item_clicked			{};
+		method<void(json_editor *, cstring, json *)>		on_item_popup_context	{};
+		method<void(json_editor *, cstring, json *)>		on_item_repr			{};
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

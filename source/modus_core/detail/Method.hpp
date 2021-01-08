@@ -3,13 +3,37 @@
 
 #include <modus_core/detail/Utility.hpp>
 
-namespace ml::ds
+namespace ml
 {
 	// method
 	template <class Signature
 	> struct method : public std::function<Signature>
 	{
 		using std::function<Signature>::function;
+	};
+
+	// delegate
+	template <class Signature
+	> struct delegate : public list<method<Signature>>
+	{
+		using list<method<Signature>>::list;
+
+		template <class ... Args
+		> void operator()(Args && ... args) const noexcept
+		{
+			for (auto const & e : *this)
+			{
+				ML_check(e)(ML_forward(args)...);
+			}
+		}
+
+		template <class Fn
+		> auto & operator+=(Fn && value) noexcept
+		{
+			this->emplace_back(ML_forward(value));
+
+			return (*this);
+		}
 	};
 }
 

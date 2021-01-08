@@ -27,40 +27,56 @@
 // set global
 #define ML_set_global(T, value)		(_ML_GLOBALS set_global<T>(value))
 
+// is global
+#define ML_is_global(T, value)		(_ML_GLOBALS is_global<T>(value))
+
 // begin global
 #define ML_begin_global(T, value)	(_ML_GLOBALS begin_global<T>(value))
 
 // end global
 #define ML_end_global(T, value)		(_ML_GLOBALS end_global<T>(value))
 
+// global object constructor
+#define ML_ctor_global(T)			ML_verify(ML_begin_global(T, this))
+
+// global object destructor
+#define ML_dtor_global(T)			ML_verify(ML_is_global(T, this)); \
+									ML_defer(&) { ML_verify(ML_end_global(T, this)); }
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 namespace ml::globals
 {
 	// get global
-	template <class T> ML_NODISCARD T * get_global() noexcept
+	template <class T> ML_NODISCARD T * get_global()
 	{
-		static_assert(0, "get global not implemented for type");
+		static_assert(!"get global not implemented for type");
 		return nullptr;
 	}
 
 	// set global
-	template <class T> ML_NODISCARD T * set_global(T *) noexcept
+	template <class T> ML_NODISCARD T * set_global(T *)
 	{
-		static_assert(0, "set global not implemented for type");
+		static_assert(!"set global not implemented for type");
 		return nullptr;
 	}
 
-	// begin global
-	template <class T> ML_NODISCARD bool begin_global(T * value) noexcept
+	// is global
+	template <class T> ML_NODISCARD bool is_global(T * value)
 	{
-		return value && (ML_get_global(T) == nullptr) && ML_set_global(T, value);
+		return value == ML_get_global(T);
+	}
+
+	// begin global
+	template <class T> ML_NODISCARD bool begin_global(T * value)
+	{
+		return value && ML_is_global(T, nullptr) && ML_set_global(T, value);
 	}
 
 	// end global
-	template <class T> ML_NODISCARD bool end_global(T * value) noexcept
+	template <class T> ML_NODISCARD bool end_global(T * value)
 	{
-		return value && (ML_get_global(T) == value) && !ML_set_global(T, nullptr);
+		return value && ML_is_global(T, value) && !ML_set_global(T, nullptr);
 	}
 }
 

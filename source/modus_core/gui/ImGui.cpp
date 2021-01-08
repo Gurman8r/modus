@@ -82,17 +82,17 @@ namespace ml
 		if (!f) { return false; }
 	
 		// scan file
-		ds::string line;
+		string line;
 		while (std::getline(f, line))
 		{
 			if ((line = util::trim(line)).empty() || line.front() == '#') { continue; }
 	
 			// scan line
 			std::stringstream ss{}; ss << line;
-			switch (hashof(util::parse<ds::string>(ss)))
+			switch (hashof(util::parse<string>(ss)))
 			{
 			/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-			case hashof("ImGuiStyle"): { switch (hashof(util::parse<ds::string>(ss)))
+			case hashof("ImGuiStyle"): { switch (hashof(util::parse<string>(ss)))
 			{
 			case hashof("Alpha")					: ref.Alpha = util::parse<float32>(ss); break;
 			case hashof("WindowPadding")			: ref.WindowPadding = util::parse<vec2>(ss); break;
@@ -131,7 +131,7 @@ namespace ml
 			case hashof("CurveTessellationTol")		: ref.CurveTessellationTol = util::parse<float32>(ss); break;
 			} } break;
 			/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-			case hashof("ImGuiCol"): { switch (hashof(util::parse<ds::string>(ss)))
+			case hashof("ImGuiCol"): { switch (hashof(util::parse<string>(ss)))
 			{
 			case hashof("Text")					: ref.Colors[ImGuiCol_Text] = util::parse<vec4>(ss); break;
 			case hashof("TextDisabled")			: ref.Colors[ImGuiCol_TextDisabled] = util::parse<vec4>(ss); break;

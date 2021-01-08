@@ -11,10 +11,13 @@ namespace ml
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		scene_editor(ref<scene> const & context = nullptr)
-			: m_context{ context }
-		{
-		}
+		scene_editor(ref<scene> const & context = nullptr);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void draw_hierarchy();
+
+		void draw_inspector();
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -23,12 +26,9 @@ namespace ml
 		void set_context(ref<scene> const & value) noexcept { m_context = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		void draw();
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	private:
-		ref<scene> m_context{};
+		ref<scene>	m_context	; // 
+		ref<scene>	m_selected	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

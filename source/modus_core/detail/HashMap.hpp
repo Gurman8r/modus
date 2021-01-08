@@ -5,7 +5,7 @@
 
 #include <modus_core/detail/Utility.hpp>
 
-namespace ml::ds
+namespace ml
 {
 	// hashmap
 	template <
@@ -13,7 +13,7 @@ namespace ml::ds
 		class Val,
 		class Hasher = std::hash<Key>,
 		class Equals = std::equal_to<Key>
-	> ML_alias hashmap = typename pmr::unordered_map
+	> ML_alias hash_map = typename pmr::unordered_map
 	<
 		Key, Val, Hasher, Equals
 	>;

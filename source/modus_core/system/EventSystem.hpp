@@ -1,8 +1,8 @@
 #ifndef _ML_EVENT_SYSTEM_HPP_
 #define _ML_EVENT_SYSTEM_HPP_
 
-#include <modus_core/detail/Map.hpp>
-#include <modus_core/detail/Memory.hpp>
+#include <modus_core/detail/FlatMap.hpp>
+#include <modus_core/system/Memory.hpp>
 #include <modus_core/detail/Method.hpp>
 
 // event helper
@@ -147,7 +147,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using event_callback = typename ds::method< void(event const &) >;
+		using event_callback = typename method< void(event const &) >;
 
 		explicit dummy_listener(event_bus * bus) noexcept : event_listener{ bus }
 		{
@@ -209,10 +209,10 @@ namespace ml
 		};
 
 		using allocator_type	= typename pmr::polymorphic_allocator<byte>;
-		using category			= typename ds::set<event_listener *, comparator>;
-		using categories		= typename ds::map<hash_t, category>;
+		using category			= typename flat_set<event_listener *, comparator>;
+		using categories		= typename flat_map<hash_t, category>;
 		using dummy_ref			= typename ref<dummy_listener>;
-		using dummy_list		= typename ds::list<dummy_ref>;
+		using dummy_list		= typename list<dummy_ref>;
 
 		template <class Ev> static constexpr bool is_valid_event
 		{

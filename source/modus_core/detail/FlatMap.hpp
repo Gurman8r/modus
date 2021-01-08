@@ -1,22 +1,23 @@
-#ifndef _ML_MAP_HPP_
-#define _ML_MAP_HPP_
+#ifndef _ML_FLAT_MAP_HPP_
+#define _ML_FLAT_MAP_HPP_
 
-#include <modus_core/detail/Set.hpp>
+#include <modus_core/detail/FlatSet.hpp>
 
 namespace ml::ds
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// FLAT MAP TRAITS
+	// BASIC FLAT MAP
 	template <
 		class	_Kt,	// key type
 		class	_Vt,	// value type
 		class	_Pr,	// key comparator predicate type
 		size_t	_Th		// search heuristic
-	> struct flat_map_traits final
+	> struct basic_flat_map
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		using self_type			= typename basic_flat_map<_Kt, _Vt, _Pr, _Th>;
 		using key_type			= typename _Kt;
 		using value_type		= typename _Vt;
 		using compare_type		= typename _Pr;
@@ -26,34 +27,9 @@ namespace ml::ds
 
 		static constexpr size_type thresh{ _Th };
 
-		template <class T = key_type
-		> using key_storage = typename ds::set<T, compare_type, thresh>;
-
-		template <class T = value_type
-		> using value_storage = typename ds::list<T>;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// BASIC FLAT MAP
-	template <class _Traits
-	> struct basic_flat_map
-	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		using traits_type						= typename _Traits;
-		using self_type							= typename basic_flat_map<traits_type>;
-		using key_type							= typename traits_type::key_type;
-		using value_type						= typename traits_type::value_type;
-		using compare_type						= typename traits_type::compare_type;
-		using allocator_type					= typename traits_type::allocator_type;
-		using difference_type					= typename traits_type::difference_type;
-		using size_type							= typename traits_type::size_type;
-		using key_storage						= typename traits_type::template key_storage<>;
-		using value_storage						= typename traits_type::template value_storage<>;
-
+		using key_storage						= typename flat_set<key_type, compare_type, thresh>;
 		using key_pointer						= typename key_storage::pointer;
 		using key_const_pointer					= typename key_storage::const_pointer;
 		using key_reference						= typename key_storage::reference;
@@ -64,6 +40,7 @@ namespace ml::ds
 		using key_reverse_iterator				= typename key_storage::reverse_iterator;
 		using key_const_reverse_iterator		= typename key_storage::const_reverse_iterator;
 
+		using value_storage						= typename list<value_type>;
 		using value_pointer						= typename value_storage::pointer;
 		using value_const_pointer				= typename value_storage::const_pointer;
 		using value_reference					= typename value_storage::reference;
@@ -101,7 +78,7 @@ namespace ml::ds
 		{
 		}
 
-		basic_flat_map(ds::list<key_type> && k, ds::list<value_type> && v, allocator_type alloc = {}) noexcept
+		basic_flat_map(list<key_type> && k, list<value_type> && v, allocator_type alloc = {}) noexcept
 			: self_type{ alloc }
 		{
 			for (size_t i = 0, imax = ML_min(k.size(), v.size()); i < imax; ++i)
@@ -627,30 +604,17 @@ namespace ml::ds
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// FLAT MAP | flat ordered associative container
-	template <
-		class	_Kt,					// key type
-		class	_Vt,					// value type
-		class	_Pr = std::less<_Kt>,	// key comparator predicate type
-		size_t	_Th = 42				// search heuristic
-	> ML_alias map = basic_flat_map
-	<
-		flat_map_traits<_Kt, _Vt, _Pr, _Th>
-	>;
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	template <class K, class V, class P = std::less<K>, size_t T = 42
-	> void to_json(json & j, ds::map<K, V, P, T> const & v)
+	> void to_json(json & j, basic_flat_map<K, V, P, T> const & v)
 	{
 		j["keys"	] = v.keys();
 		j["values"	] = v.values();
 	}
 
 	template <class K, class V, class P = std::less<K>, size_t T = 42
-	> void from_json(json const & j, ds::map<K, V, P, T> & v)
+	> void from_json(json const & j, basic_flat_map<K, V, P, T> & v)
 	{
-		using M = typename ds::map<K, V, T, P>;
+		using M = typename basic_flat_map<K, V, T, P>;
 		using K = typename M::key_storage;
 		using V = typename M::value_storage;
 
@@ -660,4 +624,22 @@ namespace ml::ds
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-#endif // !_ML_MAP_HPP_
+namespace ml
+{
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	// FLAT MAP | flat ordered associative container
+	template <
+		class	_Kt,					// key type
+		class	_Vt,					// value type
+		class	_Pr = std::less<_Kt>,	// key comparator predicate type
+		size_t	_Th = 42				// search heuristic
+	> ML_alias flat_map = ds::basic_flat_map
+	<
+		_Kt, _Vt, _Pr, _Th
+	>;
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
+
+#endif // !_ML_FLAT_MAP_HPP_

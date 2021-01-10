@@ -89,7 +89,7 @@ namespace ml
 
 		void delete_child(size_t i)
 		{
-			if (i < get_child_count())
+			if (i < m_children.size())
 			{
 				auto const it{ m_children.begin() + (ptrdiff_t)i };
 
@@ -132,21 +132,27 @@ namespace ml
 			m_children.clear();
 		}
 
-		void set_index(size_t i)
-		{
-		}
-
 		bool set_parent(node * value)
 		{
 			if (!value || (this == value) || value->is_child_of(this)) { return false; }
-			
-			if (value) { value->m_children.push_back(this); }
+			else
+			{
+				if (value) { value->m_children.push_back(this); }
+				if (m_parent) { m_parent->m_children.erase(m_parent->find_node(this)); }
+				m_parent = value;
+				return true;
+			}
+		}
 
-			if (m_parent) { m_parent->m_children.erase(m_parent->find_node(this)); }
-
-			m_parent = value;
-
-			return true;
+		void set_sibling_index(size_t i)
+		{
+			if (!m_parent) { return; }
+			static node * temp{};
+			auto & v{ m_parent->m_children };
+			auto here{ get_sibling_index() };
+			temp = *(v.begin() + here);
+			v.erase(v.begin() + here);
+			v.insert(v.begin() + i, temp);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -161,17 +167,16 @@ namespace ml
 		
 		ML_NODISCARD auto get_children() const noexcept -> list<node *> const & { return m_children; }
 
-		ML_NODISCARD auto get_index() const noexcept -> size_t
-		{
-			if (!m_parent) { return npos; }
-			else if (auto const it{ m_parent->find_node(this) }
-			; it == m_parent->m_children.end()) { return npos; }
-			else { return (size_t)std::distance(m_parent->m_children.begin(), it); }
-		}
-
 		ML_NODISCARD auto get_parent() const noexcept -> node * { return m_parent; }
 
 		ML_NODISCARD auto get_root() const noexcept -> node * { return m_parent ? m_parent->get_root() : const_cast<node *>(this); }
+
+		ML_NODISCARD auto get_sibling_index() const noexcept -> size_t
+		{
+			if (!m_parent) { return 0; }
+			else if (auto const it{ m_parent->find_node(this) }; it == m_parent->m_children.end()) { return npos; }
+			else { return (size_t)std::distance(m_parent->m_children.begin(), it); }
+		}
 
 		ML_NODISCARD auto get_tree() const noexcept -> scene_tree * { return m_tree; }
 

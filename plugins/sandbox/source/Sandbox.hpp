@@ -40,7 +40,8 @@ namespace ml
 		bool const is_root{ !value->get_parent() }, is_leaf{ 0 == value->get_child_count() };
 		cstring node_name{ value->get_name().c_str() };
 		size_t const child_count{ value->get_child_count() };
-		size_t const sibling_index{ value->get_index() };
+		size_t const sibling_index{ value->get_sibling_index() };
+		size_t const sibling_count{ is_root ? 0 : value->get_parent()->get_child_count() };
 
 		ImGuiID const node_id{ window->GetID(value) };
 
@@ -70,6 +71,12 @@ namespace ml
 			}
 			if (ImGui::MenuItem("clear children", "", false, !is_leaf)) { value->clear_children(); }
 			if (ImGui::MenuItem("detach children", "", false, !is_root && !is_leaf)) { value->detatch_children(); }
+			if (ImGui::MenuItem("move up", "", false, !is_root && (sibling_index > 0))) {
+				value->set_sibling_index(sibling_index - 1);
+			}
+			if (ImGui::MenuItem("move down", "", false, !is_root && (sibling_index < sibling_count - 1))) {
+				value->set_sibling_index(sibling_index + 1);
+			}
 			ImGui::EndPopup();
 		}
 

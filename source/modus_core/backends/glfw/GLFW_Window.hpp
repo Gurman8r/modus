@@ -6,9 +6,6 @@
 struct GLFWwindow;
 struct GLFWmonitor;
 
-
-
-// WINDOW
 namespace ml
 {
 	// glfw window

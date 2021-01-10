@@ -2,8 +2,7 @@
 #define _ML_CORE_APPLICATION_HPP_
 
 #include <modus_core/detail/Timer.hpp>
-#include <modus_core/embed/LibraryManager.hpp>
-#include <modus_core/runtime/PluginManager.hpp>
+#include <modus_core/embed/PluginManager.hpp>
 
 namespace ml
 {
@@ -14,6 +13,8 @@ namespace ml
 
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
+
+		using library_storage = typename batch_vector<library_id, file_info, ref<native_library>>;
 
 		core_application(int32 argc, char * argv[], json const & argj = {}, allocator_type alloc = {});
 
@@ -31,69 +32,104 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto app_data_path() const noexcept -> fs::path const & { return m_app_data_path; }
+		ML_NODISCARD auto get_app_data_path() const noexcept -> fs::path const & { return m_app_data_path; }
 
-		ML_NODISCARD auto app_file_name() const noexcept -> fs::path const & { return m_app_file_name; }
+		ML_NODISCARD auto get_app_file_name() const noexcept -> fs::path const & { return m_app_file_name; }
 
-		ML_NODISCARD auto app_file_path() const noexcept -> fs::path const & { return m_app_file_path; }
+		ML_NODISCARD auto get_app_file_path() const noexcept -> fs::path const & { return m_app_file_path; }
 
-		ML_NODISCARD auto app_name() noexcept -> string const & { return m_app_name; }
+		ML_NODISCARD auto get_app_name() noexcept -> string const & { return m_app_name; }
 
-		ML_NODISCARD auto app_version() noexcept -> string const & { return m_app_version; }
+		ML_NODISCARD auto get_app_version() noexcept -> string const & { return m_app_version; }
 
-		ML_NODISCARD auto arguments() noexcept -> list<string> & { return m_arguments; }
+		ML_NODISCARD auto get_arguments() noexcept -> list<string> & { return m_arguments; }
 
-		ML_NODISCARD auto arguments() const noexcept -> list<string> const & { return m_arguments; }
+		ML_NODISCARD auto get_arguments() const noexcept -> list<string> const & { return m_arguments; }
 
-		ML_NODISCARD auto arguments(size_t i) noexcept -> string & { return m_arguments[i]; }
+		ML_NODISCARD auto get_arguments(size_t i) noexcept -> string & { return m_arguments[i]; }
 
-		ML_NODISCARD auto arguments(size_t i) const noexcept -> string const & { return m_arguments[i]; }
+		ML_NODISCARD auto get_arguments(size_t i) const noexcept -> string const & { return m_arguments[i]; }
 
-		ML_NODISCARD auto library_paths() noexcept -> list<fs::path> & { return m_library_paths; }
+		ML_NODISCARD auto get_attr() noexcept -> json & { return m_attributes; }
 
-		ML_NODISCARD auto library_paths() const noexcept -> list<fs::path> const & { return m_library_paths; }
+		ML_NODISCARD auto get_attr() const noexcept -> json const & { return m_attributes; }
 
-		ML_NODISCARD auto library_paths(size_t i) noexcept -> fs::path & { return m_library_paths[i]; }
+		template <class I> ML_NODISCARD auto get_attr(I && i) noexcept -> json & { return m_attributes[ML_forward(i)]; }
 
-		ML_NODISCARD auto library_paths(size_t i) const noexcept -> fs::path const & { return m_library_paths[i]; }
-
-		ML_NODISCARD auto path_to(fs::path const & value) const noexcept -> fs::path { return m_app_data_path.native() + value.native(); }
-
-		ML_NODISCARD auto uptime() const noexcept -> duration { return m_main_timer.elapsed(); }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto attr() noexcept -> json & { return m_attributes; }
-
-		ML_NODISCARD auto attr() const noexcept -> json const & { return m_attributes; }
-
-		template <class I> ML_NODISCARD auto attr(I && i) noexcept -> json & { return m_attributes[ML_forward(i)]; }
-
-		template <class I> ML_NODISCARD auto attr(I && i) const noexcept -> json const & { return m_attributes[ML_forward(i)]; }
+		template <class I> ML_NODISCARD auto get_attr(I && i) const noexcept -> json const & { return m_attributes[ML_forward(i)]; }
 
 		template <class I> ML_NODISCARD bool has_attr(I && i) const noexcept { return m_attributes.contains(ML_forward(i)); }
 
+		ML_NODISCARD auto get_library_paths() noexcept -> list<fs::path> & { return m_library_paths; }
+
+		ML_NODISCARD auto get_library_paths() const noexcept -> list<fs::path> const & { return m_library_paths; }
+
+		ML_NODISCARD auto get_library_paths(size_t i) noexcept -> fs::path & { return m_library_paths[i]; }
+
+		ML_NODISCARD auto get_library_paths(size_t i) const noexcept -> fs::path const & { return m_library_paths[i]; }
+
+		ML_NODISCARD auto get_path_to(fs::path const & value) const noexcept -> fs::path { return m_app_data_path.native() + value.native(); }
+
+		ML_NODISCARD auto get_temp_buffer() noexcept -> list<byte> & { return m_temp_buffer; }
+
+		ML_NODISCARD auto get_temp_buffer() const noexcept -> list<byte> const & { return m_temp_buffer; }
+
+		ML_NODISCARD auto get_time() const noexcept -> duration { return m_main_timer.elapsed(); }
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_libraries() const noexcept { return const_cast<library_manager *>(&m_libraries); }
+		ML_NODISCARD auto get_library(library_id id) -> ref<native_library>
+		{
+			if (size_t const i{ m_libraries.lookup<library_id>(id) }; i == m_libraries.npos) { return nullptr; }
+			else { return m_libraries.get<ref<native_library>>(i); }
+		}
 
-		template <class ID> ML_NODISCARD bool has_library(ID && id) const noexcept { return m_libraries.contains(ML_forward(id)); }
+		ML_NODISCARD auto get_library(library_id id) const -> ref<native_library>
+		{
+			if (size_t const i{ m_libraries.lookup<library_id>(id) }; i == m_libraries.npos) { return nullptr; }
+			else { return m_libraries.get<ref<native_library>>(i); }
+		}
 
-		auto load_library(fs::path const & path) noexcept -> ref<native_library> { return m_libraries.load_library(path); }
+		ML_NODISCARD auto get_library(fs::path const & path) noexcept -> ref<native_library> { return this->get_library((library_id)hashof(path.string())); }
 
-		bool free_library(library_id id) noexcept { free_plugin((plugin_id)id); return m_libraries.free_library(id); }
+		ML_NODISCARD auto get_library(fs::path const & path) const noexcept -> ref<native_library> { return this->get_library((library_id)hashof(path.string())); }
+
+		ML_NODISCARD bool has_library(library_id id) const noexcept { return m_libraries.contains<library_id>(id); }
+
+		ML_NODISCARD bool has_library(fs::path const & path) const noexcept { return this->has_library((library_id)hashof(path.string())); }
+
+		ML_NODISCARD bool has_library(ref<native_library> const & value) const noexcept { return value && this->has_library(value->get_uuid()); }
+
+		auto load_library(fs::path const & path, allocator_type alloc = {}) noexcept -> ref<native_library>
+		{
+			if (ref<native_library> lib{ this->get_library(path) }) { return lib; }
+			else if (!(lib = alloc_ref<native_library>(alloc, path)) || !*lib) { return nullptr; }
+			else { return std::get<2>(m_libraries.push_back(lib->get_uuid(), lib->get_file_info(), std::move(lib))); }
+		}
+
+		bool add_library(ref<native_library> const & value) noexcept
+		{
+			if (!value || !*value || m_libraries.contains<library_id>(value->get_uuid())) { return false; }
+			else { m_libraries.push_back(value->get_uuid(), value->get_file_info(), value); return true; }
+		}
+
+		bool free_library(library_id id) noexcept
+		{
+			if (size_t const i{ m_libraries.lookup<library_id>(id) }; i == m_libraries.npos) { return false; }
+			else { free_plugin((plugin_id)id); m_libraries.erase(i); return true; }
+		}
 
 		bool free_library(fs::path const & path) noexcept { return free_library((library_id)hashof(path.string())); }
 
-		bool free_library(ref<native_library> const & lib) noexcept { return lib && free_library((library_id)lib->hash_code()); }
+		bool free_library(ref<native_library> const & lib) noexcept { return lib && free_library(lib->get_uuid()); }
 
-		void free_all_libraries() { free_all_plugins(); m_libraries.free_all_libraries(); }
+		void free_all_libraries() { free_all_plugins(); while (!m_libraries.empty()) { m_libraries.pop_back(); } }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_plugins() const noexcept { return const_cast<plugin_manager *>(&m_plugins); }
+		ML_NODISCARD auto get_plugin_storage() const noexcept { return const_cast<plugin_manager *>(&m_plugins); }
 
 		template <class ID> ML_NODISCARD bool has_plugin(ID && id) const noexcept { return m_plugins.contains(ML_forward(id)); }
 
@@ -105,7 +141,7 @@ namespace ml
 
 		bool free_plugin(fs::path const & path) noexcept { return free_plugin((plugin_id)hashof(path.string())); }
 
-		bool free_plugin(ref<native_library> const & lib) noexcept { return lib && free_plugin((plugin_id)lib->hash_code()); }
+		bool free_plugin(ref<native_library> const & lib) noexcept { return lib && free_plugin((plugin_id)lib->get_uuid()); }
 
 		void free_all_plugins() { m_plugins.free_all_plugins(); }
 
@@ -127,9 +163,11 @@ namespace ml
 		list<string>	m_arguments		; // arguments
 		list<fs::path>	m_library_paths	; // native_library paths
 		json			m_attributes	; // attributes
-		event_bus		m_event_bus		; // event bus
-		library_manager	m_libraries		; // native_library manager
-		plugin_manager	m_plugins		; // plugin manager
+		list<byte>		m_temp_buffer	; // temp buffer
+		
+		event_bus		m_event_bus	; // event bus
+		library_storage	m_libraries	; // native_library storage
+		plugin_manager	m_plugins	; // plugin manager
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

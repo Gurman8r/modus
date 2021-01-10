@@ -86,13 +86,13 @@ namespace ml
 			{
 				return 0;
 			}
-			else if (int32 const cmp{ ML_compare(m_index, other.m_index) }; cmp != 0)
+			else if (int32 const cmp{ util::compare(m_index, other.m_index) })
 			{
 				return cmp;
 			}
 			else
 			{
-				return ML_compare(this, std::addressof(other));
+				return util::compare(this, std::addressof(other));
 			}
 		}
 
@@ -213,8 +213,7 @@ namespace ml
 	};
 
 	// event delegate
-	template <class Ev
-	> struct event_delegate final : event_delegate<void>
+	template <class Ev> struct event_delegate final : event_delegate<void>
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -232,7 +231,9 @@ namespace ml
 
 		~event_delegate() noexcept final { this->clear(); }
 
-		event_delegate(event_bus * bus, allocator_type alloc = {}) noexcept : base_type{ bus }, m_data{ alloc }
+		event_delegate(event_bus * bus, allocator_type alloc = {}) noexcept
+			: base_type{ bus }
+			, m_data{ alloc }
 		{
 			this->subscribe<Ev>();
 		}
@@ -260,13 +261,13 @@ namespace ml
 		ML_NODISCARD auto operator[](size_t i) const noexcept -> method_type const & { return m_data[i]; }
 
 		template <class ... Args
-		> auto emplace(size_t i, Args && ... args) noexcept -> method_type & { return m_data.emplace(begin() + i, ML_forward(args)...); }
+		> auto insert(size_t i, Args && ... args) noexcept -> method_type & { return m_data.emplace(begin() + i, ML_forward(args)...); }
 
 		template <class ... Args
-		> auto emplace_back(Args && ... args) noexcept -> method_type & { return m_data.emplace_back(ML_forward(args)...); }
+		> auto add(Args && ... args) noexcept -> method_type & { return m_data.emplace_back(ML_forward(args)...); }
 
 		template <class Fn
-		> auto operator+=(Fn && fn) noexcept -> self_type & { this->emplace_back(ML_forward(fn)); return (*this); }
+		> auto operator+=(Fn && fn) noexcept -> self_type & { this->add(ML_forward(fn)); return (*this); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

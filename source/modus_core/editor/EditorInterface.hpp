@@ -1,0 +1,5 @@
+#ifndef _ML_EDITOR_INTERFACE_HPP_
+#define _ML_EDITOR_INTERFACE_HPP_
+
+
+#endif // !_ML_EDITOR_INTERFACE_HPP_

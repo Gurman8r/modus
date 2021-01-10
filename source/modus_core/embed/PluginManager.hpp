@@ -1,8 +1,8 @@
 #ifndef _ML_PLUGIN_MANAGER_HPP_
 #define _ML_PLUGIN_MANAGER_HPP_
 
-#include <modus_core/embed/NativeLibrary.hpp>
-#include <modus_core/runtime/Plugin.hpp>
+#include <modus_core/embed/Library.hpp>
+#include <modus_core/embed/Plugin.hpp>
 
 namespace ml
 {
@@ -12,10 +12,10 @@ namespace ml
 	// plugin context
 	struct ML_NODISCARD plugin_context final
 	{
-		plugin_id hash_code;
-		string file_name, file_path, extension;
-		method<plugin * (plugin_manager *, void *)> allocate;
-		method<void(plugin_manager *, plugin *)> deallocate;
+		plugin_id uuid;
+		file_info info;
+		method<native_plugin * (plugin_manager *, void *)> allocate;
+		method<void(plugin_manager *, native_plugin *)> deallocate;
 
 		plugin_context() noexcept = default;
 		plugin_context(plugin_context const &) = default;
@@ -29,12 +29,10 @@ namespace ml
 		explicit plugin_context(ref<native_library> const & lib) : plugin_context{}
 		{
 			ML_verify(lib && *lib);
-			hash_code	= (plugin_id)lib->hash_code();
-			file_name	= lib->path().stem().string();
-			file_path	= lib->path().string();
-			extension	= lib->path().extension().string();
-			allocate	= lib->proc<plugin *, plugin_manager *, void *>("ml_plugin_create");
-			deallocate	= lib->proc<void, plugin_manager *, plugin *>("ml_plugin_destroy");
+			uuid = (plugin_id)lib->get_uuid();
+			info = lib->get_file_info();
+			allocate = lib->get_method<native_plugin *, plugin_manager *, void *>("ml_plugin_create");
+			deallocate = lib->get_method<void, plugin_manager *, native_plugin *>("ml_plugin_destroy");
 		}
 	};
 
@@ -51,7 +49,7 @@ namespace ml
 			plugin_id,
 			plugin_context,
 			unown<native_library>,
-			scary<plugin>
+			scary<native_plugin>
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -81,7 +79,7 @@ namespace ml
 		> ML_NODISCARD auto get_data() const noexcept -> list<T> const & { return m_data.get<T>(); }
 
 		template <class T
-		> ML_NODISCARD auto get_data(size_t i) const noexcept -> T const & { return m_data.at<T>(i); }
+		> ML_NODISCARD auto get_data(size_t i) const noexcept -> T const & { return m_data.get<T>(i); }
 
 		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
 
@@ -93,23 +91,23 @@ namespace ml
 
 		ML_NODISCARD bool contains(fs::path const & path) const noexcept { return this->contains((plugin_id)hashof(path.string())); }
 
-		ML_NODISCARD bool contains(ref<native_library> const & value) const noexcept { return value && this->contains((plugin_id)value->hash_code()); }
+		ML_NODISCARD bool contains(ref<native_library> const & value) const noexcept { return value && this->contains((plugin_id)value->get_uuid()); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class Derived, class ... Args
 		> ML_NODISCARD auto allocate_plugin(Args && ... args) -> Derived *
 		{
-			static_assert(std::is_base_of_v<plugin, Derived>);
+			static_assert(std::is_base_of_v<native_plugin, Derived>);
 			auto ptr{ (Derived *)m_alloc.allocate(sizeof(Derived)) };
 			util::construct(ptr, this, ML_forward(args)...);
 			return ptr;
 		}
 
 		template <class Derived
-		> void deallocate_plugin(plugin * value)
+		> void deallocate_plugin(native_plugin * value)
 		{
-			static_assert(std::is_base_of_v<plugin, Derived>);
+			static_assert(std::is_base_of_v<native_plugin, Derived>);
 			util::destruct((Derived *)value);
 			m_alloc.deallocate((byte *)value, sizeof(Derived));
 		}
@@ -121,18 +119,18 @@ namespace ml
 			if (!lib || !*lib) { return nullptr; }
 			
 			if (size_t const i{ m_data.lookup_if<unown<native_library>>([&
-			](auto const & e) { return !e.expired() && e.lock()->hash_code() == lib->hash_code(); }) }
+			](auto const & e) { return !e.expired() && e.lock()->get_uuid() == lib->get_uuid(); }) }
 			; i != m_data.npos)
 			{
-				return m_data.at<plugin_id>(i);
+				return m_data.get<plugin_id>(i);
 			}
 			else
 			{
-				m_data.push_back((plugin_id)lib->hash_code(), plugin_context{ lib }, lib, nullptr);
+				m_data.push_back((plugin_id)lib->get_uuid(), plugin_context{ lib }, lib, nullptr);
 
-				if (plugin * p{ m_data.back<plugin_context>().allocate(this, userptr) })
+				if (native_plugin * p{ m_data.back<plugin_context>().allocate(this, userptr) })
 				{
-					m_data.back<scary<plugin>>().reset(p);
+					m_data.back<scary<native_plugin>>().reset(p);
 
 					return m_data.back<plugin_id>();
 				}
@@ -150,8 +148,8 @@ namespace ml
 			; i == m_data.npos) { return false; }
 			else
 			{
-				plugin * const p{ m_data.at<scary<plugin>>(i).release() };
-				m_data.at<plugin_context>(i).deallocate(this, p);
+				native_plugin * const p{ m_data.get<scary<native_plugin>>(i).release() };
+				m_data.get<plugin_context>(i).deallocate(this, p);
 				m_data.erase(i);
 				return true;
 			}

@@ -663,19 +663,19 @@ namespace ml::ecs
 					for (; true; ++dead)
 					{
 						if (dead > alive) { return dead; }
-						if (!m_entities.at<id_alive>(dead)) { break; }
+						if (!m_entities.get<id_alive>(dead)) { break; }
 					}
 
 					// find alive entity from the right
 					for (; true; --alive)
 					{
-						if (m_entities.at<id_alive>(alive)) { break; }
+						if (m_entities.get<id_alive>(alive)) { break; }
 						if (alive <= dead) { return dead; }
 					}
 
 					// found two entities that need to be swapped
-					ML_assert(m_entities.at<id_alive>(alive));
-					ML_assert(!m_entities.at<id_alive>(dead));
+					ML_assert(m_entities.get<id_alive>(alive));
+					ML_assert(!m_entities.get<id_alive>(dead));
 					
 					// swap the entities
 					m_entities.swap(alive, dead);
@@ -746,14 +746,14 @@ namespace ml::ecs
 			}
 
 			size_t const i{ m_size_next++ };
-			m_entities.at<id_alive>(i) = true;
-			m_entities.at<id_bitset>(i) = {};
+			m_entities.get<id_alive>(i) = true;
+			m_entities.get<id_bitset>(i) = {};
 			return i;
 		}
 
 		ML_NODISCARD bool is_alive(size_t const i) const
 		{
-			return m_entities.at<id_alive>(i);
+			return m_entities.get<id_alive>(i);
 		}
 
 		ML_NODISCARD bool is_alive(handle const & h) const
@@ -763,7 +763,7 @@ namespace ml::ecs
 
 		self_type & kill(size_t const i)
 		{
-			m_entities.at<id_alive>(i) = false;
+			m_entities.get<id_alive>(i) = false;
 			return (*this);
 		}
 
@@ -777,7 +777,7 @@ namespace ml::ecs
 		ML_NODISCARD handle create_handle()
 		{
 			size_t const i{ this->new_entity() };
-			size_t const e{ m_entities.at<id_handle>(i) };
+			size_t const e{ m_entities.get<id_handle>(i) };
 			auto & h{ m_handles[e] };
 
 			handle temp{};
@@ -819,7 +819,7 @@ namespace ml::ecs
 		template <class T
 		> self_type & add_tag(size_t const i) noexcept
 		{
-			m_entities.at<id_bitset>(i).set(traits::template tag_bit<T>());
+			m_entities.get<id_bitset>(i).set(traits::template tag_bit<T>());
 			return (*this);
 		}
 
@@ -834,7 +834,7 @@ namespace ml::ecs
 		template <class T
 		> self_type & del_tag(size_t const i) noexcept
 		{
-			m_entities.at<id_bitset>(i).clear(traits::template tag_bit<T>());
+			m_entities.get<id_bitset>(i).clear(traits::template tag_bit<T>());
 			return (*this);
 		}
 
@@ -849,7 +849,7 @@ namespace ml::ecs
 		template <class T
 		> ML_NODISCARD bool has_tag(size_t const i) const noexcept
 		{
-			return m_entities.at<id_bitset>(i).read(traits::template tag_bit<T>());
+			return m_entities.get<id_bitset>(i).read(traits::template tag_bit<T>());
 		}
 
 		template <class T
@@ -863,9 +863,9 @@ namespace ml::ecs
 		template <class C, class ... Args
 		> auto & add_component(size_t const i, Args && ... args) noexcept
 		{
-			m_entities.at<id_bitset>(i).set(traits::template component_bit<C>());
+			m_entities.get<id_bitset>(i).set(traits::template component_bit<C>());
 
-			auto & c{ m_components.at<C>(m_entities.at<id_index>(i)) };
+			auto & c{ m_components.get<C>(m_entities.get<id_index>(i)) };
 			c = C{ ML_forward(args)... };
 			return c;
 		}
@@ -893,7 +893,7 @@ namespace ml::ecs
 		template <class C
 		> self_type & del_component(size_t const i) noexcept
 		{
-			m_entities.at<id_bitset>(i).clear(traits::template component_bit<C>());
+			m_entities.get<id_bitset>(i).clear(traits::template component_bit<C>());
 			return (*this);
 		}
 
@@ -908,13 +908,13 @@ namespace ml::ecs
 		template <class C
 		> ML_NODISCARD auto & get_component(size_t const i) noexcept
 		{
-			return m_components.at<C>(m_entities.at<id_index>(i));
+			return m_components.get<C>(m_entities.get<id_index>(i));
 		}
 
 		template <class C
 		> ML_NODISCARD auto const & get_component(size_t const i) const noexcept
 		{
-			return m_components.at<C>(m_entities.at<id_index>(i));
+			return m_components.get<C>(m_entities.get<id_index>(i));
 		}
 
 		template <class C
@@ -947,7 +947,7 @@ namespace ml::ecs
 
 		ML_NODISCARD signature const & get_signature(size_t const i) const noexcept
 		{
-			return m_entities.at<id_bitset>(i);
+			return m_entities.get<id_bitset>(i);
 		}
 
 		ML_NODISCARD signature const & get_signature(handle const & h) const noexcept
@@ -1073,7 +1073,7 @@ namespace ml::ecs
 			template <class Fn
 			> static void call(size_t const i, self_type & self, Fn && fn) noexcept
 			{
-				self.m_components.expand<Ts...>(self.m_entities.at<id_index>(i), [&
+				self.m_components.expand<Ts...>(self.m_entities.get<id_index>(i), [&
 				](auto && ... req_comp) noexcept
 				{
 					std::invoke(ML_forward(fn), i, ML_forward(req_comp)...);

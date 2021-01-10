@@ -2,7 +2,7 @@
 
 namespace ml
 {
-	struct ML_PLUGIN_API sandbox final : plugin
+	struct ML_PLUGIN_API sandbox final : native_plugin
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -85,16 +85,16 @@ namespace ml
 
 		~sandbox() noexcept final {}
 
-		sandbox(plugin_manager * manager, void * userptr) : plugin{ manager, userptr }
+		sandbox(plugin_manager * manager, void * userptr) : native_plugin{ manager, userptr }
 		{
 			subscribe<
 				// main
 				runtime_startup_event,
 				runtime_shutdown_event,
-				runtime_update_event,
-				editor_dockspace_event,
-				runtime_imgui_event,
-				runtime_frame_end_event,
+				runtime_idle_event,
+				dockspace_builder_event,
+				runtime_gui_event,
+				runtime_end_frame_event,
 
 				// input
 				char_event,
@@ -111,10 +111,10 @@ namespace ml
 			{
 			case runtime_startup_event	::ID: return on_runtime_startup((runtime_startup_event const &)value);
 			case runtime_shutdown_event	::ID: return on_runtime_shutdown((runtime_shutdown_event const &)value);
-			case runtime_update_event	::ID: return on_runtime_update((runtime_update_event const &)value);
-			case editor_dockspace_event	::ID: return on_editor_dockspace((editor_dockspace_event const &)value);
-			case runtime_imgui_event	::ID: return on_runtime_imgui((runtime_imgui_event const &)value);
-			case runtime_frame_end_event::ID: return on_runtime_frame_end((runtime_frame_end_event const &)value);
+			case runtime_idle_event		::ID: return on_runtime_update((runtime_idle_event const &)value);
+			case dockspace_builder_event::ID: return on_editor_dockspace((dockspace_builder_event const &)value);
+			case runtime_gui_event		::ID: return on_runtime_gui((runtime_gui_event const &)value);
+			case runtime_end_frame_event::ID: return on_runtime_frame_end((runtime_end_frame_event const &)value);
 
 			case char_event				::ID: return on_char((char_event const &)value);
 			case key_event				::ID: return on_key((key_event const &)value);
@@ -129,7 +129,7 @@ namespace ml
 		void on_runtime_startup(runtime_startup_event const & ev)
 		{
 			// path to
-			auto path2 = std::bind(&core_application::path_to, ev.ptr, std::placeholders::_1);
+			auto path2 = std::bind(&core_application::get_path_to, ev.ptr, std::placeholders::_1);
 
 			// icons
 			if (bitmap const i{ path2("resource/modus_launcher.png"), false })
@@ -173,14 +173,12 @@ namespace ml
 			m_cc.set_pitch(-25.f);
 
 			// scene
-			auto & scene0 = m_scenes["0"] = make_ref<scene_tree>();
+			auto & scene0 = m_scenes["0"] = make_ref<scene_tree>("New Scene");
 			m_scene_editor.set_context(scene0);
-			ev->set_active_scene(scene0);
 			entity * e{ scene0->new_entity("entity 0") };
 			e->add_component<camera_component>();
 			e->add_component<native_script_component>();
-
-
+			
 			// terminal
 			m_terminal.UserName = "root";
 			m_terminal.HostName = "localhost";
@@ -203,18 +201,16 @@ namespace ml
 
 		void on_runtime_shutdown(runtime_shutdown_event const & ev)
 		{
-			ev->set_active_scene(nullptr);
-
 			debug::good("goodbye!");
 		}
 
-		void on_runtime_update(runtime_update_event const & ev)
+		void on_runtime_update(runtime_idle_event const & ev)
 		{
 			string const str{ m_cout.str() };
 			m_terminal.Output.Print(str);
 			m_cout.str({});
 
-			duration const dt{ ev->delta_time() };
+			duration const dt{ ev->get_delta_time() };
 
 			input_state * const input{ ev->get_input() };
 
@@ -264,7 +260,7 @@ namespace ml
 			);
 		}
 		
-		void on_editor_dockspace(editor_dockspace_event const & ev)
+		void on_editor_dockspace(dockspace_builder_event const & ev)
 		{
 			ImGuiID root{ ev->ID };
 			ImGuiID left{ ev->SplitNode(root, ImGuiDir_Left, 0.25f, nullptr, &root) };
@@ -272,19 +268,20 @@ namespace ml
 			ev->DockWindow("scene editor", left);
 		}
 
-		void on_runtime_imgui(runtime_imgui_event const & ev)
+		void on_runtime_gui(runtime_gui_event const & ev)
 		{
-			native_window * const	window			{ ev->get_window() };
+			application * const		app				{ ML_get_global(application) };
+			native_window * const	window			{ app->get_window() };
 			vec2 const				winsize			{ (vec2)window->get_size() };
-			ImGuiContext * const	imgui			{ ev->get_imgui().get() };
+			ImGuiContext * const	imgui			{ app->get_imgui().get() };
 			ImGuiStyle &			style			{ imgui->Style };
 			float_rect const &		view_rect		{ m_viewport.get_rect() };
 			vec2 const				work_pos		{ view_rect.position() };
 			vec2 const				work_size		{ view_rect.size() };
-			float32 const			dt				{ ev->delta_time() };
-			float32 const			fps				{ ev->fps_value() };
-			float32 const			time			{ ev->uptime().count() };
-			input_state * const		input			{ ev->get_input() };
+			float32 const			dt				{ app->get_delta_time() };
+			float32 const			fps				{ app->get_fps()->value };
+			float32 const			time			{ app->get_time().count() };
+			input_state * const		input			{ app->get_input() };
 			vec2 const &			mouse_pos		{ input->mouse_pos };
 			vec2 const &			mouse_delta		{ input->mouse_delta };
 			float32 const &			mouse_wheel		{ input->mouse_wheel };
@@ -305,7 +302,7 @@ namespace ml
 					if (ImGui::MenuItem("save", "ctrl+s")) {}
 					if (ImGui::MenuItem("save as", "ctrl+shift+s")) {}
 					ImGui::Separator();
-					if (ImGui::MenuItem("exit", "alt+f4")) { ev->quit(); }
+					if (ImGui::MenuItem("exit", "alt+f4")) { app->quit(); }
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("edit")) {
@@ -322,9 +319,9 @@ namespace ml
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("view")) {
-					if (ImGui::MenuItem("overlay", "ctrl+alt+o", &m_show_overlay)) {}
-					if (ImGui::MenuItem("terminal", "ctrl+alt+t", &m_show_terminal)) {}
-					if (ImGui::MenuItem("viewport", "ctrl+alt+v", &m_show_viewport)) {}
+					if (ImGui::MenuItem("overlay", "", &m_show_overlay)) {}
+					if (ImGui::MenuItem("terminal", "", &m_show_terminal)) {}
+					if (ImGui::MenuItem("viewport", "", &m_show_viewport)) {}
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("help")) {
@@ -523,8 +520,9 @@ namespace ml
 				}
 
 				
+				static auto const & scene0{ m_scenes["0"] };
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
-				edit_entity(ev->get_active_scene()->get_root(),
+				edit_entity(scene0->get_root_node(),
 					ImGuiTreeNodeFlags_DefaultOpen |
 					ImGuiTreeNodeFlags_Framed |
 					ImGuiTreeNodeFlags_FramePadding |
@@ -534,7 +532,7 @@ namespace ml
 			ImGui::End();
 		}
 
-		void on_runtime_frame_end(runtime_frame_end_event const & ev)
+		void on_runtime_frame_end(runtime_end_frame_event const & ev)
 		{
 		}
 
@@ -568,12 +566,12 @@ namespace ml
 
 extern "C"
 {
-	ML_PLUGIN_API ml::plugin * ml_plugin_create(ml::plugin_manager * manager, void * userptr)
+	ML_PLUGIN_API ml::native_plugin * ml_plugin_create(ml::plugin_manager * manager, void * userptr)
 	{
 		return manager->allocate_plugin<ml::sandbox>(userptr);
 	}
 
-	ML_PLUGIN_API void ml_plugin_destroy(ml::plugin_manager * manager, ml::plugin * ptr)
+	ML_PLUGIN_API void ml_plugin_destroy(ml::plugin_manager * manager, ml::native_plugin * ptr)
 	{
 		manager->deallocate_plugin<ml::sandbox>(ptr);
 	}

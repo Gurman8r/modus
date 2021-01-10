@@ -11,9 +11,10 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	struct ML_NODISCARD tag_component final
+	// tag component
+	struct ML_NODISCARD tag_component
 	{
-		string tag	; // 
+		string tag; // 
 	};
 
 	inline void from_json(json const & j, tag_component & v)
@@ -28,7 +29,8 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	struct ML_NODISCARD transform_component final
+	// transform component
+	struct ML_NODISCARD transform_component
 	{
 		vec3 position	; // 
 		vec4 rotation	; // 
@@ -59,7 +61,8 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	struct ML_NODISCARD camera_component final
+	// camera component
+	struct ML_NODISCARD camera_component
 	{
 		camera instance;
 	};
@@ -74,7 +77,8 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	struct ML_NODISCARD native_script_component final
+	// native script component
+	struct ML_NODISCARD native_script_component
 	{
 		scriptable_entity *							instance	; // 
 		method<void()>								allocate	; // 

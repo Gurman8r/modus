@@ -12,12 +12,12 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// not sure where to put this
-	ML_event(editor_dockspace_event)
+	ML_event(dockspace_builder_event)
 	{
 		ImGuiExt::Dockspace * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ML_check(ptr); }
-		constexpr editor_dockspace_event(ImGuiExt::Dockspace * ptr) noexcept : ptr{ ptr } {}
+		constexpr dockspace_builder_event(ImGuiExt::Dockspace * ptr) noexcept : ptr{ ptr } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

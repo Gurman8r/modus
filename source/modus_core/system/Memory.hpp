@@ -385,35 +385,35 @@ namespace ml
 		ML_NODISCARD auto get_record(size_t i) const noexcept -> memory_record
 		{
 			return {
-				m_records.at<id_addr>(i),
-				m_records.at<id_index>(i),
-				m_records.at<id_index>(i),
-				m_records.at<id_index>(i)
+				m_records.get<id_addr>(i),
+				m_records.get<id_index>(i),
+				m_records.get<id_index>(i),
+				m_records.get<id_index>(i)
 			};
 		}
 
 		// get record address
 		ML_NODISCARD auto get_record_addr(size_t i) const noexcept -> byte *
 		{
-			return m_records.at<id_addr>(i);
+			return m_records.get<id_addr>(i);
 		}
 
 		// get record index
 		ML_NODISCARD auto get_record_index(size_t i) const noexcept -> size_t
 		{
-			return m_records.at<id_index>(i);
+			return m_records.get<id_index>(i);
 		}
 
 		// get record count
 		ML_NODISCARD auto get_record_count(size_t i) const noexcept -> size_t
 		{
-			return m_records.at<id_count>(i);
+			return m_records.get<id_count>(i);
 		}
 
 		// get record size
 		ML_NODISCARD auto get_record_size(size_t i) const noexcept -> size_t
 		{
-			return m_records.at<id_size>(i);
+			return m_records.get<id_size>(i);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -434,8 +434,8 @@ namespace ml
 			{
 				m_alloc.deallocate(
 					(byte *)addr,
-					m_records.at<id_count>(i) *
-					m_records.at<id_size>(i));
+					m_records.get<id_count>(i) *
+					m_records.get<id_size>(i));
 
 				m_records.erase(i);
 			}

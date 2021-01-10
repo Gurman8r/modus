@@ -2,7 +2,7 @@
 #define _ML_SCENE_EDITOR_HPP_
 
 #include <modus_core/gui/ImGui.hpp>
-#include <modus_core/scene/Scene.hpp>
+#include <modus_core/scene/SceneTree.hpp>
 
 namespace ml
 {

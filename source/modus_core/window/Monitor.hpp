@@ -7,6 +7,9 @@
 
 namespace ml
 {
+	// monitor handle
+	ML_decl_handle(monitor_handle);
+
 	// monitor
 	struct monitor final
 	{

@@ -27,11 +27,17 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
 	protected:
-		using gui_application::on_enter;
-		
-		using gui_application::on_exit;
-		
+		using gui_application::on_startup;
+
+		using gui_application::on_shutdown;
+
+		using gui_application::on_begin_frame;
+
 		using gui_application::on_idle;
+
+		using gui_application::on_gui;
+
+		using gui_application::on_end_frame;
 
 		virtual void on_event(event const & value) override;
 

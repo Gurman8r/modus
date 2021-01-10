@@ -86,9 +86,9 @@ static json const default_settings{ R"(
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-static ML_block(&) { ML_verify(platform::initialize()); };
+static ML_block(&) { ML_verify(window_api::initialize()); };
 
-static ML_defer(&) { ML_verify(platform::finalize()); };
+static ML_defer(&) { ML_verify(window_api::finalize()); };
 
 int32 main(int32 argc, char * argv[])
 {
@@ -98,14 +98,16 @@ int32 main(int32 argc, char * argv[])
 		return f ? json::parse(f) : default_settings;
 	}) };
 
-	for (json const & j : app.attr("plugins"))
+	
+
+	for (json const & j : app.get_attr("plugins"))
 	{
 		if (j.contains("path")) { app.load_plugin(j["path"]); }
 	}
 
-	for (json const & j : app.attr("scripts"))
+	for (json const & j : app.get_attr("scripts"))
 	{
-		if (j.contains("path")) { py::eval_file(app.path_to(j["path"])); }
+		if (j.contains("path")) { py::eval_file(app.get_path_to(j["path"])); }
 	}
 
 	return app.exec();

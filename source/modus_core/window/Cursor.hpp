@@ -1,11 +1,13 @@
 #ifndef _ML_CURSOR_HPP_
 #define _ML_CURSOR_HPP_
 
-#include <modus_core/system/Platform.hpp>
 #include <modus_core/detail/Matrix.hpp>
 
 namespace ml
 {
+	// cursor handle
+	ML_decl_handle(cursor_handle);
+
 	// cursor mode
 	enum cursor_mode_ : int32
 	{

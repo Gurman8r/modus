@@ -14,20 +14,20 @@ namespace ml
 	{
 		ML_ctor_global(application);
 
-		get_bus()->get_delegate<runtime_update_event>() += [](auto const & ev) {};
+		get_bus()->get_delegate<runtime_idle_event>() += [](auto const & ev) {};
 
 		subscribe<
 			runtime_startup_event,
 			runtime_shutdown_event,
-			runtime_update_event,
-			editor_dockspace_event,
-			runtime_imgui_event,
-			runtime_frame_end_event
+			runtime_idle_event,
+			dockspace_builder_event,
+			runtime_gui_event,
+			runtime_end_frame_event
 		>();
 
-		if (!is_interpreter_initialized() && !library_paths().empty())
+		if (!is_interpreter_initialized() && !get_library_paths().empty())
 		{
-			ML_verify(initialize_interpreter(app_file_name(), library_paths(0)));
+			ML_verify(initialize_interpreter(get_app_file_name(), get_library_paths(0)));
 		}
 	}
 
@@ -46,10 +46,10 @@ namespace ml
 		// main
 		case runtime_startup_event	::ID: { auto const & ev{ (runtime_startup_event const &)value }; } break;
 		case runtime_shutdown_event	::ID: { auto const & ev{ (runtime_shutdown_event const &)value }; } break;
-		case runtime_update_event	::ID: { auto const & ev{ (runtime_update_event const &)value }; } break;
-		case editor_dockspace_event	::ID: { auto const & ev{ (editor_dockspace_event const &)value }; } break;
-		case runtime_imgui_event	::ID: { auto const & ev{ (runtime_imgui_event const &)value }; } break;
-		case runtime_frame_end_event::ID: { auto const & ev{ (runtime_frame_end_event const &)value }; } break;
+		case runtime_idle_event		::ID: { auto const & ev{ (runtime_idle_event const &)value }; } break;
+		case dockspace_builder_event::ID: { auto const & ev{ (dockspace_builder_event const &)value }; } break;
+		case runtime_gui_event		::ID: { auto const & ev{ (runtime_gui_event const &)value }; } break;
+		case runtime_end_frame_event::ID: { auto const & ev{ (runtime_end_frame_event const &)value }; } break;
 
 		// input
 		case char_event				::ID: { auto const & ev{ (char_event const &)value }; } break;

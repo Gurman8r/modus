@@ -12,25 +12,12 @@ namespace ml
 	public:
 		using entity::entity;
 
-		scriptable_entity() noexcept = default;
-		
-		scriptable_entity(scriptable_entity &&) noexcept = default;
-		
-		scriptable_entity & operator=(scriptable_entity &&) noexcept = default;
-
-		virtual ~scriptable_entity() noexcept override = default;
-
 	protected:
 		virtual void on_create() {}
 
 		virtual void on_destroy() {}
 		
 		virtual void on_update(duration) {}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		entity m_entity;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -14,15 +14,11 @@ namespace ml
 		, m_render_device	{}
 		, m_imgui			{}
 		, m_dockspace		{ "##MainDockspace", true, ImGuiDockNodeFlags_AutoHideTabBar }
-		, m_active_scene	{}
 
 		, m_loop_timer		{}
 		, m_delta_time		{}
 		, m_frame_index		{}
-		, m_fps_value		{}
-		, m_fps_accum		{}
-		, m_fps_index		{}
-		, m_fps_times		{ 120, 0.f, alloc }
+		, m_fps				{ 120, alloc }
 		, m_input			{}
 	{
 		ML_ctor_global(gui_application);
@@ -51,8 +47,6 @@ namespace ml
 	{
 		ML_dtor_global(gui_application);
 
-		if (m_active_scene) { m_active_scene = nullptr; }
-
 		_ML ImGui_Shutdown();
 
 		ImGui::DestroyContext(m_imgui.release());
@@ -64,11 +58,27 @@ namespace ml
 
 	int32 gui_application::exec()
 	{
-		on_enter();
+		on_startup();
 
-		while (m_window.is_open()) { on_idle(); }
+		while (m_window.is_open())
+		{
+			m_loop_timer.restart();
+			on_begin_frame();
 
-		on_exit();
+			window_api::poll_events();
+			on_idle(m_delta_time);
+
+			_ML ImGui_NewFrame();
+			ImGui::NewFrame();
+			ImGuizmo::BeginFrame();
+			on_gui();
+			ImGui::Render();
+
+			on_end_frame();
+			m_delta_time = m_loop_timer.elapsed();
+		}
+
+		on_shutdown();
 
 		return core_application::exec();
 	}
@@ -82,14 +92,14 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	void gui_application::on_enter()
+	void gui_application::on_startup()
 	{
 		// setup window
 		ML_assert(has_attr("window"));
-		json & j_window{ attr("window") };
+		json & j_window{ get_attr("window") };
 		ML_verify(m_window.open
 		(
-			j_window.contains("title") ? j_window["title"] : app_name(),
+			j_window.contains("title") ? j_window["title"] : get_app_name(),
 			j_window.contains("display") ? j_window["display"] : video_mode{},
 			j_window.contains("context") ? j_window["context"] : context_settings{},
 			j_window.contains("hints") ? j_window["hints"] : window_hints_default
@@ -132,41 +142,39 @@ namespace ml
 		});
 
 		// setup imgui
-		json & j_imgui{ attr("imgui") };
+		json & j_imgui{ get_attr("imgui") };
 		ML_verify(_ML ImGui_Init(m_window.get_handle(), true));
 		if (j_imgui.contains("style")) {
 			json & j_style{ j_imgui["style"] };
 			if (j_style.contains("path")) {
-				ImGui_LoadStyle(path_to(j_style["path"]));
+				ImGui_LoadStyle(get_path_to(j_style["path"]));
 			}
 		}
 
 		get_bus()->broadcast<runtime_startup_event>(this);
 	}
 
-	void gui_application::on_exit()
+	void gui_application::on_shutdown()
 	{
-		m_loop_timer.stop();
-
+		// shutdown event
 		get_bus()->broadcast<runtime_shutdown_event>(this);
 	}
 
-	void gui_application::on_idle()
+	void gui_application::on_begin_frame()
 	{
-		// update timers
-		m_loop_timer.restart();
-		ML_defer(&) { m_delta_time = m_loop_timer.elapsed(); };
-		float32 const dt{ m_delta_time.count() };
-		m_fps_accum += dt - m_fps_times[m_fps_index];
-		m_fps_times[m_fps_index] = dt;
-		m_fps_index = (m_fps_index + 1) % m_fps_times.size();
-		m_fps_value = (0.f < m_fps_accum) ? (1.f / (m_fps_accum / (float32)m_fps_times.size())) : FLT_MAX;
+		// begin frame event
+		get_bus()->broadcast<runtime_begin_frame_event>(this);
 
-		// poll events
-		platform::poll_events();
+		// reset inputs
+		m_input.mouse_wheel = 0.f;
+	}
 
-		// update inputs
-		ML_defer(&) { m_input.mouse_wheel = 0.f; };
+	void gui_application::on_idle(duration dt)
+	{
+		// fps tracker
+		m_fps.update(dt);
+
+		// handle input
 		m_input.mouse_delta = m_input.mouse_pos - m_input.last_mouse_pos;
 		m_input.last_mouse_pos = m_input.mouse_pos;
 		for (size_t i = 0; i < mouse_button_MAX; ++i) {
@@ -184,33 +192,26 @@ namespace ml
 				: -1.f);
 		}
 
-		// update event
-		get_bus()->broadcast<runtime_update_event>(this);
+		get_bus()->broadcast<runtime_idle_event>(this);
+	}
 
-		// begin gui frame
-		_ML ImGui_NewFrame();
-		ImGui::NewFrame();
-		ImGuizmo::BeginFrame();
+	void gui_application::on_gui()
+	{
+		bool const main_menu_bar{ (bool)ImGui::FindWindowByName("##MainMenuBar") };
+		ML_flag_write(m_dockspace.WindowFlags, ImGuiWindowFlags_MenuBar, main_menu_bar);
+		m_dockspace.Draw(m_imgui->Viewports[0], [&](ImGuiExt::Dockspace * d) noexcept
 		{
-			bool const main_menu_bar{ (bool)ImGui::FindWindowByName("##MainMenuBar") };
-			ML_flag_write(m_dockspace.WindowFlags, ImGuiWindowFlags_MenuBar, main_menu_bar);
-			m_dockspace.Draw(m_imgui->Viewports[0], [&](ImGuiExt::Dockspace * d) noexcept
-			{
-				if (d->BeginBuilder())
-				{
-					// dockspace event
-					get_bus()->broadcast<editor_dockspace_event>(d);
+			if (d->BeginBuilder()) {
+				get_bus()->broadcast<dockspace_builder_event>(d);
+				d->Finish();
+			}
+		});
 
-					d->Finish();
-				}
-			});
+		get_bus()->broadcast<runtime_gui_event>(this);
+	}
 
-			// gui event
-			get_bus()->broadcast<runtime_imgui_event>(this);
-		}
-		// end gui frame
-		ImGui::Render();
-
+	void gui_application::on_end_frame()
+	{
 		// clear screen
 		get_render_context()->execute([&](gfx::render_context * ctx) noexcept
 		{
@@ -219,24 +220,24 @@ namespace ml
 			ctx->clear(gfx::clear_flags_color);
 		});
 
-		// render imgui
+		// render gui
 		_ML ImGui_RenderDrawData(&m_imgui->Viewports[0]->DrawDataP);
 
-		// update platform windows
+		// update gui windows
 		if (m_imgui->IO.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-			window_handle const backup{ platform::get_active_window() };
+			window_handle const backup{ window_api::get_active_window() };
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
-			platform::set_active_window(backup);
+			window_api::set_active_window(backup);
 		}
 
 		// swap buffers
 		if (m_window.has_hints(window_hints_doublebuffer)) {
-			platform::swap_buffers(m_window.get_handle());
+			window_api::swap_buffers(m_window.get_handle());
 		}
 
 		// end frame event
-		get_bus()->broadcast<runtime_frame_end_event>(this);
+		get_bus()->broadcast<runtime_end_frame_event>(this);
 	}
 
 	void gui_application::on_event(event const & value)

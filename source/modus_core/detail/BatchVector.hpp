@@ -175,7 +175,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <size_t ... Is
-		> ML_NODISCARD decltype(auto) at(size_t const i, std::index_sequence<Is...>) noexcept
+		> ML_NODISCARD decltype(auto) get(size_t const i, std::index_sequence<Is...>) noexcept
 		{
 			if constexpr (1 == sizeof...(Is))
 			{
@@ -188,7 +188,7 @@ namespace ml
 		}
 
 		template <size_t ... Is
-		> ML_NODISCARD decltype(auto) at(size_t const i, std::index_sequence<Is...>) const noexcept
+		> ML_NODISCARD decltype(auto) get(size_t const i, std::index_sequence<Is...>) const noexcept
 		{
 			if constexpr (1 == sizeof...(Is))
 			{
@@ -201,7 +201,7 @@ namespace ml
 		}
 
 		template <size_t ... Is
-		> ML_NODISCARD decltype(auto) at(size_t const i) noexcept
+		> ML_NODISCARD decltype(auto) get(size_t const i) noexcept
 		{
 			if constexpr (1 == sizeof...(Is))
 			{
@@ -214,7 +214,7 @@ namespace ml
 		}
 
 		template <size_t ... Is
-		> ML_NODISCARD decltype(auto) at(size_t const i) const noexcept
+		> ML_NODISCARD decltype(auto) get(size_t const i) const noexcept
 		{
 			if constexpr (1 == sizeof...(Is))
 			{
@@ -227,7 +227,7 @@ namespace ml
 		}
 
 		template <class ... Ts
-		> ML_NODISCARD decltype(auto) at(size_t const i) noexcept
+		> ML_NODISCARD decltype(auto) get(size_t const i) noexcept
 		{
 			if constexpr (1 == sizeof...(Ts))
 			{
@@ -240,7 +240,7 @@ namespace ml
 		}
 
 		template <class ... Ts
-		> ML_NODISCARD decltype(auto) at(size_t const i) const noexcept
+		> ML_NODISCARD decltype(auto) get(size_t const i) const noexcept
 		{
 			if constexpr (1 == sizeof...(Ts))
 			{
@@ -252,14 +252,14 @@ namespace ml
 			}
 		}
 
-		ML_NODISCARD decltype(auto) at(size_t const i) noexcept
+		ML_NODISCARD decltype(auto) get(size_t const i) noexcept
 		{
-			return this->at(i, tuple_sequence);
+			return this->get(i, tuple_sequence);
 		}
 
-		ML_NODISCARD decltype(auto) at(size_t const i) const noexcept
+		ML_NODISCARD decltype(auto) get(size_t const i) const noexcept
 		{
-			return this->at(i, tuple_sequence);
+			return this->get(i, tuple_sequence);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -495,37 +495,37 @@ namespace ml
 		template <class Fn, size_t ... Is
 		> void expand(size_t const i, Fn && fn, std::index_sequence<Is...>) noexcept
 		{
-			std::invoke(ML_forward(fn), this->at<Is>(i)...);
+			std::invoke(ML_forward(fn), this->get<Is>(i)...);
 		}
 
 		template <class Fn, size_t ... Is
 		> void expand(size_t const i, Fn && fn, std::index_sequence<Is...>) const noexcept
 		{
-			std::invoke(ML_forward(fn), this->at<Is>(i)...);
+			std::invoke(ML_forward(fn), this->get<Is>(i)...);
 		}
 
 		template <size_t ... Is, class Fn
 		> void expand(size_t const i, Fn && fn) noexcept
 		{
-			std::invoke(ML_forward(fn), this->at<Is>(i)...);
+			std::invoke(ML_forward(fn), this->get<Is>(i)...);
 		}
 
 		template <size_t ... Is, class Fn
 		> void expand(size_t const i, Fn && fn) const noexcept
 		{
-			std::invoke(ML_forward(fn), this->at<Is>(i)...);
+			std::invoke(ML_forward(fn), this->get<Is>(i)...);
 		}
 
 		template <class ... Ts, class Fn
 		> void expand(size_t const i, Fn && fn) noexcept
 		{
-			std::invoke(ML_forward(fn), this->at<Ts>(i)...);
+			std::invoke(ML_forward(fn), this->get<Ts>(i)...);
 		}
 
 		template <class ... Ts, class Fn
 		> void expand(size_t const i, Fn && fn) const noexcept
 		{
-			std::invoke(ML_forward(fn), this->at<Ts>(i)...);
+			std::invoke(ML_forward(fn), this->get<Ts>(i)...);
 		}
 
 		template <class Fn> void expand_all(size_t const i, Fn && fn) noexcept

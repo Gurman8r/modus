@@ -1,7 +1,7 @@
 #ifndef _ML_WIN32_PLATFORM_HPP_
 #define _ML_WIN32_PLATFORM_HPP_
 
-#include <modus_core/embed/NativeLibrary.hpp>
+#include <modus_core/embed/Library.hpp>
 #include <modus_core/window/BaseWindow.hpp>
 
 static_assert(ML_os_windows);

@@ -1,6 +1,7 @@
 #ifndef _ML_WINDOW_API_HPP_
 #define _ML_WINDOW_API_HPP_
 
+#include <modus_core/system/Memory.hpp>
 #include <modus_core/window/ContextSettings.hpp>
 #include <modus_core/window/Cursor.hpp>
 #include <modus_core/window/Input.hpp>
@@ -9,6 +10,53 @@
 
 namespace ml
 {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	ML_decl_handle(window_handle); // window handle
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	ML_alias window_char_callback				= void(*)(window_handle, uint32);
+	ML_alias window_char_mods_callback			= void(*)(window_handle, uint32, int32);
+	ML_alias window_close_callback				= void(*)(window_handle);
+	ML_alias window_content_scale_callback		= void(*)(window_handle, float32, float32);
+	ML_alias window_drop_callback				= void(*)(window_handle, int32, cstring[]);
+	ML_alias window_focus_callback				= void(*)(window_handle, int32);
+	ML_alias window_framebuffer_resize_callback	= void(*)(window_handle, int32, int32);
+	ML_alias window_iconify_callback			= void(*)(window_handle, int32);
+	ML_alias window_key_callback				= void(*)(window_handle, int32, int32, int32, int32);
+	ML_alias window_maximize_callback			= void(*)(window_handle, int32);
+	ML_alias window_mouse_button_callback		= void(*)(window_handle, int32, int32, int32);
+	ML_alias window_mouse_enter_callback		= void(*)(window_handle, int32);
+	ML_alias window_mouse_pos_callback			= void(*)(window_handle, float64, float64);
+	ML_alias window_position_callback			= void(*)(window_handle, int32, int32);
+	ML_alias window_refresh_callback			= void(*)(window_handle);
+	ML_alias window_resize_callback				= void(*)(window_handle, int32, int32);
+	ML_alias window_scroll_callback				= void(*)(window_handle, float64, float64);
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	struct ML_NODISCARD window_callbacks final
+	{
+		window_char_callback				on_char					; // 
+		window_char_mods_callback			on_char_mods			; // 
+		window_close_callback				on_close				; // 
+		window_content_scale_callback		on_content_scale		; // 
+		window_drop_callback				on_drop					; // 
+		window_focus_callback				on_focus				; // 
+		window_framebuffer_resize_callback	on_framebuffer_resize	; // 
+		window_iconify_callback				on_iconify				; // 
+		window_key_callback					on_key					; // 
+		window_maximize_callback			on_maximize				; // 
+		window_mouse_button_callback		on_mouse_button			; // 
+		window_mouse_enter_callback			on_mouse_enter			; // 
+		window_mouse_pos_callback			on_mouse_pos			; // 
+		window_position_callback			on_position				; // 
+		window_refresh_callback				on_refresh				; // 
+		window_resize_callback				on_resize				; // 
+		window_scroll_callback				on_mouse_wheel			; // 
+	};
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// window hints
@@ -74,48 +122,50 @@ namespace ml
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+}
 
-	ML_alias window_char_callback				= void(*)(window_handle, uint32);
-	ML_alias window_char_mods_callback			= void(*)(window_handle, uint32, int32);
-	ML_alias window_close_callback				= void(*)(window_handle);
-	ML_alias window_content_scale_callback		= void(*)(window_handle, float32, float32);
-	ML_alias window_drop_callback				= void(*)(window_handle, int32, cstring[]);
-	ML_alias window_focus_callback				= void(*)(window_handle, int32);
-	ML_alias window_framebuffer_resize_callback	= void(*)(window_handle, int32, int32);
-	ML_alias window_iconify_callback			= void(*)(window_handle, int32);
-	ML_alias window_key_callback				= void(*)(window_handle, int32, int32, int32, int32);
-	ML_alias window_maximize_callback			= void(*)(window_handle, int32);
-	ML_alias window_mouse_button_callback		= void(*)(window_handle, int32, int32, int32);
-	ML_alias window_mouse_enter_callback		= void(*)(window_handle, int32);
-	ML_alias window_mouse_pos_callback			= void(*)(window_handle, float64, float64);
-	ML_alias window_position_callback			= void(*)(window_handle, int32, int32);
-	ML_alias window_refresh_callback			= void(*)(window_handle);
-	ML_alias window_resize_callback				= void(*)(window_handle, int32, int32);
-	ML_alias window_scroll_callback				= void(*)(window_handle, float64, float64);
-
-	// window callbacks
-	struct ML_NODISCARD window_callbacks final
+namespace ml
+{
+	// window api
+	class ML_CORE_API window_api final
 	{
-		window_char_callback				on_char					; // 
-		window_char_mods_callback			on_char_mods			; // 
-		window_close_callback				on_close				; // 
-		window_content_scale_callback		on_content_scale		; // 
-		window_drop_callback				on_drop					; // 
-		window_focus_callback				on_focus				; // 
-		window_framebuffer_resize_callback	on_framebuffer_resize	; // 
-		window_iconify_callback				on_iconify				; // 
-		window_key_callback					on_key					; // 
-		window_maximize_callback			on_maximize				; // 
-		window_mouse_button_callback		on_mouse_button			; // 
-		window_mouse_enter_callback			on_mouse_enter			; // 
-		window_mouse_pos_callback			on_mouse_pos			; // 
-		window_position_callback			on_position				; // 
-		window_refresh_callback				on_refresh				; // 
-		window_resize_callback				on_resize				; // 
-		window_scroll_callback				on_mouse_wheel			; // 
-	};
+	public:
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		static bool initialize();
+
+		static bool finalize();
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static window_handle get_active_window();
+
+		static window_handle set_active_window(window_handle handle);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static void poll_events();
+
+		static void swap_buffers(window_handle handle);
+
+		static void swap_interval(int32 value);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static cursor_handle create_custom_cursor(size_t w, size_t h, byte const * p, int32 x, int32 y);
+
+		static cursor_handle create_standard_cursor(int32 shape);
+
+		static void destroy_cursor(cursor_handle const & value);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		static std::optional<fs::path> get_open_file_name(window_handle handle, string const & filter = "");
+
+		static std::optional<fs::path> get_save_file_name(window_handle handle, string const & filter = "");
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+	};
 }
 
 #endif // !_ML_WINDOW_API_HPP_

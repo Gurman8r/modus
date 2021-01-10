@@ -30,28 +30,36 @@ namespace ml
 		constexpr runtime_shutdown_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	ML_event(runtime_update_event)
+	ML_event(runtime_begin_frame_event)
 	{
 		gui_application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ML_check(ptr); }
-		constexpr runtime_update_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+		constexpr runtime_begin_frame_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	ML_event(runtime_imgui_event)
+	ML_event(runtime_idle_event)
 	{
 		gui_application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ML_check(ptr); }
-		constexpr runtime_imgui_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+		constexpr runtime_idle_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	ML_event(runtime_frame_end_event)
+	ML_event(runtime_gui_event)
 	{
 		gui_application * const ptr;
 		auto operator->() const noexcept { return ptr; }
 		auto & operator*() const noexcept { return *ML_check(ptr); }
-		constexpr runtime_frame_end_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+		constexpr runtime_gui_event(gui_application * ptr) noexcept : ptr{ ptr } {}
+	};
+
+	ML_event(runtime_end_frame_event)
+	{
+		gui_application * const ptr;
+		auto operator->() const noexcept { return ptr; }
+		auto & operator*() const noexcept { return *ML_check(ptr); }
+		constexpr runtime_end_frame_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

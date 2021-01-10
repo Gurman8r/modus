@@ -174,43 +174,4 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 
-// state
-namespace ml
-{
-	struct ML_NODISCARD input_state final
-	{
-	public:
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		bool
-			is_shift,
-			is_ctrl,
-			is_alt,
-			is_super;
-		char
-			last_char;
-		float32
-			mouse_wheel;
-		vec2
-			mouse_pos, last_mouse_pos,
-			mouse_delta;
-		bool
-			mouse_down[mouse_button_MAX],
-			keys_down[keycode_MAX];
-		float32
-			mouse_down_duration[mouse_button_MAX],
-			keys_down_duration[keycode_MAX];
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		input_state() noexcept = default;
-		input_state(input_state const &) = default;
-		input_state(input_state &&) noexcept = default;
-		input_state & operator=(input_state const &) = default;
-		input_state & operator=(input_state &&) noexcept = default;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-}
-
 #endif // !_ML_INPUT_HPP_

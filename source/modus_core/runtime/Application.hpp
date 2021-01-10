@@ -31,8 +31,6 @@ namespace ml
 
 		using gui_application::on_shutdown;
 
-		using gui_application::on_begin_frame;
-
 		using gui_application::on_idle;
 
 		using gui_application::on_gui;

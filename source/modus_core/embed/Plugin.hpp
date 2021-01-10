@@ -7,19 +7,22 @@
 #define ML_PLUGIN_API ML_API_EXPORT
 #endif
 
-namespace ml { struct plugin_manager; } // plugin manager
-
 namespace ml
 {
-	// core plugin
-	template <class Manager> struct core_plugin : non_copyable, trackable, event_listener
+	// plugin manager
+	struct plugin_manager;
+
+	// native plugin
+	struct ML_CORE_API native_plugin : non_copyable, trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		ML_NODISCARD auto get_plugin_manager() const noexcept -> Manager * { return m_manager; }
+		ML_NODISCARD auto get_allocator() const -> allocator_type { return m_alloc; }
+
+		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager * { return m_manager; }
 
 		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
 
@@ -28,40 +31,20 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		core_plugin(Manager * manager, void * userptr = nullptr)
-			: event_listener{ manager->get_bus() }
-			, m_manager		{ manager }
-			, m_userptr		{ userptr }
-		{
-		}
+		friend plugin_manager;
 
-		virtual ~core_plugin() noexcept override = default;
+		native_plugin(plugin_manager * manager, void * userptr = nullptr);
+
+		virtual ~native_plugin() noexcept override;
 
 		virtual void on_event(event const &) override = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		Manager * const	m_manager	; // manager pointer
-		void *			m_userptr	; // user pointer
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	};
-}
-
-namespace ml
-{
-	// plugin
-	struct ML_CORE_API native_plugin : core_plugin<plugin_manager>
-	{
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	protected:
-		using core_plugin<plugin_manager>::core_plugin;
-
-		virtual ~native_plugin() noexcept override = default;
-
-		virtual void on_event(event const &) override = 0;
+		plugin_manager * const	m_manager	; // manager pointer
+		allocator_type			m_alloc		; // 
+		void *					m_userptr	; // user pointer
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

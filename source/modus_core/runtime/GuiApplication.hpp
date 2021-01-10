@@ -9,6 +9,7 @@
 
 namespace ml
 {
+	// fps tracker
 	struct ML_NODISCARD fps_tracker final : non_copyable, trackable
 	{
 		float32			value; // value
@@ -28,6 +29,45 @@ namespace ml
 			index = (index + 1) % times.size();
 			value = (0.f < accum) ? (1.f / (accum / (float32)times.size())) : FLT_MAX;
 		}
+	};
+}
+
+namespace ml
+{
+	// input state
+	struct ML_NODISCARD input_state final
+	{
+	public:
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		bool
+			is_shift,
+			is_ctrl,
+			is_alt,
+			is_super;
+		char
+			last_char;
+		float32
+			mouse_wheel;
+		vec2
+			mouse_pos, last_mouse_pos,
+			mouse_delta;
+		bool
+			mouse_down[mouse_button_MAX],
+			keys_down[keycode_MAX];
+		float32
+			mouse_down_duration[mouse_button_MAX],
+			keys_down_duration[keycode_MAX];
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		input_state() noexcept = default;
+		input_state(input_state const &) = default;
+		input_state(input_state &&) noexcept = default;
+		input_state & operator=(input_state const &) = default;
+		input_state & operator=(input_state &&) noexcept = default;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
@@ -63,7 +103,7 @@ namespace ml
 
 		ML_NODISCARD auto get_input() const noexcept { return const_cast<input_state *>(&m_input); }
 
-		ML_NODISCARD auto get_window() const noexcept { return const_cast<native_window *>(&m_window); }
+		ML_NODISCARD auto get_main_window() const noexcept { return const_cast<native_window *>(&m_window); }
 
 		ML_NODISCARD auto get_render_device() const noexcept -> scary<gfx::render_device> const & { return m_render_device; }
 
@@ -75,29 +115,10 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		ML_NODISCARD std::optional<fs::path> get_open_file_name(string const & filter = "") const
-		{
-			return m_window.is_open()
-				? window_api::get_open_file_name(m_window.get_native_handle(), filter)
-				: std::nullopt;
-		}
-
-		ML_NODISCARD std::optional<fs::path> get_save_file_name(string const & filter = "") const
-		{
-			return m_window.is_open()
-				? window_api::get_save_file_name(m_window.get_native_handle(), filter)
-				: std::nullopt;
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	protected:
 		virtual void on_startup();
 
 		virtual void on_shutdown();
-
-		virtual void on_begin_frame();
 
 		virtual void on_idle(duration dt);
 

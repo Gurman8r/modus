@@ -28,7 +28,7 @@ namespace ml
 		scene_tree(string const & name, allocator_type alloc = {}) noexcept
 			: object{ name, alloc }
 			, m_reg	{}
-			, m_root{ ML_new(node, "root", this, nullptr, alloc) }
+			, m_root{ ML_new(node, name, this, nullptr, alloc) }
 		{
 		}
 

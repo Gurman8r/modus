@@ -29,6 +29,22 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		ML_NODISCARD std::optional<fs::path> get_open_file_name(string const & filter = "") const
+		{
+			return is_open()
+				? window_api::get_open_file_name(get_native_handle(), filter)
+				: std::nullopt;
+		}
+
+		ML_NODISCARD std::optional<fs::path> get_save_file_name(string const & filter = "") const
+		{
+			return is_open()
+				? window_api::get_save_file_name(get_native_handle(), filter)
+				: std::nullopt;
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 		void focus() noexcept final { m_impl->focus(); }
 
 		void hide() noexcept final { m_impl->hide(); }

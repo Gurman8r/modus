@@ -64,7 +64,7 @@ namespace ml
 
 		~plugin_manager() noexcept final
 		{
-			this->free_all_plugins();
+			this->uninstall_all_plugins();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -114,7 +114,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		plugin_id load_plugin(ref<native_library> const & lib, void * userptr = nullptr)
+		plugin_id install_plugin(ref<native_library> const & lib, void * userptr = nullptr)
 		{
 			if (!lib || !*lib) { return nullptr; }
 			
@@ -141,7 +141,7 @@ namespace ml
 			}
 		}
 
-		bool free_plugin(plugin_id value)
+		bool uninstall_plugin(plugin_id value)
 		{
 			if (!value) { return false; }
 			else if (size_t const i{ m_data.lookup<plugin_id>(value) }
@@ -155,16 +155,16 @@ namespace ml
 			}
 		}
 
-		bool free_plugin(fs::path const & path) noexcept
+		bool uninstall_plugin(fs::path const & path) noexcept
 		{
-			return this->free_plugin((plugin_id)hashof(path.string()));
+			return this->uninstall_plugin((plugin_id)hashof(path.string()));
 		}
 
-		void free_all_plugins()
+		void uninstall_all_plugins()
 		{
 			auto & ids{ m_data.get<plugin_id>() };
 
-			while (!ids.empty()) { this->free_plugin(ids.back()); }
+			while (!ids.empty()) { this->uninstall_plugin(ids.back()); }
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

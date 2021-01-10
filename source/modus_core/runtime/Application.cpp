@@ -43,7 +43,6 @@ namespace ml
 		gui_application::on_event(value);
 		switch (value)
 		{
-		// main
 		case runtime_startup_event	::ID: { auto const & ev{ (runtime_startup_event const &)value }; } break;
 		case runtime_shutdown_event	::ID: { auto const & ev{ (runtime_shutdown_event const &)value }; } break;
 		case runtime_idle_event		::ID: { auto const & ev{ (runtime_idle_event const &)value }; } break;
@@ -51,7 +50,6 @@ namespace ml
 		case runtime_gui_event		::ID: { auto const & ev{ (runtime_gui_event const &)value }; } break;
 		case runtime_end_frame_event::ID: { auto const & ev{ (runtime_end_frame_event const &)value }; } break;
 
-		// input
 		case char_event				::ID: { auto const & ev{ (char_event const &)value }; } break;
 		case key_event				::ID: { auto const & ev{ (key_event const &)value }; } break;
 		case mouse_button_event		::ID: { auto const & ev{ (mouse_button_event const &)value }; } break;

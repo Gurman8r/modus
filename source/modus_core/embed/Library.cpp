@@ -9,8 +9,6 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	native_library::~native_library() noexcept { this->close(); }
-
 	bool native_library::open(fs::path path)
 	{
 		if (m_handle || path.empty()) { return false; }

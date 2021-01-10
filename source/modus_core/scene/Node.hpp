@@ -149,17 +149,18 @@ namespace ml
 			if (!m_parent) { return; }
 			static node * temp{};
 			auto & v{ m_parent->m_children };
-			auto here{ get_sibling_index() };
-			temp = *(v.begin() + here);
-			v.erase(v.begin() + here);
+			size_t index{ get_sibling_index() };
+			temp = *(v.begin() + (ptrdiff_t)index);
+			v.erase(v.begin() + index);
 			v.insert(v.begin() + i, temp);
+			temp = nullptr;
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ML_NODISCARD auto get_child(size_t i) noexcept -> node * { return m_children[i]; }
 
-		ML_NODISCARD auto get_child(size_t i) const noexcept -> node * { return m_children[i]; }
+		ML_NODISCARD auto get_child(size_t i) const noexcept -> node const * { return m_children[i]; }
 
 		ML_NODISCARD auto get_child_count() const noexcept -> size_t { return m_children.size(); }
 

@@ -13,6 +13,8 @@ namespace ml
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	struct event;
+
+	template <class> struct event_helper;
 	
 	struct event_listener;
 	
@@ -86,7 +88,7 @@ namespace ml
 			{
 				return 0;
 			}
-			else if (int32 const cmp{ util::compare(m_index, other.m_index) })
+			else if (int32 const cmp{ ML_compare(m_index, other.m_index) })
 			{
 				return cmp;
 			}
@@ -218,9 +220,10 @@ namespace ml
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+		using event_type				= typename Ev;
 		using base_type					= typename event_delegate<void>;
-		using self_type					= typename event_delegate<Ev>;
-		using method_type				= typename method<void(Ev const &)>;
+		using self_type					= typename event_delegate<event_type>;
+		using method_type				= typename method<void(event_type const &)>;
 		using storage_type				= typename list<method_type>;
 		using iterator					= typename storage_type::iterator;
 		using const_iterator			= typename storage_type::const_iterator;
@@ -235,14 +238,14 @@ namespace ml
 			: base_type{ bus }
 			, m_data{ alloc }
 		{
-			this->subscribe<Ev>();
+			this->subscribe<event_type>();
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <class Ev> void dispatch(Ev && value) noexcept { this->on_event(ML_forward(value)); }
+		template <class event_type> void dispatch(event_type && value) noexcept { this->on_event(ML_forward(value)); }
 
-		template <class Ev> void operator()(Ev && value) noexcept { this->on_event(ML_forward(value)); }
+		template <class event_type> void operator()(event_type && value) noexcept { this->on_event(ML_forward(value)); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -302,7 +305,7 @@ namespace ml
 		{
 			for (method_type const & fn : m_data)
 			{
-				ML_check(fn)((Ev const &)value);
+				ML_check(fn)((event_type const &)value);
 			}
 		}
 

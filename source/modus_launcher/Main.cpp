@@ -98,11 +98,9 @@ int32 main(int32 argc, char * argv[])
 		return f ? json::parse(f) : default_settings;
 	}) };
 
-	
-
 	for (json const & j : app.get_attr("plugins"))
 	{
-		if (j.contains("path")) { app.load_plugin(j["path"]); }
+		if (j.contains("path")) { app.install_plugin(j["path"]); }
 	}
 
 	for (json const & j : app.get_attr("scripts"))

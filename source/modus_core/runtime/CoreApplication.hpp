@@ -14,7 +14,7 @@ namespace ml
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		using library_storage = typename batch_vector<library_id, file_info, ref<native_library>>;
+		using library_storage = typename batch_vector<library_id, ref<native_library>>;
 
 		core_application(int32 argc, char * argv[], json const & argj = {}, allocator_type alloc = {});
 
@@ -105,45 +105,43 @@ namespace ml
 		{
 			if (ref<native_library> lib{ this->get_library(path) }) { return lib; }
 			else if (!(lib = alloc_ref<native_library>(alloc, path)) || !*lib) { return nullptr; }
-			else { return std::get<2>(m_libraries.push_back(lib->get_uuid(), lib->get_file_info(), std::move(lib))); }
+			else { return std::get<1>(m_libraries.push_back(lib->get_uuid(), std::move(lib))); }
 		}
 
 		bool add_library(ref<native_library> const & value) noexcept
 		{
 			if (!value || !*value || m_libraries.contains<library_id>(value->get_uuid())) { return false; }
-			else { m_libraries.push_back(value->get_uuid(), value->get_file_info(), value); return true; }
+			else { m_libraries.push_back(value->get_uuid(), value); return true; }
 		}
 
 		bool free_library(library_id id) noexcept
 		{
 			if (size_t const i{ m_libraries.lookup<library_id>(id) }; i == m_libraries.npos) { return false; }
-			else { free_plugin((plugin_id)id); m_libraries.erase(i); return true; }
+			else { uninstall_plugin((plugin_id)id); m_libraries.erase(i); return true; }
 		}
 
 		bool free_library(fs::path const & path) noexcept { return free_library((library_id)hashof(path.string())); }
 
 		bool free_library(ref<native_library> const & lib) noexcept { return lib && free_library(lib->get_uuid()); }
 
-		void free_all_libraries() { free_all_plugins(); while (!m_libraries.empty()) { m_libraries.pop_back(); } }
+		void free_all_libraries() { uninstall_all_plugins(); while (!m_libraries.empty()) { m_libraries.pop_back(); } }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_plugin_storage() const noexcept { return const_cast<plugin_manager *>(&m_plugins); }
-
 		template <class ID> ML_NODISCARD bool has_plugin(ID && id) const noexcept { return m_plugins.contains(ML_forward(id)); }
 
-		auto load_plugin(ref<native_library> const & lib, void * userptr = nullptr) noexcept -> plugin_id { return m_plugins.load_plugin(lib, userptr); }
+		auto install_plugin(ref<native_library> const & lib, void * userptr = nullptr) noexcept -> plugin_id { return m_plugins.install_plugin(lib, userptr); }
 
-		auto load_plugin(fs::path const & path, void * userptr = nullptr) noexcept -> plugin_id { return load_plugin(load_library(path), userptr); }
+		auto install_plugin(fs::path const & path, void * userptr = nullptr) noexcept -> plugin_id { return install_plugin(load_library(path), userptr); }
 
-		bool free_plugin(plugin_id id) noexcept { return m_plugins.free_plugin(id); }
+		bool uninstall_plugin(plugin_id id) noexcept { return m_plugins.uninstall_plugin(id); }
 
-		bool free_plugin(fs::path const & path) noexcept { return free_plugin((plugin_id)hashof(path.string())); }
+		bool uninstall_plugin(fs::path const & path) noexcept { return uninstall_plugin((plugin_id)hashof(path.string())); }
 
-		bool free_plugin(ref<native_library> const & lib) noexcept { return lib && free_plugin((plugin_id)lib->get_uuid()); }
+		bool uninstall_plugin(ref<native_library> const & lib) noexcept { return lib && uninstall_plugin((plugin_id)lib->get_uuid()); }
 
-		void free_all_plugins() { m_plugins.free_all_plugins(); }
+		void uninstall_all_plugins() { m_plugins.uninstall_all_plugins(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

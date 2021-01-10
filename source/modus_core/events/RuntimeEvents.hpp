@@ -30,14 +30,6 @@ namespace ml
 		constexpr runtime_shutdown_event(gui_application * ptr) noexcept : ptr{ ptr } {}
 	};
 
-	ML_event(runtime_begin_frame_event)
-	{
-		gui_application * const ptr;
-		auto operator->() const noexcept { return ptr; }
-		auto & operator*() const noexcept { return *ML_check(ptr); }
-		constexpr runtime_begin_frame_event(gui_application * ptr) noexcept : ptr{ ptr } {}
-	};
-
 	ML_event(runtime_idle_event)
 	{
 		gui_application * const ptr;

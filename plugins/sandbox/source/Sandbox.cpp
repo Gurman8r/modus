@@ -88,7 +88,6 @@ namespace ml
 		sandbox(plugin_manager * manager, void * userptr) : native_plugin{ manager, userptr }
 		{
 			subscribe<
-				// main
 				runtime_startup_event,
 				runtime_shutdown_event,
 				runtime_idle_event,
@@ -96,7 +95,6 @@ namespace ml
 				runtime_gui_event,
 				runtime_end_frame_event,
 
-				// input
 				char_event,
 				key_event,
 				mouse_button_event,
@@ -112,7 +110,7 @@ namespace ml
 			case runtime_startup_event	::ID: return on_runtime_startup((runtime_startup_event const &)value);
 			case runtime_shutdown_event	::ID: return on_runtime_shutdown((runtime_shutdown_event const &)value);
 			case runtime_idle_event		::ID: return on_runtime_update((runtime_idle_event const &)value);
-			case dockspace_builder_event::ID: return on_editor_dockspace((dockspace_builder_event const &)value);
+			case dockspace_builder_event::ID: return on_dockspace_builder((dockspace_builder_event const &)value);
 			case runtime_gui_event		::ID: return on_runtime_gui((runtime_gui_event const &)value);
 			case runtime_end_frame_event::ID: return on_runtime_frame_end((runtime_end_frame_event const &)value);
 
@@ -134,7 +132,7 @@ namespace ml
 			// icons
 			if (bitmap const i{ path2("resource/modus_launcher.png"), false })
 			{
-				ev->get_window()->set_icons(1, i.width(), i.height(), i.data());
+				ev->get_main_window()->set_icons(1, i.width(), i.height(), i.data());
 			}
 
 			// framebuffers
@@ -260,7 +258,7 @@ namespace ml
 			);
 		}
 		
-		void on_editor_dockspace(dockspace_builder_event const & ev)
+		void on_dockspace_builder(dockspace_builder_event const & ev)
 		{
 			ImGuiID root{ ev->ID };
 			ImGuiID left{ ev->SplitNode(root, ImGuiDir_Left, 0.25f, nullptr, &root) };
@@ -271,7 +269,7 @@ namespace ml
 		void on_runtime_gui(runtime_gui_event const & ev)
 		{
 			application * const		app				{ ML_get_global(application) };
-			native_window * const	window			{ app->get_window() };
+			native_window * const	window			{ app->get_main_window() };
 			vec2 const				winsize			{ (vec2)window->get_size() };
 			ImGuiContext * const	imgui			{ app->get_imgui().get() };
 			ImGuiStyle &			style			{ imgui->Style };
@@ -512,15 +510,16 @@ namespace ml
 				ImGui::End();
 			}
 
-			// tree editor
-			if (ImGui::Begin("scene editor", NULL, ImGuiWindowFlags_MenuBar)) {
+			// scene editor
+			if (ImGui::Begin("scene editor", NULL, ImGuiWindowFlags_MenuBar))
+			{
+				static auto const & scene0{ m_scenes["0"] };
+
 				if (ImGui::BeginMenuBar()) {
 					ImGui::TextDisabled("scene editor");
 					ImGui::EndMenuBar();
 				}
-
 				
-				static auto const & scene0{ m_scenes["0"] };
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
 				edit_entity(scene0->get_root_node(),
 					ImGuiTreeNodeFlags_DefaultOpen |

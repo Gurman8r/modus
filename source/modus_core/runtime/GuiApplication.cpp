@@ -63,8 +63,6 @@ namespace ml
 		while (m_window.is_open())
 		{
 			m_loop_timer.restart();
-			on_begin_frame();
-
 			window_api::poll_events();
 			on_idle(m_delta_time);
 
@@ -85,7 +83,7 @@ namespace ml
 
 	void gui_application::exit(int32 exit_code)
 	{
-		m_window.set_should_close(true);
+		if (m_window.is_open()) { m_window.set_should_close(true); }
 
 		return core_application::exit(exit_code);
 	}
@@ -160,15 +158,6 @@ namespace ml
 		get_bus()->broadcast<runtime_shutdown_event>(this);
 	}
 
-	void gui_application::on_begin_frame()
-	{
-		// begin frame event
-		get_bus()->broadcast<runtime_begin_frame_event>(this);
-
-		// reset inputs
-		m_input.mouse_wheel = 0.f;
-	}
-
 	void gui_application::on_idle(duration dt)
 	{
 		// fps tracker
@@ -235,6 +224,9 @@ namespace ml
 		if (m_window.has_hints(window_hints_doublebuffer)) {
 			window_api::swap_buffers(m_window.get_handle());
 		}
+
+		// reset inputs
+		m_input.mouse_wheel = 0.f;
 
 		// end frame event
 		get_bus()->broadcast<runtime_end_frame_event>(this);

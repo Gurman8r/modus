@@ -30,6 +30,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		virtual ~library() noexcept override = default;
+
 		virtual bool open(fs::path path) = 0;
 
 		virtual bool close() = 0;
@@ -42,9 +44,9 @@ namespace ml
 
 		ML_NODISCARD virtual library_id get_uuid() const noexcept = 0;
 
-		ML_NODISCARD inline operator bool() const noexcept { return (bool)get_handle(); }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		ML_NODISCARD inline operator bool() const noexcept { return (bool)get_handle(); }
 
 		template <class Ret, class ... Args, class Name
 		> ML_NODISCARD auto get_method(Name && method_name)
@@ -87,7 +89,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		~native_library() noexcept final;
+		~native_library() noexcept final { this->close(); }
 
 		native_library(allocator_type alloc = {}) noexcept
 			: m_uuid	{}

@@ -7,26 +7,19 @@ namespace ml
 {
 	struct scene_tree;
 
-	struct ML_CORE_API node : object
+	struct ML_CORE_API node : object, std::enable_shared_from_this<node>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	public:
-		using allocator_type = typename pmr::polymorphic_allocator<byte>;
+	protected:
+		using std::enable_shared_from_this<node>::shared_from_this;
 
-		static constexpr size_t npos{ static_cast<size_t>(-1) };
+		using std::enable_shared_from_this<node>::weak_from_this;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual ~node() noexcept override
-		{
-			std::for_each(m_children.rbegin(), m_children.rend(), [&](node * child) noexcept
-			{
-				ML_delete(child);
-			});
-			m_children.clear();
-		}
+		virtual ~node() noexcept override = default;
 
 		node(allocator_type alloc = {}) noexcept
 			: object	{ "New Node", alloc }
@@ -73,16 +66,107 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		template <class Derived = node, class Name, class ... Args
-		> auto new_child(Name && name, Args && ... args) -> Derived *
+		ML_NODISCARD auto get_child(size_t i) noexcept -> ref<node> &
 		{
-			return (Derived *)(m_children.emplace_back
+			return m_children[i];
+		}
+
+		ML_NODISCARD auto get_child(size_t i) const noexcept -> ref<node> const &
+		{
+			return m_children[i];
+		}
+
+		ML_NODISCARD auto get_child_count() const noexcept -> size_t
+		{
+			return m_children.size();
+		}
+
+		ML_NODISCARD auto get_children() noexcept -> list<ref<node>> &
+		{
+			return m_children;
+		}
+
+		ML_NODISCARD auto get_children() const noexcept -> list<ref<node>> const &
+		{
+			return m_children;
+		}
+
+		ML_NODISCARD auto get_parent() const noexcept -> node *
+		{
+			return m_parent;
+		}
+
+		ML_NODISCARD auto get_root() const noexcept -> node *
+		{
+			return m_parent ? m_parent->get_root() : const_cast<node *>(this);
+		}
+
+		ML_NODISCARD auto get_sibling_count() const noexcept -> size_t
+		{
+			return m_parent ? m_parent->get_child_count() : 0;
+		}
+
+		ML_NODISCARD auto get_sibling_index() const noexcept -> size_t
+		{
+			if (!m_parent)
+			{
+				return 0;
+			}
+			else if (auto const it{ m_parent->find_node(this) }; it == m_parent->m_children.end())
+			{
+				return static_cast<size_t>(-1);
+			}
+			else
+			{
+				return (size_t)std::distance(m_parent->m_children.begin(), it);
+			}
+		}
+
+		ML_NODISCARD auto get_tree() const noexcept -> scene_tree *
+		{
+			return m_tree;
+		}
+
+		ML_NODISCARD bool is_child_of(node const * other) const noexcept
+		{
+			if (!m_parent)
+			{
+				return false;
+			}
+			else if ((m_parent == other) || !other || !other->m_parent)
+			{
+				return true;
+			}
+			else
+			{
+				for (auto const & child : other->m_children)
+				{
+					if (is_child_of(child))
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+
+		ML_NODISCARD bool is_child_of(ref<node> const & other) const noexcept
+		{
+			return is_child_of(other.get());
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <class Derived = node, class Name, class ... Args
+		> auto new_child(Name && name, Args && ... args)
+		{
+			return std::static_pointer_cast<Derived>(m_children.emplace_back
 			(
-				ML_new(Derived, ML_forward(name), m_tree, this, ML_forward(args)...)
+				_ML make_ref<Derived>(ML_forward(name), m_tree, this, ML_forward(args)...)
 			));
 		}
 
-		bool add_child(node * value) noexcept
+		bool add_child(ref<node> const & value) noexcept
 		{
 			return value && value->set_parent(this);
 		}
@@ -91,38 +175,26 @@ namespace ml
 		{
 			if (i < m_children.size())
 			{
-				auto const it{ m_children.begin() + (ptrdiff_t)i };
-
-				ML_delete(*it);
-
-				m_children.erase(it);
+				m_children.erase(m_children.begin() + (ptrdiff_t)i);
 			}
 		}
 
-		void delete_node(node * value)
+		template <class ID> void delete_node(ID && id)
 		{
-			if (auto const it{ find_node(value) }; it != m_children.end())
+			if (auto const it{ find_node(ML_forward(id)) }; it != m_children.end())
 			{
-				ML_delete(*it);
-
 				m_children.erase(it);
 			}
 		}
 
 		void clear_children()
 		{
-			std::for_each(m_children.rbegin(), m_children.rend(), [&](node * child) noexcept
-			{
-				child->clear_children();
-
-				ML_delete(child);
-			});
 			m_children.clear();
 		}
 
 		void detatch_children()
 		{
-			for (node * child : m_children)
+			for (auto const & child : m_children)
 			{
 				if (child->m_parent = m_parent)
 				{
@@ -134,22 +206,40 @@ namespace ml
 
 		bool set_parent(node * value)
 		{
-			if (!value || (this == value) || value->is_child_of(this)) { return false; }
+			if (!value || (this == value) || value->is_child_of(this))
+			{
+				return false;
+			}
 			else
 			{
-				if (value) { value->m_children.push_back(this); }
-				if (m_parent) { m_parent->m_children.erase(m_parent->find_node(this)); }
+				if (value)
+				{
+					value->m_children.push_back(shared_from_this());
+				}
+				
+				if (m_parent)
+				{
+					m_parent->m_children.erase(m_parent->find_node(this));
+				}
+				
 				m_parent = value;
+				
 				return true;
 			}
+		}
+
+		bool set_parent(ref<node> const & value) noexcept
+		{
+			return value && set_parent(value.get());
 		}
 
 		void set_sibling_index(size_t i)
 		{
 			if (!m_parent) { return; }
-			static node * temp{};
-			auto & v{ m_parent->m_children };
 			size_t index{ get_sibling_index() };
+			if (index == i) { return; }
+			static ref<node> temp{ nullptr };
+			auto & v{ m_parent->m_children };
 			temp = *(v.begin() + (ptrdiff_t)index);
 			v.erase(v.begin() + index);
 			v.insert(v.begin() + i, temp);
@@ -158,79 +248,47 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto get_child(size_t i) noexcept -> node * { return m_children[i]; }
-
-		ML_NODISCARD auto get_child(size_t i) const noexcept -> node const * { return m_children[i]; }
-
-		ML_NODISCARD auto get_child_count() const noexcept -> size_t { return m_children.size(); }
-
-		ML_NODISCARD auto get_children() noexcept -> list<node *> & { return m_children; }
-		
-		ML_NODISCARD auto get_children() const noexcept -> list<node *> const & { return m_children; }
-
-		ML_NODISCARD auto get_parent() const noexcept -> node * { return m_parent; }
-
-		ML_NODISCARD auto get_root() const noexcept -> node * { return m_parent ? m_parent->get_root() : const_cast<node *>(this); }
-
-		ML_NODISCARD auto get_sibling_index() const noexcept -> size_t
-		{
-			if (!m_parent) { return 0; }
-			else if (auto const it{ m_parent->find_node(this) }; it == m_parent->m_children.end()) { return npos; }
-			else { return (size_t)std::distance(m_parent->m_children.begin(), it); }
-		}
-
-		ML_NODISCARD auto get_tree() const noexcept -> scene_tree * { return m_tree; }
-
-		ML_NODISCARD bool is_child_of(node const * other) const noexcept
-		{
-			if (!m_parent) { return false; }
-			else if ((m_parent == other) || (!other || !other->m_parent)) { return true; }
-			else
-			{
-				for (node const * child : other->m_children)
-				{
-					if (is_child_of(child))
-					{
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 	public:
 		template <class Pr
-		> ML_NODISCARD auto find_node_if(Pr && pr) noexcept -> list<node *>::iterator
+		> ML_NODISCARD auto find_node_if(Pr && pr) noexcept -> list<ref<node>>::iterator
 		{
 			return std::find_if(m_children.begin(), m_children.end(), ML_forward(pr));
 		}
 
 		template <class Pr
-		> ML_NODISCARD auto find_node_if(Pr && pr) const noexcept -> list<node *>::const_iterator
+		> ML_NODISCARD auto find_node_if(Pr && pr) const noexcept -> list<ref<node>>::const_iterator
 		{
 			return std::find_if(m_children.begin(), m_children.end(), ML_forward(pr));
 		}
 
-		ML_NODISCARD auto find_node(node const * value) noexcept -> list<node *>::iterator
+		ML_NODISCARD auto find_node(node const * value) noexcept -> list<ref<node>>::iterator
+		{
+			return find_node_if([&](auto const & e) { return e.get() == value; });
+		}
+
+		ML_NODISCARD auto find_node(node const * value) const noexcept -> list<ref<node>>::const_iterator
+		{
+			return find_node_if([&](auto const & e) { return e.get() == value; });
+		}
+
+		ML_NODISCARD auto find_node(ref<node> const & value) noexcept -> list<ref<node>>::iterator
 		{
 			return std::find(m_children.begin(), m_children.end(), value);
 		}
 
-		ML_NODISCARD auto find_node(node const * value) const noexcept -> list<node *>::const_iterator
+		ML_NODISCARD auto find_node(ref<node> const & value) const noexcept -> list<ref<node>>::const_iterator
 		{
 			return std::find(m_children.begin(), m_children.end(), value);
 		}
 
-		ML_NODISCARD auto find_node(string const & value) noexcept -> list<node *>::iterator
+		ML_NODISCARD auto find_node(string const & value) noexcept -> list<ref<node>>::iterator
 		{
-			return this->find_node_if([&](auto const & e) { return e && e->get_name() == value; });
+			return find_node_if([&](auto const & e) { return e && e->get_name() == value; });
 		}
 
-		ML_NODISCARD auto find_node(string const & value) const noexcept -> list<node *>::const_iterator
+		ML_NODISCARD auto find_node(string const & value) const noexcept -> list<ref<node>>::const_iterator
 		{
-			return this->find_node_if([&](auto const & e) { return e && e->get_name() == value; });
+			return find_node_if([&](auto const & e) { return e && e->get_name() == value; });
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -240,7 +298,7 @@ namespace ml
 
 		scene_tree *	m_tree		; // tree
 		node *			m_parent	; // parent
-		list<node *>	m_children	; // children
+		list<ref<node>>	m_children	; // children
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

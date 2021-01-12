@@ -2,6 +2,7 @@
 #define _ML_APPLICATION_HPP_
 
 #include <modus_core/runtime/GuiApplication.hpp>
+#include <modus_core/scene/SceneTree.hpp>
 
 namespace ml
 {
@@ -20,24 +21,19 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using gui_application::exec;
+		ML_NODISCARD auto get_active_scene() const noexcept -> ref<scene_tree> const & { return m_active_scene; }
 
-		using gui_application::exit;
+		void set_active_scene(ref<scene_tree> const & value) noexcept { m_active_scene = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
 	protected:
-		using gui_application::on_startup;
-
-		using gui_application::on_shutdown;
-
-		using gui_application::on_idle;
-
-		using gui_application::on_gui;
-
-		using gui_application::on_end_frame;
-
 		virtual void on_event(event const & value) override;
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	private:
+		ref<scene_tree> m_active_scene;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

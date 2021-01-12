@@ -8,8 +8,8 @@
 		"style": { "path": "resource/modus_launcher.style" }
 	},
 
-	"plugins": [
-		{ "path": "plugins/sandbox" }
+	"addons": [
+		{ "path": "addons/sandbox" }
 	],
 
 	"scripts": [

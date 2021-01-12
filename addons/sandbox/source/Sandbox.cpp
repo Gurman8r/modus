@@ -2,7 +2,7 @@
 
 namespace ml
 {
-	struct ML_PLUGIN_API sandbox final : native_plugin
+	struct ML_PLUGIN_API sandbox final : addon
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -85,7 +85,7 @@ namespace ml
 
 		~sandbox() noexcept final {}
 
-		sandbox(plugin_manager * manager, void * userptr) : native_plugin{ manager, userptr }
+		sandbox(addon_manager * manager, void * userptr) : addon{ manager, userptr }
 		{
 			subscribe<
 				runtime_startup_event,
@@ -144,15 +144,15 @@ namespace ml
 
 			// shaders
 			if (gfx::program_source src{}
-			; gfx::parse_source(path2("plugins/sandbox/resource/shaders/basic_3D.shader"), src))
+			; gfx::parse_source(path2("addons/sandbox/resource/shaders/basic_3D.shader"), src))
 			{
 				if (src[0]) { m_shaders["vs"] = gfx::shader::create({ 0, { *src[0] } }); }
 				if (src[1]) { m_shaders["ps"] = gfx::shader::create({ 1, { *src[1] } }); }
 			}
 			
 			// programs
-			m_programs["2D"] = gfx::parse_program(path2("plugins/sandbox/resource/shaders/basic_2D.shader"));
-			m_programs["3D"] = gfx::parse_program(path2("plugins/sandbox/resource/shaders/basic_3D.shader"));
+			m_programs["2D"] = gfx::parse_program(path2("addons/sandbox/resource/shaders/basic_2D.shader"));
+			m_programs["3D"] = gfx::parse_program(path2("addons/sandbox/resource/shaders/basic_3D.shader"));
 
 			// meshes
 			m_meshes["sphere8x6"] = make_ref<mesh>(path2("assets/models/sphere8x6.obj"));
@@ -173,9 +173,14 @@ namespace ml
 			// scene
 			auto & scene0 = m_scenes["0"] = make_ref<scene_tree>("New Scene");
 			m_scene_editor.set_context(scene0);
-			entity * e{ scene0->new_entity("entity 0") };
-			e->add_component<camera_component>();
-			e->add_component<native_script_component>();
+			if (ref<entity> e0{ scene0->new_entity("entity 0") })
+			{
+				e0->add_component<camera_component>();
+				e0->add_component<native_script_component>();
+			}
+			scene0->new_entity("entity 1");
+			scene0->new_entity("entity 2");
+			scene0->new_entity("entity 3");
 			
 			// terminal
 			m_terminal.UserName = "root";
@@ -521,7 +526,7 @@ namespace ml
 				}
 				
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
-				edit_entity(scene0->get_root_node(),
+				edit_node(std::static_pointer_cast<entity>(scene0->get_root()),
 					ImGuiTreeNodeFlags_DefaultOpen |
 					ImGuiTreeNodeFlags_Framed |
 					ImGuiTreeNodeFlags_FramePadding |
@@ -565,14 +570,14 @@ namespace ml
 
 extern "C"
 {
-	ML_PLUGIN_API ml::native_plugin * ml_plugin_create(ml::plugin_manager * manager, void * userptr)
+	ML_PLUGIN_API ml::addon * ml_addon_create(ml::addon_manager * manager, void * userptr)
 	{
-		return manager->allocate_plugin<ml::sandbox>(userptr);
+		return manager->allocate<ml::sandbox>(userptr);
 	}
 
-	ML_PLUGIN_API void ml_plugin_destroy(ml::plugin_manager * manager, ml::native_plugin * ptr)
+	ML_PLUGIN_API void ml_addon_destroy(ml::addon_manager * manager, ml::addon * ptr)
 	{
-		manager->deallocate_plugin<ml::sandbox>(ptr);
+		manager->deallocate<ml::sandbox>(ptr);
 	}
 }
 

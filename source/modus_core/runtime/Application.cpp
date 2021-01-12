@@ -11,10 +11,9 @@ namespace ml
 
 	application::application(int32 argc, char * argv[], json const & argj, allocator_type alloc)
 		: gui_application{ argc, argv, argj, alloc }
+		, m_active_scene{}
 	{
 		ML_ctor_global(application);
-
-		get_bus()->get_delegate<runtime_idle_event>() += [](auto const & ev) {};
 
 		subscribe<
 			runtime_startup_event,

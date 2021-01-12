@@ -1,5 +1,5 @@
-#ifndef _ML_PLUGIN_HPP_
-#define _ML_PLUGIN_HPP_
+#ifndef _ML_ADDON_HPP_
+#define _ML_ADDON_HPP_
 
 #include <modus_core/system/EventSystem.hpp>
 
@@ -9,20 +9,18 @@
 
 namespace ml
 {
-	// plugin manager
-	struct plugin_manager;
+	// addon manager
+	struct addon_manager;
 
-	// native plugin
-	struct ML_CORE_API native_plugin : non_copyable, trackable, event_listener
+	// native addon
+	struct ML_CORE_API addon : non_copyable, trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		ML_NODISCARD auto get_allocator() const -> allocator_type { return m_alloc; }
-
-		ML_NODISCARD auto get_plugin_manager() const noexcept -> plugin_manager * { return m_manager; }
+		ML_NODISCARD auto get_addon_manager() const noexcept -> addon_manager * { return m_manager; }
 
 		ML_NODISCARD auto get_user_pointer() const noexcept -> void * { return m_userptr; }
 
@@ -31,23 +29,23 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	protected:
-		friend plugin_manager;
+		friend addon_manager;
 
-		native_plugin(plugin_manager * manager, void * userptr = nullptr);
+		addon(addon_manager * manager, void * userptr = nullptr);
 
-		virtual ~native_plugin() noexcept override;
+		virtual ~addon() noexcept override;
 
 		virtual void on_event(event const &) override = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		plugin_manager * const	m_manager	; // manager pointer
-		allocator_type			m_alloc		; // 
-		void *					m_userptr	; // user pointer
+		addon_manager * const m_manager; // manager pointer
+
+		void * m_userptr; // user pointer
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
-#endif // !_ML_PLUGIN_HPP_
+#endif // !_ML_ADDON_HPP_

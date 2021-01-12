@@ -5,7 +5,7 @@
 
 namespace ml
 {
-	struct ML_NODISCARD file_info final
+	struct ML_NODISCARD file_info_struct final
 	{
 		char	type				{ ' ' };
 		string	file_path			{};
@@ -21,20 +21,24 @@ namespace ml::util
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	static std::optional<file_info> get_file_info(fs::path const & path)
+	static std::optional<file_info_struct> get_file_info(fs::path const & path)
 	{
 		if (!fs::exists(path)) { return std::nullopt; }
 
-		file_info temp
-		{
-			' ',
-			(string)path.string(),
-			(string)path.stem().string(),
-			(string)path.extension().string(),
-			0u,
-			"0B",
-			"00/00/0000"
-		};
+		file_info_struct temp{};
+
+		temp.file_path = (string)path.string();
+
+		temp.file_name = (string)path.stem().string();
+
+		temp.ext = (string)path.extension().string();
+
+		temp.file_size = 0u;
+
+		temp.formatted_file_size = "0B";
+
+		temp.file_modified_date = "DD/MM/YYYY";
+
 		return temp;
 	}
 

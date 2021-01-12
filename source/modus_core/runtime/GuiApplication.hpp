@@ -40,24 +40,17 @@ namespace ml
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		bool
-			is_shift,
-			is_ctrl,
-			is_alt,
-			is_super;
-		char
-			last_char;
-		float32
-			mouse_wheel;
-		vec2
-			mouse_pos, last_mouse_pos,
-			mouse_delta;
-		bool
-			mouse_down[mouse_button_MAX],
-			keys_down[keycode_MAX];
-		float32
-			mouse_down_duration[mouse_button_MAX],
-			keys_down_duration[keycode_MAX];
+		char last_char;
+		
+		bool is_shift, is_ctrl, is_alt, is_super;
+
+		float32 mouse_wheel;
+
+		vec2 mouse_pos, last_mouse_pos, mouse_delta;
+
+		bool mouse_down[mouse_button_MAX], keys_down[keycode_MAX];
+		
+		float32 mouse_down_duration[mouse_button_MAX], keys_down_duration[keycode_MAX];
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -88,7 +81,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual int32 exec() override;
+		virtual int32 run() override;
 
 		virtual void exit(int32 exit_code = EXIT_SUCCESS) override;
 

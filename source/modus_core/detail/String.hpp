@@ -4,17 +4,17 @@
 #include <modus_core/detail/List.hpp>
 
 // STRING TEMPLATE
-#define ML_STRING_TEMPLATE(Ch, Tr, Al)				\
-	class Ch = char,								\
-	class Tr = _ML std::char_traits<Ch>,			\
-	class Al = _ML pmr::polymorphic_allocator<Ch>
+#define ML_STRING_TEMPLATE(Ch, Tr, Al)					\
+	class Ch	= char,									\
+	class Tr	= _ML std::char_traits<Ch>,				\
+	class Al	= _ML pmr::polymorphic_allocator<Ch>
 
 // BASIC STRING TEMPLATE
-#define ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)	\
-	class Ch = char,								\
-	class Tr = _ML std::char_traits<Ch>,			\
-	class Al = _ML pmr::polymorphic_allocator<Ch>,	\
-	class Str = _ML basic_string<Ch, Tr, Al>
+#define ML_BASIC_STRING_TEMPLATE(Ch, Tr, Al, Str)		\
+	class Ch	= char,									\
+	class Tr	= _ML std::char_traits<Ch>,				\
+	class Al	= _ML pmr::polymorphic_allocator<Ch>,	\
+	class Str	= _ML basic_string<Ch, Tr, Al>
 
 // STRING
 namespace ml

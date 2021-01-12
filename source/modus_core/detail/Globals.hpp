@@ -36,10 +36,10 @@
 // end global
 #define ML_end_global(T, value)		(_ML_GLOBALS end_global<T>(value))
 
-// place in global object constructor
+// call in constructor of global
 #define ML_ctor_global(T)			ML_verify(ML_begin_global(T, this))
 
-// place in global object destructor
+// call in destructor of global
 #define ML_dtor_global(T)			ML_verify(ML_is_global(T, this)); \
 									ML_defer(&) { ML_verify(ML_end_global(T, this)); }
 
@@ -64,7 +64,7 @@ namespace ml::globals
 	// is global
 	template <class T> ML_NODISCARD bool is_global(T * value)
 	{
-		return value == ML_get_global(T);
+		return ML_get_global(T) == value;
 	}
 
 	// begin global

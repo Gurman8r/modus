@@ -10,6 +10,8 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		virtual ~scriptable_entity() noexcept = default;
+
 		using entity::entity;
 
 	protected:

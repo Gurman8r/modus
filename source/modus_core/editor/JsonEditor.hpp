@@ -50,9 +50,9 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		json *			m_root{};
-		json *			m_selected{};
-		bool			m_show_values{ true };
+		json *		m_root{};
+		json *		m_selected{};
+		bool		m_show_values{ true };
 		list<char>	m_temp_buffer{};
 
 		method<void(json_editor *, cstring, json *)>		on_item_selected		{};

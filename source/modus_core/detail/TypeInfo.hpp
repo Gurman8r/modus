@@ -285,7 +285,7 @@ namespace ml
 	}
 
 	template <class T
-	> static constexpr auto typeof_v
+	> constexpr auto typeof_v
 	{
 		_ML typeof<T>()
 	};

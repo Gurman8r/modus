@@ -4,6 +4,8 @@
 using namespace ml;
 using namespace ml::byte_literals;
 
+
+// MEMORY
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef RESERVE_MEMORY
@@ -26,6 +28,8 @@ static class memcfg final : public singleton<memcfg>
 
 } const & ML_anon{ memcfg::get_singleton() };
 
+
+// SETTINGS
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #ifndef SETTINGS_PATH
@@ -84,6 +88,15 @@ static json const default_settings{ R"(
 }
 )"_json };
 
+json load_settings(fs::path const & path = SETTINGS_PATH)
+{
+	std::ifstream f{ SETTINGS_PATH };
+	ML_defer(&f) { f.close(); };
+	return f ? json::parse(f) : default_settings;
+}
+
+
+// MAIN
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 static ML_block(&) { ML_verify(window_api::initialize()); };
@@ -92,23 +105,28 @@ static ML_defer(&) { ML_verify(window_api::finalize()); };
 
 int32 main(int32 argc, char * argv[])
 {
-	application app{ argc, argv, std::invoke([]() {
-		std::ifstream f{ SETTINGS_PATH };
-		ML_defer(&f) { f.close(); };
-		return f ? json::parse(f) : default_settings;
-	}) };
+	// create application
+	application app{ argc, argv, load_settings() };
 
-	for (json const & j : app.get_attr("plugins"))
+	// install addons
+	for (json const & j : app.get_attr("addons"))
 	{
-		if (j.contains("path")) { app.install_plugin(j["path"]); }
+		if (auto const it{ j.find("path") }; it != j.end() && it->is_string())
+		{
+			app.install_addon(*it);
+		}
 	}
 
+	// run scripts
 	for (json const & j : app.get_attr("scripts"))
 	{
-		if (j.contains("path")) { py::eval_file(app.get_path_to(j["path"])); }
+		if (auto const it{ j.find("path") }; it != j.end() && it->is_string())
+		{
+			py::eval_file(app.get_path_to(*it));
+		}
 	}
 
-	return app.exec();
+	return app.run();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

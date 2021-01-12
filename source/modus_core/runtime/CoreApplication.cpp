@@ -7,7 +7,6 @@ namespace ml
 
 	core_application::core_application(int32 argc, char * argv[], json const & argj, allocator_type alloc)
 		: event_listener	{ &m_event_bus, LLONG_MIN }
-		, m_main_timer		{ true }
 		, m_exit_code		{ EXIT_SUCCESS }
 		, m_app_data_path	{}
 		, m_app_file_name	{ argv[0] }
@@ -15,13 +14,15 @@ namespace ml
 		, m_app_name		{ m_app_file_name.stem().string(), alloc }
 		, m_app_version		{ alloc }
 		, m_arguments		{ argv, argv + argc, alloc }
+		, m_attributes		{ json{ argj } }
 		, m_library_paths	{ alloc }
 		, m_temp_buffer		{ alloc }
+		, m_userptr			{}
 
-		, m_attributes		{ json{ argj } }
+		, m_main_timer		{ true }
 		, m_event_bus		{ alloc }
-		, m_libraries		{ alloc }
-		, m_plugins			{ &m_event_bus, alloc }
+		, m_libs			{ alloc }
+		, m_addons			{ &m_event_bus, alloc }
 	{
 		ML_ctor_global(core_application);
 

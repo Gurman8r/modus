@@ -84,18 +84,7 @@ namespace ml
 
 		ML_NODISCARD auto get_bus_order(event_listener const & other) const noexcept -> int32
 		{
-			if (this == std::addressof(other))
-			{
-				return 0;
-			}
-			else if (int32 const cmp{ ML_compare(m_index, other.m_index) })
-			{
-				return cmp;
-			}
-			else
-			{
-				return util::compare(this, std::addressof(other));
-			}
+			return (this == std::addressof(other)) ? 0 : ML_compare(m_index, other.m_index);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -164,7 +153,7 @@ namespace ml
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		~dummy_listener() noexcept final { event_callback{}.swap(m_callback); }
+		~dummy_listener() noexcept final { m_callback = nullptr; }
 
 		template <class ... Args
 		> dummy_listener(event_bus * bus, Args && ... args) noexcept : event_listener{ bus }
@@ -232,6 +221,7 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	public:
 		~event_delegate() noexcept final { this->clear(); }
 
 		event_delegate(event_bus * bus, allocator_type alloc = {}) noexcept

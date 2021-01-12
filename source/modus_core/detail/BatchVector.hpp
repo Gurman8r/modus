@@ -630,33 +630,17 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		template <size_t I
-		> ML_NODISCARD size_t index_of(const_iterator_i<I> it) const noexcept
-		{
-			return (size_t)std::distance(this->cbegin<I>(), it);
-		}
-
-		template <class T
-		> ML_NODISCARD size_t index_of(const_iterator_t<T> it) const noexcept
-		{
-			return (size_t)std::distance(this->cbegin<T>(), it);
-		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		void clear() noexcept
 		{
 			this->for_tuple([&](auto & v) noexcept { v.clear(); });
 		}
 
-		template <size_t ... Is
-		> void clear() noexcept
+		template <size_t ... Is> void clear() noexcept
 		{
 			this->for_indices<Is...>([&](auto & v) noexcept { v.clear(); });
 		}
 
-		template <class ... Ts
-		> void clear() noexcept
+		template <class ... Ts> void clear() noexcept
 		{
 			this->for_types<Ts...>([&](auto & v) noexcept { v.clear(); });
 		}
@@ -668,14 +652,12 @@ namespace ml
 			this->for_tuple([&](auto & v) noexcept { v.pop_back(); });
 		}
 
-		template <size_t ... Is
-		> void pop_back() noexcept
+		template <size_t ... Is> void pop_back() noexcept
 		{
 			this->for_indices<Is...>([&](auto & v) noexcept { v.pop_back(); });
 		}
 
-		template <class ... Ts
-		> void pop_back() noexcept
+		template <class ... Ts> void pop_back() noexcept
 		{
 			this->for_types<Ts...>([&](auto & v) noexcept { v.pop_back(); });
 		}
@@ -687,14 +669,12 @@ namespace ml
 			this->for_tuple([&](auto & v) { v.reserve(value); });
 		}
 
-		template <size_t ... Is
-		> void reserve(size_t const value)
+		template <size_t ... Is> void reserve(size_t const value)
 		{
 			this->for_indices<Is...>([&](auto & v) { v.reserve(value); });
 		}
 
-		template <class ... Ts
-		> void reserve(size_t const value)
+		template <class ... Ts> void reserve(size_t const value)
 		{
 			this->for_types<Ts...>([&](auto & v) { v.reserve(value); });
 		}
@@ -706,14 +686,12 @@ namespace ml
 			this->for_tuple([&](auto & v) { v.resize(value); });
 		}
 
-		template <size_t ... Is
-		> void resize(size_t const value)
+		template <size_t ... Is> void resize(size_t const value)
 		{
 			this->for_indices<Is...>([&](auto & v) { v.resize(value); });
 		}
 
-		template <class ... Ts
-		> void resize(size_t const value)
+		template <class ... Ts> void resize(size_t const value)
 		{
 			this->for_types<Ts...>([&](auto & v) { v.resize(value); });
 		}
@@ -725,14 +703,12 @@ namespace ml
 			this->for_tuple([&](auto & v) noexcept { v.shrink_to_fit(); });
 		}
 
-		template <size_t ... Is
-		> void shrink_to_fit() noexcept
+		template <size_t ... Is> void shrink_to_fit() noexcept
 		{
 			this->for_indices<Is...>([&](auto & v) noexcept { v.shrink_to_fit(); });
 		}
 
-		template <class ... Ts
-		> void shrink_to_fit() noexcept
+		template <class ... Ts> void shrink_to_fit() noexcept
 		{
 			this->for_types<Ts...>([&](auto & v) noexcept { v.shrink_to_fit(); });
 		}
@@ -755,8 +731,7 @@ namespace ml
 			});
 		}
 
-		template <size_t ... Is
-		> void erase(size_t const i)
+		template <size_t ... Is> void erase(size_t const i)
 		{
 			this->for_indices<Is...>([&](auto & v)
 			{
@@ -764,8 +739,7 @@ namespace ml
 			});
 		}
 
-		template <size_t ... Is
-		> void erase(size_t const first, size_t const last)
+		template <size_t ... Is> void erase(size_t const first, size_t const last)
 		{
 			this->for_indices<Is...>([&](auto & v)
 			{
@@ -773,8 +747,7 @@ namespace ml
 			});
 		}
 
-		template <class ... Ts
-		> void erase(size_t const i)
+		template <class ... Ts> void erase(size_t const i)
 		{
 			this->for_types<Ts...>([&](auto & v)
 			{
@@ -782,8 +755,7 @@ namespace ml
 			});
 		}
 
-		template <class ... Ts
-		> void erase(size_t const first, size_t const last)
+		template <class ... Ts> void erase(size_t const first, size_t const last)
 		{
 			this->for_types<Ts...>([&](auto & v)
 			{
@@ -1011,6 +983,18 @@ namespace ml
 		> void swap(size_t const lhs, size_t const rhs) noexcept
 		{
 			this->for_types<Ts...>([&](auto & v) noexcept { std::swap(v[lhs], v[rhs]); });
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <size_t I> ML_NODISCARD size_t index_of(const_iterator_i<I> it) const noexcept
+		{
+			return (size_t)std::distance(this->cbegin<I>(), it);
+		}
+
+		template <class T> ML_NODISCARD size_t index_of(const_iterator_t<T> it) const noexcept
+		{
+			return (size_t)std::distance(this->cbegin<T>(), it);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

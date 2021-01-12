@@ -1,11 +1,11 @@
 -- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * --
 
-group			"plugins"
+group			"addons"
 project			"sandbox"
 targetname 		"%{prj.name}"
-targetdir		"%{wks.location}/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/plugins/"
-objdir			"%{wks.location}/bin-obj/%{cfg.platform}/%{cfg.buildcfg}/plugins/"
-location		"%{wks.location}/project/%{_ACTION}/plugins/%{prj.name}/"
+targetdir		"%{wks.location}/bin-lib/%{cfg.platform}/%{cfg.buildcfg}/addons/"
+objdir			"%{wks.location}/bin-obj/%{cfg.platform}/%{cfg.buildcfg}/addons/"
+location		"%{wks.location}/project/%{_ACTION}/addons/%{prj.name}/"
 debugdir 		"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/"
 kind			"SharedLib"
 language		"C++"
@@ -63,14 +63,14 @@ includedirs{
 }
 
 files{
-	"%{wks.location}/plugins/%{prj.name}/build/**.**",
+	"%{wks.location}/addons/%{prj.name}/build/**.**",
 	"%{wks.location}/resource/%{prj.name}.**",
-	"%{wks.location}/plugins/%{prj.name}/resource/**.**",
-	"%{wks.location}/plugins/%{prj.name}/source/**.**",
+	"%{wks.location}/addons/%{prj.name}/resource/**.**",
+	"%{wks.location}/addons/%{prj.name}/source/**.**",
 }
 
 postbuildcommands{
-	"%{ml_copy} %{wks.location}\\bin-lib\\%{cfg.platform}\\%{cfg.buildcfg}\\plugins\\%{prj.name}%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\plugins\\",
+	"%{ml_copy} %{wks.location}\\bin-lib\\%{cfg.platform}\\%{cfg.buildcfg}\\addons\\%{prj.name}%{ml_dll} %{wks.location}\\bin\\%{cfg.platform}\\%{cfg.buildcfg}\\addons\\",
 }
 
 filter{ "configurations:Debug" }

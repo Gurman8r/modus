@@ -12,9 +12,7 @@ namespace ml
 	public:
 		virtual ~entity() noexcept override
 		{
-			scene_tree & tree{ *ML_check(get_tree()) };
-
-			if (tree.m_reg.valid(m_handle))
+			if (scene_tree & tree{ *ML_check(get_tree()) }; tree.m_reg.valid(m_handle))
 			{
 				tree.m_reg.destroy(m_handle);
 			}
@@ -26,7 +24,7 @@ namespace ml
 		{
 		}
 
-		entity(string const & name, scene_tree * scene, node * parent = nullptr, allocator_type alloc = {})
+		entity(string const & name, scene_tree * scene, node * parent = {}, allocator_type alloc = {})
 			: node		{ name, scene, parent, alloc }
 			, m_handle	{ ML_check(scene)->m_reg.create() }
 		{
@@ -57,49 +55,45 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD operator entt::entity() const noexcept { return m_handle; }
+		ML_NODISCARD operator entity_handle() const noexcept { return m_handle; }
 
-		ML_NODISCARD auto get_handle() const noexcept -> entt::entity { return m_handle; }
+		ML_NODISCARD auto get_handle() const noexcept -> entity_handle { return m_handle; }
+
+		ML_NODISCARD auto get_registry() const noexcept -> entity_registry * { return ML_check(get_tree())->get_registry(); }
+
+		ML_NODISCARD bool is_valid_entity() const noexcept { return get_registry()->valid(m_handle); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD bool is_valid_entity() const noexcept
-		{
-			scene_tree & tree{ *ML_check(get_tree()) };
-
-			return tree.m_reg.valid(m_handle);
-		}
-
 		template <class T, class ... Args> auto add_component(Args && ... args) noexcept -> T &
 		{
-			scene_tree & tree{ *ML_check(get_tree()) };
-			
-			T & c{ tree.m_reg.emplace<T>(m_handle, ML_forward(args)...) };
-			
-			tree.on_component_added(*this, c);
-			
-			return c;
+			if (scene_tree & tree{ *ML_check(get_tree()) }; tree.m_reg.has<T>(m_handle))
+			{
+				return tree.m_reg.get<T>(m_handle);
+			}
+			else
+			{
+				T & c{ tree.m_reg.emplace<T>(m_handle, ML_forward(args)...) };
+
+				tree.on_component_added<T>(*this, c);
+
+				return c;
+			}
 		}
 
 		template <class ... T> ML_NODISCARD decltype(auto) get_component() noexcept
 		{
-			scene_tree & tree{ *ML_check(get_tree()) };
-
-			return tree.m_reg.get<T...>(m_handle);
+			return get_registry()->get<T...>(m_handle);
 		}
 
 		template <class ... T> ML_NODISCARD bool has_component() const noexcept
 		{
-			scene_tree & tree{ *ML_check(get_tree()) };
-
-			return tree.m_reg.has<T...>(m_handle);
+			return get_registry()->has<T...>(m_handle);
 		}
 
 		template <class ... T> void remove_component() noexcept
 		{
-			scene_tree & tree{ *ML_check(get_tree()) };
-
-			tree.m_reg.remove<T...>(m_handle);
+			get_registry()->remove<T...>(m_handle);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -107,7 +101,7 @@ namespace ml
 	private:
 		friend scene_tree;
 
-		entt::entity m_handle; // handle
+		entity_handle m_handle; // handle
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

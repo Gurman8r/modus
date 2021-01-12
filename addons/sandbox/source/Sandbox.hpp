@@ -26,10 +26,10 @@
 
 namespace ml
 {
-	static void edit_entity(node * value, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
+	static void edit_node(ref<node> const & value, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None)
 	{
 		if (!value) { return; }
-		ImGui_Scope(value);
+		ImGui_Scope(value.get());
 
 		ImGuiContext &	g		{ *ImGui::GetCurrentContext() };
 		ImGuiIO &		io		{ g.IO };
@@ -37,16 +37,15 @@ namespace ml
 		ImGuiWindow *	window	{ g.CurrentWindow };
 		if (window->SkipItems) { return; }
 
-		bool const is_root{ !value->get_parent() }, is_leaf{ 0 == value->get_child_count() };
-		cstring node_name{ value->get_name().c_str() };
+		bool const is_root{ !value->get_parent() };
+		bool const is_leaf{ 0 == value->get_child_count() };
+		cstring const node_name{ value->get_name().c_str() };
 		size_t const child_count{ value->get_child_count() };
+		size_t const sibling_count{ value->get_sibling_count() };
 		size_t const sibling_index{ value->get_sibling_index() };
-		size_t const sibling_count{ is_root ? 0 : value->get_parent()->get_child_count() };
 
-		ImGuiID const node_id{ window->GetID(value) };
-
+		ImGuiID const node_id{ window->GetID(value.get()) };
 		char node_label[80]{}; std::sprintf(node_label, "%s", node_name);
-
 		ImGuiTreeNodeFlags node_flags{ flags };
 		if (is_root) { node_flags |= ImGuiTreeNodeFlags_DefaultOpen; }
 		if (is_leaf) { node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet; }
@@ -66,7 +65,7 @@ namespace ml
 		// context menu
 		if (ImGui::BeginPopupContextItem()) {
 			if (ImGui::BeginMenu("create")) {
-				if (ImGui::MenuItem("empty", "", false)) { value->new_child<entity>("New Entity"); }
+				if (ImGui::MenuItem("empty", "", false)) { value->new_child<node>("New Entity"); }
 				ImGui::EndMenu();
 			}
 			if (ImGui::MenuItem("clear children", "", false, !is_leaf)) { value->clear_children(); }
@@ -82,16 +81,16 @@ namespace ml
 
 		// drag source
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-			ImGui::SetDragDropPayload("DND_TREE_NODE", &value, sizeof(node *));
+			ImGui::SetDragDropPayload("DND_NODE_REF", &value, sizeof(ref<node>));
 			ImGui::Text("%s", node_name);
 			ImGui::EndDragDropSource();
 		}
 
 		// drop onto
 		if (ImGui::BeginDragDropTarget()) {
-			if (ImGuiPayload const * payload{ ImGui::AcceptDragDropPayload("DND_TREE_NODE") }) {
-				ML_assert(payload->DataSize == sizeof(node *));
-				if (node * holding{ *(node **)payload->Data }) {
+			if (ImGuiPayload const * payload{ ImGui::AcceptDragDropPayload("DND_NODE_REF") }) {
+				ML_assert(payload->DataSize == sizeof(ref<node>));
+				if (ref<node> holding{ *(ref<node> *)payload->Data }) {
 					holding->set_parent(value);
 				}
 			}
@@ -105,10 +104,11 @@ namespace ml
 			if (g.DragDropActive) {
 				ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
 				if (ImGui::BeginDragDropTarget()) {
-					if (ImGuiPayload const * payload{ ImGui::AcceptDragDropPayload("DND_TREE_NODE") }) {
-						ML_assert(payload->DataSize == sizeof(node *));
-						if (node * holding{ *(node **)payload->Data }) {
+					if (ImGuiPayload const * payload{ ImGui::AcceptDragDropPayload("DND_NODE_REF") }) {
+						ML_assert(payload->DataSize == sizeof(ref<node>));
+						if (ref<node> holding{ *(ref<node> *)payload->Data }) {
 							holding->set_parent(value);
+							holding->set_sibling_index(0);
 						}
 					}
 					ImGui::EndDragDropTarget();
@@ -117,18 +117,17 @@ namespace ml
 
 			for (size_t i = 0; i < child_count; ++i)
 			{
-				node * child{ (node *)value->get_child(i) };
-
-				edit_entity(child, flags);
+				edit_node(value->get_child(i), flags);
 
 				// drop after
 				if (g.DragDropActive && (i < child_count - 1)) {
 					ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
 					if (ImGui::BeginDragDropTarget()) {
-						if (ImGuiPayload const * payload{ ImGui::AcceptDragDropPayload("DND_TREE_NODE") }) {
-							ML_assert(payload->DataSize == sizeof(node *));
-							if (node * holding{ *(node **)payload->Data }) {
+						if (ImGuiPayload const * payload{ ImGui::AcceptDragDropPayload("DND_NODE_REF") }) {
+							ML_assert(payload->DataSize == sizeof(ref<node>));
+							if (ref<node> holding{ *(ref<node> *)payload->Data }) {
 								holding->set_parent(value);
+								holding->set_sibling_index(i);
 							}
 						}
 						ImGui::EndDragDropTarget();

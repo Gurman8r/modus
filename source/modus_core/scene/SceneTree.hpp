@@ -10,6 +10,10 @@ namespace ml
 {
 	struct entity;
 
+	ML_alias entity_handle = typename entt::entity;
+
+	ML_alias entity_registry = typename entt::registry;
+
 	struct ML_CORE_API scene_tree : object
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -20,15 +24,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual ~scene_tree() noexcept override
-		{
-			ML_delete(m_root);
-		}
+		virtual ~scene_tree() noexcept override {}
 
 		scene_tree(string const & name, allocator_type alloc = {}) noexcept
 			: object{ name, alloc }
 			, m_reg	{}
-			, m_root{ ML_new(node, name, this, nullptr, alloc) }
+			, m_root{ _ML make_ref<node>(name, this, nullptr, alloc) }
 		{
 		}
 
@@ -59,28 +60,29 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		ML_NODISCARD auto get_registry() const noexcept { return const_cast<entity_registry *>(&m_reg); }
+
+		ML_NODISCARD auto get_root() const noexcept -> ref<node> const & { return m_root; }
+
+		void set_root(ref<node> const & value) noexcept { if (m_root != value) { m_root = value; } }
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
 		template <class Derived = node, class Name, class ... Args
-		> auto new_node(Name && name, Args && ... args) noexcept -> Derived *
+		> auto new_node(Name && name, Args && ... args) noexcept -> ref<Derived>
 		{
 			return m_root->new_child<Derived>(ML_forward(name), ML_forward(args)...);
 		}
 
 		template <class Name
-		> auto new_entity(Name && name) noexcept -> entity *
+		> auto new_entity(Name && name) noexcept -> ref<entity>
 		{
-			entity * e{ this->new_node<entity>(ML_forward(name)) };
+			ref<entity> e{ this->new_node<entity>(ML_forward(name)) };
 			e->add_component<tag_component>(e->get_name());
 			e->add_component<transform_component>();
 			return e;
 		}
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD auto get_registry() const noexcept { return const_cast<entt::registry *>(&m_reg); }
-
-		ML_NODISCARD auto get_root_node() const noexcept { return const_cast<node *>(m_root); }
-
-		void set_root_node(node * value) noexcept { if (m_root != value) { m_root = value; } }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -93,8 +95,8 @@ namespace ml
 		friend node;
 		friend entity;
 
-		entt::registry	m_reg	; // registry
-		node *			m_root	; // root node
+		entity_registry	m_reg	; // registry
+		ref<node>		m_root	; // root node
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

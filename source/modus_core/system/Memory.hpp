@@ -64,13 +64,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD auto front() & noexcept -> reference { return m_buffer_data[0]; }
+		ML_NODISCARD auto front() & noexcept -> reference { return *begin(); }
 
-		ML_NODISCARD auto front() const & noexcept -> const_reference { return m_buffer_data[0]; }
+		ML_NODISCARD auto front() const & noexcept -> const_reference { return *cbegin(); }
 
-		ML_NODISCARD auto back() & noexcept -> reference { return m_buffer_data[m_buffer_size - 1]; }
+		ML_NODISCARD auto back() & noexcept -> reference { return *(end() - 1); }
 
-		ML_NODISCARD auto back() const & noexcept -> const_reference { return m_buffer_data[m_buffer_size - 1]; }
+		ML_NODISCARD auto back() const & noexcept -> const_reference { return *(cend() - 1); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -134,7 +134,7 @@ namespace ml
 	};
 }
 
-// deleters
+// smart pointers
 namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -154,16 +154,10 @@ namespace ml
 
 		template <class U> void operator()(U * value) const noexcept
 		{
-			delete value;
+			ML_delete(value);
 		}
 	};
 
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-// smart pointers
-namespace ml
-{
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	// shared pointer

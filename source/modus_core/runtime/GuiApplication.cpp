@@ -56,7 +56,7 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	int32 gui_application::exec()
+	int32 gui_application::run()
 	{
 		on_startup();
 
@@ -78,7 +78,7 @@ namespace ml
 
 		on_shutdown();
 
-		return core_application::exec();
+		return core_application::run();
 	}
 
 	void gui_application::exit(int32 exit_code)

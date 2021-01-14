@@ -1,7 +1,7 @@
 #ifndef _ML_TREE_NODE_HPP_
 #define _ML_TREE_NODE_HPP_
 
-#include <modus_core/scene/Variable.hpp>
+#include <modus_core/system/Variable.hpp>
 
 namespace ml
 {
@@ -13,13 +13,15 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		using allocator_type = typename pmr::polymorphic_allocator<byte>;
+		using allocator_type			= typename pmr::polymorphic_allocator<byte>;
+		using iterator					= typename list<ref<tree_node>>::iterator;
+		using const_iterator			= typename list<ref<tree_node>>::const_iterator;
+		using reverse_iterator			= typename list<ref<tree_node>>::reverse_iterator;
+		using const_reverse_iterator	= typename list<ref<tree_node>>::const_reverse_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual ~tree_node() noexcept override = default;
-
 		tree_node(allocator_type alloc = {}) noexcept
 			: m_name	{ "New Node", alloc }
 			, m_tree	{}
@@ -76,21 +78,18 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		template <class T
-		> ML_NODISCARD bool has() const noexcept { return m_value.has<T>(); }
+		template <class T, class ... Args
+		> auto & emplace(Args && ... args) noexcept { return m_value.emplace<T>(ML_forward(args)...); }
+
+		template <class T> ML_NODISCARD bool has() const noexcept { return m_value.has<T>(); }
+
+		template <class T> ML_NODISCARD auto get() & noexcept -> T & { return m_value.get<T>(); }
+
+		template <class T> ML_NODISCARD auto get() const & noexcept -> T const & { return m_value.get<T>(); }
 
 		ML_NODISCARD auto get() noexcept -> variable & { return m_value; }
 
 		ML_NODISCARD auto get() const noexcept -> variable const & { return m_value; }
-
-		template <class T
-		> ML_NODISCARD auto get() noexcept -> T & { return m_value.get<T>(); }
-		
-		template <class T
-		> ML_NODISCARD auto get() const noexcept -> T const & { return m_value.get<T>(); }
-
-		template <class T, class ... Args
-		> decltype(auto) emplace(Args && ... args) noexcept { return m_value.emplace<T>(ML_forward(args)...); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -120,14 +119,14 @@ namespace ml
 			return m_children;
 		}
 
-		ML_NODISCARD auto get_parent() const noexcept -> tree_node *
+		ML_NODISCARD auto get_parent() const noexcept -> ref<tree_node>
 		{
-			return m_parent;
+			return m_parent ? m_parent->shared_from_this() : nullptr;
 		}
 
-		ML_NODISCARD auto get_root() const noexcept -> tree_node *
+		ML_NODISCARD auto get_root() const noexcept -> ref<tree_node>
 		{
-			return m_parent ? m_parent->get_root() : const_cast<tree_node *>(this);
+			return m_parent ? m_parent->get_root() : std::const_pointer_cast<tree_node>(shared_from_this());
 		}
 
 		ML_NODISCARD auto get_sibling_count() const noexcept -> size_t
@@ -204,7 +203,7 @@ namespace ml
 			}
 		}
 
-		void clear_children()
+		void delete_children()
 		{
 			m_children.clear();
 		}
@@ -267,32 +266,85 @@ namespace ml
 
 	public:
 		template <bool Recursive = false, class Pr
-		> ML_NODISCARD auto find_if(Pr && pr) noexcept -> ref<tree_node>
+		> auto find_if(Pr && pr) -> ref<tree_node>
 		{
-			if (auto const it{ std::find_if(m_children.begin(), m_children.end(), ML_forward(pr)) }
-			; it != m_children.end())
+			if (auto const it{ std::find_if(begin(), end(), ML_forward(pr)) }; it != end())
 			{
-				return *it;
+				return (*it);
 			}
-			else
+			else if constexpr (Recursive)
 			{
-				return nullptr;
+				for (auto const & child : m_children)
+				{
+					if (auto const found{ child->find_if<true>(ML_forward(pr)) })
+					{
+						return found;
+					}
+				}
 			}
+			return nullptr;
 		}
-		
+
 		template <bool Recursive = false, class Pr
-		> ML_NODISCARD auto find_if(Pr && pr) const noexcept -> ref<tree_node>
+		> auto find_if(Pr && pr) const -> ref<tree_node>
 		{
-			if (auto const it{ std::find_if(m_children.begin(), m_children.end(), ML_forward(pr)) }
-			; it != m_children.end())
+			if (auto const it{ std::find_if(cbegin(), cend(), ML_forward(pr)) }; it != cend())
 			{
-				return *it;
+				return (*it);
 			}
-			else
+			else if constexpr (Recursive)
 			{
-				return nullptr;
+				for (auto const & child : m_children)
+				{
+					if (auto const found{ child->find_if<true>(ML_forward(pr)) })
+					{
+						return found;
+					}
+				}
 			}
+			return nullptr;
 		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		template <bool Recursive = false
+		> auto find(string const & name) -> ref<tree_node>
+		{
+			return this->find_if<Recursive>([&](auto const & e) { return e && e->get_name() == name; });
+		}
+
+		template <bool Recursive = false
+		> auto find(string const & name) const -> ref<tree_node>
+		{
+			return this->find_if<Recursive>([&](auto const & e) { return e && e->get_name() == name; });
+		}
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	public:
+		ML_NODISCARD auto begin() noexcept -> iterator { return m_children.begin(); }
+
+		ML_NODISCARD auto begin() const noexcept -> const_iterator { return m_children.begin(); }
+
+		ML_NODISCARD auto cbegin() const noexcept -> const_iterator { return m_children.cbegin(); }
+
+		ML_NODISCARD auto end() noexcept -> iterator { return m_children.end(); }
+
+		ML_NODISCARD auto end() const noexcept -> const_iterator { return m_children.end(); }
+
+		ML_NODISCARD auto cend() const noexcept -> const_iterator { return m_children.cend(); }
+
+		ML_NODISCARD auto rbegin() noexcept -> reverse_iterator { return m_children.rbegin(); }
+
+		ML_NODISCARD auto rbegin() const noexcept -> const_reverse_iterator { return m_children.rbegin(); }
+
+		ML_NODISCARD auto crbegin() const noexcept -> const_reverse_iterator { return m_children.crbegin(); }
+
+		ML_NODISCARD auto rend() noexcept -> reverse_iterator { return m_children.rend(); }
+
+		ML_NODISCARD auto rend() const noexcept -> const_reverse_iterator { return m_children.rend(); }
+
+		ML_NODISCARD auto crend() const noexcept -> const_reverse_iterator { return m_children.crend(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

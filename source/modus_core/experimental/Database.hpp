@@ -243,7 +243,7 @@ namespace ml
 	private:
 		simple_database *	m_db	; // 
 		string			m_name	; // 
-		unown<std::any>	m_ptr	; // 
+		weak<std::any>	m_ptr	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

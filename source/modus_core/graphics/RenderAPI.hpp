@@ -114,25 +114,25 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		ML_NODISCARD virtual list<unown<render_context>> const & all_contexts() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<render_context>> const & all_contexts() const noexcept = 0;
 
-		ML_NODISCARD virtual list<unown<vertexarray>> const & all_vertexarrays() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<vertexarray>> const & all_vertexarrays() const noexcept = 0;
 
-		ML_NODISCARD virtual list<unown<vertexbuffer>> const & all_vertexbuffers() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<vertexbuffer>> const & all_vertexbuffers() const noexcept = 0;
 
-		ML_NODISCARD virtual list<unown<indexbuffer>> const & all_indexbuffers() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<indexbuffer>> const & all_indexbuffers() const noexcept = 0;
 
-		ML_NODISCARD virtual list<unown<texture2d>> const & all_texture2ds() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<texture2d>> const & all_texture2ds() const noexcept = 0;
 
-		ML_NODISCARD virtual list<unown<texture3d>> const & all_texture3ds() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<texture3d>> const & all_texture3ds() const noexcept = 0;
 
-		ML_NODISCARD virtual list<unown<texturecube>> const & all_texturecubes() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<texturecube>> const & all_texturecubes() const noexcept = 0;
 
-		ML_NODISCARD virtual list<unown<framebuffer>> const & all_framebuffers() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<framebuffer>> const & all_framebuffers() const noexcept = 0;
 
-		ML_NODISCARD virtual list<unown<program>> const & all_programs() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<program>> const & all_programs() const noexcept = 0;
 
-		ML_NODISCARD virtual list<unown<shader>> const & all_shaders() const noexcept = 0;
+		ML_NODISCARD virtual list<weak<shader>> const & all_shaders() const noexcept = 0;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

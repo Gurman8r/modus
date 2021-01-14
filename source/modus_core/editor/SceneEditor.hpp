@@ -2,7 +2,7 @@
 #define _ML_SCENE_EDITOR_HPP_
 
 #include <modus_core/gui/ImGui.hpp>
-#include <modus_core/scene/SceneTree.hpp>
+#include <modus_core/scene/Components.hpp>
 
 namespace ml
 {
@@ -33,7 +33,7 @@ namespace ml
 
 	private:
 		ref<scene_tree>	m_context	; // 
-		ref<scene_tree>	m_selected	; // 
+		ref<tree_node>	m_selected	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

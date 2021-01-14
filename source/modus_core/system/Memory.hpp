@@ -5,14 +5,13 @@
 #include <modus_core/detail/Globals.hpp>
 
 // simplified interface
-#define ML_memory_manager()						ML_get_global(_ML memory_manager)
-#define ML_free(addr)							ML_memory_manager()->deallocate(addr)
-#define ML_malloc(size)							ML_memory_manager()->allocate(size)
-#define ML_calloc(count, size)					ML_memory_manager()->allocate(count, size)
-#define ML_realloc(addr, size)					ML_memory_manager()->reallocate(addr, size)
-#define ML_realloc_sized(addr, oldsz, newsz)	ML_memory_manager()->reallocate(addr, oldsz, newsz)
-#define ML_new(T, ...)							ML_memory_manager()->new_object<T>(##__VA_ARGS__)
-#define ML_delete(addr)							ML_memory_manager()->delete_object(addr)
+#define ML_free(addr)							(ML_get_global(_ML memory_manager)->deallocate(addr))
+#define ML_malloc(size)							(ML_get_global(_ML memory_manager)->allocate(size))
+#define ML_calloc(count, size)					(ML_get_global(_ML memory_manager)->allocate(count, size))
+#define ML_realloc(addr, size)					(ML_get_global(_ML memory_manager)->reallocate(addr, size))
+#define ML_realloc_sized(addr, oldsz, newsz)	(ML_get_global(_ML memory_manager)->reallocate(addr, oldsz, newsz))
+#define ML_new(T, ...)							(ML_get_global(_ML memory_manager)->new_object<T>(##__VA_ARGS__))
+#define ML_delete(addr)							(ML_get_global(_ML memory_manager)->delete_object(addr))
 
 // passthrough resource
 namespace ml
@@ -166,7 +165,7 @@ namespace ml
 
 	// weak pointer
 	template <class T
-	> ML_alias unown = typename std::weak_ptr<T>;
+	> ML_alias weak = typename std::weak_ptr<T>;
 
 	// unique pointer
 	template <class T
@@ -259,7 +258,7 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		enum : size_t { id_index, id_count, id_size, id_addr };
+		enum : size_t { ID_index, ID_count, ID_size, ID_addr };
 
 		using record_storage = typename batch_vector
 		<
@@ -330,14 +329,14 @@ namespace ml
 		template <class T
 		> ML_NODISCARD T * allocate_object(size_t count = 1) noexcept
 		{
-			return (T *)this->do_allocate(count, sizeof(T));
+			return (T *)this->allocate(count, sizeof(T));
 		}
 
 		// deallocate object
 		template <class T
 		> void deallocate_object(T * addr) noexcept
 		{
-			this->do_deallocate(addr);
+			this->deallocate(addr);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -367,47 +366,47 @@ namespace ml
 		// get counter
 		ML_NODISCARD auto get_counter() const noexcept -> size_t { return m_counter; }
 
+		// get records
+		ML_NODISCARD auto get_records() const noexcept -> record_storage const & { return m_records; }
+
 		// get resource
 		ML_NODISCARD auto get_resource() const noexcept -> passthrough_resource * { return m_resource; }
 
-		// get storage
-		ML_NODISCARD auto get_storage() const noexcept -> record_storage const & { return m_records; }
-
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		// get record
-		ML_NODISCARD auto get_record(size_t i) const noexcept -> memory_record
+		// query record
+		ML_NODISCARD auto query_record(size_t i) const noexcept -> memory_record
 		{
 			return {
-				m_records.get<id_index>(i),
-				m_records.get<id_index>(i),
-				m_records.get<id_index>(i),
-				m_records.get<id_addr>(i)
+				m_records.get<ID_index>(i),
+				m_records.get<ID_index>(i),
+				m_records.get<ID_index>(i),
+				m_records.get<ID_addr>(i)
 			};
 		}
 
-		// get record index
-		ML_NODISCARD auto get_record_index(size_t i) const noexcept -> size_t
+		// query record index
+		ML_NODISCARD auto query_record_index(size_t i) const noexcept -> size_t
 		{
-			return m_records.get<id_index>(i);
+			return m_records.get<ID_index>(i);
 		}
 
-		// get record count
-		ML_NODISCARD auto get_record_count(size_t i) const noexcept -> size_t
+		// query record count
+		ML_NODISCARD auto query_record_count(size_t i) const noexcept -> size_t
 		{
-			return m_records.get<id_count>(i);
+			return m_records.get<ID_count>(i);
 		}
 
-		// get record size
-		ML_NODISCARD auto get_record_size(size_t i) const noexcept -> size_t
+		// query record size
+		ML_NODISCARD auto query_record_size(size_t i) const noexcept -> size_t
 		{
-			return m_records.get<id_size>(i);
+			return m_records.get<ID_size>(i);
 		}
 
-		// get record address
-		ML_NODISCARD auto get_record_addr(size_t i) const noexcept -> byte *
+		// query record address
+		ML_NODISCARD auto query_record_addr(size_t i) const noexcept -> byte *
 		{
-			return m_records.get<id_addr>(i);
+			return m_records.get<ID_addr>(i);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -415,7 +414,7 @@ namespace ml
 	private:
 		void * do_allocate(size_t count, size_t size) noexcept
 		{
-			return std::get<id_addr>(m_records.push_back
+			return std::get<ID_addr>(m_records.push_back
 			(
 				++m_counter, count, size, m_alloc.allocate(count * size))
 			);
@@ -423,12 +422,12 @@ namespace ml
 
 		void do_deallocate(void * addr) noexcept
 		{
-			if (size_t const i{ m_records.lookup<id_addr>(addr) }; i != m_records.npos)
+			if (size_t const i{ m_records.lookup<ID_addr>(addr) }; i != m_records.npos)
 			{
 				m_alloc.deallocate(
 					(byte *)addr,
-					m_records.get<id_count>(i) *
-					m_records.get<id_size>(i));
+					m_records.get<ID_count>(i) *
+					m_records.get<ID_size>(i));
 
 				m_records.erase(i);
 			}

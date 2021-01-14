@@ -59,7 +59,7 @@ namespace ml::ImGuiExt
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		ImGuiTextFilter			Filter			; // filter
-		list<string>	Lines			; // lines
+		list<string>			Lines			; // lines
 		bool					AutoScroll		; // auto scroll
 		bool					ScrollToBottom	; // scroll to bottom
 

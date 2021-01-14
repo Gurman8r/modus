@@ -31,10 +31,11 @@ namespace ml
 			mouse_wheel_event
 		>();
 
+		// create imgui context
 		ImGui::SetAllocatorFunctions(
 			[](size_t s, auto u) { return ((memory_manager *)u)->allocate(s); },
 			[](void * p, auto u) { return ((memory_manager *)u)->deallocate(p); },
-			ML_memory_manager());
+			ML_get_global(memory_manager));
 		m_imgui.reset(ImGui::CreateContext());
 		m_imgui->IO.LogFilename = NULL;
 		m_imgui->IO.IniFilename = NULL;

@@ -24,7 +24,7 @@ namespace ml
 			file_info_struct,
 			create_addon_fn,
 			destroy_addon_fn,
-			unown<native_library>,
+			weak<native_library>,
 			scary<addon>
 		>;
 
@@ -86,7 +86,7 @@ namespace ml
 		{
 			if (!lib || !*lib) { return 0; }
 			
-			if (size_t const i{ m_data.lookup_if<unown<native_library>>([&
+			if (size_t const i{ m_data.lookup_if<weak<native_library>>([&
 			](auto const & e) { return !e.expired() && e.lock()->get_hash_code() == lib->get_hash_code(); }) }
 			; i != m_data.npos)
 			{

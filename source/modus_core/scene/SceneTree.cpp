@@ -1,4 +1,3 @@
-#include <modus_core/scene/SceneTree.hpp>
 #include <modus_core/scene/Components.hpp>
 #include <modus_core/events/SceneEvents.hpp>
 
@@ -6,15 +5,7 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	entity scene_tree::create_entity()
-	{
-		return entity{ this, m_reg.create() };
-	}
-
-	void scene_tree::destroy_entity(entity const & value)
-	{
-		m_reg.destroy(value);
-	}
+	scene_tree::~scene_tree() noexcept {}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

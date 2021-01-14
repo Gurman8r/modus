@@ -72,7 +72,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD operator bool() const noexcept { return is_valid(); }
+		ML_NODISCARD operator bool() const noexcept { return this->is_valid(); }
 
 		ML_NODISCARD operator entt::entity() const noexcept { return m_handle; }
 
@@ -85,7 +85,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class T, class ... Args
-		> auto add_component(Args && ... args) noexcept -> T &
+		> auto & add_component(Args && ... args) noexcept
 		{
 			ML_assert(is_valid());
 
@@ -96,9 +96,9 @@ namespace ml
 			else
 			{
 				T & c{ m_tree->m_reg.emplace<T>(m_handle, ML_forward(args)...) };
-				
+
 				m_tree->on_component_added<T>(*this, c);
-				
+
 				return c;
 			}
 		}
@@ -106,25 +106,19 @@ namespace ml
 		template <class ... T
 		> ML_NODISCARD decltype(auto) get_component() noexcept
 		{
-			ML_assert(is_valid());
-
-			return m_tree->m_reg.get<T...>(m_handle);
+			ML_assert(is_valid()); return m_tree->m_reg.get<T...>(m_handle);
 		}
 
 		template <class ... T
 		> ML_NODISCARD bool has_component() const noexcept
 		{
-			ML_assert(is_valid());
-
-			return m_tree->m_reg.has<T...>(m_handle);
+			ML_assert(is_valid()); return m_tree->m_reg.has<T...>(m_handle);
 		}
 
 		template <class ... T
 		> void remove_component() noexcept
 		{
-			ML_assert(is_valid());
-
-			m_tree->m_reg.remove<T...>(m_handle);
+			ML_assert(is_valid()); m_tree->m_reg.remove<T...>(m_handle);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

@@ -544,40 +544,22 @@ namespace ml::ds
 		}
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator==(U const & value) const noexcept
-		{
-			return this->compare(value) == 0;
-		}
+		> ML_NODISCARD bool operator==(U const & value) const noexcept { return this->compare(value) == 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator!=(U const & value) const noexcept
-		{
-			return this->compare(value) != 0;
-		}
+		> ML_NODISCARD bool operator!=(U const & value) const noexcept { return this->compare(value) != 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator<(U const & value) const noexcept
-		{
-			return this->compare(value) < 0;
-		}
+		> ML_NODISCARD bool operator<(U const & value) const noexcept { return this->compare(value) < 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator>(U const & value) const noexcept
-		{
-			return this->compare(value) > 0;
-		}
+		> ML_NODISCARD bool operator>(U const & value) const noexcept { return this->compare(value) > 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator<=(U const & value) const noexcept
-		{
-			return this->compare(value) <= 0;
-		}
+		> ML_NODISCARD bool operator<=(U const & value) const noexcept { return this->compare(value) <= 0; }
 
 		template <class U = self_type
-		> ML_NODISCARD bool operator>=(U const & value) const noexcept
-		{
-			return this->compare(value) >= 0;
-		}
+		> ML_NODISCARD bool operator>=(U const & value) const noexcept { return this->compare(value) >= 0; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

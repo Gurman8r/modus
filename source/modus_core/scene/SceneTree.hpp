@@ -21,7 +21,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		virtual ~scene_tree() noexcept override {}
+		virtual ~scene_tree() noexcept override;
 
 		scene_tree(string const & name, allocator_type alloc = {}) noexcept
 			: m_name{ name.empty() ? "New Scene" : name, alloc }
@@ -57,15 +57,13 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
+		ML_NODISCARD auto get_name() const noexcept -> string const & { return m_name; }
+
 		ML_NODISCARD auto get_root() noexcept -> ref<tree_node> & { return m_root; }
 
 		ML_NODISCARD auto get_root() const noexcept -> ref<tree_node> const & { return m_root; }
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-		ML_NODISCARD entity create_entity();
-
-		void destroy_entity(entity const & value);
+		void set_name(string const & value) noexcept { if (m_name != value) { m_name = value; } }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

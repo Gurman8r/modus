@@ -24,16 +24,16 @@ namespace ml::gfx
 
 		batch_vector // all objects
 		<
-			unown<render_context>,
-			unown<vertexarray>,
-			unown<vertexbuffer>,
-			unown<indexbuffer>,
-			unown<texture2d>,
-			unown<texture3d>,
-			unown<texturecube>,
-			unown<framebuffer>,
-			unown<program>,
-			unown<shader>
+			weak<render_context>,
+			weak<vertexarray>,
+			weak<vertexbuffer>,
+			weak<indexbuffer>,
+			weak<texture2d>,
+			weak<texture3d>,
+			weak<texturecube>,
+			weak<framebuffer>,
+			weak<program>,
+			weak<shader>
 		>
 		m_objs{};
 
@@ -82,25 +82,25 @@ namespace ml::gfx
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		list<unown<render_context>> const & all_contexts() const noexcept final { return m_objs.get<unown<render_context>>(); }
+		list<weak<render_context>> const & all_contexts() const noexcept final { return m_objs.get<weak<render_context>>(); }
 
-		list<unown<vertexarray>> const & all_vertexarrays() const noexcept { return m_objs.get<unown<vertexarray>>(); }
+		list<weak<vertexarray>> const & all_vertexarrays() const noexcept { return m_objs.get<weak<vertexarray>>(); }
 
-		list<unown<vertexbuffer>> const & all_vertexbuffers() const noexcept { return m_objs.get<unown<vertexbuffer>>(); }
+		list<weak<vertexbuffer>> const & all_vertexbuffers() const noexcept { return m_objs.get<weak<vertexbuffer>>(); }
 
-		list<unown<indexbuffer>> const & all_indexbuffers() const noexcept { return m_objs.get<unown<indexbuffer>>(); }
+		list<weak<indexbuffer>> const & all_indexbuffers() const noexcept { return m_objs.get<weak<indexbuffer>>(); }
 
-		list<unown<texture2d>> const & all_texture2ds() const noexcept { return m_objs.get<unown<texture2d>>(); }
+		list<weak<texture2d>> const & all_texture2ds() const noexcept { return m_objs.get<weak<texture2d>>(); }
 
-		list<unown<texture3d>> const & all_texture3ds() const noexcept { return m_objs.get<unown<texture3d>>(); }
+		list<weak<texture3d>> const & all_texture3ds() const noexcept { return m_objs.get<weak<texture3d>>(); }
 
-		list<unown<texturecube>> const & all_texturecubes() const noexcept { return m_objs.get<unown<texturecube>>(); }
+		list<weak<texturecube>> const & all_texturecubes() const noexcept { return m_objs.get<weak<texturecube>>(); }
 
-		list<unown<framebuffer>> const & all_framebuffers() const noexcept { return m_objs.get<unown<framebuffer>>(); }
+		list<weak<framebuffer>> const & all_framebuffers() const noexcept { return m_objs.get<weak<framebuffer>>(); }
 
-		list<unown<program>> const & all_programs() const noexcept { return m_objs.get<unown<program>>(); }
+		list<weak<program>> const & all_programs() const noexcept { return m_objs.get<weak<program>>(); }
 
-		list<unown<shader>> const & all_shaders() const noexcept { return m_objs.get<unown<shader>>(); }
+		list<weak<shader>> const & all_shaders() const noexcept { return m_objs.get<weak<shader>>(); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

@@ -182,12 +182,12 @@ namespace ml
 			m_cc.set_pitch(-25.f);
 
 			// scene
-			auto & tree = m_scenes["0"] = make_ref<scene_tree>("New Scene");
+			ref<scene_tree> tree = m_scenes["0"] = make_ref<scene_tree>("New Scene");
 			m_scene_editor.set_context(tree);
-			if (auto n{ tree->get_root()->new_child("New Entity") })
+			if (ref<tree_node> node{ tree->get_root()->new_child("New Entity") })
 			{
-				auto & ent = n->emplace<entity>(tree->create_entity());
-				auto & tag = ent.add_component<tag_component>(n->get_name());
+				auto & ent = node->emplace<entity>(tree);
+				auto & tag = ent.add_component<tag_component>(node->get_name());
 				auto & xfm = ent.add_component<transform_component>();
 				auto & cam = ent.add_component<camera_component>();
 				auto & scr = ent.add_component<behavior_component>();
@@ -276,10 +276,12 @@ namespace ml
 		
 		void on_dockspace_builder(dockspace_builder_event const & ev)
 		{
-			ImGuiID root{ ev->ID };
-			ImGuiID left{ ev->SplitNode(root, ImGuiDir_Left, 0.25f, nullptr, &root) };
-			ev->DockWindow("viewport", root);
-			ev->DockWindow("scene editor", left);
+			ImGuiID right{ ev->ID };
+			ImGuiID left_up{ ev->SplitNode(right, ImGuiDir_Left, 0.25f, nullptr, &right) };
+			ImGuiID left_down{ ev->SplitNode(left_up, ImGuiDir_Down, 0.5f, nullptr, &left_up) };
+			ev->DockWindow("viewport", right);
+			ev->DockWindow("hierarchy", left_up);
+			ev->DockWindow("inspector", left_down);
 		}
 
 		void on_runtime_gui(runtime_gui_event const & ev)
@@ -526,22 +528,28 @@ namespace ml
 				ImGui::End();
 			}
 
-			// scene editor
-			if (ImGui::Begin("scene editor", NULL, ImGuiWindowFlags_MenuBar))
+			// hierarchy
+			if (ImGui::Begin("hierarchy", NULL, ImGuiWindowFlags_MenuBar))
 			{
 				static auto const & scene0{ m_scenes["0"] };
-
-				if (ImGui::BeginMenuBar()) {
-					ImGui::TextDisabled("scene editor");
-					ImGui::EndMenuBar();
-				}
-				
+				if (ImGui::BeginMenuBar()) { ImGui::TextDisabled("hierarchy"); ImGui::EndMenuBar(); }
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
 				m_scene_editor.draw_hierarchy(
 					ImGuiTreeNodeFlags_DefaultOpen |
 					ImGuiTreeNodeFlags_Framed |
 					ImGuiTreeNodeFlags_FramePadding |
 					ImGuiTreeNodeFlags_SpanAvailWidth);
+				ImGui::PopStyleVar();
+			}
+			ImGui::End();
+
+			// inspector
+			if (ImGui::Begin("inspector", NULL, ImGuiWindowFlags_MenuBar))
+			{
+				static auto const & scene0{ m_scenes["0"] };
+				if (ImGui::BeginMenuBar()) { ImGui::TextDisabled("inspector"); ImGui::EndMenuBar(); }
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
+				m_scene_editor.draw_inspector();
 				ImGui::PopStyleVar();
 			}
 			ImGui::End();

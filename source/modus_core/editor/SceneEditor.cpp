@@ -25,6 +25,12 @@ namespace ml
 
 	void scene_editor::draw_inspector()
 	{
+		if (!m_selected) { return; }
+
+		for (ref<tree_node> const & child : m_selected->get_children())
+		{
+
+		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -71,7 +77,7 @@ namespace ml
 				if (ImGui::MenuItem("empty", "", false)) { value->new_child("New Node"); }
 				ImGui::EndMenu();
 			}
-			if (ImGui::MenuItem("clear children", "", false, !is_leaf)) { value->clear_children(); }
+			if (ImGui::MenuItem("delete children", "", false, !is_leaf)) { value->delete_children(); }
 			if (ImGui::MenuItem("detach children", "", false, !is_root && !is_leaf)) { value->detatch_children(); }
 			if (ImGui::MenuItem("move up", "", false, !is_root && (sibling_index > 0))) {
 				value->set_sibling_index(sibling_index - 1);

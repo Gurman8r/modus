@@ -134,11 +134,11 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 	py::class_<memory_record>(py_mem, "record")
 		.def(py::init<>())
 		.def(py::init<memory_record const &>())
-		.def(py::init([g = ML_memory_manager()](intptr_t p) -> memory_record
+		.def(py::init([g = ML_get_global(memory_manager)](intptr_t p) -> memory_record
 		{
-			if (auto const i{ g->get_storage().lookup<memory_manager::id_addr>((byte *)p) }
-			; i != g->get_storage().npos) {
-				return g->get_record(i);
+			if (auto const i{ g->get_records().lookup<memory_manager::ID_addr>((byte *)p) }
+			; i != g->get_records().npos) {
+				return g->query_record(i);
 			} else {
 				return {};
 			}
@@ -166,18 +166,18 @@ PYBIND11_EMBEDDED_MODULE(modus, m)
 
 	py_mem // memory
 		// passthrough resource
-		.def("num_allocations", []() { return ML_memory_manager()->get_resource()->num_allocations(); })
-		.def("buffer_base", []() { return ML_memory_manager()->get_resource()->buffer_base(); })
-		.def("buffer_free", []() { return ML_memory_manager()->get_resource()->buffer_free(); })
-		.def("buffer_size", []() { return ML_memory_manager()->get_resource()->buffer_size(); })
-		.def("buffer_used", []() { return ML_memory_manager()->get_resource()->buffer_used(); })
+		.def("num_allocations", []() { return ML_get_global(memory_manager)->get_resource()->num_allocations(); })
+		.def("buffer_base", []() { return ML_get_global(memory_manager)->get_resource()->buffer_base(); })
+		.def("buffer_free", []() { return ML_get_global(memory_manager)->get_resource()->buffer_free(); })
+		.def("buffer_size", []() { return ML_get_global(memory_manager)->get_resource()->buffer_size(); })
+		.def("buffer_used", []() { return ML_get_global(memory_manager)->get_resource()->buffer_used(); })
 
 		// allocation
-		.def("malloc"	, [](size_t s) { return (intptr_t)ML_memory_manager()->allocate(s); })
-		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)ML_memory_manager()->allocate(c, s); })
-		.def("free"		, [](intptr_t p) { ML_memory_manager()->deallocate((void *)p); })
-		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)ML_memory_manager()->reallocate((void *)p, s); })
-		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)ML_memory_manager()->reallocate((void *)p, o, n); })
+		.def("malloc"	, [](size_t s) { return (intptr_t)ML_get_global(memory_manager)->allocate(s); })
+		.def("calloc"	, [](size_t c, size_t s) { return (intptr_t)ML_get_global(memory_manager)->allocate(c, s); })
+		.def("free"		, [](intptr_t p) { ML_get_global(memory_manager)->deallocate((void *)p); })
+		.def("realloc"	, [](intptr_t p, size_t s) { return (intptr_t)ML_get_global(memory_manager)->reallocate((void *)p, s); })
+		.def("realloc"	, [](intptr_t p, size_t o, size_t n) { return (intptr_t)ML_get_global(memory_manager)->reallocate((void *)p, o, n); })
 
 		// getters
 		.def("memget"	, [&memget](intptr_t p) { return memget(p, 1); })

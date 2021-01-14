@@ -84,16 +84,22 @@ namespace ml
 		method<behavior_script * ()> create_instance{};
 		method<void(behavior_component *)> destroy_instance{};
 
-		~behavior_component() noexcept
-		{
-			if (destroy_instance) { destroy_instance(this); }
-		}
+		~behavior_component() noexcept { if (destroy_instance) { destroy_instance(this); } }
 
 		template <class T> void bind()
 		{
-			create_instance = []() { return ML_new(T); };
+			create_instance = []()
+			{
+				return ML_new(T);
+			};
 
-			destroy_instance = [](auto scr) { ML_delete((T *)scr->instance); scr->instance = nullptr; };
+			destroy_instance = [](auto scr)
+			{
+				if (scr && scr->instance)
+				{
+					ML_delete((T *)scr->instance); scr->instance = nullptr;
+				}
+			};
 		}
 	};
 

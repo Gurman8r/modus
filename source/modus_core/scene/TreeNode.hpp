@@ -77,23 +77,20 @@ namespace ml
 
 	public:
 		template <class T
-		> ML_NODISCARD bool has_value() const noexcept { return m_value.holds<T>(); }
+		> ML_NODISCARD bool has() const noexcept { return m_value.has<T>(); }
 
-		ML_NODISCARD auto get_value() noexcept -> variable & { return m_value; }
+		ML_NODISCARD auto get() noexcept -> variable & { return m_value; }
 
-		ML_NODISCARD auto get_value() const noexcept -> variable const & { return m_value; }
+		ML_NODISCARD auto get() const noexcept -> variable const & { return m_value; }
 
 		template <class T
-		> ML_NODISCARD auto get_value() noexcept -> T & { return m_value.get<T>(); }
+		> ML_NODISCARD auto get() noexcept -> T & { return m_value.get<T>(); }
 		
 		template <class T
-		> ML_NODISCARD auto get_value() const noexcept -> T const & { return m_value.get<T>(); }
-
-		template <class T
-		> auto set_value(T && value) noexcept -> T & { return m_value.emplace<T>(ML_forward(value)); }
+		> ML_NODISCARD auto get() const noexcept -> T const & { return m_value.get<T>(); }
 
 		template <class T, class ... Args
-		> auto set_value(Args && ... args) noexcept -> T & { return m_value.emplace<T>(ML_forward(args)...); }
+		> decltype(auto) emplace(Args && ... args) noexcept { return m_value.emplace<T>(ML_forward(args)...); }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

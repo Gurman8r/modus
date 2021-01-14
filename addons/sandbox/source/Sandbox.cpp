@@ -186,7 +186,7 @@ namespace ml
 			m_scene_editor.set_context(tree);
 			if (auto n{ tree->get_root()->new_child("New Entity") })
 			{
-				auto & ent = n->set_value<entity>(tree);
+				auto & ent = n->emplace<entity>(tree->create_entity());
 				auto & tag = ent.add_component<tag_component>(n->get_name());
 				auto & xfm = ent.add_component<transform_component>();
 				auto & cam = ent.add_component<camera_component>();

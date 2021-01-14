@@ -191,6 +191,15 @@ namespace ml::util
 		return temp;
 	}
 
+	template<class Variant, class T, size_t index = 0
+	> ML_NODISCARD constexpr size_t variant_index() noexcept
+	{
+		// https://stackoverflow.com/a/52303671
+		if constexpr (index >= std::variant_size_v<Variant>) { return std::variant_npos; }
+		else if constexpr (std::is_same_v<std::variant_alternative_t<index, Variant>, T>) { return index; }
+		else { return _ML util::variant_index<Variant, T, index + 1>(); }
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
 

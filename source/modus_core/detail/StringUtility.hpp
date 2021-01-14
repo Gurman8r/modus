@@ -3,81 +3,6 @@
 
 #include <modus_core/detail/String.hpp>
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// TRAITS
-namespace ml::util
-{
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// is character
-	template <class Ch
-	> constexpr bool is_char_v
-	{
-		util::is_any_of_v<Ch, char, wchar_t, char16_t, char32_t>
-	};
-
-	template <class Ch
-	> struct is_char_t : std::bool_constant<is_char_v<Ch>> {};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	template <class Ch
-	> constexpr bool is_narrow_v
-	{
-		std::is_same_v<Ch, char>
-	};
-
-	template <class Ch
-	> constexpr bool is_wide_v
-	{
-		std::is_same_v<Ch, wchar_t>
-	};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// is character pointer
-	template <class T, class Ch = char
-	> constexpr bool is_cstring_v
-	{
-		util::is_char_v<Ch> &&
-		std::is_convertible_v<T const &, Ch const *>
-	};
-
-	template <class T, class Ch = char
-	> struct is_cstring_t : std::bool_constant<is_cstring_v<T, Ch>> {};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// is string view
-	template <class T, class Ch = char, class Traits = std::char_traits<Ch>
-	> constexpr bool is_string_view_v
-	{
-		util::is_cstring_v<T, Ch> ||
-		std::is_convertible_v<T const &, std::basic_string_view<Ch, Traits>>
-	};
-
-	template <class T, class Ch = char, class Traits = std::char_traits<Ch>
-	> struct is_string_view_t : std::bool_constant<is_string_view_v<T, Ch, Traits>> {};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	// is string
-	template <class T, class Ch = char
-	> constexpr bool is_string_v
-	{
-		util::is_any_of_v<T, std::basic_string<Ch>, basic_string<Ch>>
-	};
-
-	template <class T, class Ch = char
-	> struct is_string_t : std::bool_constant<is_string_v<T, Ch>> {};
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// FUNCTIONS
 namespace ml::util
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -680,7 +605,5 @@ namespace ml::util
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #endif // !_ML_STRING_UTILITY_HPP_

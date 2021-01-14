@@ -41,7 +41,18 @@ static json const default_settings{ R"(
 	"app_name": "modus launcher",
 	"app_version": "alpha",
 	"app_data_path": "../../../",
-	"library_paths": [ "../../../" ],
+
+	"imgui": {
+		"style": { "path": "resource/modus_launcher.style" }
+	},
+
+	"addons": [
+		{ "path": "addons/sandbox" }
+	],
+
+	"scripts": [
+		{ "path": "resource/modus_launcher.py" }
+	],
 
 	"window": {
 		"title": "modus",
@@ -50,7 +61,7 @@ static json const default_settings{ R"(
 			"bits_per_pixel": [ 8, 8, 8, 8 ],
 			"refresh_rate": -1
 		},
-		"graphics": {
+		"context": {
 			"api": "opengl",
 			"major": 4,
 			"minor": 6,
@@ -72,28 +83,9 @@ static json const default_settings{ R"(
 			"resizable": true,
 			"visible": false
 		}
-	},
-
-	"imgui": {
-		"style": { "path": "resource/modus_launcher.style" }
-	},
-
-	"plugins": [
-		{ "path": "plugins/sandbox" }
-	],
-
-	"scripts": [
-		{ "path": "resource/modus_launcher.py" }
-	]
+	}
 }
 )"_json };
-
-json load_settings(fs::path const & path = SETTINGS_PATH)
-{
-	std::ifstream f{ SETTINGS_PATH };
-	ML_defer(&f) { f.close(); };
-	return f ? json::parse(f) : default_settings;
-}
 
 
 // MAIN
@@ -105,8 +97,16 @@ static ML_defer(&) { ML_verify(window_api::finalize()); };
 
 int32 main(int32 argc, char * argv[])
 {
+	// load settings
+	json settings = std::invoke([](fs::path const & path = SETTINGS_PATH)
+	{
+		std::ifstream f{ SETTINGS_PATH };
+		ML_defer(&f) { f.close(); };
+		return f ? json::parse(f) : default_settings;
+	});
+
 	// create application
-	application app{ argc, argv, load_settings() };
+	application app{ argc, argv, settings };
 
 	// install addons
 	for (json const & j : app.get_attr("addons"))

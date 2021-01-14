@@ -53,7 +53,7 @@
 #define ML_assert(expr)	ML_verify(expr)
 #define ML_check(expr)	(([](auto const & x) noexcept -> auto const & { ML_verify(x); return x; })(expr))
 #else
-#define ML_assert(expr)	ML_unused(expr)
+#define ML_assert(expr)	((void)0)
 #define ML_check(expr)	expr
 #endif
 

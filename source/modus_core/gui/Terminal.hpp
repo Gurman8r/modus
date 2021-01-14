@@ -34,7 +34,7 @@ namespace ml::ImGuiExt
 
 		TextLog::Printer Printer;
 
-		list<CommandData> Cmd; // commands
+		list<CommandData> Commands; // commands
 
 		list<string> History; // history
 
@@ -60,7 +60,7 @@ namespace ml::ImGuiExt
 			, Input		{}
 			, Output	{ alloc }
 			, Printer	{}
-			, Cmd		{ alloc }
+			, Commands		{ alloc }
 			, History	{ alloc }
 			, HistoryPos{ -1 }
 			, Colors	{}
@@ -251,9 +251,9 @@ namespace ml::ImGuiExt
 			}
 
 			// execute procedure
-			if (auto const it{ std::find_if(Cmd.begin(), Cmd.end(), [&](CommandData const & e) {
+			if (auto const it{ std::find_if(Commands.begin(), Commands.end(), [&](CommandData const & e) {
 				return name == e.name;
-			}) }; it != Cmd.end())
+			}) }; it != Commands.end())
 			{
 				std::invoke(it->proc, std::move(line));
 
@@ -289,7 +289,7 @@ namespace ml::ImGuiExt
 
 				// build list of candidates
 				list<cstring> candidates{};
-				for (auto const & e : this->Cmd)
+				for (auto const & e : this->Commands)
 				{
 					cstring name{ e.name.c_str() };
 

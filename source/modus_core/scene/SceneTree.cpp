@@ -6,6 +6,37 @@ namespace ml
 {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+	entity scene_tree::create_entity()
+	{
+		return entity{ this, m_reg.create() };
+	}
+
+	void scene_tree::destroy_entity(entity const & value)
+	{
+		m_reg.destroy(value);
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+	void scene_tree::on_runtime_update(duration dt)
+	{
+		if (!m_root) { return; }
+
+		m_reg.view<behavior_component>().each([&](auto e, behavior_component & scr)
+		{
+			if (!scr.instance)
+			{
+				scr.instance = scr.create_instance();
+
+				scr.instance->on_create();
+			}
+
+			scr.instance->on_update(dt);
+		});
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	template <> void scene_tree::on_component_added<tag_component>(entity & e, tag_component & c)
 	{
 	}
@@ -18,7 +49,7 @@ namespace ml
 	{
 	}
 
-	template <> void scene_tree::on_component_added<native_script_component>(entity & e, native_script_component & c)
+	template <> void scene_tree::on_component_added<behavior_component>(entity & e, behavior_component & c)
 	{
 	}
 

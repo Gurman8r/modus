@@ -97,19 +97,21 @@ namespace ml
 				m_data.push_back(
 					lib->get_hash_code(),
 					lib->get_file_info(),
-					lib->target<addon *, addon_manager *, void *>("ml_addon_create"),
-					lib->target<void, addon_manager *, addon *>("ml_addon_destroy"),
+					lib->target<addon *, addon_manager *, void *>("ml_create_addon"),
+					lib->target<void, addon_manager *, addon *>("ml_destroy_addon"),
 					lib,
 					nullptr);
 
-				auto fn{ m_data.back<create_addon_fn>() };
-
-				if (addon * p{ m_data.back<create_addon_fn>()(this, userptr) }; !p) { return 0; }
+				if (auto fn{ m_data.back<create_addon_fn>() }; !fn) { return 0; }
 				else
 				{
-					m_data.back<scary<addon>>().reset(p);
+					if (addon * p{ fn(this, userptr) }; !p) { return 0; }
+					else
+					{
+						m_data.back<scary<addon>>().reset(p);
 
-					return m_data.back<hash_t>();
+						return m_data.back<hash_t>();
+					}
 				}
 			}
 		}

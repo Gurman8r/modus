@@ -10,8 +10,8 @@ debugdir 		"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/"
 kind			"SharedLib"
 language		"C++"
 cppdialect 		"C++17"
-rtti			"Off"
 staticruntime	"Off"
+rtti			"On"
 systemversion	"latest"
 
 dependson{

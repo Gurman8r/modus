@@ -11,7 +11,6 @@ namespace ml
 
 	application::application(int32 argc, char * argv[], json const & argj, allocator_type alloc)
 		: gui_application{ argc, argv, argj, alloc }
-		, m_active_scene{}
 	{
 		ML_ctor_global(application);
 
@@ -24,9 +23,9 @@ namespace ml
 			runtime_end_frame_event
 		>();
 
-		if (!is_interpreter_initialized() && !get_library_paths().empty())
+		if (!is_interpreter_initialized())
 		{
-			ML_verify(initialize_interpreter(get_app_file_name(), get_library_paths(0)));
+			ML_verify(initialize_interpreter(get_app_file_name(), get_app_data_path()));
 		}
 	}
 

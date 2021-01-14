@@ -19,21 +19,9 @@ namespace ml
 		virtual ~application() noexcept override;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	public:
-		ML_NODISCARD auto get_active_scene() const noexcept -> ref<scene_tree> const & { return m_active_scene; }
-
-		void set_active_scene(ref<scene_tree> const & value) noexcept { m_active_scene = value; }
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 		
 	protected:
 		virtual void on_event(event const & value) override;
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private:
-		ref<scene_tree> m_active_scene;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

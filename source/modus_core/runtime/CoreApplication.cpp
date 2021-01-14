@@ -15,7 +15,6 @@ namespace ml
 		, m_app_version		{ alloc }
 		, m_arguments		{ argv, argv + argc, alloc }
 		, m_attributes		{ json{ argj } }
-		, m_library_paths	{ alloc }
 		, m_temp_buffer		{ alloc }
 		, m_userptr			{}
 
@@ -31,7 +30,6 @@ namespace ml
 		if (auto j{ attr.find("app_name") }; j != attr.end()) { j->get_to(m_app_name); }
 		if (auto j{ attr.find("app_version") }; j != attr.end()) { j->get_to(m_app_version); }
 		if (auto j{ attr.find("arguments") }; j != attr.end()) { j->get_to(m_arguments); }
-		if (auto j{ attr.find("library_paths") }; j != attr.end()) { j->get_to(m_library_paths); }
 	}
 
 	core_application::~core_application() noexcept

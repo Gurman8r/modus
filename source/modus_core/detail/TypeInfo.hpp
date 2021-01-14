@@ -21,8 +21,11 @@
 // static string string
 #define ML_STATIC_STRING_STRING ML_xstr(ML_STATIC_STRING_CLASS)
 
-// string view
-namespace ml { ML_alias static_string = typename ML_STATIC_STRING_CLASS; }
+namespace ml
+{
+	// string view
+	ML_alias static_string = typename ML_STATIC_STRING_CLASS;
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -142,18 +145,12 @@ namespace ml
 #ifdef ML_cc_msvc
 	template <> struct nameof_t<int64> final
 	{
-		static constexpr static_string value
-		{
-			"long long"
-		};
+		static constexpr static_string value{ "long long" };
 	};
 
 	template <> struct nameof_t<uint64> final
 	{
-		static constexpr static_string value
-		{
-			"unsigned long long"
-		};
+		static constexpr static_string value{ "unsigned long long" };
 	};
 #endif
 
@@ -235,9 +232,9 @@ namespace ml
 	{
 		constexpr typeof_t() noexcept = default;
 
-		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return m_uuid; }
+		ML_NODISCARD constexpr operator hash_t() const noexcept { return hashof_v<T>; }
 
-		ML_NODISCARD static constexpr hash_t const & uuid() noexcept { return hashof_v<T>; }
+		ML_NODISCARD static constexpr hash_t const & hash_code() noexcept { return hashof_v<T>; }
 
 		ML_NODISCARD static constexpr static_string const & name() noexcept { return nameof_v<T>; }
 	};
@@ -247,24 +244,24 @@ namespace ml
 	template <> struct typeof_t<> final
 	{
 		constexpr typeof_t() noexcept
-			: m_name{}, m_uuid{}
+			: m_name{}, m_code{}
 		{
 		}
 
 		template <class ... T
 		> constexpr typeof_t(typeof_t<T...> const & other) noexcept
-			: m_uuid{ other.uuid() }, m_name{ other.name() }
+			: m_code{ other.hash_code() }, m_name{ other.name() }
 		{
 		}
 
-		ML_NODISCARD constexpr operator hash_t const & () const & noexcept { return m_uuid; }
+		ML_NODISCARD constexpr operator hash_t() const noexcept { return m_code; }
 
-		ML_NODISCARD constexpr hash_t const & uuid() const noexcept { return m_uuid; }
+		ML_NODISCARD constexpr hash_t const & hash_code() const noexcept { return m_code; }
 
 		ML_NODISCARD constexpr static_string const & name() const noexcept { return m_name; }
 
 	private:
-		hash_t			m_uuid	; // hash code
+		hash_t			m_code	; // hash code
 		static_string	m_name	; // type name
 	};
 	

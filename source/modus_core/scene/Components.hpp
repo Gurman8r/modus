@@ -4,7 +4,7 @@
 // WIP
 
 #include <modus_core/detail/Timer.hpp>
-#include <modus_core/scene/ScriptableEntity.hpp>
+#include <modus_core/scene/BehaviorScript.hpp>
 #include <modus_core/graphics/Camera.hpp>
 
 namespace ml
@@ -32,9 +32,9 @@ namespace ml
 	// transform component
 	struct ML_NODISCARD transform_component
 	{
-		vec3 position	; // 
-		vec4 rotation	; // 
-		vec3 scale		; // 
+		vec3 position; // 
+		vec4 rotation; // 
+		vec3 scale; // 
 
 		ML_NODISCARD mat4 get_transform() const
 		{
@@ -49,14 +49,14 @@ namespace ml
 	{
 		j["position"].get_to(v.position);
 		j["rotation"].get_to(v.rotation);
-		j["scale"	].get_to(v.scale);
+		j["scale"].get_to(v.scale);
 	}
 
 	inline void to_json(json & j, transform_component const & v)
 	{
 		j["position"] = v.position;
 		j["rotation"] = v.rotation;
-		j["scale"	] = v.scale;
+		j["scale"] = v.scale;
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -77,31 +77,31 @@ namespace ml
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	// native script component
-	struct ML_NODISCARD native_script_component
+	// behavior component
+	struct ML_NODISCARD behavior_component
 	{
-		scriptable_entity *							instance	; // 
-		method<void()>								allocate	; // 
-		method<void()>								deallocate	; // 
-		method<void(scriptable_entity *)>			on_create	; // 
-		method<void(scriptable_entity *)>			on_destroy	; // 
-		method<void(scriptable_entity *, duration)>	on_update	; // 
+		behavior_script * instance{};
+		method<behavior_script * ()> create_instance{};
+		method<void(behavior_component *)> destroy_instance{};
+
+		~behavior_component() noexcept
+		{
+			if (destroy_instance) { destroy_instance(this); }
+		}
 
 		template <class T> void bind()
 		{
-			allocate	= [&instance]() { instance = ML_new(T); };
-			deallocate	= [&instance]() { ML_delete((T *)instance); };
-			on_create	= [](scriptable_entity * instance) { ((T *)instance)->on_create(); };
-			on_destroy	= [](scriptable_entity * instance) { ((T *)instance)->on_destroy(); };
-			on_update	= [](scriptable_entity * instance, duration dt) { ((T *)instance)->on_update(std::move(dt)); };
+			create_instance = []() { return ML_new(T); };
+
+			destroy_instance = [](auto scr) { ML_delete((T *)scr->instance); scr->instance = nullptr; };
 		}
 	};
 
-	inline void from_json(json const & j, native_script_component & v)
+	inline void from_json(json const & j, behavior_component & v)
 	{
 	}
 
-	inline void to_json(json & j, native_script_component const & v)
+	inline void to_json(json & j, behavior_component const & v)
 	{
 	}
 

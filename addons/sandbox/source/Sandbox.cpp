@@ -2,6 +2,17 @@
 
 namespace ml
 {
+	struct fps_camera : behavior_script
+	{
+		using behavior_script::behavior_script;
+
+		void on_create() override {}
+
+		void on_destroy() override {}
+
+		void on_update(duration dt) override {}
+	};
+
 	struct ML_PLUGIN_API sandbox final : addon
 	{
 	public:
@@ -171,27 +182,27 @@ namespace ml
 			m_cc.set_pitch(-25.f);
 
 			// scene
-			auto & scene0 = m_scenes["0"] = make_ref<scene_tree>("New Scene");
-			m_scene_editor.set_context(scene0);
-			if (ref<entity> e0{ scene0->new_entity("entity 0") })
+			auto & tree = m_scenes["0"] = make_ref<scene_tree>("New Scene");
+			m_scene_editor.set_context(tree);
+			if (auto n{ tree->get_root()->new_child("New Entity") })
 			{
-				e0->add_component<camera_component>();
-				e0->add_component<native_script_component>();
+				auto & ent = n->set_value<entity>(tree);
+				auto & tag = ent.add_component<tag_component>(n->get_name());
+				auto & xfm = ent.add_component<transform_component>();
+				auto & cam = ent.add_component<camera_component>();
+				auto & scr = ent.add_component<behavior_component>();
 			}
-			scene0->new_entity("entity 1");
-			scene0->new_entity("entity 2");
-			scene0->new_entity("entity 3");
 			
 			// terminal
 			m_terminal.UserName = "root";
 			m_terminal.HostName = "localhost";
 			m_terminal.PathName = "~";
 			m_terminal.ModeName = "";
-			m_terminal.Cmd.push_back({ "clear", {}, [&](auto line) { m_terminal.Output.Lines.clear(); } });
-			m_terminal.Cmd.push_back({ "exit", {}, [&](auto line) { ML_get_global(application)->quit(); } });
-			m_terminal.Cmd.push_back({ "help", {}, [&](auto line) { for (auto const & e : m_terminal.Cmd) { debug::puts("/{0}", e.name); } } });
-			m_terminal.Cmd.push_back({ "history", {}, [&](auto line) { for (auto const & e : m_terminal.History) { debug::puts(e); } } });
-			m_terminal.Cmd.push_back({ "python", {}, [&](auto line) {
+			m_terminal.Commands.push_back({ "clear", {}, [&](auto line) { m_terminal.Output.Lines.clear(); } });
+			m_terminal.Commands.push_back({ "exit", {}, [&](auto line) { ML_get_global(application)->quit(); } });
+			m_terminal.Commands.push_back({ "help", {}, [&](auto line) { for (auto const & e : m_terminal.Commands) { debug::puts("/{0}", e.name); } } });
+			m_terminal.Commands.push_back({ "history", {}, [&](auto line) { for (auto const & e : m_terminal.History) { debug::puts(e); } } });
+			m_terminal.Commands.push_back({ "python", {}, [&](auto line) {
 				if (m_terminal.ModeName.empty() && line.empty()) {
 					m_terminal.ModeName = "python"; return; // lock
 				}
@@ -526,7 +537,7 @@ namespace ml
 				}
 				
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 2, 2 });
-				edit_node(std::static_pointer_cast<entity>(scene0->get_root()),
+				m_scene_editor.draw_hierarchy(
 					ImGuiTreeNodeFlags_DefaultOpen |
 					ImGuiTreeNodeFlags_Framed |
 					ImGuiTreeNodeFlags_FramePadding |
@@ -570,12 +581,12 @@ namespace ml
 
 extern "C"
 {
-	ML_PLUGIN_API ml::addon * ml_addon_create(ml::addon_manager * manager, void * userptr)
+	ML_PLUGIN_API ml::addon * ml_create_addon(ml::addon_manager * manager, void * userptr)
 	{
 		return manager->allocate<ml::sandbox>(userptr);
 	}
 
-	ML_PLUGIN_API void ml_addon_destroy(ml::addon_manager * manager, ml::addon * ptr)
+	ML_PLUGIN_API void ml_destroy_addon(ml::addon_manager * manager, ml::addon * ptr)
 	{
 		manager->deallocate<ml::sandbox>(ptr);
 	}

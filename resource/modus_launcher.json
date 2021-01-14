@@ -2,7 +2,6 @@
 	"app_name": "modus launcher",
 	"app_version": "alpha",
 	"app_data_path": "../../../",
-	"library_paths": [ "../../../" ],
 
 	"imgui": {
 		"style": { "path": "resource/modus_launcher.style" }

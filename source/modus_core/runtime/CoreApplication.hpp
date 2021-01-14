@@ -65,14 +65,6 @@ namespace ml
 
 		template <class I> ML_NODISCARD bool has_attr(I && i) const noexcept { return m_attributes.contains(ML_forward(i)); }
 
-		ML_NODISCARD auto get_library_paths() noexcept -> list<fs::path> & { return m_library_paths; }
-
-		ML_NODISCARD auto get_library_paths() const noexcept -> list<fs::path> const & { return m_library_paths; }
-
-		ML_NODISCARD auto get_library_paths(size_t i) noexcept -> fs::path & { return m_library_paths[i]; }
-
-		ML_NODISCARD auto get_library_paths(size_t i) const noexcept -> fs::path const & { return m_library_paths[i]; }
-
 		ML_NODISCARD auto get_path_to(fs::path const & value) const noexcept -> fs::path { return m_app_data_path.native() + value.native(); }
 
 		ML_NODISCARD auto get_temp_buffer() noexcept -> list<byte> & { return m_temp_buffer; }
@@ -196,7 +188,6 @@ namespace ml
 		string			m_app_version	; // app version
 		list<string>	m_arguments		; // arguments
 		json			m_attributes	; // attributes
-		list<fs::path>	m_library_paths	; // library paths
 		list<byte>		m_temp_buffer	; // temp buffer
 		void *			m_userptr		; // user pointer
 

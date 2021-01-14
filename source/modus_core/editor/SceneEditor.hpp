@@ -6,7 +6,7 @@
 
 namespace ml
 {
-	struct ML_NODISCARD ML_CORE_API scene_editor final
+	struct ML_NODISCARD ML_CORE_API scene_editor final : non_copyable, trackable
 	{
 	public:
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -15,17 +15,22 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void draw_hierarchy();
-
-		void draw_inspector();
-
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 		ML_NODISCARD auto get_context() const noexcept -> ref<scene_tree> const & { return m_context; }
 
 		void set_context(ref<scene_tree> const & value) noexcept { m_context = value; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void draw_hierarchy(ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None);
+
+		void draw_inspector();
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+		void edit_node(ref<tree_node> const & value, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None);
+
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 	private:
 		ref<scene_tree>	m_context	; // 
 		ref<scene_tree>	m_selected	; // 

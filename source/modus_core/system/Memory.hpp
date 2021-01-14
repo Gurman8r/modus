@@ -154,7 +154,7 @@ namespace ml
 
 		template <class U> void operator()(U * value) const noexcept
 		{
-			ML_delete(value);
+			ML_delete((T *)value);
 		}
 	};
 
@@ -211,10 +211,10 @@ namespace ml
 	// memory record
 	struct ML_NODISCARD memory_record final
 	{
-		byte * addr		; // address
 		size_t index	; // index
 		size_t count	; // count
 		size_t size		; // size
+		byte * addr		; // address
 
 		ML_NODISCARD constexpr operator bool() const noexcept
 		{
@@ -235,17 +235,17 @@ namespace ml
 	static void to_json(json & j, memory_record const & v)
 	{
 		j["index"	] = v.index;
-		j["addr"	] = (intptr_t)v.addr;
 		j["count"	] = v.count;
 		j["size"	] = v.size;
+		j["addr"	] = (intptr_t)v.addr;
 	}
 
 	static void from_json(json const & j, memory_record & v)
 	{
 		j["index"	].get_to(v.index);
-		j["addr"	].get_to(*(intptr_t *)v.addr);
 		j["count"	].get_to(v.count);
 		j["size"	].get_to(v.size);
+		j["addr"	].get_to(*(intptr_t *)v.addr);
 	}
 }
 
@@ -259,14 +259,14 @@ namespace ml
 
 		using allocator_type = typename pmr::polymorphic_allocator<byte>;
 
-		enum : size_t { id_addr, id_index, id_count, id_size };
+		enum : size_t { id_index, id_count, id_size, id_addr };
 
 		using record_storage = typename batch_vector
 		<
-			byte *	,	// address
-			size_t	,	// index
-			size_t	,	// count
-			size_t		// size
+			size_t,	// index
+			size_t,	// count
+			size_t,	// size
+			byte *	// address
 		>;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -379,17 +379,11 @@ namespace ml
 		ML_NODISCARD auto get_record(size_t i) const noexcept -> memory_record
 		{
 			return {
-				m_records.get<id_addr>(i),
 				m_records.get<id_index>(i),
 				m_records.get<id_index>(i),
-				m_records.get<id_index>(i)
+				m_records.get<id_index>(i),
+				m_records.get<id_addr>(i)
 			};
-		}
-
-		// get record address
-		ML_NODISCARD auto get_record_addr(size_t i) const noexcept -> byte *
-		{
-			return m_records.get<id_addr>(i);
 		}
 
 		// get record index
@@ -410,16 +404,21 @@ namespace ml
 			return m_records.get<id_size>(i);
 		}
 
+		// get record address
+		ML_NODISCARD auto get_record_addr(size_t i) const noexcept -> byte *
+		{
+			return m_records.get<id_addr>(i);
+		}
+
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		void * do_allocate(size_t count, size_t size) noexcept
 		{
-			byte * const addr{ m_alloc.allocate(count * size) };
-
-			m_records.push_back(addr, ++m_counter, count, size);
-
-			return addr;
+			return std::get<id_addr>(m_records.push_back
+			(
+				++m_counter, count, size, m_alloc.allocate(count * size))
+			);
 		}
 
 		void do_deallocate(void * addr) noexcept

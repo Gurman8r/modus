@@ -12,7 +12,7 @@ namespace ml
 	// addon manager
 	struct addon_manager;
 
-	// native addon
+	// addon
 	struct ML_CORE_API addon : non_copyable, trackable, event_listener
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

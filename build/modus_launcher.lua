@@ -10,7 +10,7 @@ debugdir 		"%{wks.location}/bin/%{cfg.platform}/%{cfg.buildcfg}/"
 language		"C++"
 cppdialect 		"C++17"
 staticruntime	"Off"
-rtti			"Off"
+rtti			"On"
 systemversion	"latest"
 
 dependson{

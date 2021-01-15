@@ -139,27 +139,27 @@ namespace ml
 	public:
 		ML_NODISCARD auto index() const noexcept -> size_t { return m_data.index(); }
 		
-		ML_NODISCARD bool is_valid() const noexcept { return m_data.index() != ID_invalid; }
+		ML_NODISCARD bool is_valid() const noexcept { return index() != ID_invalid; }
 
-		ML_NODISCARD bool is_null() const noexcept { return m_data.index() == ID_null; }
+		ML_NODISCARD bool is_null() const noexcept { return index() == ID_null; }
 
-		ML_NODISCARD bool is_boolean() const noexcept { return m_data.index() == ID_boolean; }
+		ML_NODISCARD bool is_boolean() const noexcept { return index() == ID_boolean; }
 
-		ML_NODISCARD bool is_number_integer() const noexcept { return m_data.index() == ID_integer; }
+		ML_NODISCARD bool is_number_integer() const noexcept { return index() == ID_integer; }
 
-		ML_NODISCARD bool is_number_unsigned() const noexcept { return m_data.index() == ID_unsigned; }
+		ML_NODISCARD bool is_number_unsigned() const noexcept { return index() == ID_unsigned; }
 		
-		ML_NODISCARD bool is_number_float() const noexcept { return m_data.index() == ID_float; }
+		ML_NODISCARD bool is_number_float() const noexcept { return index() == ID_float; }
 
 		ML_NODISCARD bool is_number() const noexcept { return is_number_integer() || is_number_unsigned() || is_number_float(); }
 
 		ML_NODISCARD bool is_scalar() const noexcept { return is_boolean() || is_number(); }
 
-		ML_NODISCARD bool is_string() const noexcept { return m_data.index() == ID_string; }
+		ML_NODISCARD bool is_string() const noexcept { return index() == ID_string; }
 
-		ML_NODISCARD bool is_primitive() const noexcept { return m_data.index() <= ID_string; }
+		ML_NODISCARD bool is_primitive() const noexcept { return index() <= ID_string; }
 
-		ML_NODISCARD bool is_object() const noexcept { return m_data.index() == ID_object; }
+		ML_NODISCARD bool is_object() const noexcept { return index() == ID_object; }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

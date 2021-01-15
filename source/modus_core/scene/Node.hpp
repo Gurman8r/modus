@@ -1,5 +1,5 @@
-#ifndef _ML_TREE_NODE_HPP_
-#define _ML_TREE_NODE_HPP_
+#ifndef _ML_NODE_HPP_
+#define _ML_NODE_HPP_
 
 #include <modus_core/system/Variable.hpp>
 
@@ -7,22 +7,22 @@ namespace ml
 {
 	struct scene_tree;
 
-	// tree node
-	struct ML_CORE_API tree_node : non_copyable, trackable, std::enable_shared_from_this<tree_node>
+	// node
+	struct ML_CORE_API node : non_copyable, trackable, std::enable_shared_from_this<node>
 	{
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
 		using allocator_type			= typename pmr::polymorphic_allocator<byte>;
-		using iterator					= typename list<ref<tree_node>>::iterator;
-		using const_iterator			= typename list<ref<tree_node>>::const_iterator;
-		using reverse_iterator			= typename list<ref<tree_node>>::reverse_iterator;
-		using const_reverse_iterator	= typename list<ref<tree_node>>::const_reverse_iterator;
+		using iterator					= typename list<ref<node>>::iterator;
+		using const_iterator			= typename list<ref<node>>::const_iterator;
+		using reverse_iterator			= typename list<ref<node>>::reverse_iterator;
+		using const_reverse_iterator	= typename list<ref<node>>::const_reverse_iterator;
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		tree_node(allocator_type alloc = {}) noexcept
+		node(allocator_type alloc = {}) noexcept
 			: m_name	{ "New Node", alloc }
 			, m_tree	{}
 			, m_parent	{}
@@ -31,7 +31,7 @@ namespace ml
 		{
 		}
 
-		tree_node(string const & name, scene_tree * tree, tree_node * parent = {}, allocator_type alloc = {})
+		node(string const & name, scene_tree * tree, ref<node> const & parent = {}, allocator_type alloc = {})
 			: m_name	{ name.empty() ? "New Node" : name, alloc }
 			, m_tree	{ tree }
 			, m_parent	{ parent }
@@ -40,7 +40,7 @@ namespace ml
 		{
 		}
 
-		tree_node(tree_node && other, allocator_type alloc = {}) noexcept
+		node(node && other, allocator_type alloc = {}) noexcept
 			: m_name	{ alloc }
 			, m_tree	{}
 			, m_parent	{}
@@ -50,13 +50,13 @@ namespace ml
 			this->swap(std::move(other));
 		}
 
-		tree_node & operator=(tree_node && other) noexcept
+		node & operator=(node && other) noexcept
 		{
 			this->swap(std::move(other));
 			return (*this);
 		}
 
-		void swap(tree_node & other) noexcept
+		void swap(node & other) noexcept
 		{
 			if (this != std::addressof(other))
 			{
@@ -94,12 +94,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
-		ML_NODISCARD auto get_child(size_t i) noexcept -> ref<tree_node> &
+		ML_NODISCARD auto get_child(size_t i) noexcept -> ref<node> &
 		{
 			return m_children[i];
 		}
 
-		ML_NODISCARD auto get_child(size_t i) const noexcept -> ref<tree_node> const &
+		ML_NODISCARD auto get_child(size_t i) const noexcept -> ref<node> const &
 		{
 			return m_children[i];
 		}
@@ -109,44 +109,44 @@ namespace ml
 			return m_children.size();
 		}
 
-		ML_NODISCARD auto get_children() noexcept -> list<ref<tree_node>> &
+		ML_NODISCARD auto get_children() noexcept -> list<ref<node>> &
 		{
 			return m_children;
 		}
 
-		ML_NODISCARD auto get_children() const noexcept -> list<ref<tree_node>> const &
+		ML_NODISCARD auto get_children() const noexcept -> list<ref<node>> const &
 		{
 			return m_children;
 		}
 
-		ML_NODISCARD auto get_parent() const noexcept -> ref<tree_node>
+		ML_NODISCARD bool is_orphan() const noexcept
 		{
-			return m_parent ? m_parent->shared_from_this() : nullptr;
+			return m_parent.expired();
 		}
 
-		ML_NODISCARD auto get_root() const noexcept -> ref<tree_node>
+		ML_NODISCARD auto get_parent() const noexcept -> ref<node>
 		{
-			return m_parent ? m_parent->get_root() : std::const_pointer_cast<tree_node>(shared_from_this());
+			return !is_orphan() ? m_parent.lock() : nullptr;
+		}
+
+		ML_NODISCARD auto get_root() const noexcept -> ref<node>
+		{
+			return !is_orphan() ? get_parent()->get_root() : std::const_pointer_cast<node>(shared_from_this());
 		}
 
 		ML_NODISCARD auto get_sibling_count() const noexcept -> size_t
 		{
-			return m_parent ? m_parent->get_child_count() : 0;
+			return !is_orphan() ? get_parent()->get_child_count() : 0;
 		}
 
 		ML_NODISCARD auto get_sibling_index() const noexcept -> size_t
 		{
-			if (!m_parent) { return static_cast<size_t>(-1); }
+			if (is_orphan()) { return static_cast<size_t>(-1); }
 			else
 			{
-				list<ref<tree_node>> const & v{ m_parent->m_children };
-				
-				auto const it{ std::find_if(v.begin(), v.end(), [&
-				](auto const & e) noexcept { return this == e.get(); }) };
-				
-				ML_assert(it != v.end());
-				
-				return (size_t)std::distance(v.begin(), it);
+				auto const & siblings{ get_parent()->get_children() };
+				return (size_t)std::distance(siblings.begin(), std::find_if(siblings.begin(), siblings.end(), [&
+				](auto const & e) noexcept { return this == e.get(); }));
 			}
 		}
 
@@ -155,55 +155,43 @@ namespace ml
 			return m_tree;
 		}
 
-		ML_NODISCARD bool is_child_of(tree_node const * other) const noexcept
+		ML_NODISCARD bool is_child_of(ref<node> const & other) const noexcept
 		{
-			if (!m_parent)
+			if (is_orphan() || !other || (this == other.get()))
 			{
 				return false;
 			}
-			else if ((m_parent == other) || !other || !other->m_parent)
+			else if (get_parent() == other)
 			{
 				return true;
 			}
 			else
 			{
-				for (auto const & child : other->m_children)
+				return (bool)other->find_if<true>([&](ref<node> const & child) noexcept
 				{
-					if (is_child_of(child))
-					{
-						return true;
-					}
-				}
-				return false;
+					return is_child_of(child);
+				});
 			}
-		}
-
-		ML_NODISCARD bool is_child_of(ref<tree_node> const & other) const noexcept
-		{
-			return is_child_of(other.get());
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		auto new_child(string const & name) -> ref<tree_node> &
+		auto new_child(string const & name) -> ref<node> &
 		{
-			return m_children.emplace_back(_ML make_ref<tree_node>(name, m_tree, this));
+			return m_children.emplace_back(_ML make_ref<node>(name, m_tree, shared_from_this()));
 		}
 
-		bool add_child(ref<tree_node> const & value) noexcept
+		void add_child(ref<node> const & value)
 		{
-			return value && value->set_parent(this);
+			if (value) { value->set_parent(shared_from_this()); }
 		}
 
 		void delete_child(size_t i)
 		{
-			if (i < m_children.size())
-			{
-				m_children.erase(m_children.begin() + (ptrdiff_t)i);
-			}
+			if (i < m_children.size()) { m_children.erase(m_children.begin() + (ptrdiff_t)i); }
 		}
 
-		void delete_children()
+		void clear_children()
 		{
 			m_children.clear();
 		}
@@ -212,61 +200,50 @@ namespace ml
 		{
 			for (auto const & child : m_children)
 			{
-				if (child->m_parent = m_parent)
-				{
-					m_parent->m_children.push_back(child);
-				}
+				child->m_parent = m_parent;
+
+				if (!is_orphan()) { get_parent()->m_children.push_back(child); }
 			}
+
 			m_children.clear();
 		}
 
-		bool set_parent(tree_node * value)
+		bool set_parent(ref<node> const & value)
 		{
-			if (!value || (this == value) || value->is_child_of(this)) { return false; }
-			
-			if (value) { value->m_children.push_back(shared_from_this()); }
-
-			if (m_parent)
+			if (auto self{ shared_from_this() }; !value || value->is_child_of(self))
 			{
-				list<ref<tree_node>> & v{ m_parent->m_children };
-
-				auto const it{ std::find_if(v.begin(), v.end(), [&
-				](auto const & e) noexcept { return this == e.get(); }) };
-
-				ML_assert(it != v.end());
-
-				v.erase(it);
+				return false;
 			}
+			else
+			{
+				if (value) { value->m_children.push_back(self); }
 
-			m_parent = value;
+				if (!is_orphan()) { get_parent()->delete_child(get_sibling_index()); }
 
-			return true;
-		}
+				m_parent = value;
 
-		bool set_parent(ref<tree_node> const & value) noexcept
-		{
-			return value && set_parent(value.get());
+				return true;
+			}
 		}
 
 		void set_sibling_index(size_t i)
 		{
-			if (!m_parent) { return; }
-			size_t index{ get_sibling_index() };
-			if (index == i) { return; }
+			auto self{ shared_from_this() };
+
+			if (!self || is_orphan()) { return; }
+
+			auto & siblings{ get_parent()->m_children };
 			
-			static ref<tree_node> temp{ nullptr };
-			auto & v{ m_parent->m_children };
-			temp = *(v.begin() + (ptrdiff_t)index);
-			v.erase(v.begin() + index);
-			v.insert(v.begin() + i, temp);
-			temp = nullptr;
+			siblings.erase(siblings.begin() + get_sibling_index());
+			
+			siblings.insert(siblings.begin() + i, self);
 		}
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	public:
 		template <bool Recursive = false, class Pr
-		> auto find_if(Pr && pr) -> ref<tree_node>
+		> auto find_if(Pr && pr) -> ref<node>
 		{
 			if (auto const it{ std::find_if(begin(), end(), ML_forward(pr)) }; it != end())
 			{
@@ -286,7 +263,7 @@ namespace ml
 		}
 
 		template <bool Recursive = false, class Pr
-		> auto find_if(Pr && pr) const -> ref<tree_node>
+		> auto find_if(Pr && pr) const -> ref<node>
 		{
 			if (auto const it{ std::find_if(cbegin(), cend(), ML_forward(pr)) }; it != cend())
 			{
@@ -305,16 +282,38 @@ namespace ml
 			return nullptr;
 		}
 
-		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+		template <bool Recursive = false
+		> auto find(node const * value) -> ref<node>
+		{
+			return this->find_if<Recursive>([&](auto const & e) { return e && e->get() == value; });
+		}
 
 		template <bool Recursive = false
-		> auto find(string const & name) -> ref<tree_node>
+		> auto find(ref<node> const & value) const -> ref<node>
+		{
+			return this->find_if<Recursive>([&](auto const & e) { return e && e == value; });
+		}
+
+		template <bool Recursive = false
+		> auto find(ref<node> const & value) -> ref<node>
+		{
+			return this->find_if<Recursive>([&](auto const & e) { return e && e == value; });
+		}
+
+		template <bool Recursive = false
+		> auto find(node const * value) const -> ref<node>
+		{
+			return this->find_if<Recursive>([&](auto const & e) { return e && e->get() == value; });
+		}
+
+		template <bool Recursive = false
+		> auto find(string const & name) -> ref<node>
 		{
 			return this->find_if<Recursive>([&](auto const & e) { return e && e->get_name() == name; });
 		}
 
 		template <bool Recursive = false
-		> auto find(string const & name) const -> ref<tree_node>
+		> auto find(string const & name) const -> ref<node>
 		{
 			return this->find_if<Recursive>([&](auto const & e) { return e && e->get_name() == name; });
 		}
@@ -352,13 +351,13 @@ namespace ml
 		friend scene_tree;
 
 		string					m_name		; // name
-		scene_tree *			m_tree		; // tree
-		tree_node *				m_parent	; // parent
-		list<ref<tree_node>>	m_children	; // children
+		scene_tree *		m_tree		; // tree
+		weak<node>			m_parent	; // parent
+		list<ref<node>>		m_children	; // children
 		variable				m_value		; // value
 		
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};
 }
 
-#endif // !_ML_TREE_NODE_HPP_
+#endif // !_ML_NODE_HPP_

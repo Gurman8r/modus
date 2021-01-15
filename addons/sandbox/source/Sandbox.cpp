@@ -184,13 +184,13 @@ namespace ml
 			// scene
 			ref<scene_tree> tree = m_scenes["0"] = make_ref<scene_tree>("New Scene");
 			m_scene_editor.set_context(tree);
-			if (ref<tree_node> node{ tree->get_root()->new_child("New Entity") })
+			if (ref<node> n{ tree->get_root()->new_child("New Entity") })
 			{
-				auto & ent = node->emplace<entity>(tree);
-				auto & tag = ent.add_component<tag_component>(node->get_name());
-				auto & xfm = ent.add_component<transform_component>();
-				auto & cam = ent.add_component<camera_component>();
-				auto & scr = ent.add_component<behavior_component>();
+				auto & ent = n->emplace<entity>(tree);
+				auto & tag = ent.add<tag_component>(n->get_name());
+				auto & xfm = ent.add<transform_component>();
+				auto & cam = ent.add<camera_component>();
+				auto & scr = ent.add<behavior_component>();
 			}
 			
 			// terminal

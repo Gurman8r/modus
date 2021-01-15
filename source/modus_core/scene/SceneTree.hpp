@@ -3,7 +3,7 @@
 
 #include <modus_core/detail/Duration.hpp>
 #include <modus_core/detail/Matrix.hpp>
-#include <modus_core/scene/TreeNode.hpp>
+#include <modus_core/scene/Node.hpp>
 #include <modus_core/system/EventSystem.hpp>
 #include <entt/entt.hpp>
 
@@ -26,7 +26,7 @@ namespace ml
 		scene_tree(string const & name, allocator_type alloc = {}) noexcept
 			: m_name{ name.empty() ? "New Scene" : name, alloc }
 			, m_reg	{}
-			, m_root{ _ML make_ref<tree_node>(name, this, nullptr, alloc) }
+			, m_root{ _ML make_ref<node>(name, this, nullptr, alloc) }
 		{
 		}
 
@@ -59,11 +59,15 @@ namespace ml
 	public:
 		ML_NODISCARD auto get_name() const noexcept -> string const & { return m_name; }
 
-		ML_NODISCARD auto get_root() noexcept -> ref<tree_node> & { return m_root; }
+		ML_NODISCARD auto get_reg() noexcept -> entt::registry & { return m_reg; }
 
-		ML_NODISCARD auto get_root() const noexcept -> ref<tree_node> const & { return m_root; }
+		ML_NODISCARD auto get_reg() const noexcept -> entt::registry const & { return m_reg; }
 
-		void set_name(string const & value) noexcept { if (m_name != value) { m_name = value; } }
+		ML_NODISCARD auto get_root() noexcept -> ref<node> & { return m_root; }
+
+		ML_NODISCARD auto get_root() const noexcept -> ref<node> const & { return m_root; }
+
+		void set_name(string const & name) noexcept { if (m_name != name) { m_name = name; } }
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -78,12 +82,12 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
-		friend tree_node;
+		friend node;
 		friend entity;
 
 		string			m_name	; // name
 		entt::registry	m_reg	; // registry
-		ref<tree_node>	m_root	; // root node
+		ref<node>		m_root	; // root node
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

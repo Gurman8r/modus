@@ -27,13 +27,13 @@ namespace ml
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		void edit_node(ref<tree_node> const & value, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None);
+		void edit_node(ref<node> const & value, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None);
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private:
 		ref<scene_tree>	m_context	; // 
-		ref<tree_node>	m_selected	; // 
+		ref<node>	m_selected	; // 
 
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	};

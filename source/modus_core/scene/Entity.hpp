@@ -26,7 +26,7 @@ namespace ml
 
 		explicit entity(scene_tree * tree) noexcept
 			: m_tree	{ tree }
-			, m_handle	{ tree ? tree->m_reg.create() : entt::null }
+			, m_handle	{ tree ? tree->get_reg().create() : entt::null }
 		{
 		}
 
@@ -85,7 +85,7 @@ namespace ml
 		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 		template <class T, class ... Args
-		> auto & add_component(Args && ... args) noexcept
+		> auto & add(Args && ... args) noexcept
 		{
 			ML_assert(is_valid());
 
@@ -104,19 +104,19 @@ namespace ml
 		}
 
 		template <class ... T
-		> ML_NODISCARD decltype(auto) get_component() noexcept
+		> ML_NODISCARD decltype(auto) get() noexcept
 		{
 			ML_assert(is_valid()); return m_tree->m_reg.get<T...>(m_handle);
 		}
 
 		template <class ... T
-		> ML_NODISCARD bool has_component() const noexcept
+		> ML_NODISCARD bool has() const noexcept
 		{
 			ML_assert(is_valid()); return m_tree->m_reg.has<T...>(m_handle);
 		}
 
 		template <class ... T
-		> void remove_component() noexcept
+		> void remove() noexcept
 		{
 			ML_assert(is_valid()); m_tree->m_reg.remove<T...>(m_handle);
 		}
